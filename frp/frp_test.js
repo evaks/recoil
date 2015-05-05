@@ -1,0 +1,75 @@
+goog.provide('recoil.frp.FrpTest');
+
+goog.require('recoil.frp.Frp');
+goog.require('goog.testing.jsunit');
+goog.require('goog.dom');
+goog.require('goog.events');
+goog.require('goog.style');
+
+goog.setTestOnly('recoil.frp.FrpTest');
+
+function testBehaviourUp() {
+	function add1(a) {
+		return a + 1;
+	}
+	
+  var tm = new recoil.frp.TransactionManager();
+	var frp = new recoil.frp.Frp();
+	
+	var b = frp.createB(2);
+
+	
+	assertEquals(2, b.unsafeMetaGet().get());
+	
+	var c = frp.liftB(add1,b);
+	
+	// nothing should propagate yet we need to attach it
+	assertEquals(undefined, c.unsafeMetaGet());
+  
+	tm.attach(c);
+	
+	assertEquals(3, c.unsafeMetaGet().get());
+	
+}
+
+
+function testIsEqual() {
+  var overrideEquals = {
+    equals : function (a,b) {return true}
+  };
+
+  var loopTestA = {v:"a", some : {}};
+  var loopTestB = {v:"a", some : {}};
+  
+  loopTestA.some.me = loopTestA;
+  loopTestB.some.me = loopTestB;
+
+  assertTrue("loop eq", recoil.frp.isEqual(loopTestA,loopTestB));
+
+  loopTestB.some.me = loopTestA;
+  assertFalse("loop neq", recoil.frp.isEqual(loopTestA,loopTestB));
+  
+  assertFalse("test eq", {} === {});
+  assertTrue("override left",recoil.frp.isEqual(overrideEquals,[1,2,3]));
+  assertTrue("override right",recoil.frp.isEqual([1,2,3],overrideEquals));
+  assertTrue("array eq", recoil.frp.isEqual([1,2,3],[1,2,3]));
+  assertFalse(recoil.frp.isEqual([1,2,3],[1,2,4]));
+  assertFalse(recoil.frp.isEqual([1,2,3],[1,2,3,4]));
+  assertFalse(recoil.frp.isEqual([1,2,3,4],[1,2,3]));
+  assertTrue(recoil.frp.isEqual([1,2,3],[1,2,3]));
+  assertTrue(recoil.frp.isEqual(1,1));
+
+  assertTrue(recoil.frp.isEqual({foo: "a"},{foo:"a"}));
+  assertFalse(recoil.frp.isEqual({foo: "a"},{foo:"a", b1 : "a"}));
+  assertFalse(recoil.frp.isEqual({foo: "b"},{foo:"a"}));
+  assertFalse(recoil.frp.isEqual(3,2));
+  assertFalse(recoil.frp.isEqual(undefined,2));
+  assertFalse(recoil.frp.isEqual(2,undefined));
+
+    assertFalse(recoil.frp.isEqual(null,2));
+  assertFalse(recoil.frp.isEqual(2,null));
+
+  assertTrue(recoil.frp.isEqual(goog.math.Long.fromInt(1),goog.math.Long.fromInt(1)));
+  assertFalse(recoil.frp.isEqual(goog.math.Long.fromInt(2),goog.math.Long.fromInt(1)));
+
+}
