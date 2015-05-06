@@ -9,7 +9,14 @@ goog.require('goog.style');
 goog.setTestOnly('recoil.frp.FrpTest');
 
 function testBehaviourUp() {
+	var count1 = 0;	
+	var count2 = 0;
 	function add1(a) {
+		count1++;
+		return a + 1;
+	}
+	function add2(a) {
+		count2++;
 		return a + 1;
 	}
 	
@@ -30,6 +37,15 @@ function testBehaviourUp() {
 	
 	assertEquals(3, c.unsafeMetaGet().get());
 	
+	assertEquals(1, count1);
+	var d = frp.liftB(add2,c);
+
+	tm.attach(d);
+	assertEquals("no extra fire", 1, count1);
+	assertEquals("one fire", 1, count2);
+
+	assertEquals(4, d.unsafeMetaGet().get());
+
 }
 
 
