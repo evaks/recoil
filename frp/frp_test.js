@@ -65,7 +65,7 @@ function testSwitchBUp() {
   var c = frp.createB(true);
   
   
-	var switchTest = frp.switchB(frp.lift(make1Or2, c));
+	var switchTest = frp.switchB(frp.liftB(make1Or2, c));
 
  	tm.attach(switchTest);
 
@@ -77,7 +77,7 @@ function testSwitchBUp() {
 
 function testIsEqual() {
   var overrideEquals = {
-    equals : function (a,b) {return true}
+    equals : function (a,b) {return true;}
   };
 
   var loopTestA = {v:"a", some : {}};

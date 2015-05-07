@@ -421,7 +421,7 @@ recoil.frp.VisibleObserver.setUniqueDomId_ = function(node) {
                           
  recoil.frp.VisibleObserver.prototype.getWatchedCount = function() {
     return this._states.getCount();
- }
+ };
                             
 
 /**
