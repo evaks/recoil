@@ -48,6 +48,32 @@ function testBehaviourUp() {
 
 }
 
+function testSwitchBUp() {
+
+  var tm = new recoil.frp.TransactionManager();
+	var frp = new recoil.frp.Frp();
+
+  function make1Or2(val) {
+    if (val) {
+    	return frp.createB(1);
+    }
+    else {
+    	return frp.createB(2);
+    }    
+  }
+  
+  var c = frp.createB(true);
+  
+  
+	var switchTest = frp.switchB(frp.lift(make1Or2, c));
+
+ 	tm.attach(switchTest);
+
+	assertEquals(3, c.unsafeMetaGet().get());
+
+
+}
+
 
 function testIsEqual() {
   var overrideEquals = {

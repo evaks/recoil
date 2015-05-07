@@ -43,6 +43,7 @@ recoil.frp.Frp = function(transactionManager) {
 };
 
 /**
+ *
  *  provides the status of the behaviour, e.g. is it ready, or an error occured
  *   
  *  @constructor
@@ -181,7 +182,7 @@ recoil.frp.Frp.Direction = {
          params.push(b.get());
       });
       
-			var newVal = behaviour._calc.apply(null, params);
+			var newVal = behaviour._calc.apply(behaviour, params);
 
 			if (!recoil.frp.isEqual(oldVal, newVal)) {
 			  behaviour._val = newVal;
@@ -212,7 +213,7 @@ recoil.frp.Frp.Direction = {
 			var changedDirty = [];
 			if (behaviour._dirty) {
 				var oldDirty = getDirty(behaviour._providers);
-				behaviour.inv(behaviour._val);
+				behaviour._inv.call(behaviour, behaviour._val);
 				var newDirty = getDirty(behaviour._providers);
 
 				for ( var id in newDirty) {
@@ -289,8 +290,34 @@ recoil.frp.Frp.prototype.createB = function(initial) {
 	return new recoil.frp.Behaviour(metaInitial, undefined, undefined, [ this._transactionManager.nextIndex() ]);
 };
 
-recoil.frp.Frp.prototype.switchB = function(Bb) {
-
+recoil.frp.Frp.prototype.metaSwitchB = function(Bb) {
+  var me = this._transactionManager;
+  return  this.metaLiftB(function() {
+      var switchB = this;
+      var metaBb = Bb.metaGet();
+      var res = recoil.frp.BStatus();
+      res.merge(metaBb);
+      var b = null;
+    
+      me._transactionManager.nestIds( function () {
+           if (metaB._value == null) {
+              switchB.updateProviders(Bb);
+           }
+           else {
+              switchB.updateProviders(Bb, metaB._value);
+              res.merge(metaB._value);
+           }
+           b = metaB._value;
+        });
+      },Bb);
+  
+      if (b !== null || b !== undefined) {}
+        res.set(b.get());
+        return b.metaGet();
+      }
+      return b;
+  
+  }, Bb);
 };
 
 
@@ -335,9 +362,18 @@ recoil.frp.Frp.prototype.liftB = function(func, providerArgs) {
 recoil.frp.TransactionManager = function() {
 	this._providers = [];
   this._dependancyMap = [];
-	this._curIndex = goog.math.Long.ZERO;
+	this._curIndex = [goog.math.Long.ZERO];
 };
 
+recoil.frp.prototype.nestIds = function(callback) {
+  try {
+    this._curIndex.push(goog.math.Long.ZERO);
+    callback();
+  }
+  finally {
+    this._curIndex.pop();      
+  }
+} 
 recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
 	var toDo = [ {
 		b : behaviour,
@@ -375,8 +411,10 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
 };
 
 recoil.frp.TransactionManager.prototype.nextIndex = function () {
-	this._curIndex = this._curIndex.add(goog.math.Long.ONE);
-	return this._curIndex;
+  var res = goog.array.clone(this._curIndex); 
+  var i = this._curIndex.length - 1;
+  this._curIndex[i] =   this._curIndex[i].add(goog.math.Long.ONE);
+	return res;
 };
 
 recoil.frp.TransactionManager.prototype.propogate = function(pending, dir) {
