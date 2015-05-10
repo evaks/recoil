@@ -336,20 +336,20 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
 
 		me._transactionManager.nestIds(function() {
 			if (metaBb._value == null) {
-				switchB.updateProviders(switchB, Bb);
+				switchB._updateProviders(switchB, Bb);
 			} else {
-				me._transactionManager.updateProviders(switchB, Bb,
+				me._transactionManager._updateProviders(switchB, Bb,
 						metaBb._value);
-				res.merge(metaB._value);
+				res.merge(metaBb._value);
 			}
-			b = metaB._value;
+			b = metaBb._value;
 		});
 
 		if (b !== null || b !== undefined) {
 			res.set(b.get());
-			return b.metaGet();
+			return res;
 		}
-		return b;
+		return res;
 
 	}, Bb);
 };
@@ -539,7 +539,7 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
 
 recoil.frp.TransactionManager.prototype._updateProviders = function(dependant) {
 	var oldVisited = this.visit(dependant);
-	var oldProviders = goog.array.clone(dependants._providers);
+	var oldProviders = goog.array.clone(dependant._providers);
 	dependant._providers = goog.array.clone(arguments);
 	// TODO remove the first argument it is the dependant
 	var newVisited = this.visit(dependant);
