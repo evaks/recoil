@@ -21,8 +21,8 @@ function TraverseDirection() {
  * 
  * @param {Behaviour}
  *            behaviour
- * @param {Array
- *            <Behaviour>} providers
+ * @param {Array<Behaviour>} providers
+ * 
  */
 TraverseDirection.prototype.calculate = function(behaviour, providers) {
 };
@@ -49,8 +49,9 @@ recoil.frp.Frp = function(transactionManager) {
 /**
  * 
  * provides the status of the behaviour, e.g. is it ready, or an error occured
- * 
+ * @param {T=} initial
  * @constructor
+ * @template T
  */
 recoil.frp.BStatus = function(initial) {
 	this._errors = [];
@@ -239,6 +240,7 @@ recoil.frp.Frp.Direction = {
 	}
 
 };
+
 /**
  * 
  * @constructor
@@ -248,7 +250,7 @@ recoil.frp.Frp.Direction = {
  * @param calc
  * @param inverse
  * @param sequence
- * @returns {recoil.frp.Behaviour{T}}
+ * @returns {recoil.frp.Behaviour<T>}
  */
 recoil.frp.Behaviour = function(value, calc, inverse, sequence, providers) {
 	var me = this;
@@ -264,10 +266,12 @@ recoil.frp.Behaviour = function(value, calc, inverse, sequence, providers) {
 	this._providers = providers || [];
 };
 
+
 /**
  * increases the reference count
  * 
  * @return true if count was zero
+ * 
  */
 recoil.frp.Behaviour.prototype.addRef = function() {
 	this._refs++;
