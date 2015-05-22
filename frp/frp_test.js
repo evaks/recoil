@@ -6,6 +6,8 @@ goog.require('goog.style');
 goog.require('goog.testing.jsunit');
 goog.require('recoil.frp.Frp');
 
+
+
 goog.setTestOnly('recoil.frp.FrpTest');
 
 function testBehaviourUp() {
@@ -20,6 +22,7 @@ function testBehaviourUp() {
         return a + 1;
     }
 
+    
     var tm = new recoil.frp.TransactionManager();
     var frp = new recoil.frp.Frp();
 
@@ -95,7 +98,7 @@ function testIsEqual() {
     loopTestB.some.me = loopTestA;
     assertFalse('loop neq', recoil.frp.isEqual(loopTestA, loopTestB));
 
-    assertFalse('test eq', {} === {});
+
     assertTrue('override left', recoil.frp.isEqual(overrideEquals, [1, 2, 3]));
     assertTrue('override right', recoil.frp.isEqual([1, 2, 3], overrideEquals));
     assertTrue('array eq', recoil.frp.isEqual([1, 2, 3], [1, 2, 3]));

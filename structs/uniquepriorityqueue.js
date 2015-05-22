@@ -6,14 +6,13 @@ goog.require('goog.structs.AvlTree');
  * Constructs a Priority Queue that if an item with the same priority is
  * already in the queue is added then nothing is done
  *
- * @param {Function=} comparator Function used to order the tree's nodes.
- * @constructor
  * @template T
+ * @param {function(T,T):number} comparator Function used to order the tree's nodes.
+ * @constructor
  */
 
 recoil.structs.UniquePriorityQueue = function(comparator) {
     this._tree = new goog.structs.AvlTree(comparator);
-
 };
 
 /**
@@ -28,6 +27,7 @@ recoil.structs.UniquePriorityQueue.prototype.push = function push(value) {
     if (this._tree.contains(value)) {
         return false;
     }
+    
 
     return this._tree.add(value);
 };
