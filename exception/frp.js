@@ -2,7 +2,6 @@ goog.provide('recoil.exception.frp.LoopDetected');
 goog.provide('recoil.exception.frp.NotInDom');
 
 
-
 /**
  * @constructor
  * @param {Node} node
@@ -12,8 +11,6 @@ recoil.exception.frp.NotInDom = function(node) {
     this._node = node;
 };
 
-
-
 /**
  * @constructor
  * @this {recoil.exception.frp.LoopDetected}
@@ -21,3 +18,4 @@ recoil.exception.frp.NotInDom = function(node) {
 recoil.exception.frp.LoopDetected = function() {
 
 };
+

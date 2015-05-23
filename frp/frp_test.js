@@ -6,8 +6,6 @@ goog.require('goog.style');
 goog.require('goog.testing.jsunit');
 goog.require('recoil.frp.Frp');
 
-
-
 goog.setTestOnly('recoil.frp.FrpTest');
 
 function testBehaviourUp() {

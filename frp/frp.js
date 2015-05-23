@@ -13,10 +13,9 @@ goog.require('recoil.structs.UniquePriorityQueue');
 /**
  * recoil.frp.TraverseDirection.
  * 
- * @param {function(recoil.frp.Behaviour,Array
- *                <recoil.frp.Behaviour>)} calc
- * @param {function(recoil.frp.Behaviour,recoil.frp.Behaviour):number}
- *                comparator
+ * @param {function(recoil.frp.Behaviour,Array <recoil.frp.Behaviour>, Array <recoil.frp.Behaviour>) : Array<recoil.frp.Behaviour>} calc
+ * 
+ * @param {function(recoil.frp.Behaviour,recoil.frp.Behaviour):number} comparator
  * @constructor
  */
 
@@ -25,45 +24,45 @@ recoil.frp.TraverseDirection = function(calc, comparator) {
     this.comparator_ = comparator;
 };
 
+
 /**
  * 
- * @param {recoil.frp.Behaviour}
- *                behaviour
- * @param {Array
- *                <recoil.frp.Behaviour>} providers
- * 
+ * @param {recoil.frp.Behaviour} behaviour
+ * @param {Array <recoil.frp.Behaviour>} providers
+ * @param {Array <recoil.frp.Behaviour>} dependents
+ * @return {Array <recoil.frp.Behaviour>}
  */
-recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers) {
-    this.calc_(behaviour);
+recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers, dependents) {
+    return this.calc_(behaviour, providers, dependents);
 };
+
+
 /**
  * 
- * @param {recoil.frp.Behaviour}
- *                a
- * @param {recoil.frp.Behaviour}
- *                b
+ * @param {recoil.frp.Behaviour} a
+ * @param {recoil.frp.Behaviour} b
  * @return {number}
  */
+
 
 recoil.frp.TraverseDirection.prototype.heapComparator = function(a, b) {
     return this.comparator_(a, b);
 };
 /**
  * 
- * @param {recoil.frp.TransactionManager}
- *                transactionManager
+ * @param {recoil.frp.TransactionManager=} opt_transactionManager
+ * 
  * @constructor
  */
-recoil.frp.Frp = function(transactionManager) {
-    this._transactionManager = transactionManager || new recoil.frp.TransactionManager();
+recoil.frp.Frp = function(opt_transactionManager) {
+    this._transactionManager = opt_transactionManager || new recoil.frp.TransactionManager();
 };
 
 /**
  * 
  * provides the status of the behaviour, e.g. is it ready, or an error occured
  * 
- * @param {T=}
- *                opt_initial
+ * @param {T=} opt_initial
  * @constructor
  * @template T
  */
@@ -76,8 +75,7 @@ recoil.frp.BStatus = function(opt_initial) {
 /**
  * combine this error and another to get a result
  * 
- * @param {recoil.frp.BStatus}
- *                other
+ * @param {recoil.frp.BStatus} other
  */
 recoil.frp.BStatus.prototype.merge = function(other) {
     this._errors = goog.array.concat(this._errors, other._errors);
@@ -87,26 +85,25 @@ recoil.frp.BStatus.prototype.merge = function(other) {
 /**
  * set the of the status
  * 
- * @param {recoil.frp.BStatus
- *                <T>} val
+ * @param {T} val
  */
 recoil.frp.BStatus.prototype.set = function(val) {
     this._value = val;
 };
 
+
 /**
- * @return {recoil.frp.BStatus<T>}
+ * @return {T}
  */
 recoil.frp.BStatus.prototype.get = function() {
     return this._value;
 };
 
+
 /**
  * @private
- * @param {Array
- *                <math.goog.Long>} a
- * @param {Array
- *                <math.goog.Long>} b
+ * @param {Array<goog.math.Long>} a
+ * @param {Array<goog.math.Long>} b
  * @return {number}
  */
 
@@ -185,8 +182,10 @@ recoil.frp.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
     var newBPath = goog.array.concat(bPath, [b]);
 
     if (goog.isArrayLike(a)) {
-        
-        return goog.array.equals(/** @type {goog.array.ArrayLike} */ (a), b, function(a, b) {
+
+        return goog.array.equals(/** @type {goog.array.ArrayLike} */
+        (a), /** @type {goog.array.ArrayLike} */
+        (b), function(a, b) {
             return recoil.frp.isEqual.isEqualRec_(a, b, newAPath, newBPath);
         });
     }
@@ -219,7 +218,13 @@ recoil.frp.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
 
 recoil.frp.Frp.Direction_ = {
 
-    UP: new recoil.frp.TraverseDirection(function(behaviour, providers, dependants) {
+    UP: new recoil.frp.TraverseDirection(
+            /** 
+             * @param {recoil.frp.Behaviour} behaviour 
+             * @param {Array <recoil.frp.Behaviour>} providers 
+             * @param {Array <recoil.frp.Behaviour>} dependents
+             * @return {Array <recoil.frp.Behaviour>} */
+            function(behaviour, providers, dependents) {
         var oldVal = behaviour._val;
 
         var params = [];
@@ -232,7 +237,7 @@ recoil.frp.Frp.Direction_ = {
         if (!recoil.frp.isEqual(oldVal, newVal)) {
             behaviour._val = newVal;
             behaviour._dirty = false;
-            return dependants;
+            return dependents;
         }
         behaviour._dirty = false;
 
@@ -241,12 +246,13 @@ recoil.frp.Frp.Direction_ = {
         return recoil.frp.Frp.compareSeq_(a._seq, b._seq);
     }),
 
+    
     DOWN: new recoil.frp.TraverseDirection(function(behaviour, providers, dependants) {
         function getDirty(dependants) {
             var res = {};
             for (var i = 0; i < dependants.length; i++) {
                 if (dependants[i]._dirty) {
-                    res[String(res._seq)] = dependants[i];
+                    res[String(dependants[i]._seq)] = dependants[i];
                 }
             }
             return res;
@@ -268,6 +274,8 @@ recoil.frp.Frp.Direction_ = {
             }
             behaviour._dirty = false;
         }
+        
+       
         return changedDirty;
     }, function(a, b) {
         return recoil.frp.Frp.compareSeq_(b._seq, a._seq);
@@ -281,16 +289,11 @@ recoil.frp.Frp.Direction_ = {
  * @constructor
  * @template T
  * 
- * @param {recoil.frp.BStatus
- *                <T> | undefined} value
- * @param {function(...) :
- *                T| undefined} calc
- * @param {function(T)|
- *                undefined} inverse
- * @param {Array
- *                <goog.math.Long>} sequence
- * @param {Array
- *                <recoil.frp.Behaviour>?} providers
+ * @param {recoil.frp.BStatus <T>} value
+ * @param {function(...) : T| undefined} calc
+ * @param {function(T)| undefined} inverse
+ * @param {Array <goog.math.Long>} sequence
+ * @param {Array <recoil.frp.Behaviour>?} providers
  */
 recoil.frp.Behaviour = function(value, calc, inverse, sequence, providers) {
     var me = this;
@@ -355,8 +358,7 @@ recoil.frp.Behaviour.prototype.metaGet = function() {
 
 /**
  * @template T
- * @param {T}
- *                initial
+ * @param {T} initial
  * @return {recoil.frp.Behaviour<T>}
  */
 recoil.frp.Frp.prototype.createB = function(initial) {
@@ -366,13 +368,14 @@ recoil.frp.Frp.prototype.createB = function(initial) {
 /**
  * 
  * @template T
- * @param  {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} Bb
+ * @param {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} Bb
  * @return {T}
  */
 recoil.frp.Frp.prototype.switchB = function(Bb) {
     var me = this;
     return this.metaLiftB(function() {
         var switchB = this;
+        /** @type recoil.frp.BStatus<recoil.frp.Behaviour> */
         var metaBb = Bb.metaGet();
         var res = new recoil.frp.BStatus();
         res.merge(metaBb);
@@ -382,8 +385,8 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
             if (metaBb._value == null) {
                 me._transactionManager.updateProviders_(switchB, Bb);
             } else {
-                me._transactionManager.updateProviders_(switchB, Bb, metaBb._value);
-                res.merge(metaBb._value);
+                me._transactionManager.updateProviders_(switchB, Bb, metaBb.get());
+                res.merge(metaBb);
             }
             b = metaBb._value;
         });
@@ -401,10 +404,8 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
  * calls function, arguments and return value should contain meta information
  * 
  * @template T
- * @param {function(...) :
- *                T} func
- * @param {...}
- *                var_args
+ * @param {function(...) : T} func
+ * @param {...} var_args
  * @return {recoil.frp.Behaviour<T>}
  */
 recoil.frp.Frp.prototype.metaLiftB = function(func, var_args) {
@@ -412,17 +413,16 @@ recoil.frp.Frp.prototype.metaLiftB = function(func, var_args) {
     for (var i = 1; i < arguments.length; i++) {
         providers.push(arguments[i]);
     }
-    return new recoil.frp.Behaviour(undefined, func, undefined, [this._transactionManager.nextIndex()], providers);
+    return new recoil.frp.Behaviour(null, func, undefined, [this._transactionManager.nextIndex()], providers);
 };
 
 /**
  * @template RT
- * @param {function(...) :
- *                RT} func
- * @param {...number}
- *                var_args
+ * @param {function(...) : RT} func
+ * @param {...number|Object} var_args
  * @return {recoil.frp.Behaviour<RT>}
  */
+
 recoil.frp.Frp.prototype.liftB = function(func, var_args) {
 
     var outerArgs = arguments;
@@ -455,11 +455,12 @@ recoil.frp.TransactionManager = function() {
 };
 
 /**
- * this makes all ids generated sub ids of the current one 
- * I think this is wrong really we need it to be children of the behaviour that depends on it
- * TODO
+ * this makes all ids generated sub ids of the current one I think this is wrong really we need it to be children of the
+ * behaviour that depends on it TODO
+ * 
  * @template T
- * @param  {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} behaviour the parent behaviour all generated sequences will be less than this
+ * @param {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} behaviour the parent behaviour all generated sequences will
+ *            be less than this
  * @param {function()} callback
  */
 recoil.frp.TransactionManager.prototype.nestIds = function(behaviour, callback) {
@@ -491,7 +492,7 @@ recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
  * make an array of all providers of behaviour
  * 
  * @template T
- * @param {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>}  behaviour
+ * @param {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} behaviour
  * @return {Map<Array<number>, recoil.frp.Behaviour} }
  */
 recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
@@ -532,7 +533,7 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
 /**
  * generates the next index for behaviours
  * 
- * @return {Array<number>}
+ * @return {Array<goog.math.Long>}
  */
 recoil.frp.TransactionManager.prototype.nextIndex = function() {
     var res = goog.array.clone(this._curIndexPrefix[this._curIndexPrefix.length - 1]);
@@ -545,7 +546,7 @@ recoil.frp.TransactionManager.prototype.nextIndex = function() {
  * propagate the changes through the FRP tree, the direction is if it is going up or down
  * 
  * @param {Array<recoil.frp.Behaviour>} pending
- * @param {recoil.frp.Direction_} dir
+ * @param {recoil.frp.TraverseDirection} dir
  */
 recoil.frp.TransactionManager.prototype.propogate = function(pending, dir) {
     var pendingHeap = new recoil.structs.UniquePriorityQueue(dir.heapComparator);
@@ -559,7 +560,7 @@ recoil.frp.TransactionManager.prototype.propogate = function(pending, dir) {
     var cur = pendingHeap.pop();
     while (cur !== undefined) {
         // calculate changed something
-        var deps = dir.calculate(cur, cur._providers);
+        var deps = dir.calculate(cur, cur._providers,this._dependancyMap[String(cur._seq)]);
         var d;
         for (d in deps) {
             pendingHeap.push(deps[d]);
@@ -569,8 +570,10 @@ recoil.frp.TransactionManager.prototype.propogate = function(pending, dir) {
     }
 };
 
+
 /**
  * helper function to add the inverse mapping provider to list of dependants
+ * 
  * @template T
  * @private
  * @param {recoil.frp.Behaviour<T>} b
@@ -590,8 +593,7 @@ recoil.frp.TransactionManager.prototype.addProvidersToDependancyMap_ = function(
 };
 
 /**
- * @param {Object}
- *                other
+ * @param {Object} other
  * @this {Object}
  * @template T
  * @return {boolean} true if objects are equal
@@ -602,6 +604,7 @@ recoil.frp.Frp._ptrEqual = function(other) {
 
 /**
  * helper function to remove the inverse mapping provider to list of dependants
+ * 
  * @template T
  * @private
  * @param {recoil.frp.Behaviour<T>} b
@@ -622,8 +625,7 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
 };
 
 /**
- * mark the behaviour that it is being used it will now recieve update
- * notifications
+ * mark the behaviour that it is being used it will now recieve update notifications
  * 
  * @template T
  * @param {recoil.frp.Behaviour<T>} behaviour
@@ -648,10 +650,12 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
 
 /**
  * update the dependaniece of the behaviour
+ * 
  * @private
  * @param {recoil.frp.Behaviour} dependant
+ * @param {...recoil.frp.Behaviour} var_providers
  */
-recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant) {
+recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, var_providers) {
     var oldVisited = this.visit(dependant);
     var oldProviders = goog.array.clone(dependant._providers);
     dependant._providers = goog.array.clone(arguments);
@@ -699,8 +703,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant) {
 
 };
 /**
- * mark the behaviour that it is no longer being used it will no longer recieve update
- * notifications
+ * mark the behaviour that it is no longer being used it will no longer recieve update notifications
  * 
  * @template T
  * @param {recoil.frp.Behaviour<T>} behaviour

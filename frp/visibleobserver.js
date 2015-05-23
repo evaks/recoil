@@ -10,16 +10,19 @@ goog.require('recoil.exception.frp.NotInDom');
 /**
  * the items that goes the trees, so we can store nodes along with data
  * 
- * @interface
+ * @constructor
+ * @param {Node} opt_node
  * @private
  */
-recoil.frp.VisibleObserver.NodeAndValues_ = function() {
+recoil.frp.VisibleObserver.NodeAndValues_ = function(opt_node) {
+    this.node = opt_node || null;
 };
 
 /**
- * {Node}
+ * @type Node
  */
-// recoil.frp.VisibleObserver.NodeAndValues_.prototype.node = null;
+
+recoil.frp.VisibleObserver.NodeAndValues_.node = null;
 /**
  * @constructor
  * 
@@ -82,11 +85,9 @@ recoil.frp.VisibleObserver.prototype.findChangedNodes_ = function(mutations) {
     return found;
 };
 /**
- * creates a function that will be called by mutation observer to process the
- * mutations
+ * creates a function that will be called by mutation observer to process the mutations
  * 
- * @param {recoil.frp.VisibleObserver}
- *            me pointer to this pointer
+ * @param {recoil.frp.VisibleObserver} me pointer to this pointer
  * @return {function(Array <MutationRecord>)} callback for mutation observer
  * @private
  * 
@@ -202,13 +203,11 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
 };
 
 /**
- * String comparison function used to compare values in the tree. This function
- * is used by default if no comparator is specified in the tree's constructor.
+ * String comparison function used to compare values in the tree. This function is used by default if no comparator is
+ * specified in the tree's constructor.
  * 
- * @param {T}
- *            a The first value.
- * @param {T}
- *            b The second value.
+ * @param {T} a The first value.
+ * @param {T} b The second value.
  * @return {number} -1 if a < b, 1 if a > b, 0 if a = b.
  * @template T
  * @private
@@ -218,14 +217,11 @@ recoil.frp.VisibleObserver.WATCHED_COMPARATOR_ = function(a, b) {
 };
 
 /**
- * finds a node in the tree, if it is not there return null, otherwise returns
- * the node
+ * finds a node in the tree, if it is not there return null, otherwise returns the node
  * 
  * @private
- * @param {goog.structs.AvlTree}
- *            tree
- * @param {Node}
- *            node
+ * @param {goog.structs.AvlTree} tree
+ * @param {Node} node
  * @return {?recoil.frp.VisibleObserver.NodeAndValues_}
  */
 recoil.frp.VisibleObserver.find_ = function(tree, node) {
@@ -251,12 +247,10 @@ recoil.frp.VisibleObserver.find_ = function(tree, node) {
 };
 
 /**
- * finds a node in the watched list, if it is not there return null, otherwise
- * returns the node
+ * finds a node in the watched list, if it is not there return null, otherwise returns the node
  * 
  * @private
- * @param {Node}
- *            node
+ * @param {Node} node
  * @throws {recoil.exception.frp.NotInDom}
  * @return {?recoil.frp.VisibleObserver.NodeAndValues_}
  */
@@ -266,8 +260,7 @@ recoil.frp.VisibleObserver.prototype.findWatched_ = function(node) {
 
 /**
  * @private
- * @param {Node}
- *            node
+ * @param {Node} node
  * @return {?recoil.frp.VisibleObserver.NodeAndValues_}
  */
 recoil.frp.VisibleObserver.prototype.findState_ = function(node) {
@@ -275,14 +268,11 @@ recoil.frp.VisibleObserver.prototype.findState_ = function(node) {
 };
 
 /**
- * listens to node and fires callback when its visibility has changed if the
- * node is removed from the DOM it will no longer listen, also the node must be
- * in the DOM to observe
+ * listens to node and fires callback when its visibility has changed if the node is removed from the DOM it will no
+ * longer listen, also the node must be in the DOM to observe
  * 
- * @param {Element}
- *            node
- * @param {function(boolean)}
- *            callback
+ * @param {Node} node
+ * @param {function(boolean)} callback
  * @throws {recoil.exception.frp.NotInDom}
  */
 recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
@@ -339,8 +329,10 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
         if (!found) {
             this._watched.add(recoil.frp.VisibleObserver.createWatched_(cur, node));
         }
-        cur = goog.dom.getParentElement(cur);
+        cur = goog.dom.getParentElement(/** @type Element */
+        (cur));
     }
+
     state = {
         node: node,
         callbacks: [callback]
@@ -362,16 +354,13 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
  * utility function to create a watched node
  * 
  * @private
- * @param {Node}
- *            watching the node we are watching
- * @param {Node}
- *            effected the node that the visibility of the watched node effects
- * @return {NodeAndValue}
+ * @param {Node} watching the node we are watching
+ * @param {Node} effected the node that the visibility of the watched node effects
+ * @return {recoil.frp.VisibleObserver.NodeAndValues_}
  */
 recoil.frp.VisibleObserver.createWatched_ = function(watching, effected) {
-    var node = {
-        node: watching
-    };
+    /** @type recoil.frp.VisibleObserver.NodeAndValues_ */
+    var node = new recoil.frp.VisibleObserver.NodeAndValues_(watching);
     node.effected = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
 
     node.effected.add({
@@ -385,22 +374,22 @@ recoil.frp.VisibleObserver.createWatched_ = function(watching, effected) {
  * helper function to attach to the mutation observer with the correct arguments
  * 
  * @private
- * @param {Node}
- *            node
+ * @param {Node} node
  */
 recoil.frp.VisibleObserver.prototype.observe_ = function(node) {
-    this._observer.observe(node, {
+
+    this._observer.observe(node, /** @type MutationObserverInit */
+    ({
         attributes: true,
         childList: true,
         attributeFilter: ['style', 'hidden']
-    });
+    }));
 };
-
+//
 /**
  * checks to see if a node has been added to the root dom element yet
  * 
- * @param {Node}
- *            node
+ * @param {Node} node
  * @return {boolean}
  */
 recoil.frp.VisibleObserver.exists = function(node) {
@@ -408,11 +397,9 @@ recoil.frp.VisibleObserver.exists = function(node) {
 };
 
 /**
- * checks to see if a node is visible, it does not care if the node is in the
- * DOM
+ * checks to see if a node is visible, it does not care if the node is in the DOM
  * 
- * @param {Element}
- *            node
+ * @param {Node} node
  * @return {boolean} true if node and all its ancestors are visible
  */
 recoil.frp.VisibleObserver.visible = function(node) {
@@ -421,7 +408,8 @@ recoil.frp.VisibleObserver.visible = function(node) {
     while (cur != null && visible) {
 
         visible = !cur.hidden;
-        cur = goog.dom.getParentElement(cur);
+        cur = goog.dom.getParentElement(/** @type Element */
+        (cur));
     }
 
     return visible;
@@ -431,8 +419,7 @@ recoil.frp.VisibleObserver.visible = function(node) {
  * sets the node id if it is not already set to a unique id
  * 
  * @private
- * @param {Node}
- *            node
+ * @param {Node} node
  * @return {string} the unique id allocated
  */
 recoil.frp.VisibleObserver.setUniqueDomId_ = function(node) {

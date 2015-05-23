@@ -10,7 +10,7 @@ goog.setTestOnly('recoil.frp.VisibleObserverTest');
 
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 /**
- *
+ * 
  */
 asyncTestCase.stepTimeout = 5000;
 
