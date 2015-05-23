@@ -12,14 +12,14 @@ goog.require('recoil.structs.UniquePriorityQueue');
 
 /**
  * recoil.frp.TraverseDirection.
- * 
+ * @param {!string} name
  * @param {function(recoil.frp.Behaviour,Array <recoil.frp.Behaviour>, Array <recoil.frp.Behaviour>) : Array<recoil.frp.Behaviour>} calc
  * 
  * @param {function(recoil.frp.Behaviour,recoil.frp.Behaviour):number} comparator
  * @constructor
  */
 
-recoil.frp.TraverseDirection = function(calc, comparator) {
+recoil.frp.TraverseDirection = function(name, calc, comparator) {
     this.calc_ = calc;
     this.comparator_ = comparator;
 };
@@ -39,14 +39,13 @@ recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers
 
 /**
  * 
- * @param {recoil.frp.Behaviour} a
- * @param {recoil.frp.Behaviour} b
- * @return {number}
+ * @return {function(recoil.frp.Behaviour,recoil.frp.Behaviour):number}
  */
 
 
-recoil.frp.TraverseDirection.prototype.heapComparator = function(a, b) {
-    return this.comparator_(a, b);
+recoil.frp.TraverseDirection.prototype.heapComparator = function() {
+    var me = this;
+    return function(a,b) {return me.comparator_(a, b); };
 };
 /**
  * 
@@ -218,7 +217,7 @@ recoil.frp.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
 
 recoil.frp.Frp.Direction_ = {
 
-    UP: new recoil.frp.TraverseDirection(
+    UP: new recoil.frp.TraverseDirection("up",
             /** 
              * @param {recoil.frp.Behaviour} behaviour 
              * @param {Array <recoil.frp.Behaviour>} providers 
@@ -247,7 +246,7 @@ recoil.frp.Frp.Direction_ = {
     }),
 
     
-    DOWN: new recoil.frp.TraverseDirection(function(behaviour, providers, dependants) {
+    DOWN: new recoil.frp.TraverseDirection("down",function(behaviour, providers, dependants) {
         function getDirty(dependants) {
             var res = {};
             for (var i = 0; i < dependants.length; i++) {
@@ -549,7 +548,7 @@ recoil.frp.TransactionManager.prototype.nextIndex = function() {
  * @param {recoil.frp.TraverseDirection} dir
  */
 recoil.frp.TransactionManager.prototype.propogate = function(pending, dir) {
-    var pendingHeap = new recoil.structs.UniquePriorityQueue(dir.heapComparator);
+    var pendingHeap = new recoil.structs.UniquePriorityQueue(dir.heapComparator());
     // var visited = new Set();
 
     var i;

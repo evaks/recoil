@@ -31,7 +31,7 @@ function testBehaviourUp() {
     var c = frp.liftB(add1, b);
 
     // nothing should propagate yet we need to attach it
-    assertEquals(undefined, c.unsafeMetaGet());
+    assertEquals(null, c.unsafeMetaGet());
 
     tm.attach(c);
 

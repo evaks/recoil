@@ -6,6 +6,22 @@ goog.require('goog.math');
 goog.require('goog.math.Long');
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.exception.frp.NotInDom');
+/**
+ * @constructor
+ * 
+ */
+recoil.frp.VisibleObserver = function() {
+
+    this.watched_ = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
+    /**
+     * @private
+     * @type goog.structs.AvlTree<recoil.frp.VisibleObserver.State_>
+     */
+    this.states_ = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
+
+    this.observer_ = new MutationObserver(recoil.frp.VisibleObserver.observeFunc_(this));
+
+};
 
 /**
  * the items that goes the trees, so we can store nodes along with data
@@ -18,23 +34,41 @@ recoil.frp.VisibleObserver.NodeAndValues_ = function(opt_node) {
     this.node = opt_node || null;
 };
 
+
+/**
+ * the items that goes the trees, so we can store nodes along with data
+ * 
+ * @constructor
+ * @extends {recoil.frp.VisibleObserver.NodeAndValues_}
+ * @param {Node} node
+ * @param {function(boolean)} callback
+ * @private
+ */
+recoil.frp.VisibleObserver.State_ = function(node, callback) {
+    this.node = node;
+    this.exists = false;
+    this.visible = false;
+    this.callbacks = [callback];
+};
+
+goog.inherits(recoil.frp.VisibleObserver.State_, recoil.frp.VisibleObserver.NodeAndValues_);
+
+
+/**
+ * @type Array<Node>
+ */
+recoil.frp.VisibleObserver.State_.prototype.ancestors = [];
+
+recoil.frp.VisibleObserver.State_.prototype.update = function (exists, visible) {
+    this.exists = exists;
+    this.visible = exists && visible;
+};
+
 /**
  * @type Node
  */
 
-recoil.frp.VisibleObserver.NodeAndValues_.node = null;
-/**
- * @constructor
- * 
- */
-recoil.frp.VisibleObserver = function() {
-
-    this._watched = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
-    this._states = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
-
-    this._observer = new MutationObserver(recoil.frp.VisibleObserver.observeFunc_(this));
-
-};
+recoil.frp.VisibleObserver.NodeAndValues_.prototype.node = null;
 
 /**
  * @param {Array <MutationRecord>} mutations
@@ -105,6 +139,7 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
                 var exists = recoil.frp.VisibleObserver.exists(p.node);
                 var visible = exists ? recoil.frp.VisibleObserver.visible(p.node) : false;
 
+                
                 if (state.visible !== visible) {
                     state.callbacks.forEach(function(cb) {
                         cb(visible);
@@ -144,7 +179,7 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
                     // if the node doesn't exist we simply want to remove it
                     // otherwise we will get
                     // memory leaks
-                    me._states.remove(p);
+                    me.states_.remove(p);
                 }
 
                 // remove this node from effected if needed
@@ -172,19 +207,19 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
         // add the nodes we need to watched
         toAdd.inOrderTraverse(function(travNode) {
             if (travNode.effected.length !== 0) {
-                me._watched.add(travNode);
+                me.watched_.add(travNode);
             }
             return false;
         });
 
         // if items removed from watched disconnect and re-add all watched items
         if (toRemove.getCount() !== 0) {
-            me._observer.disconnect();
+            me.observer_.disconnect();
             toRemove.inOrderTraverse(function(travNode) {
-                me._watched.remove(travNode);
+                me.watched_.remove(travNode);
                 return false;
             });
-            me._watched.inOrderTraverse(function(travNode) {
+            me.watched_.inOrderTraverse(function(travNode) {
                 me.observe_(travNode.node);
                 return false;
             });
@@ -220,9 +255,10 @@ recoil.frp.VisibleObserver.WATCHED_COMPARATOR_ = function(a, b) {
  * finds a node in the tree, if it is not there return null, otherwise returns the node
  * 
  * @private
- * @param {goog.structs.AvlTree} tree
+ * @template T
+ * @param {goog.structs.AvlTree<T>} tree
  * @param {Node} node
- * @return {?recoil.frp.VisibleObserver.NodeAndValues_}
+ * @return {?T}
  */
 recoil.frp.VisibleObserver.find_ = function(tree, node) {
     var found = null;
@@ -255,17 +291,19 @@ recoil.frp.VisibleObserver.find_ = function(tree, node) {
  * @return {?recoil.frp.VisibleObserver.NodeAndValues_}
  */
 recoil.frp.VisibleObserver.prototype.findWatched_ = function(node) {
-    return recoil.frp.VisibleObserver.find_(this._watched, node);
+    return recoil.frp.VisibleObserver.find_(this.watched_, node);
 };
 
 /**
  * @private
  * @param {Node} node
- * @return {?recoil.frp.VisibleObserver.NodeAndValues_}
+ * @return {?recoil.frp.VisibleObserver.State_}
  */
 recoil.frp.VisibleObserver.prototype.findState_ = function(node) {
-    return recoil.frp.VisibleObserver.find_(this._states, node);
+    return (recoil.frp.VisibleObserver.find_(this.states_, node));
 };
+
+
 
 /**
  * listens to node and fires callback when its visibility has changed if the node is removed from the DOM it will no
@@ -291,8 +329,7 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
         // we are already watching this node so no need to watch it again just
         // add the callback to the callbacks and call it
         var wasVisible = state.visible;
-        state.exists = exists;
-        state.visible = state.exists && recoil.frp.VisibleObserver.visible(node);
+        state.update(exists, recoil.frp.VisibleObserver.visible(node));
         state.callbacks.push(callback);
         if (wasVisible === state.visible) {
             callback(state.visible);
@@ -312,7 +349,7 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
         found = false;
         recoil.frp.VisibleObserver.setUniqueDomId_(cur);
         ancestors.push(cur);
-        this._watched.inOrderTraverse(function(travNode) {
+        this.watched_.inOrderTraverse(function(travNode) {
             if (recoil.frp.VisibleObserver.WATCHED_COMPARATOR_(travNode, {
                 node: cur
             }) === 0) {
@@ -327,20 +364,16 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
         });
 
         if (!found) {
-            this._watched.add(recoil.frp.VisibleObserver.createWatched_(cur, node));
+            this.watched_.add(recoil.frp.VisibleObserver.createWatched_(cur, node));
         }
         cur = goog.dom.getParentElement(/** @type Element */
         (cur));
     }
 
-    state = {
-        node: node,
-        callbacks: [callback]
-    };
-    this._states.add(state);
+    state = new recoil.frp.VisibleObserver.State_(node, callback);
+    this.states_.add(state);
 
-    state.exists = recoil.frp.VisibleObserver.exists(node);
-    state.visible = state.exists && recoil.frp.VisibleObserver.visible(node);
+    state.update(recoil.frp.VisibleObserver.exists(node), recoil.frp.VisibleObserver.visible(node));
     state.ancestors = ancestors;
 
     var me = this;
@@ -378,7 +411,7 @@ recoil.frp.VisibleObserver.createWatched_ = function(watching, effected) {
  */
 recoil.frp.VisibleObserver.prototype.observe_ = function(node) {
 
-    this._observer.observe(node, /** @type MutationObserverInit */
+    this.observer_.observe(node, /** @type MutationObserverInit */
     ({
         attributes: true,
         childList: true,
@@ -438,7 +471,7 @@ recoil.frp.VisibleObserver.setUniqueDomId_ = function(node) {
  */
 
 recoil.frp.VisibleObserver.prototype.getWatchedCount = function() {
-    return this._states.getCount();
+    return this.states_.getCount();
 };
 
 /**
