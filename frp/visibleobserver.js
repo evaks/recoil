@@ -54,14 +54,14 @@ recoil.frp.VisibleObserver.State_ = function(node, callback) {
 goog.inherits(recoil.frp.VisibleObserver.State_, recoil.frp.VisibleObserver.NodeAndValues_);
 
 
-/**
- * @type Array<Node>
- */
-recoil.frp.VisibleObserver.State_.prototype.ancestors = [];
 
 recoil.frp.VisibleObserver.State_.prototype.update = function (exists, visible) {
     this.exists = exists;
     this.visible = exists && visible;
+    /**
+     * @type Array<Node>
+     */
+    this.ancestors = [];
 };
 
 /**
