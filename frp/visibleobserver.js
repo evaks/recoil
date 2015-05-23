@@ -50,10 +50,13 @@ recoil.frp.VisibleObserver.State_ = function(node, callback) {
     this.visible = false;
     this.callbacks = [callback];
 };
-
 goog.inherits(recoil.frp.VisibleObserver.State_, recoil.frp.VisibleObserver.NodeAndValues_);
 
-
+/**
+ * 
+ * @param {boolean} exists
+ * @param {boolean} visible
+ */
 
 recoil.frp.VisibleObserver.State_.prototype.update = function (exists, visible) {
     this.exists = exists;

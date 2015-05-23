@@ -12,8 +12,10 @@ goog.require('recoil.structs.UniquePriorityQueue');
 
 /**
  * recoil.frp.TraverseDirection.
+ * 
  * @param {!string} name
- * @param {function(recoil.frp.Behaviour,Array <recoil.frp.Behaviour>, Array <recoil.frp.Behaviour>) : Array<recoil.frp.Behaviour>} calc
+ * @param {function(recoil.frp.Behaviour,Array <recoil.frp.Behaviour>, Array <recoil.frp.Behaviour>) : Array<recoil.frp.Behaviour>}
+ *            calc
  * 
  * @param {function(recoil.frp.Behaviour,recoil.frp.Behaviour):number} comparator
  * @constructor
@@ -23,7 +25,6 @@ recoil.frp.TraverseDirection = function(name, calc, comparator) {
     this.calc_ = calc;
     this.comparator_ = comparator;
 };
-
 
 /**
  * 
@@ -36,16 +37,16 @@ recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers
     return this.calc_(behaviour, providers, dependents);
 };
 
-
 /**
  * 
  * @return {function(recoil.frp.Behaviour,recoil.frp.Behaviour):number}
  */
 
-
 recoil.frp.TraverseDirection.prototype.heapComparator = function() {
     var me = this;
-    return function(a,b) {return me.comparator_(a, b); };
+    return function(a, b) {
+        return me.comparator_(a, b);
+    };
 };
 /**
  * 
@@ -90,14 +91,12 @@ recoil.frp.BStatus.prototype.set = function(val) {
     this._value = val;
 };
 
-
 /**
  * @return {T}
  */
 recoil.frp.BStatus.prototype.get = function() {
     return this._value;
 };
-
 
 /**
  * @private
@@ -217,13 +216,14 @@ recoil.frp.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
 
 recoil.frp.Frp.Direction_ = {
 
-    UP: new recoil.frp.TraverseDirection("up",
-            /** 
-             * @param {recoil.frp.Behaviour} behaviour 
-             * @param {Array <recoil.frp.Behaviour>} providers 
-             * @param {Array <recoil.frp.Behaviour>} dependents
-             * @return {Array <recoil.frp.Behaviour>} */
-            function(behaviour, providers, dependents) {
+    UP: new recoil.frp.TraverseDirection('up',
+    /**
+     * @param {recoil.frp.Behaviour} behaviour
+     * @param {Array <recoil.frp.Behaviour>} providers
+     * @param {Array <recoil.frp.Behaviour>} dependents
+     * @return {Array <recoil.frp.Behaviour>}
+     */
+    function(behaviour, providers, dependents) {
         var oldVal = behaviour._val;
 
         var params = [];
@@ -245,8 +245,7 @@ recoil.frp.Frp.Direction_ = {
         return recoil.frp.Frp.compareSeq_(a._seq, b._seq);
     }),
 
-    
-    DOWN: new recoil.frp.TraverseDirection("down",function(behaviour, providers, dependants) {
+    DOWN: new recoil.frp.TraverseDirection('down', function(behaviour, providers, dependants) {
         function getDirty(dependants) {
             var res = {};
             for (var i = 0; i < dependants.length; i++) {
@@ -273,8 +272,7 @@ recoil.frp.Frp.Direction_ = {
             }
             behaviour._dirty = false;
         }
-        
-       
+
         return changedDirty;
     }, function(a, b) {
         return recoil.frp.Frp.compareSeq_(b._seq, a._seq);
@@ -559,7 +557,7 @@ recoil.frp.TransactionManager.prototype.propogate = function(pending, dir) {
     var cur = pendingHeap.pop();
     while (cur !== undefined) {
         // calculate changed something
-        var deps = dir.calculate(cur, cur._providers,this._dependancyMap[String(cur._seq)]);
+        var deps = dir.calculate(cur, cur._providers, this._dependancyMap[String(cur._seq)]);
         var d;
         for (d in deps) {
             pendingHeap.push(deps[d]);
@@ -568,7 +566,6 @@ recoil.frp.TransactionManager.prototype.propogate = function(pending, dir) {
         cur = pendingHeap.pop();
     }
 };
-
 
 /**
  * helper function to add the inverse mapping provider to list of dependants
