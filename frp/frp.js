@@ -49,27 +49,31 @@ recoil.frp.TraverseDirection.prototype.heapComparator = function() {
     };
 };
 /**
- * 
- * @param {recoil.frp.TransactionManager=} opt_transactionManager
- * 
+ *   
  * @constructor
  */
-recoil.frp.Frp = function(opt_transactionManager) {
-    this._transactionManager = opt_transactionManager || new recoil.frp.TransactionManager();
+recoil.frp.Frp = function() {
+    this.transactionManager_ = new recoil.frp.TransactionManager();
 };
-
+/**
+ * 
+ * @return {recoil.frp.TransactionManager}
+ */
+recoil.frp.Frp.prototype.tm = function() {
+    return this.transactionManager_;
+}
 /**
  * 
  * provides the status of the behaviour, e.g. is it ready, or an error occured
  * 
- * @param {T=} opt_initial
+ * @param {T} initial
  * @constructor
  * @template T
  */
-recoil.frp.BStatus = function(opt_initial) {
+recoil.frp.BStatus = function(initial) {
     this._errors = [];
     this._ready = true;
-    this._value = opt_initial || null;
+    this._value = initial;
 };
 
 /**
@@ -212,74 +216,75 @@ recoil.frp.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
  * 
  * @enum {recoil.frp.TraverseDirection}
  * @private
+ * @final
  */
 
-recoil.frp.Frp.Direction_ = {
+recoil.frp.Frp.Direction_ = {}
 
-    UP: new recoil.frp.TraverseDirection('up',
-    /**
-     * @param {recoil.frp.Behaviour} behaviour
-     * @param {Array <recoil.frp.Behaviour>} providers
-     * @param {Array <recoil.frp.Behaviour>} dependents
-     * @return {Array <recoil.frp.Behaviour>}
-     */
-    function(behaviour, providers, dependents) {
-        var oldVal = behaviour._val;
+/** @final */
+recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection('up',
+/**
+ * @param {recoil.frp.Behaviour} behaviour
+ * @param {Array <recoil.frp.Behaviour>} providers
+ * @param {Array <recoil.frp.Behaviour>} dependents
+ * @return {Array <recoil.frp.Behaviour>}
+ */
+function(behaviour, providers, dependents) {
+    var oldVal = behaviour.val_;
 
-        var params = [];
-        providers.forEach(function(b) {
-            params.push(b.get());
-        });
+    var params = [];
+    providers.forEach(function(b) {
+        params.push(b.get());
+    });
 
-        var newVal = behaviour._calc.apply(behaviour, params);
+    var newVal = behaviour._calc.apply(behaviour, params);
 
-        if (!recoil.frp.isEqual(oldVal, newVal)) {
-            behaviour._val = newVal;
-            behaviour._dirty = false;
-            return dependents;
-        }
-        behaviour._dirty = false;
+    if (!recoil.frp.isEqual(oldVal, newVal)) {
+        behaviour.val_ = newVal;
+        behaviour.dirty_ = false;
+        return dependents;
+    }
+    behaviour.dirty_ = false;
 
-        return [];
-    }, function(a, b) {
-        return recoil.frp.Frp.compareSeq_(a._seq, b._seq);
-    }),
+    return [];
+}, function(a, b) {
+    return recoil.frp.Frp.compareSeq_(a._seq, b._seq);
+}),
 
-    DOWN: new recoil.frp.TraverseDirection('down', function(behaviour, providers, dependants) {
-        function getDirty(dependants) {
-            var res = {};
-            for (var i = 0; i < dependants.length; i++) {
-                if (dependants[i]._dirty) {
-                    res[String(dependants[i]._seq)] = dependants[i];
-                }
+/** @final */
+recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection('down', function(behaviour, providers, dependants) {
+    function getDirty(dependants) {
+        var res = {};
+        for (var i = 0; i < dependants.length; i++) {
+            if (dependants[i].dirty_) {
+                res[String(dependants[i]._seq)] = dependants[i];
             }
-            return res;
         }
+        return res;
+    }
 
-        var changedDirty = [];
-        if (behaviour._dirty) {
-            var oldDirty = getDirty(behaviour._providers);
-            behaviour._inv.call(behaviour, behaviour._val);
-            var newDirty = getDirty(behaviour._providers);
+    var changedDirty = [];
+    if (behaviour.dirty_) {
+        var oldDirty = getDirty(behaviour._providers);
+        behaviour._inv.call(behaviour, behaviour.val_);
+        var newDirty = getDirty(behaviour._providers);
 
-            var id;
-            for (id in newDirty) {
-                if (oldDirty[id] !== undefined) {
+        var id;
+        for (id in newDirty) {
+            if (oldDirty[id] !== undefined) {
 
-                    changedDirty.push(newDirty[id]);
-                }
-
+                changedDirty.push(newDirty[id]);
             }
-            behaviour._dirty = false;
+
         }
+        behaviour.dirty_ = false;
+    }
 
-        return changedDirty;
-    }, function(a, b) {
-        return recoil.frp.Frp.compareSeq_(b._seq, a._seq);
+    return changedDirty;
+}, function(a, b) {
+    return recoil.frp.Frp.compareSeq_(b._seq, a._seq);
 
-    })
-
-};
+});
 
 /**
  * 
@@ -294,48 +299,93 @@ recoil.frp.Frp.Direction_ = {
  */
 recoil.frp.Behaviour = function(value, calc, inverse, sequence, providers) {
     var me = this;
-    this._val = value;
+    this.val_ = value;
     this._calc = calc || function() {
-        return me._val;
+        return me.val_;
     };
     this._inv = inverse || function(newVal) {
     };
-    this._dirty = false;
-    this._refs = 0;
+    this.dirty_ = false;
+    this.refs_ = {};
     this._seq = sequence;
     this._providers = providers || [];
 };
 
-function foo() {
-
-}
-
 /**
  * increases the reference count
  * 
+ * @param {recoil.frp.TransactionManager} manager
  * @return {boolean} true if count was zero
  * 
  */
-recoil.frp.Behaviour.prototype.addRef = function() {
-    this._refs++;
-    return this._refs === 1;
+recoil.frp.Behaviour.prototype.addRef = function(manager) {
+
+    var curRefs = this.refs_[manager.id_];
+    if (curRefs === undefined) {
+        this.refs_[manager.id_] = {
+            manager: manager,
+            count: 1
+        };
+        return true;
+    } else {
+        this.refs_[manager.id_].count++;
+        return false;
+    }
 };
 
 /**
  * decreases the reference count
  * 
+ * @param {recoil.frp.TransactionManager} manager
  * @return {boolean} true if count goes to zero
  */
-recoil.frp.Behaviour.prototype.removeRef = function() {
-    this._refs--;
-    return this._refs === 0;
+recoil.frp.Behaviour.prototype.removeRef = function(manager) {
+    var curRefs = this.refs_[manager.id_];
+    if (curRefs === undefined || curRefs.count <= 0) {
+        goog.asserts.assert(false, 'Behaviour removing reference when not referenced');
+        return false;
+    } else if (curRefs.count === 1) {
+        delete this.refs_[manager.id_];
+        return true;
+    } else {
+        this.refs_[manager.id_].count = curRefs.count - 1;
+        return false;
+    }
+};
+
+/**
+ * gets the reference count for the transaction manager
+ * 
+ * @param {recoil.frp.TransactionManager} manager
+ * @return {number}
+ */
+recoil.frp.Behaviour.prototype.getRefs = function(manager) {
+
+    var curRefs = this.refs_[manager.id_];
+    if (curRefs === undefined) {
+        return 0;
+    }
+    return curRefs.count;
+};
+
+/**
+ * gets the reference count for the transaction manager
+ * 
+ * @private
+ * @param {function(recoil.frp.TransactionManager)} callback
+ */
+recoil.frp.Behaviour.prototype.forEachManager_ = function(callback) {
+
+    for ( var idx in this.refs_) {
+        callback(this.refs_[idx].manager);
+    }
 };
 
 /**
  * @return {recoil.frp.BStatus<T>}
  */
 recoil.frp.Behaviour.prototype.unsafeMetaGet = function() {
-    return this._val;
+    return this.val_;
 };
 
 /**
@@ -350,7 +400,34 @@ recoil.frp.Behaviour.prototype.get = function() {
  */
 recoil.frp.Behaviour.prototype.metaGet = function() {
     // TODO check that have all our parameters referenced
-    return this._val;
+    return this.val_;
+};
+
+/**
+ * @param {recoil.frp.BStatus<T>} value
+ */
+
+recoil.frp.Behaviour.prototype.metaSet = function(value) {
+
+    if (!recoil.frp.isEqual(value, this.val_)) {
+        this.dirty_ = true;
+        this.val_ = value;
+
+        var me = this;
+        this.forEachManager_(function(manager) {
+            manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
+            manager.addPending_(recoil.frp.Frp.Direction_.DOWN, me);
+        });
+    }
+
+};
+
+/**
+ * @param {T} value
+ */
+
+recoil.frp.Behaviour.prototype.set = function(value) {
+    this.metaSet(new recoil.frp.BStatus(value));
 };
 
 /**
@@ -360,7 +437,7 @@ recoil.frp.Behaviour.prototype.metaGet = function() {
  */
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
-    return new recoil.frp.Behaviour(metaInitial, undefined, undefined, [this._transactionManager.nextIndex()], []);
+    return new recoil.frp.Behaviour(metaInitial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
 };
 /**
  * 
@@ -374,15 +451,15 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
         var switchB = this;
         /** @type recoil.frp.BStatus<recoil.frp.Behaviour> */
         var metaBb = Bb.metaGet();
-        var res = new recoil.frp.BStatus();
+        var res = new recoil.frp.BStatus(null);
         res.merge(metaBb);
         var b = null;
 
-        me._transactionManager.nestIds(Bb, function() {
+        me.transactionManager_.nestIds(Bb, function() {
             if (metaBb._value == null) {
-                me._transactionManager.updateProviders_(switchB, Bb);
+                me.transactionManager_.updateProviders_(switchB, Bb);
             } else {
-                me._transactionManager.updateProviders_(switchB, Bb, metaBb.get());
+                me.transactionManager_.updateProviders_(switchB, Bb, metaBb.get());
                 res.merge(metaBb);
             }
             b = metaBb._value;
@@ -410,7 +487,7 @@ recoil.frp.Frp.prototype.metaLiftB = function(func, var_args) {
     for (var i = 1; i < arguments.length; i++) {
         providers.push(arguments[i]);
     }
-    return new recoil.frp.Behaviour(null, func, undefined, [this._transactionManager.nextIndex()], providers);
+    return new recoil.frp.Behaviour(null, func, undefined, [this.transactionManager_.nextIndex()], providers);
 };
 
 /**
@@ -426,7 +503,7 @@ recoil.frp.Frp.prototype.liftB = function(func, var_args) {
 
     return this.metaLiftB(function() {
         var args = [];
-        var metaResult = new recoil.frp.BStatus();
+        var metaResult = new recoil.frp.BStatus(null);
 
         for (var i = 1; i < outerArgs.length; i++) {
             var metaArg = outerArgs[i];
@@ -445,11 +522,21 @@ recoil.frp.Frp.prototype.liftB = function(func, var_args) {
  */
 recoil.frp.TransactionManager = function() {
     this._providers = [];
-    this._level = 0;
+    this.level_ = 0;
+    this.pending_ = [new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator()),
+            new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator())];
     this._dependancyMap = [];
     this._curIndex = goog.math.Long.ZERO;
     this._curIndexPrefix = [[]];
+    this.id_ = recoil.frp.TransactionManager.nextId_.toString();
+    recoil.frp.TransactionManager.nextId_ = recoil.frp.TransactionManager.nextId_.add(goog.math.Long.ONE);
 };
+
+/**
+ * @type goog.math.Long
+ * @private
+ */
+recoil.frp.TransactionManager.nextId_ = goog.math.Long.ZERO;
 
 /**
  * this makes all ids generated sub ids of the current one I think this is wrong really we need it to be children of the
@@ -476,12 +563,15 @@ recoil.frp.TransactionManager.prototype.nestIds = function(behaviour, callback) 
  */
 
 recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
-    this._level++;
+    this.level_++;
 
     try {
         callback();
     } finally {
-        this._level--;
+        this.level_--;
+        if (this.level_ === 0) {
+            this.propagateAll_();
+        }
     }
 };
 
@@ -540,19 +630,57 @@ recoil.frp.TransactionManager.prototype.nextIndex = function() {
 };
 
 /**
+ * @param {!recoil.frp.TraverseDirection} direction
+ * @return {recoil.structs.UniquePriorityQueue}
+ */
+recoil.frp.TransactionManager.prototype.getPending_ = function(direction) {
+    return this.pending_[recoil.frp.Frp.Direction_.UP == direction ? 0 : 1];
+};
+
+/**
+ * @param {!recoil.frp.TraverseDirection} direction
+ * @param {recoil.frp.Behaviour} behaviour
+ * @param {boolean=} opt_propogate
+ * 
+ */
+recoil.frp.TransactionManager.prototype.addPending_ = function(direction, behaviour, opt_propogate) {
+    this.getPending_(direction).push(behaviour);
+    if (this.level_ === 0 && opt_propogate) {
+        this.propagateAll_();
+    }
+};
+
+/**
+ * propagate the changes through the FRP tree, until no more changes
+ * 
+ * @private
+ */
+recoil.frp.TransactionManager.prototype.propagateAll_ = function() {
+    var pendingDown = this.getPending_(recoil.frp.Frp.Direction_.DOWN);
+    var pendingUp = this.getPending_(recoil.frp.Frp.Direction_.UP);
+
+    while (!pendingUp.isEmpty() || !pendingDown.isEmpty()) {
+        if (!pendingDown.isEmpty()) {
+            this.propagate_(recoil.frp.Frp.Direction_.DOWN);
+            continue;
+        }
+
+        if (!pendingUp.isEmpty()) {
+            this.propagate_(recoil.frp.Frp.Direction_.UP);
+            continue;
+        }
+    }
+};
+
+/**
  * propagate the changes through the FRP tree, the direction is if it is going up or down
  * 
- * @param {Array<recoil.frp.Behaviour>} pending
- * @param {recoil.frp.TraverseDirection} dir
+ * @param {!recoil.frp.TraverseDirection} dir
+ * @private
  */
-recoil.frp.TransactionManager.prototype.propogate = function(pending, dir) {
-    var pendingHeap = new recoil.structs.UniquePriorityQueue(dir.heapComparator());
+recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
+    var pendingHeap = this.getPending_(dir);
     // var visited = new Set();
-
-    var i;
-    for (i = 0; i < pending.length; i++) {
-        pendingHeap.push(pending[i]);
-    }
 
     var cur = pendingHeap.pop();
     while (cur !== undefined) {
@@ -628,20 +756,22 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
  */
 recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
     var visited = this.visit(behaviour);
-    var newStuff = [];
+    var newStuff = this.getPending_(recoil.frp.Frp.Direction_.UP);
     var me = this;
-    for ( var idx in visited) {
-        // this may not account for 2 thing in the tree pointing to the
-        // same thing
-        var b = visited[idx];
-        if (b._refs === 0) {
-            newStuff.push(visited[idx]);
-            me.addProvidersToDependancyMap_(b);
+    this.doTrans(function() {
+        for ( var idx in visited) {
+            // this may not account for 2 thing in the tree pointing to the
+            // same thing
+            var b = visited[idx];
+            if (b.getRefs(me) === 0) {
+                newStuff.push(visited[idx]);
+                me.addProvidersToDependancyMap_(b);
+            }
+            visited[idx].addRef(me);
         }
-        visited[idx].addRef();
-    }
-    // TODO change this so does up and down
-    this.propogate(newStuff, recoil.frp.Frp.Direction_.UP);
+    });
+    
+    
 };
 
 /**
@@ -657,24 +787,27 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     dependant._providers = goog.array.clone(arguments);
     // TODO remove the first argument it is the dependant
     var newVisited = this.visit(dependant);
-
+    /** @type recoil.frp.Behaviour */
+    var b;
+    
     var me = this;
     for ( var idx in oldVisited) {
-        var b = oldVisited[idx];
+        b = oldVisited[idx];
         var newIdx = goog.array.findIndex(newVisited, recoil.frp.Frp._ptrEqual, b);
         if (newIdx === -1) {
-            if (b.removeRef()) {
+            if (b.removeRef(this)) {
                 me.removeProvidersFromDependancyMap_(b);
             }
         }
     }
 
-    var pending = [];
+    
+    var pending = this.getPending_(recoil.frp.Frp.Direction_.UP);
     for ( var idx in newVisited) {
-        var b = newVisited[idx];
+        b = newVisited[idx];
         var oldIdx = goog.array.findIndex(oldVisited, recoil.frp.Frp._ptrEqual, b);
         if (oldIdx === -1) {
-            if (b.addRef()) {
+            if (b.addRef(this)) {
                 me.addProvidersToDependancyMap_(b);
                 pending.push(b);
             }
@@ -697,6 +830,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
         }
     }
 
+    
 };
 /**
  * mark the behaviour that it is no longer being used it will no longer recieve update notifications

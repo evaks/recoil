@@ -21,8 +21,8 @@ function testBehaviourUp() {
     }
 
     
-    var tm = new recoil.frp.TransactionManager();
     var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
 
     var b = frp.createB(2);
 
@@ -50,8 +50,8 @@ function testBehaviourUp() {
 
 function testSwitchBUp() {
 
-    var tm = new recoil.frp.TransactionManager();
     var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
 
     function make1Or2(val) {
         if (val) {
@@ -69,6 +69,14 @@ function testSwitchBUp() {
 
     assertEquals(1, switchTest.unsafeMetaGet().get());
 
+    tm.doTrans(function() {
+        c.set(false);
+        
+    });
+    
+    assertEquals(2, switchTest.unsafeMetaGet().get());
+    
+    tm.detach(switchTest);
 }
 
 function testIsEqual() {
@@ -134,4 +142,8 @@ function testIsEqual() {
     assertFalse(recoil.frp.isEqual(goog.math.Long.fromInt(2), goog.math.Long
             .fromInt(1)));
 
+}
+
+function testAttachDetach() {
+    assertFalse("auto fail", true);
 }
