@@ -3,7 +3,7 @@ goog.provide('recoil.frp.VisibleObserverTest');
 goog.require('goog.dom');
 goog.require('goog.testing.AsyncTestCase');
 goog.require('goog.testing.jsunit');
-goog.require('recoil.exception.frp.NotInDom');
+goog.require('recoil.exception.NotInDom');
 goog.require('recoil.frp.VisibleObserver');
 
 goog.setTestOnly('recoil.frp.VisibleObserverTest');
@@ -130,7 +130,7 @@ function test07AttachInvalid() {
         });
         fail('expected exception');
     } catch (e) {
-        assertTrue(e instanceof recoil.exception.frp.NotInDom);
+        assertTrue(e instanceof recoil.exception.NotInDom);
     }
 
     assertEquals(0, observer.getWatchedCount());

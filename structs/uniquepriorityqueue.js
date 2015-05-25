@@ -35,7 +35,7 @@ recoil.structs.UniquePriorityQueue.prototype.push = function push(value) {
 /**
  * remove an item from the queue, specified item 
  * 
- * @param {T}
+ * @param {T} val
  */
 
 recoil.structs.UniquePriorityQueue.prototype.remove = function(val) {

@@ -5,7 +5,7 @@ goog.require('goog.events');
 goog.require('goog.math');
 goog.require('goog.math.Long');
 goog.require('goog.structs.AvlTree');
-goog.require('recoil.exception.frp.NotInDom');
+goog.require('recoil.exception.NotInDom');
 /**
  * @constructor
  * 
@@ -290,7 +290,7 @@ recoil.frp.VisibleObserver.find_ = function(tree, node) {
  * 
  * @private
  * @param {Node} node
- * @throws {recoil.exception.frp.NotInDom}
+ * @throws {recoil.exception.NotInDom}
  * @return {?recoil.frp.VisibleObserver.NodeAndValues_}
  */
 recoil.frp.VisibleObserver.prototype.findWatched_ = function(node) {
@@ -314,7 +314,7 @@ recoil.frp.VisibleObserver.prototype.findState_ = function(node) {
  * 
  * @param {Node} node
  * @param {function(boolean)} callback
- * @throws {recoil.exception.frp.NotInDom}
+ * @throws {recoil.exception.NotInDom}
  */
 recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
     var cur = node;
@@ -324,7 +324,7 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
     var exists = recoil.frp.VisibleObserver.exists(node);
 
     if (!exists) {
-        throw new recoil.exception.frp.NotInDom(node);
+        throw new recoil.exception.NotInDom(node);
     }
     var state = this.findState_(node);
 

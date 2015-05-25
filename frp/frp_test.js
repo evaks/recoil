@@ -4,10 +4,10 @@ goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.style');
 goog.require('goog.testing.jsunit');
+goog.require('recoil.exception.NoAccessors');
+goog.require('recoil.exception.NotAttached');
+goog.require('recoil.exception.NotInTransaction');
 goog.require('recoil.frp.Frp');
-goog.require('recoil.exception.frp.NotAttached');
-goog.require('recoil.exception.frp.NoAccessors');
-goog.require('recoil.exception.frp.NotInTransaction');
 
 goog.setTestOnly('recoil.frp.FrpTest');
 
@@ -60,7 +60,7 @@ function testBehaviourDown() {
     }
 
     function sub1(val, a) {
-        a.set(val - 1)
+        a.set(val - 1);
     }
         
     function add2(a) {
@@ -174,7 +174,7 @@ function testNoSetOutsideTransaction() {
       two.set(3);
          fail('expected exception');
     } catch (e) {
-        assertTrue(e instanceof recoil.exception.frp.NotAttached);
+        assertTrue(e instanceof recoil.exception.NotAttached);
     }
 
     tm.attach(two);
@@ -182,19 +182,19 @@ function testNoSetOutsideTransaction() {
       two.set(3);
          fail('expected exception');
     } catch (e) {
-        assertTrue(e instanceof recoil.exception.frp.NoAccessors);
+        assertTrue(e instanceof recoil.exception.NoAccessors);
     }
 
-    recoil.frp.Frp.access(function(){
+    recoil.frp.Frp.access(function() {
         try { 
           two.set(3);
              fail('expected exception');
         } catch (e) {
-            assertTrue(e instanceof recoil.exception.frp.NotInTransaction);
+            assertTrue(e instanceof recoil.exception.NotInTransaction);
         }
     }, two);
 
-    recoil.frp.Frp.access(function(){
+    recoil.frp.Frp.access(function() {
       tm.doTrans(function() {
           two.set(3);
         });
@@ -308,17 +308,17 @@ function testAttachDetach() {
     var tm = frp.tm();
 
     var one = frp.createB(1);
-    var two = frp.liftB(function (a) {return a + 1;},one)
+    var two = frp.liftB(function (a) {return a + 1;},one);
 
     one.set(2);
 
     tm.attach(two);
     try {
       one.set(3);
-      assertFail("expected exception");
+      fail('expected exception');
     }
     catch (e) {
-      assertTrue(e instanceof recoil.exception.frp.NotInTransaction);
+        assertTrue(e instanceof recoil.exception.NotInTransaction);
    }
     tm.detach(two);
     one.set(1);
