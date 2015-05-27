@@ -57,7 +57,8 @@ recoil.frp.TraverseDirection.prototype.heapComparator = function() {
  * @constructor
  */
 recoil.frp.Frp = function() {
-    this.transactionManager_ = new recoil.frp.TransactionManager();
+    this.transactionManager_ = new recoil.frp.TransactionManager(this);
+    
 };
 /**
  * 
@@ -66,6 +67,28 @@ recoil.frp.Frp = function() {
 recoil.frp.Frp.prototype.tm = function() {
     return this.transactionManager_;
 };
+
+/**
+ * mark the behaviour that it is being used it will now recieve update notifications
+ * 
+ * @template T
+ * @param {recoil.frp.Behaviour<T>} behaviour
+ *    
+ */
+recoil.frp.Frp.attach = function (behaviour) {
+  this.transactionManager_.attach(behaviour);
+}; 
+
+/**
+ * mark the behaviour that it is no longer being used it will not recieve update notifications
+ * 
+ * @template T
+ * @param {recoil.frp.Behaviour<T>} behaviour
+ *    
+ */
+recoil.frp.Frp.detach = function (behaviour) {
+  this.transactionManager_.detach(behaviour);
+}; 
 
 /**
  * 
@@ -329,7 +352,18 @@ recoil.frp.Behaviour = function(value, calc, inverse, sequence, providers) {
     this.dirtyUpOldValue_ = null;
     this.dirtyDown_ = false;
     this.refs_ = {};
+    /**
+     * @type Array<goog.math.Long>
+     * @constructor 
+     * @final
+     */                   
     this.seq_ = sequence;
+    /**
+     * @type string
+     * @constructor 
+     * @final
+     */                   
+    this.seqStr_ = String(sequence); 
     this.accessors_ = 0;
     this.providers_ = providers || [];
 };
@@ -709,17 +743,32 @@ recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
 
 /**
  * @constructor
+ * @param {recoil.frp.Frp}  
+ *  
  */
-recoil.frp.TransactionManager = function() {
+recoil.frp.TransactionManager = function(frp) {
     this.providers_ = [];
     this.level_ = 0;
     this.pending_ = [new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator()),
             new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator())];
     this._dependancyMap = [];
     this._curIndex = goog.math.Long.ZERO;
+     /**
+     *@type Array<Array<goog.math.Long>>
+     *@private     
+     **/      
     this._curIndexPrefix = [[]];
+    /**
+     *@type number
+     *@private     
+     **/      
     this.curIndexLock_ = 0;
     this.id_ = recoil.frp.TransactionManager.nextId_.toString();
+    /**
+     *@type recoil.Frp
+     *@private     
+     **/      
+     this.frp_ = frp;        
     recoil.frp.TransactionManager.nextId_ = recoil.frp.TransactionManager.nextId_.add(goog.math.Long.ONE);
 };
 
@@ -803,10 +852,10 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
     while (toDo.length > 0) {
         var cur = toDo.pop();
 
-        if (visited[String(cur.b.seq_)] !== undefined) {
+        if (visited[cur.b.seqStr_] !== undefined) {
             continue;
         }
-        visited[String(cur.b.seq_)] = cur.b;
+        visited[cur.b.seqStr_] = cur.b;
 
         for (var prov = 0; prov < cur.b.providers_.length; prov++) {
             var provObj = cur.b.providers_[prov];
@@ -986,7 +1035,7 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
  * mark the behaviour that it is being used it will now recieve update notifications
  * 
  * @template T
- * @param {recoil.frp.Behaviour<T>} behaviour
+ * @param {recoil.frp.Behaviour<T>} attachBehaviour
  */
 recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
     var visited = this.visit(behaviour);
@@ -1004,7 +1053,6 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
             visited[idx].addRef(me);
         }
     });
-
 };
 
 /**
@@ -1084,7 +1132,6 @@ recoil.frp.TransactionManager.prototype.removePending_ = function(behaviour) {
  */
 
 recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
-
     var visited = this.visit(behaviour);
     var me = this;
     this.doTrans(function() {

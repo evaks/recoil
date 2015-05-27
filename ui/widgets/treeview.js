@@ -3,30 +3,131 @@ goog.provide('recoil.ui.widgets.TreeView');
 
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
+goog.require('goog.ui.tree.TreeControl');
+
 // http://closure-library.googlecode.com/git-history/0148f7ecaa1be5b645fabe7338b9579ed2f951c8/closure/goog/demos/index.html
 //TreeControl, TreeNode
 /**
  * @constructor
  */
 recoil.ui.widgets.Tree = function () {
-    
+      
 };
 
 
 /**
+ * @param {Element} container the container that the tree will go into      
  * @param {recoil.frp.Frp} frp
+ *  
  * @constructor
  */
-recoil.ui.widgets.TreeView = function(frp) {
-    
+recoil.ui.widgets.TreeView = function(container) {
+  var me = this;      
+  
+  this.container_ = container;
+  /** 
+   *  @private
+   *  @type goog.ui.TreeControl
+   *     
+   */
+  this.tree_ = null;
+  this.config_ = new recoil.ui.WidgetHelper(container, this, this.updateConfig_);
+  this.state_ = new recoil.ui.WidgetHelper(container, this, this.updateTree_);
+  
 };
+
+recoil.ui.widgets.TreeView.prototype.updateConfig_ = function (helper) {
+  var good = helper.isGood();
+  
+        if (good) {
+          if (me.tree_ !== null) {
+            goog.dom.removeChildren(this.container_);
+          }
+          me.tree_ = new goog.ui.tree.TreeControl('root', treeConfig);
+          // now force the tree to rerender since we just destroyed 
+          // and created a new one
+          me.state_.forceUpdate();
+        }
+        else if (me.tree_ !== null) {
+            // disable the tree            
+        }       
+
+};
+
+recoil.ui.widgets.TreeView.prototype.updateTree_ = function (helper) {
+  var good = helper.isGood();
+  
+  if (good) {
+      this.populateTreeRec(node, this.);
+  
+  }
+
+};
+
 
 /**
  * @parm {recoil.frp.Behaviour<recoil.ui.widgets.Tree>} value
  */
-recoil.ui.widgets.TreeView.attach = function(value) {
-    
+recoil.ui.widgets.TreeView.prototype.attach = function(value) {
+
+      // order is important here since we need config to allways fire before the others
+       
+      this.config_.attach(recoil.frp.Struct.get('config', value, goog.ui.tree.TreeControl.defaultConfig));
+      this.state_.attach(recoil.frp.Struct.get('state', value));
+      
+      var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
+      treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
+      tree = new goog.ui.tree.TreeControl('root', treeConfig);
+  
 };
+
+recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function (node, oldValue, newValue) {
+//	var numChildren =  getNumChildren(parentValue);
+//	var oldNumChildren = getNumChildren(oldValue);;
+	
+	if (oldValue === parentValue) {
+		return;
+	}
+
+  if (oldValue === undefined) {
+      var newNode = node.getTree().createNode(''); 
+      node.add(newNode);
+      for each child
+        childNode = node.getTree().createNode('');
+        node.append(childNode);
+        this.populateTreeRec_(newNode, oldValue, newValue)
+      return;
+  }
+  else if (this.same(oldValue, newValue) ) {
+      // do nothing
+	}
+  else {
+      node.setSafeHtml('some text');
+  }
+
+  	var differences = recoil.ui.widget.TreeView.minDifference(oldChildren,newChildren, sameVal);
+    
+    var childIndex = 0;
+		for (var idx in differences) {
+			var diff = differences[idx];
+      var childNode = node.getChildAt(childIndex);
+			if (diff.oldVal !== undefined && diff.newVal !== undefined) {                
+				  this.populateTreeRec_(childNode, diff.oldVal, diff.newVal);
+          childIndex++;
+			}
+			else if (diff.newVal === undefined) {
+          node.removeChild(childNode);
+			}
+			else if (diff.oldVal === undefined) {
+        childNode = node.getTree().createNode('');
+        node.addChildAt(childNode, childIndex);
+        childIndex++;
+				this.populateTreeRec_(childNode, undefined, diff.newVal);
+			}
+		}
+
+	
+}
 
 /*
 (function( $, undefined ) {
@@ -35,58 +136,11 @@ $.extend($.ui, { treeview: { version: "0.0.1" } });
 var PROP_NAME = "treeview";
 
 
-
 function getNumChildren(value) {
 	if (value === undefined) {
 		return 0;
 	}
 	return value.children === undefined ? 0 : value.children.length;
-}
-function visibleDepth(parentValue) {
-	
-	function helper(parent, depth) {
-		var numChildren = getNumChildren(parentValue);
-
-		if (numChildren == 0) {
-			return 1;
-		}
-		
-		if (depth !== 0 || parentValue.showRoot) {
-			if (!parentValue.expanded ) {
-				return 1;
-			}
-		}
-		var res = 0;
-		
-		
-		for (var item in parentValue.children) {
-			var d = helper(parentValue.children[item], depth + 1);
-			if (d > res) {
-				res = d;
-			}
-		}
-		return res + 1;
-		
-	}
-	return helper(parentValue, 0);
-}
-
-function getNodeIconExpanderClass(node) {
-	var numChildren =  getNumChildren(node);
-	if (numChildren === 0) {
-		return "treeview-leaf-exp";
-	}
-	if (node.expanded) {
-		return "treeview-node-open-exp";
-	}
-	return "treeview-node-closed-exp";
-}
-function getNodeIconClass(node) {
-	var numChildren =  getNumChildren(node);
-	if (numChildren === 0) {
-		return "treeview-leaf";
-	}
-	return "treeview-node-open";
 }
 
 function cloneArray(start, arr) {
@@ -177,7 +231,7 @@ function sameVal(x, y) {
  * isEqual is a function that takes 2 items and return if 2 items in the input list are equal.
  */
 
-function minDifference(origList, newList, isEqual) {
+recoil.ui.widgets.TreeView.minDifference = function (origList, newList, isEqual) {
 
 	function createDiffGrid(origList, newList, isEqual) {
 		
@@ -367,208 +421,6 @@ function performOnEvent(evtE, action, args) {
 
 }
 
-function populateTree(me, oldValue, parentValue, table, path, maxDepth, oldLastChild, lastChild, curRow) {
-	var numChildren =  getNumChildren(parentValue);
-	var oldNumChildren = getNumChildren(oldValue);;
-	var height = 20;
-	var cellWidth = "20px";
-	var expanderWidth = 11;
-
-	
-	if (oldValue === parentValue) {
-		curRow.val++;
-		return;
-	}
-
-	if (same(oldValue, parentValue) ) {
-		if (!shouldHide(path, parentValue)) {
-			curRow.val++;
-		}
-	}
-	else {
-		var row;
-		
-		if (oldValue === undefined) {
-			if (!shouldHide(path, parentValue)) {
-				row = table.insertRow(curRow.val);
-				curRow.val++;
-			}
-		}
-		else {
-			if (!shouldHide(path, parentValue)) {
-				table.deleteRow(curRow.val);
-				row = table.insertRow(curRow.val);
-				curRow.val++;
-			}
-		}
-		
-		if (!shouldHide(path, parentValue)) {
-			var indent;
-			var i;
-			var pathLen = path[0].showRoot ? path.length - 2 : path.length - 3;
-			
-			for (var i = 0; i < pathLen; i++) {
-				indent = DOM.create("td",undefined,"treeview-child-indent");
-				indent.style.width = cellWidth;
-				row.appendChild(indent);
-			}
-	
-			if (!shouldHideParent(path)) {
-				if (path.length > 1) {
-					indent = createLine(lastChild, height);
-
-					indent.style.width = cellWidth;
-					
-					row.appendChild(indent);
-				}
-			}
-	
-			
-			
-			
-			var item = parentValue;
-			var iconExpander = DOM.create("td", undefined, getNodeIconExpanderClass(item));
-			var icon = DOM.create("td", undefined, getNodeIconClass(item));
-			
-			if (numChildren == 0 && !shouldHideParent(path)) {
-				var tbl = DOM.create("table", undefined, "treeview-leaf-line");
-				tbl.style.height = height + "px";
-				var top = DOM.create("tr", undefined,"treeview-child-line");
-				var bottom = DOM.create("tr", undefined,"treeview-child-line");
-				tbl.appendChild(top);
-				tbl.appendChild(bottom);
-				tbl.style.width = expanderWidth + "px";
-
-				top.style.height = (height/2 + 1) + "px";
-
-				top.appendChild(DOM.create("td", undefined,"treeview-leaf-line-bot"));
-				bottom.appendChild(DOM.create("td", undefined,"treeview-leaf-line-top"));
-				iconExpander.appendChild(tbl);
-			}
-			if (item.icon !== undefined) {
-				icon.style.backgroundImage = "url('"+ item.icon + "')";
-			}
-
-			icon.style.width = cellWidth;
-			iconExpander.style.width = expanderWidth + "px";
-			
-			var iconAndItemTd = DOM.create("td", undefined, "treeview-item");
-			var iconAndItemTable = DOM.create("table", undefined, "treeview-item");
-			
-			var iconAndItemRow = DOM.create("tr", undefined, "treeview-item");
-			
-			iconAndItemRow.style.height = height + "px";
-			row.appendChild(iconAndItemTd);
-			iconAndItemTd.appendChild(iconAndItemTable);
-			iconAndItemTable.appendChild(iconAndItemRow);
-			
-			//row.appendChild(icon);
-			var itemCell = DOM.create("td", undefined, "treeview-item");
-			
-			iconAndItemTd.colSpan = maxDepth + 1;
-			itemCell.appendChild(document.createTextNode
-				    (item.value));
-			iconAndItemTd.addEventListener('drop', function dropItem (evt) {
-					var txt = evt.dataTransfer.getData("TreeViewData");
-					if (txt.table === table) {
-						console.log("drop my table '" + txt +"'");
-					}
-					else {
-						console.log("drop other source'" + txt +"'");
-					}	
-					
-					evt.preventDefault();
-				}
-			);
-			iconAndItemTd.addEventListener('dragover', function (evt) {
-				evt.preventDefault();				
-			});
-			iconAndItemTd.addEventListener('dragstart',function (evt) {
-				evt.dataTransfer.setData("TreeViewData",JSON.stringify({value:item.value, wid : window.id}));
-				
-				for (var xx in window) {
-					console.log("xxx" + xx);
-				}
-			});
-			iconAndItemTd.draggable = true;
-			
-			
-			if (getNumChildren(item) > 0) {
-				var expand = function (tree) {
-					
-					var rootB = me.state.behaviour;
-
-					
-					console.log("setting tree");
-					var newTree = setTreeValue (tree, path,  function(curItem) {
-						curItem.expanded = !item.expanded;						
-					});
-					console.log("setting tree done");
-					rootB.set(newTree);
-				};
-
-				
-				
-				(function  (itemCell, iconExpander, rootB) {
-					performOnEvent(F.mergeE(F.clicksE(iconExpander),F.clicksE(icon)), expand, rootB);
-				})(itemCell, iconExpander, me.state.behaviour);
-			}
-			
-			iconAndItemTd.appendChild(iconAndItemRow);
-			
-			iconAndItemRow.appendChild(iconExpander);
-		
-			iconAndItemRow.appendChild(icon);
-			iconAndItemRow.appendChild(itemCell);
-			
-			row.appendChild(iconAndItemTd);
-		}
-	}
-	
-	img = new Image;
-	
-	img.onload = function() {
-//		console.log("WIDTH = " + this.width);
-		
-	};
-	img.src = "/resources/images/error.png";
-	
-	if (parentValue.expanded || shouldHide(path, parentValue)) {
-		var childCount = 0;
-		var oldChildCount = 0;
-		var oldChildren = (oldValue == undefined  || oldValue.children == undefined || !(oldValue.expanded || shouldHide(path, parentValue)) ) ? [] :  oldValue.children;
-		var differences = minDifference(oldChildren,parentValue.children, sameVal);
-		for (var idx in differences) {
-			var diff = differences[idx];
-			if (diff.oldVal !== undefined && diff.newVal !== undefined) {
-				childCount++;
-				oldChildCount++;
-				newPath = cloneAndAppend(path, diff.newVal);
-				populateTree(me, diff.oldVal, diff.newVal, table, newPath, maxDepth -1, oldChildCount === oldNumChildren, childCount == numChildren, curRow);
-			}
-			else if (diff.oldVal !== undefined) {
-				// delete the row
-				table.deleteRow(curRow.val);
-				oldChildCount++;
-			}
-			else if (diff.newVal !== undefined) {
-				childCount++;
-				newPath = cloneAndAppend(path, diff.newVal);
-				populateTree(me, diff.oldVal, diff.newVal, table, newPath, maxDepth -1, oldChildCount === oldNumChildren, childCount == numChildren, curRow);
-				
-			}
-		}
-	} else if (oldValue != undefined && oldValue.expanded) {
-		var oldChildren = oldValue.children == undefined  ? [] :  oldValue.children;
-		for (var i = 0; i < oldChildren.length; i++) {
-			deleteRowRec(table, curRow.val, oldChildren[i]);
-		}
-	}
-		
-	
-
-	
-}
 
 function populateFullTree(me) {
 	

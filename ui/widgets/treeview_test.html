@@ -48,7 +48,7 @@ See the COPYING file for details.
 
   <p><button onclick="cut()">Cut</button>
   <button onclick="paste()">Paste</button>
-
+  <button onclick="test()">Test</button>
   <div id="treeContainer" style="width:400px"></div>
 
   <script>
@@ -65,7 +65,7 @@ See the COPYING file for details.
       goog.debug.Trace.initCurrentTrace();
       var tracerId = goog.debug.Trace.startTracer('makeTree');
       var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
-      treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
+      //treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
       tree = new goog.ui.tree.TreeControl('root', treeConfig);
 
       createTreeFromTestData(tree, testData);
@@ -76,6 +76,16 @@ See the COPYING file for details.
       logger.info('Trace:\n' + goog.debug.Trace.getFormattedTrace());
     }
 
+    function test() {
+      goog.dom.removeChildren($('treeContainer'));
+      var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
+      treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
+      tree = new goog.ui.tree.TreeControl('root', treeConfig);
+
+      createTreeFromTestData(tree, testData);
+
+      tree.render($('treeContainer'));
+    }
 
     function createTreeFromTestData(node, data) {
       node.setHtml(data[0]);
