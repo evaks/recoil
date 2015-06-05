@@ -1,8 +1,10 @@
+console.log("loading tree view");
 goog.provide('recoil.ui.widgets.TreeView');
 
 
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
+goog.require('recoil.ui.WidgetHelper')
 goog.require('goog.ui.tree.TreeControl');
 
 // http://closure-library.googlecode.com/git-history/0148f7ecaa1be5b645fabe7338b9579ed2f951c8/closure/goog/demos/index.html
@@ -44,7 +46,8 @@ recoil.ui.widgets.TreeView.prototype.updateConfig_ = function (helper) {
             goog.dom.removeChildren(this.container_);
           }
           me.tree_ = new goog.ui.tree.TreeControl('root', treeConfig);
-          // now force the tree to rerender since we just destroyed 
+          // now force the tree to rerender since we just destroyed
+          me.tree_.render(me.container_);
           // and created a new one
           me.state_.forceUpdate();
         }
@@ -58,7 +61,9 @@ recoil.ui.widgets.TreeView.prototype.updateTree_ = function (helper) {
   var good = helper.isGood();
   
   if (good) {
-      this.populateTreeRec(node, this.);
+      var newValue = this.getValue();
+      this.populateTreeRec(node, newValue, this.oldValue_);
+      this.oldValue_ = this;
   
   }
 
@@ -92,10 +97,11 @@ recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function (node, oldValue
   if (oldValue === undefined) {
       var newNode = node.getTree().createNode(''); 
       node.add(newNode);
-      for each child
+      node.children.foreach(function (child) {
         childNode = node.getTree().createNode('');
         node.append(childNode);
-        this.populateTreeRec_(newNode, oldValue, newValue)
+        this.populateTreeRec_(newNode, oldValue, newValue);
+      });
       return;
   }
   else if (this.same(oldValue, newValue) ) {
@@ -343,50 +349,6 @@ function shouldHideParent(path) {
 	return path.length == 2 && !path[0].showRoot;
 }
 
-function createLine(last, height) {
-	
-	var outer = DOM.create("td",undefined,"treeview-child");
-	var div = DOM.create("div",undefined,"treeview-child-line");
-	var tbl = DOM.create("table", undefined,"treeview-child-line");
-	
-	
-	outer.appendChild(tbl);
-	var row = DOM.create("tr", undefined,"treeview-child-line");
-	if (!last) {
-		var l = DOM.create("td", undefined,"treeview-child-line-left");
-		var r = DOM.create("td", undefined,"treeview-child-line-right-top");
-		r.style.height = height/2 + "px";
-		row.appendChild(l);
-		row.appendChild(r);
-		tbl.appendChild(row);
-		row = DOM.create("tr", undefined,"treeview-child-line");
-		l = DOM.create("td", undefined,"treeview-child-line-left");
-		r = DOM.create("td", undefined,"treeview-child-line-right");
-		r.style.height = height/2 + "px";
-		row.appendChild(l);
-		row.appendChild(r);
-	
-		
-	}
-	else {
-		var l = DOM.create("td", undefined,"treeview-child-line-left");
-		var r = DOM.create("td", undefined,"treeview-child-line-right-top");
-		var b = DOM.create("td", undefined,"treeview-child-line-bot");
-		r.style.height = (height/2) + "px";
-		b.style.height = (height/2) + "px";
-		b.colSpan =2;
-		row.appendChild(l);
-		row.appendChild(r);
-		tbl.appendChild(row);
-		row = DOM.create("tr", undefined,"treeview-child-line");
-		row.appendChild(b);
-		
-		
-	}
-	tbl.appendChild(row);
-	return outer;
-
-}
 
 function performOnEvent(evtE, action, args) {
 	  var args = Array.prototype.slice.call(arguments, 2);

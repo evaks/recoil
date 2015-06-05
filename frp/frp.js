@@ -30,6 +30,7 @@ recoil.frp.TraverseDirection = function(name, calc, comparator) {
     this.comparator_ = comparator;
 };
 
+
 /**
  * 
  * @param {recoil.frp.Behaviour} behaviour
@@ -60,6 +61,24 @@ recoil.frp.Frp = function() {
     this.transactionManager_ = new recoil.frp.TransactionManager(this);
     
 };
+
+
+/**
+ * @type {recoil.frp.VisibleObserver}
+ * @private
+ */
+recoil.frp.Frp.instance_ = null;
+
+/**
+ * @return {recoil.frp.Frp}
+ */
+recoil.frp.Frp.instance = function() {
+    if (recoil.frp.Frp.instance_ === null) {
+        recoil.frp.Frp.instance_ = new recoil.frp.Frp();
+    }
+    return recoil.frp.Frp.instance_;
+};
+
 /**
  * 
  * @return {recoil.frp.TransactionManager}

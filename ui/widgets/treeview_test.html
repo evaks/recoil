@@ -11,11 +11,13 @@ See the COPYING file for details.
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>goog.ui.tree.TreeControl</title>
   <script src="../../../../closure-library/closure/goog/base.js"></script>
+  <script src="../../../../my-deps.js"></script>
   <script>
     goog.require('goog.debug.DivConsole');
     goog.require('goog.debug.Trace');
     goog.require('goog.dom');
     goog.require('goog.ui.tree.TreeControl');
+    goog.require('recoil.ui.widgets.TreeView');
   </script>
   <script src="testdata.js"></script>
   <link rel="stylesheet" href="../css/demo.css">
@@ -49,6 +51,7 @@ See the COPYING file for details.
   <p><button onclick="cut()">Cut</button>
   <button onclick="paste()">Paste</button>
   <button onclick="test()">Test</button>
+  <div id="treeViewContainer" style="width:400px"></div>  
   <div id="treeContainer" style="width:400px"></div>
 
   <script>
@@ -62,12 +65,14 @@ See the COPYING file for details.
     var logger = goog.debug.LogManager.getRoot();
 
     function makeTree() {
+    
       goog.debug.Trace.initCurrentTrace();
       var tracerId = goog.debug.Trace.startTracer('makeTree');
       var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
       //treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
       tree = new goog.ui.tree.TreeControl('root', treeConfig);
 
+      treeView = new recoil.ui.widgets.TreeView($('treeViewContainer'));
       createTreeFromTestData(tree, testData);
 
       tree.render($('treeContainer'));

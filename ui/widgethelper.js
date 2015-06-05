@@ -5,6 +5,7 @@
  * you may access the behaviour attached to the helper inside the callback
  *    
  **/   
+console.log("loading widget helper");
 
 goog.provide('recoil.ui.WidgetHelper');
 
@@ -49,7 +50,7 @@ recoil.ui.WidgetHelper = function (container, me, callback) {
  * this is because there are no weak references in javascript        
  **/
    
-recoil.ui.WidgetHelper.prototype.attach(behaviour) {
+recoil.ui.WidgetHelper.prototype.attach = function (behaviour) {
     if (this.behaviour_ === behaviour) {
       return;
     }

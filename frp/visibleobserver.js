@@ -24,6 +24,22 @@ recoil.frp.VisibleObserver = function() {
 };
 
 /**
+ * @type {recoil.frp.VisibleObserver}
+ * @private
+ */
+recoil.frp.VisibleObserver.instance_ = null;
+
+/**
+ * @return {recoil.frp.VisibleObserver}
+ */
+recoil.frp.VisibleObserver.instance = function() {
+    if (recoil.frp.VisibleObserver.instance_ === null) {
+        recoil.frp.VisibleObserver.instance_ = new recoil.frp.VisibleObserver();
+    }
+    return recoil.frp.VisibleObserver.instance_;
+};
+
+/**
  * the items that goes the trees, so we can store nodes along with data
  * 
  * @constructor
