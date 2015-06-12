@@ -18,6 +18,7 @@ See the COPYING file for details.
     goog.require('goog.dom');
     goog.require('goog.ui.tree.TreeControl');
     goog.require('recoil.ui.widgets.TreeView');
+    goog.require('recoil.frp.Frp');
   </script>
   <script src="testdata.js"></script>
   <link rel="stylesheet" href="../css/demo.css">
@@ -72,7 +73,10 @@ See the COPYING file for details.
       //treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
       tree = new goog.ui.tree.TreeControl('root', treeConfig);
 
-      treeView = new recoil.ui.widgets.TreeView($('treeViewContainer'));
+      var frp = new recoil.frp.Frp();
+      var observer = new recoil.frp.VisibleObserver();
+      treeView = new recoil.ui.widgets.TreeView(frp, observer, $('treeViewContainer'));
+      treeView.attach()
       createTreeFromTestData(tree, testData);
 
       tree.render($('treeContainer'));

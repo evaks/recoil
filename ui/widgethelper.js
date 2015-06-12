@@ -9,25 +9,28 @@ console.log("loading widget helper");
 
 goog.provide('recoil.ui.WidgetHelper');
 
+goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
 
 /**
  * @template T
+ * @param {recoil.frp.Frp} frp the frp engine
  * @param {Node} container when this is no longer visible updates will longer
  *               fire and memory will be cleaned up
- * @param {Object} me the this pointer callback will be called with
+ * @param {Object} obj the this pointer callback will be called with
  * @param {function(recoil.ui.WidgetHelper)} callback 
  * @constructor  
  **/
    
-recoil.ui.WidgetHelper = function (container, me, callback) {
-    this.observer_ = recoil.frp.VisibleObserver.instance();
-    this.frp_ = recoil.frp.Frp.instance();
-    this._me = me;
+recoil.ui.WidgetHelper = function (frp, observer, container, obj, callback) {
+    this.observer_ = observer;
+    this.frp_ = frp;
+    this.container_ = container;
+    var me = this;
     /** @private @final */
-    this.callback_ = function () {callback.call(me);}
+    this.callback_ = function () {callback.call(obj, me);}
     /** 
-     * @type {recoil.ui.Behaviour<T>} 
+     * @type {recoil.frp.Behaviour<T>} 
      * @private
      */
     this.behaviour_ = null; 
@@ -40,11 +43,32 @@ recoil.ui.WidgetHelper = function (container, me, callback) {
 };
 
 /**
- * @param {!recoil.ui.Behaviour<T>} behaviour
+ * @return T the value of the attached Behaviour
+ */
+recoil.ui.WidgetHelper.prototype.value = function () {
+    return this.behaviour_.get();
+};
+
+/**
+ * @return {Boolean} is the value good
+ */
+recoil.ui.WidgetHelper.prototype.isGood = function () {
+    return this.behaviour_.metaGet();
+};
+
+/**
+ * force the change to fire
+ */
+recoil.ui.WidgetHelper.prototype.forceUpdate = function() {
+    this.behaviour_.frp().access(this.callback_, this.behaviour_);
+};
+
+/**
+ * @param {!recoil.frp.Behaviour<T>} behaviour
  *
  * note the node we are watch must be in the dom by now, the reason for this is if it isn't and is
  * never added we will have a leak observer maintains a list that can never be cleared
- * also once it item is removed form the dom and node readded within the same execution thread
+ * also once it item is removed form the DOM and node re-added within the same execution thread
  * it will be considered disposed.
  * 
  * this is because there are no weak references in javascript        
@@ -63,31 +87,24 @@ recoil.ui.WidgetHelper.prototype.attach = function (behaviour) {
     
     var me = this;
     this.behaviour_ = behaviour;
-    this.behaviourAttached_ = this.frp_.liftB(this.callback, this._behaviour);    
+    this.behaviourAttached_ = this.frp_.liftB(this.callback_, this.behaviour_);    
 
     if (hadBehaviour) {
         if (this.isAttached_) {
-          this.frp_.attach(this.behaviourAttached);
+          this.frp_.attach(this.behaviour_);
         }
     }
     else {    
-      var me = this;
       this.isAttached_ = false;
-      this._observer.listen(element, function(visible) {
+      this.observer_.listen(this.container_, function(visible) {
           if (visible != me.isAttached_) {
               me.isAttached_ = visible;
               if (visible) {
-                  this.frp_.attach(this.behaviourAttached);
+                  this.frp_.attach(this.behaviour_);
               }
               else {
-                this.frp_.detach(this.behaviourAttached);
+                this.frp_.detach(this.behaviour_);
               }
-          }
-          visible = v;
-          if (skip === 0) {
-              asyncTestCase.continueTesting();
-          } else {
-              skip--;
           }
       });
     }

@@ -64,22 +64,6 @@ recoil.frp.Frp = function() {
 
 
 /**
- * @type {recoil.frp.VisibleObserver}
- * @private
- */
-recoil.frp.Frp.instance_ = null;
-
-/**
- * @return {recoil.frp.Frp}
- */
-recoil.frp.Frp.instance = function() {
-    if (recoil.frp.Frp.instance_ === null) {
-        recoil.frp.Frp.instance_ = new recoil.frp.Frp();
-    }
-    return recoil.frp.Frp.instance_;
-};
-
-/**
  * 
  * @return {recoil.frp.TransactionManager}
  */
@@ -94,7 +78,7 @@ recoil.frp.Frp.prototype.tm = function() {
  * @param {recoil.frp.Behaviour<T>} behaviour
  *    
  */
-recoil.frp.Frp.attach = function (behaviour) {
+recoil.frp.Frp.prototype.attach = function (behaviour) {
   this.transactionManager_.attach(behaviour);
 }; 
 
@@ -105,7 +89,7 @@ recoil.frp.Frp.attach = function (behaviour) {
  * @param {recoil.frp.Behaviour<T>} behaviour
  *    
  */
-recoil.frp.Frp.detach = function (behaviour) {
+recoil.frp.Frp.prototype.detach = function (behaviour) {
   this.transactionManager_.detach(behaviour);
 }; 
 
@@ -148,6 +132,23 @@ recoil.frp.BStatus.prototype.set = function(val) {
 recoil.frp.BStatus.prototype.get = function() {
     return this._value;
 };
+
+/**
+ * 
+ * @returns {Boolean}
+ */
+recoil.frp.BStatus.prototype.ready = function () {
+    return this._ready;
+};
+
+/**
+ * 
+ * @returns {Boolean}
+ */
+recoil.frp.BStatus.prototype.good = function () {
+    return this._ready && this._errors.length === 0;
+};
+
 
 /**
  * @private
@@ -350,15 +351,16 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection('down', functi
  * 
  * @constructor
  * @template T
- * 
+ * @param {recoil.frp.Frp} frp the frp engine
  * @param {recoil.frp.BStatus <T>} value
  * @param {function(...) : T| undefined} calc
  * @param {function(T)| undefined} inverse
  * @param {Array <goog.math.Long>} sequence
  * @param {Array <recoil.frp.Behaviour>?} providers
  */
-recoil.frp.Behaviour = function(value, calc, inverse, sequence, providers) {
+recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) {
     var me = this;
+    this.frp_ =frp;
     var myValue = value;
     this.val_ = value;
     this._calc = calc || function() {
@@ -385,6 +387,13 @@ recoil.frp.Behaviour = function(value, calc, inverse, sequence, providers) {
     this.seqStr_ = String(sequence); 
     this.accessors_ = 0;
     this.providers_ = providers || [];
+};
+
+/**
+ * @return {recoil.frp.Frp} the associated frp engine
+ */
+recoil.frp.Behaviour.prototype.frp = function () {
+    return this.frp_;
 };
 
 /**
@@ -571,7 +580,7 @@ recoil.frp.Behaviour.prototype.set = function(value) {
  */
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
-    return new recoil.frp.Behaviour(metaInitial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
+    return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
 };
 
 /**
@@ -581,7 +590,7 @@ recoil.frp.Frp.prototype.createB = function(initial) {
  */
 recoil.frp.Frp.prototype.createConstB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
-    return new recoil.frp.Behaviour(metaInitial, function() {
+    return new recoil.frp.Behaviour(this, metaInitial, function() {
         return metaInitial;
     }, function(dummy) {
     }, [this.transactionManager_.nextIndex()], []);
@@ -698,7 +707,7 @@ recoil.frp.Frp.prototype.metaLiftBI = function(func, invFunc, var_args) {
     for (var i = 2; i < arguments.length; i++) {
         providers.push(arguments[i]);
     }
-    return new recoil.frp.Behaviour(null, func, invFunc, [this.transactionManager_.nextIndex()], providers);
+    return new recoil.frp.Behaviour(this, null, func, invFunc, [this.transactionManager_.nextIndex()], providers);
 };
 
 /**
@@ -784,7 +793,7 @@ recoil.frp.TransactionManager = function(frp) {
     this.curIndexLock_ = 0;
     this.id_ = recoil.frp.TransactionManager.nextId_.toString();
     /**
-     *@type recoil.Frp
+     *@type recoil.frp.Frp
      *@private     
      **/      
      this.frp_ = frp;        
@@ -1054,7 +1063,7 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
  * mark the behaviour that it is being used it will now recieve update notifications
  * 
  * @template T
- * @param {recoil.frp.Behaviour<T>} attachBehaviour
+ * @param {recoil.frp.Behaviour<T>} behaviour
  */
 recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
     var visited = this.visit(behaviour);
