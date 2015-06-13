@@ -50,17 +50,17 @@ recoil.ui.WidgetHelper.prototype.value = function () {
 };
 
 /**
- * @return {Boolean} is the value good
+ * @return {!boolean} is the value good
  */
 recoil.ui.WidgetHelper.prototype.isGood = function () {
-    return this.behaviour_.metaGet();
+    return this.behaviour_.metaGet().good();
 };
 
 /**
  * force the change to fire
  */
 recoil.ui.WidgetHelper.prototype.forceUpdate = function() {
-    this.behaviour_.frp().access(this.callback_, this.behaviour_);
+    recoil.frp.Frp.access(this.callback_, this.behaviour_);
 };
 
 /**
@@ -100,10 +100,10 @@ recoil.ui.WidgetHelper.prototype.attach = function (behaviour) {
           if (visible != me.isAttached_) {
               me.isAttached_ = visible;
               if (visible) {
-                  this.frp_.attach(this.behaviour_);
+                  me.frp_.attach(me.behaviour_);
               }
               else {
-                this.frp_.detach(this.behaviour_);
+                me.frp_.detach(me.behaviour_);
               }
           }
       });

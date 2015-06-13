@@ -2,7 +2,6 @@ goog.provide('recoil.frp');
 goog.provide('recoil.frp.BStatus');
 goog.provide('recoil.frp.Behaviour');
 goog.provide('recoil.frp.Frp');
-goog.provide('recoil.frp.IsEqual');
 goog.provide('recoil.frp.TransactionManager');
 
 goog.require('goog.array');
@@ -13,6 +12,7 @@ goog.require('recoil.exception.NoAccessors');
 goog.require('recoil.exception.NotAttached');
 goog.require('recoil.exception.NotInTransaction');
 goog.require('recoil.structs.UniquePriorityQueue');
+goog.require('recoil.util');
 
 /**
  * recoil.frp.TraverseDirection.
@@ -29,7 +29,6 @@ recoil.frp.TraverseDirection = function(name, calc, comparator) {
     this.calc_ = calc;
     this.comparator_ = comparator;
 };
-
 
 /**
  * 
@@ -59,9 +58,8 @@ recoil.frp.TraverseDirection.prototype.heapComparator = function() {
  */
 recoil.frp.Frp = function() {
     this.transactionManager_ = new recoil.frp.TransactionManager(this);
-    
-};
 
+};
 
 /**
  * 
@@ -76,22 +74,22 @@ recoil.frp.Frp.prototype.tm = function() {
  * 
  * @template T
  * @param {recoil.frp.Behaviour<T>} behaviour
- *    
+ * 
  */
-recoil.frp.Frp.prototype.attach = function (behaviour) {
-  this.transactionManager_.attach(behaviour);
-}; 
+recoil.frp.Frp.prototype.attach = function(behaviour) {
+    this.transactionManager_.attach(behaviour);
+};
 
 /**
  * mark the behaviour that it is no longer being used it will not recieve update notifications
  * 
  * @template T
  * @param {recoil.frp.Behaviour<T>} behaviour
- *    
+ * 
  */
-recoil.frp.Frp.prototype.detach = function (behaviour) {
-  this.transactionManager_.detach(behaviour);
-}; 
+recoil.frp.Frp.prototype.detach = function(behaviour) {
+    this.transactionManager_.detach(behaviour);
+};
 
 /**
  * 
@@ -102,19 +100,28 @@ recoil.frp.Frp.prototype.detach = function (behaviour) {
  * @template T
  */
 recoil.frp.BStatus = function(initial) {
-    this._errors = [];
-    this._ready = true;
-    this._value = initial;
+    this.errors_ = [];
+    /** @type !boolean */
+    this.ready_ = true;
+    this.value_ = initial;
 };
 
+/**
+ * @return recoil.frp.BStatus
+ */
+recoil.frp.BStatus.notReady= function()  {
+    var res = new recoil.frp.BStatus(undefined);
+    res.ready_ = false;
+    return res;
+}
 /**
  * combine this error and another to get a result
  * 
  * @param {recoil.frp.BStatus} other
  */
 recoil.frp.BStatus.prototype.merge = function(other) {
-    this._errors = goog.array.concat(this._errors, other._errors);
-    this._ready = this._ready && other._ready;
+    this.errors_ = goog.array.concat(this.errors_, other.errors_);
+    this.ready_ = this.ready_ && other.ready_;
 };
 
 /**
@@ -123,32 +130,31 @@ recoil.frp.BStatus.prototype.merge = function(other) {
  * @param {T} val
  */
 recoil.frp.BStatus.prototype.set = function(val) {
-    this._value = val;
+    this.value_ = val;
 };
 
 /**
  * @return {T}
  */
 recoil.frp.BStatus.prototype.get = function() {
-    return this._value;
+    return this.value_;
 };
 
 /**
  * 
- * @returns {Boolean}
+ * @returns {!boolean}
  */
-recoil.frp.BStatus.prototype.ready = function () {
-    return this._ready;
+recoil.frp.BStatus.prototype.ready = function() {
+    return this.ready_;
 };
 
 /**
  * 
- * @returns {Boolean}
+ * @returns {boolean}
  */
-recoil.frp.BStatus.prototype.good = function () {
-    return this._ready && this._errors.length === 0;
+recoil.frp.BStatus.prototype.good = function() {
+    return this.ready_ && this.errors_.length === 0;
 };
-
 
 /**
  * @private
@@ -176,88 +182,6 @@ recoil.frp.Frp.compareSeq_ = function(a, b) {
         return 1;
     }
     return 0;
-};
-
-/**
- * compares 2 objects
- * 
- * @param {Object|number|undefined} a
- * @param {Object|number|undefined} b
- * @return {boolean}
- */
-recoil.frp.isEqual = function(a, b) {
-
-    return recoil.frp.isEqual.isEqualRec_(a, b, [], []);
-};
-
-/**
- * @private
- * @param {Object|number|undefined} a
- * @param {Object|number|undefined} b
- * @param {Array<Object>} aPath
- * @param {Array<Object>} bPath
- * @return {boolean}
- */
-recoil.frp.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
-
-    // check for loops
-
-    var aIndex = goog.array.indexOf(aPath, a);
-    var bIndex = goog.array.indexOf(bPath, b);
-
-    if (aIndex !== -1 || bIndex !== -1) {
-        return aIndex === bIndex;
-    }
-
-    if (a === b) {
-        return true;
-    }
-
-    if (a === undefined || b === undefined || a === null || b === null) {
-        return false;
-    }
-
-    if (a.equals !== undefined && a.equals instanceof Function) {
-        return a.equals(b);
-    }
-    if (b.equals !== undefined && b.equals instanceof Function) {
-        return b.equals(a);
-    }
-
-    if (goog.isArrayLike(a) != goog.isArrayLike(b)) {
-        return false;
-    }
-
-    var newAPath = goog.array.concat(aPath, [a]);
-    var newBPath = goog.array.concat(bPath, [b]);
-
-    if (goog.isArrayLike(a)) {
-
-        return goog.array.equals(/** @type {goog.array.ArrayLike} */
-        (a), /** @type {goog.array.ArrayLike} */
-        (b), function(a, b) {
-            return recoil.frp.isEqual.isEqualRec_(a, b, newAPath, newBPath);
-        });
-    }
-
-    if (a instanceof Object || b instanceof Object) {
-        if (!(a instanceof Object) || !(b instanceof Object)) {
-            return false;
-        }
-
-        for ( var k in a) {
-            if (!(k in b) || !recoil.frp.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath)) {
-                return false;
-            }
-        }
-        for ( var k in b) {
-            if (!(k in a)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    return false;
 };
 
 /**
@@ -290,9 +214,9 @@ function(behaviour, providers, dependents) {
     });
     var newVal = behaviour._calc.apply(behaviour, params);
     var res = [];
-    if (behaviour.dirtyUp_ && recoil.frp.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
+    if (behaviour.dirtyUp_ && recoil.util.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
         behaviour.val_ = behaviour.dirtyUpOldValue_;
-    } else if (behaviour.dirtyUp_ || !recoil.frp.isEqual(oldVal, newVal)) {
+    } else if (behaviour.dirtyUp_ || !recoil.util.isEqual(oldVal, newVal)) {
         behaviour.val_ = newVal;
         res = dependents;
     }
@@ -360,7 +284,7 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection('down', functi
  */
 recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) {
     var me = this;
-    this.frp_ =frp;
+    this.frp_ = frp;
     var myValue = value;
     this.val_ = value;
     this._calc = calc || function() {
@@ -375,16 +299,16 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.refs_ = {};
     /**
      * @type Array<goog.math.Long>
-     * @constructor 
+     * @constructor
      * @final
-     */                   
+     */
     this.seq_ = sequence;
     /**
      * @type string
-     * @constructor 
+     * @constructor
      * @final
-     */                   
-    this.seqStr_ = String(sequence); 
+     */
+    this.seqStr_ = String(sequence);
     this.accessors_ = 0;
     this.providers_ = providers || [];
 };
@@ -392,7 +316,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
 /**
  * @return {recoil.frp.Frp} the associated frp engine
  */
-recoil.frp.Behaviour.prototype.frp = function () {
+recoil.frp.Behaviour.prototype.frp = function() {
     return this.frp_;
 };
 
@@ -551,7 +475,7 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
     }
     var me = this;
 
-    if (!recoil.frp.isEqual(value, me.val_)) {
+    if (!recoil.util.isEqual(value, me.val_)) {
         me.dirtyUp_ = true;
         me.dirtyUpOldValue_ = me.val_;
         me.dirtyDown_ = true;
@@ -581,6 +505,15 @@ recoil.frp.Behaviour.prototype.set = function(value) {
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
     return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
+};
+
+/**
+ * @template T
+ * @param {recoil.frp.BStatus<T>} initial
+ * @return {recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Frp.prototype.createMetaB = function(initial) {
+    return new recoil.frp.Behaviour(this, initial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
 };
 
 /**
@@ -634,7 +567,7 @@ recoil.frp.Frp.accessList = function(callback, behaviours) {
 /**
  * 
  * @template T
- * @param {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} Bb
+ * @param {!recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} Bb
  * @return {T}
  */
 recoil.frp.Frp.prototype.switchB = function(Bb) {
@@ -648,13 +581,13 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
         var b = null;
 
         me.transactionManager_.nestIds(Bb, function() {
-            if (metaBb._value === null) {
+            if (metaBb.value_ === null) {
                 me.transactionManager_.updateProviders_(switchB, Bb);
             } else {
                 me.transactionManager_.updateProviders_(switchB, Bb, metaBb.get());
                 res.merge(metaBb);
             }
-            b = metaBb._value;
+            b = metaBb.value_;
         });
 
         if (b !== null || b !== undefined) {
@@ -667,8 +600,8 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
     }, function(val) {
         var metaBb = Bb.metaGet();
 
-        if (metaBb._value instanceof recoil.frp.Behaviour) {
-            metaBb._value.metaSet(val);
+        if (metaBb.value_ instanceof recoil.frp.Behaviour) {
+            metaBb.value_.metaSet(val);
         }
 
     }, Bb);
@@ -680,7 +613,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
  * @template T
  * @param {function(...) : T} func
  * @param {...} var_args
- * @return {recoil.frp.Behaviour<T>}
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.Frp.prototype.metaLiftB = function(func, var_args) {
     var args = [];
@@ -700,7 +633,7 @@ recoil.frp.Frp.prototype.metaLiftB = function(func, var_args) {
  * @param {function(...) : T} func
  * @param {function(T,...)} invFunc
  * @param {...} var_args
- * @return {recoil.frp.Behaviour<T>}
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.Frp.prototype.metaLiftBI = function(func, invFunc, var_args) {
     var providers = [];
@@ -714,7 +647,7 @@ recoil.frp.Frp.prototype.metaLiftBI = function(func, invFunc, var_args) {
  * @template RT
  * @param {function(...) : RT} func
  * @param {...number|Object} var_args
- * @return {recoil.frp.Behaviour<RT>}
+ * @return {!recoil.frp.Behaviour<RT>}
  */
 
 recoil.frp.Frp.prototype.liftB = function(func, var_args) {
@@ -730,7 +663,7 @@ recoil.frp.Frp.prototype.liftB = function(func, var_args) {
  * @param {function(...) : RT} func
  * @param {function(RT,...)} invFunc
  * @param {...number|Object} var_args
- * @return {recoil.frp.Behaviour<RT>}
+ * @return {!recoil.frp.Behaviour<RT>}
  */
 
 recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
@@ -741,11 +674,17 @@ recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
 
         for (var i = 2; i < outerArgs.length; i++) {
             var metaArg = outerArgs[i];
-            metaResult.merge(metaArg);
+            metaResult.merge(metaArg.metaGet());
             args.push(metaArg.get());
         }
-        var result = func.apply(this, args);
-        metaResult.set(result);
+        if (metaResult.good()) {
+            var result = func.apply(this, args);
+
+            metaResult.set(result);
+        }
+        else {
+            console.log(metaResult);
+        }
         return metaResult;
     };
 
@@ -771,8 +710,8 @@ recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
 
 /**
  * @constructor
- * @param {recoil.frp.Frp}  
- *  
+ * @param {recoil.frp.Frp}
+ * 
  */
 recoil.frp.TransactionManager = function(frp) {
     this.providers_ = [];
@@ -781,22 +720,22 @@ recoil.frp.TransactionManager = function(frp) {
             new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator())];
     this._dependancyMap = [];
     this._curIndex = goog.math.Long.ZERO;
-     /**
-     *@type Array<Array<goog.math.Long>>
-     *@private     
-     **/      
+    /**
+     * @type Array<Array<goog.math.Long>>
+     * @private
+     */
     this._curIndexPrefix = [[]];
     /**
-     *@type number
-     *@private     
-     **/      
+     * @type number
+     * @private
+     */
     this.curIndexLock_ = 0;
     this.id_ = recoil.frp.TransactionManager.nextId_.toString();
     /**
-     *@type recoil.frp.Frp
-     *@private     
-     **/      
-     this.frp_ = frp;        
+     * @type recoil.frp.Frp
+     * @private
+     */
+    this.frp_ = frp;
     recoil.frp.TransactionManager.nextId_ = recoil.frp.TransactionManager.nextId_.add(goog.math.Long.ONE);
 };
 
@@ -844,7 +783,7 @@ recoil.frp.TransactionManager.prototype.lockIds_ = function(callback) {
  * to a transaction nothing should fire until we exit out the top level
  * 
  * @param {function()} callback
- *
+ * 
  */
 
 recoil.frp.TransactionManager.prototype.doTrans = function(callback) {

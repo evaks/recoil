@@ -5,7 +5,11 @@ goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.ui.WidgetHelper')
 goog.require('recoil.frp.struct');
+goog.require('recoil.structs.Tree');
 goog.require('goog.ui.tree.TreeControl');
+goog.require('goog.structs.TreeNode');
+goog.require('goog.html.SafeHtml');
+
 
 // http://closure-library.googlecode.com/git-history/0148f7ecaa1be5b645fabe7338b9579ed2f951c8/closure/goog/demos/index.html
 // TreeControl, TreeNode
@@ -31,11 +35,22 @@ recoil.ui.widgets.TreeView = function(frp, observer, container) {
      * 
      */
     this.tree_ = null;
+    /**
+     * @private
+     * @type recoil.structs.Tree
+     */
+    this.oldTree_ = null;
     this.config_ = new recoil.ui.WidgetHelper(frp, observer, container, this, this.updateConfig_);
     this.state_ = new recoil.ui.WidgetHelper(frp, observer, container, this, this.updateTree_);
 
 };
 
+/**
+ * callback handler that gets called when the configuration for the widget
+ * gets changed 
+ * 
+ * @param helper
+ */
 recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
     var me = this;
     var good = helper.isGood();
@@ -82,7 +97,22 @@ recoil.ui.widgets.TreeView.prototype.attach = function(value) {
     this.state_.attach(recoil.frp.struct.get('state', value));
 
 };
-
+/**
+ * tests if the values of the nodes are the same
+ * @private 
+ * @param {recoil.structs.Tree} a 
+ * @param {recoil.structs.Tree} b
+ * @return {!boolean}
+ */
+recoil.ui.widgets.TreeView.same_ = function (a, b) {
+    return recoil.util.isEqual(a.value(), b.value());
+}
+/**
+ * 
+ * @param {!goog.ui.tree.BaseNode} node
+ * @param {recoil.structs.Tree} oldValue 
+ * @param {recoil.structs.Tree} newValue
+ */
 recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(node, oldValue, newValue) {
     // var numChildren = getNumChildren(parentValue);
     // var oldNumChildren = getNumChildren(oldValue);;
@@ -91,22 +121,25 @@ recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(node, oldValue,
         return;
     }
 
-    if (oldValue === undefined) {
-        var newNode = node.getTree().createNode('');
-        node.add(newNode);
-        node.children.foreach(function(child) {
+    
+    if (oldValue === undefined || oldValue === null) {
+        var newNode = this.tree_.createNode('');
+        node.addChild(newNode);
+        node.forEachChild(function(child) {
             childNode = node.getTree().createNode('');
-            node.append(childNode);
+            newNode.addChild(childNode);
             this.populateTreeRec_(newNode, oldValue, newValue);
         });
         return;
-    } else if (this.same(oldValue, newValue)) {
+    } else if (recoil.util.isEqual(oldValue.value(), newValue.value())) {
         // do nothing
     } else {
-        node.setSafeHtml('some text');
+        node.setSafeHtml(goog.html.SafeHtml.htmlEscape('some text'));
     }
 
-    var differences = recoil.ui.widget.TreeView.minDifference(oldChildren, newChildren, sameVal);
+    
+    
+    var differences = recoil.ui.widgets.TreeView.minDifference(oldValue.children(), newValue.children(), recoil.ui.widgets.TreeView.same_);
 
     var childIndex = 0;
     for ( var idx in differences) {
@@ -118,7 +151,7 @@ recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(node, oldValue,
         } else if (diff.newVal === undefined) {
             node.removeChild(childNode);
         } else if (diff.oldVal === undefined) {
-            childNode = node.getTree().createNode('');
+            childNode = this.tree_.createNode('');
             node.addChildAt(childNode, childIndex);
             childIndex++;
             this.populateTreeRec_(childNode, undefined, diff.newVal);

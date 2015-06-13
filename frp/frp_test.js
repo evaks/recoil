@@ -8,6 +8,7 @@ goog.require('recoil.exception.NoAccessors');
 goog.require('recoil.exception.NotAttached');
 goog.require('recoil.exception.NotInTransaction');
 goog.require('recoil.frp.Frp');
+goog.require('recoil.util');
 
 goog.setTestOnly('recoil.frp.FrpTest');
 
@@ -201,6 +202,20 @@ function testNoSetOutsideTransaction() {
     }, two);
 }
 
+function testLiftBOnlyGood() {
+
+    var frp = new recoil.frp.Frp();
+    
+    function testNotCall() {
+        fail("should not be called");
+    }
+    var a = frp.createMetaB(new recoil.frp.BStatus.notReady());
+    var d = frp.liftB(testNotCall, a);
+    frp.attach(d);
+    frp.detach(d);
+      
+    
+}
 function testSwitchBUp() {
 
     var frp = new recoil.frp.Frp();
@@ -257,47 +272,47 @@ function testIsEqual() {
     loopTestA.some.me = loopTestA;
     loopTestB.some.me = loopTestB;
 
-    assertTrue('loop eq', recoil.frp.isEqual(loopTestA, loopTestB));
+    assertTrue('loop eq', recoil.util.isEqual(loopTestA, loopTestB));
 
     loopTestB.some.me = loopTestA;
-    assertFalse('loop neq', recoil.frp.isEqual(loopTestA, loopTestB));
+    assertFalse('loop neq', recoil.util.isEqual(loopTestA, loopTestB));
 
 
-    assertTrue('override left', recoil.frp.isEqual(overrideEquals, [1, 2, 3]));
-    assertTrue('override right', recoil.frp.isEqual([1, 2, 3], overrideEquals));
-    assertTrue('array eq', recoil.frp.isEqual([1, 2, 3], [1, 2, 3]));
-    assertFalse(recoil.frp.isEqual([1, 2, 3], [1, 2, 4]));
-    assertFalse(recoil.frp.isEqual([1, 2, 3], [1, 2, 3, 4]));
-    assertFalse(recoil.frp.isEqual([1, 2, 3, 4], [1, 2, 3]));
-    assertTrue(recoil.frp.isEqual([1, 2, 3], [1, 2, 3]));
-    assertTrue(recoil.frp.isEqual(1, 1));
+    assertTrue('override left', recoil.util.isEqual(overrideEquals, [1, 2, 3]));
+    assertTrue('override right', recoil.util.isEqual([1, 2, 3], overrideEquals));
+    assertTrue('array eq', recoil.util.isEqual([1, 2, 3], [1, 2, 3]));
+    assertFalse(recoil.util.isEqual([1, 2, 3], [1, 2, 4]));
+    assertFalse(recoil.util.isEqual([1, 2, 3], [1, 2, 3, 4]));
+    assertFalse(recoil.util.isEqual([1, 2, 3, 4], [1, 2, 3]));
+    assertTrue(recoil.util.isEqual([1, 2, 3], [1, 2, 3]));
+    assertTrue(recoil.util.isEqual(1, 1));
 
-    assertTrue(recoil.frp.isEqual({
+    assertTrue(recoil.util.isEqual({
         foo: 'a'
     }, {
         foo: 'a'
     }));
-    assertFalse(recoil.frp.isEqual({
+    assertFalse(recoil.util.isEqual({
         foo: 'a'
     }, {
         foo: 'a',
         b1: 'a'
     }));
-    assertFalse(recoil.frp.isEqual({
+    assertFalse(recoil.util.isEqual({
         foo: 'b'
     }, {
         foo: 'a'
     }));
-    assertFalse(recoil.frp.isEqual(3, 2));
-    assertFalse(recoil.frp.isEqual(undefined, 2));
-    assertFalse(recoil.frp.isEqual(2, undefined));
+    assertFalse(recoil.util.isEqual(3, 2));
+    assertFalse(recoil.util.isEqual(undefined, 2));
+    assertFalse(recoil.util.isEqual(2, undefined));
 
-    assertFalse(recoil.frp.isEqual(null, 2));
-    assertFalse(recoil.frp.isEqual(2, null));
+    assertFalse(recoil.util.isEqual(null, 2));
+    assertFalse(recoil.util.isEqual(2, null));
 
-    assertTrue(recoil.frp.isEqual(goog.math.Long.fromInt(1), goog.math.Long
+    assertTrue(recoil.util.isEqual(goog.math.Long.fromInt(1), goog.math.Long
             .fromInt(1)));
-    assertFalse(recoil.frp.isEqual(goog.math.Long.fromInt(2), goog.math.Long
+    assertFalse(recoil.util.isEqual(goog.math.Long.fromInt(2), goog.math.Long
             .fromInt(1)));
 
 }
