@@ -209,7 +209,7 @@ function testLiftBOnlyGood() {
     function testNotCall() {
         fail("should not be called");
     }
-    var a = frp.createMetaB(new recoil.frp.BStatus.notReady());
+    var a = frp.createMetaB(recoil.frp.BStatus.notReady());
     var d = frp.liftB(testNotCall, a);
     frp.attach(d);
     frp.detach(d);

@@ -73,10 +73,13 @@ See the COPYING file for details.
       //treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
       tree = new goog.ui.tree.TreeControl('root', treeConfig);
 
-      var frp = new recoil.frp.Frp();
-      var observer = new recoil.frp.VisibleObserver();
-      treeView = new recoil.ui.widgets.TreeView(frp, observer, $('treeViewContainer'));
-      var b = recoil.frp.struct.create(frp, {state : frp.createB(new recoil.structs.Tree("hello",[]))}); 
+      var scope = new recoil.ui.WidgetScope();
+      var frp = scope.getFrp();
+      treeView = new recoil.ui.widgets.TreeView(scope, $('treeViewContainer'));
+      var world = new recoil.structs.Tree("world",[]);
+      var world1 = new recoil.structs.Tree("I",[new recoil.structs.Tree("sub 1",[])]);
+      var world2 = new recoil.structs.Tree("am",[]);
+      var b = recoil.frp.struct.create(frp, {state : frp.createB(new recoil.structs.Tree("hello",[world,world1, world2]))}); 
       treeView.attach(b);
       createTreeFromTestData(tree, testData);
 

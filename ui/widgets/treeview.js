@@ -9,6 +9,7 @@ goog.require('recoil.structs.Tree');
 goog.require('goog.ui.tree.TreeControl');
 goog.require('goog.structs.TreeNode');
 goog.require('goog.html.SafeHtml');
+goog.require('goog.fx.DragDrop')
 
 
 // http://closure-library.googlecode.com/git-history/0148f7ecaa1be5b645fabe7338b9579ed2f951c8/closure/goog/demos/index.html
@@ -21,12 +22,12 @@ recoil.ui.widgets.Tree = function() {
 };
 
 /**
+ * @param {recoil.ui.WidgetScope} scope
  * @param {Element} container the container that the tree will go into
- * @param {recoil.frp.Frp} frp
  * 
  * @constructor
  */
-recoil.ui.widgets.TreeView = function(frp, observer, container) {
+recoil.ui.widgets.TreeView = function(scope, container) {
     var me = this;
     this.container_ = container;
     /**
@@ -40,8 +41,8 @@ recoil.ui.widgets.TreeView = function(frp, observer, container) {
      * @type recoil.structs.Tree
      */
     this.oldTree_ = null;
-    this.config_ = new recoil.ui.WidgetHelper(frp, observer, container, this, this.updateConfig_);
-    this.state_ = new recoil.ui.WidgetHelper(frp, observer, container, this, this.updateTree_);
+    this.config_ = new recoil.ui.WidgetHelper(scope, container, this, this.updateConfig_);
+    this.state_ = new recoil.ui.WidgetHelper(scope, container, this, this.updateTree_);
 
 };
 
@@ -77,9 +78,8 @@ recoil.ui.widgets.TreeView.prototype.updateTree_ = function(helper) {
     if (this.tree_ !== null) {
         if (good) {
             var newValue = this.state_.value();
-            this.populateTreeRec_(this.tree_, newValue, this.oldValue_);
+            this.populateTreeRec_(null, this.tree_, this.oldValue_, newValue);
             this.oldValue_ = newValue;
-
         } else {
             // TODO disable tree
         }
@@ -108,33 +108,40 @@ recoil.ui.widgets.TreeView.same_ = function (a, b) {
     return recoil.util.isEqual(a.value(), b.value());
 }
 /**
- * 
- * @param {!goog.ui.tree.BaseNode} node
+ * @param {goog.ui.tree.BaseNode} parent
+ * @param {goog.ui.tree.BaseNode} node
  * @param {recoil.structs.Tree} oldValue 
  * @param {recoil.structs.Tree} newValue
  */
-recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(node, oldValue, newValue) {
+recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(parent, node, oldValue, newValue) {
     // var numChildren = getNumChildren(parentValue);
     // var oldNumChildren = getNumChildren(oldValue);;
 
     if (oldValue === newValue) {
         return;
     }
-
-    
-    if (oldValue === undefined || oldValue === null) {
-        var newNode = this.tree_.createNode('');
-        node.addChild(newNode);
-        node.forEachChild(function(child) {
-            childNode = node.getTree().createNode('');
-            newNode.addChild(childNode);
-            this.populateTreeRec_(newNode, oldValue, newValue);
+    var me = this;
+    if (newValue === null || newValue === undefined) {
+        if (node !== undefined) {
+            parent.removeChild(node);
+        }
+        return;
+    } 
+    else if (oldValue === undefined || oldValue === null) {
+        node.setSafeHtml(goog.html.SafeHtml.htmlEscape(newValue.value()));
+        newValue.children().forEach(function(child) {
+            var newNode = me.tree_.createNode('');
+            me.populateTreeRec_(node, newNode, null, child);
+            // we have to add after otherwise the folder icon is incorrect
+            node.addChild(newNode);
         });
         return;
-    } else if (recoil.util.isEqual(oldValue.value(), newValue.value())) {
+    }
+    else if (recoil.util.isEqual(oldValue.value(), newValue.value())) {
         // do nothing
-    } else {
-        node.setSafeHtml(goog.html.SafeHtml.htmlEscape('some text'));
+    }
+    else {
+        node.setSafeHtml(goog.html.SafeHtml.htmlEscape(newValue.value()));
     }
 
     
@@ -146,7 +153,7 @@ recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(node, oldValue,
         var diff = differences[idx];
         var childNode = node.getChildAt(childIndex);
         if (diff.oldVal !== undefined && diff.newVal !== undefined) {
-            this.populateTreeRec_(childNode, diff.oldVal, diff.newVal);
+            this.populateTreeRec_(node, childNode, diff.oldVal, diff.newVal);
             childIndex++;
         } else if (diff.newVal === undefined) {
             node.removeChild(childNode);
@@ -154,7 +161,7 @@ recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(node, oldValue,
             childNode = this.tree_.createNode('');
             node.addChildAt(childNode, childIndex);
             childIndex++;
-            this.populateTreeRec_(childNode, undefined, diff.newVal);
+            this.populateTreeRec_(node, childNode, undefined, diff.newVal);
         }
     }
 
