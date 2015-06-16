@@ -44,11 +44,9 @@ recoil.ui.widgets.ButtonWidget.updateConfig_ = function(helper, configB) {
         }
         var config = configB.get();
         this.button_ = new goog.button.Button(config.content, config.renderer, config.domHelper);
-        this.button_.render(me.container_);                                                      
-        goog.events.listen(this.button_, goog.ui.Component.EventType.ACTION,
-              function(e) {
-                me.set(e);
-        });      
+        this.button_.render(me.container_);     
+        recoil.ui.events.listen(this.button_, goog.ui.Component.EventType.ACTION, this.callback_);
+                                                         
         // and created a new one
         me.state_.forceUpdate();
     }
