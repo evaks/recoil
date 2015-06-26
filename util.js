@@ -20,6 +20,24 @@ recoil.util.safeFreeze = function(value) {
 
 };
 
+
+/**
+ * invokes function with arg1 and converts the rest array the rest of the paramters
+ * 
+ * @param {Object} me
+ * @param {function} func
+ * @param {*} arg1
+ * @param {Array<*>} rest
+ * 
+ */
+recoil.util.invokeOneParamAndArray = function (me, func, arg1, rest) {
+    var params = [arg1];
+    res.forEach(function (p) {
+       params.push(p); 
+    });
+    return func.apply(me, params)
+};
+
 /**
  * compares 2 objects
  * 
@@ -31,7 +49,6 @@ recoil.util.isEqual = function(a, b) {
 
     return recoil.util.isEqual.isEqualRec_(a, b, [], []);
 };
-
 /**
  * @private
  * @param {Object|number|undefined} a

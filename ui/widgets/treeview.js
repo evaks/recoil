@@ -72,12 +72,11 @@ recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
 
 };
 
-recoil.ui.widgets.TreeView.prototype.updateTree_ = function(helper) {
+recoil.ui.widgets.TreeView.prototype.updateTree_ = function(helper, newValue) {
     var good = helper.isGood();
 
     if (this.tree_ !== null) {
         if (good) {
-            var newValue = this.state_.value();
             this.populateTreeRec_(null, this.tree_, this.oldValue_, newValue);
             this.oldValue_ = newValue;
         } else {

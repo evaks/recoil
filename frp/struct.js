@@ -41,6 +41,11 @@ recoil.frp.struct.create = function(frp, struct) {
             if (obj instanceof recoil.frp.Behaviour) {
                 res[key] = obj.get();
             }
+            else {
+                // if it is not a behaviour just return it it means we can add constant
+                // fields
+                res[key] = obj;
+            }
 
         });
         return res;
@@ -52,6 +57,7 @@ recoil.frp.struct.create = function(frp, struct) {
             if (obj instanceof recoil.frp.Behaviour) {
                 obj.set(val[key]);
             }
+            // if not a behaviour it is not inversable
 
         });
     });

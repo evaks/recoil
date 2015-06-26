@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by the Apache License, Version 2.0.
+See the COPYING file for details.
+-->
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>goog.ui.tree.TreeControl</title>
+  <script src="../../../../closure-library/closure/goog/base.js"></script>
+  <script src="../../../../my-deps.js"></script>
+  <script>
+    goog.require('goog.debug.DivConsole');
+    goog.require('goog.debug.Trace');
+    goog.require('goog.dom');
+    goog.require('recoil.ui.widgets.ButtonWidget');
+    goog.require('recoil.frp.Frp');
+  </script>
+  <script src="testdata.js"></script>
+  <link rel="stylesheet" href="../css/demo.css">
+  <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/tree.css">
+  <style>
+    #div-console {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>goog.ui.tree.TreeControl</h1>
+  <div id="div-console"></div>
+
+  <p><button onclick="toggleNonCollapseNode()">Toggle non collapsible</button>
+  <button onclick="tree.setShowExpandIcons(!tree.getShowExpandIcons())">
+    Toggle Expand Icons
+  </button>
+  <button onclick="tree.setShowLines(!tree.getShowLines())">
+    Toggle Show Lines
+  </button>
+  <button onclick="tree.setShowRootLines(!tree.getShowRootLines())">
+    Toggle Show Root Lines
+  </button>
+  <button onclick="tree.setShowRootNode(!tree.getShowRootNode())">
+    Toggle Show Root Node
+  </button>
+
+  <p><button onclick="cut()">Cut</button>
+  <button onclick="paste()">Paste</button>
+  <button onclick="test()">Test</button>
+  <div id="treeViewContainer" style="width:400px"></div>  
+  <div id="treeContainer" style="width:400px"></div>
+
+  <script>
+
+    var $ = goog.dom.getElement;
+    var tree, clipboardNode;
+
+    var divConsole = new goog.debug.DivConsole($('div-console'));
+    divConsole.setCapturing(true);
+
+    var logger = goog.debug.LogManager.getRoot();
+
+    function makeTree() {
+    
+      goog.debug.Trace.initCurrentTrace();
+      var tracerId = goog.debug.Trace.startTracer('makeTree');
+      var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
+      //treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
+      tree = new goog.ui.tree.TreeControl('root', treeConfig);
+
+      var scope = new recoil.ui.WidgetScope();
+      var frp = scope.getFrp();
+      var b = recoil.frp.struct.create(frp, {
+            'callback' : null,
+            'text' : 'hello world',
+            'enabled' : true,
+            'tooltip' : 'a tool tip'       
+            }); 
+
+      treeView.attach(b);
+      tree.render($('treeContainer'));
+
+      var elapsed = goog.debug.Trace.stopTracer(tracerId);
+      logger.info('Trace:\n' + goog.debug.Trace.getFormattedTrace());
+    }
+
+    function test() {
+      goog.dom.removeChildren($('treeContainer'));
+      var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
+      tree = new goog.ui.tree.TreeControl('root', treeConfig);
+
+      createTreeFromTestData(tree, testData);
+
+      tree.render($('treeContainer'));
+    }
+
+
+    function toggleNonCollapseNode() {
+      nonCollapseNode.setIsUserCollapsible(!nonCollapseNode.isUserCollapsible());
+
+    }
+
+    function cut() {
+      if (tree.getSelectedItem()) {
+        clipboardNode = tree.getSelectedItem();
+        if (clipboardNode.getParent()) {
+          clipboardNode.getParent().remove(clipboardNode);
+        }
+      }
+    }
+
+    function paste() {
+      if (tree.getSelectedItem() && clipboardNode) {
+        tree.getSelectedItem().add(clipboardNode);
+        clipboardNode = null;
+      }
+    }
+
+    makeTree();
+
+  </script>
+</body>
+</html>
