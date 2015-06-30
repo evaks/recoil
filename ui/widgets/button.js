@@ -1,3 +1,6 @@
+// TODO do not allow text to set the html directly
+// contains a widget that does the rendering
+
 goog.provide('recoil.ui.widgets.ButtonWidget');
 
 goog.require('recoil.ui.WidgetScope');
@@ -64,6 +67,12 @@ recoil.ui.widgets.ButtonWidget.prototype.updateConfig_ = function(helper, config
 
 recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbackB, textB, tooltipB, enabledB) {
     if (this.button_) {
-        this.button_.setEnabled(helper.isGood())
+        this.button_.setEnabled(helper.isGood());
+        if (helper.isGood()) {
+          this.button_.setContent(textB.get());
+          this.button_.setTooltip(tooltipB.get());
+          this.button_.setEnabled(enabledB.get());
+        
+        }
     }
 };

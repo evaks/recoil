@@ -18,6 +18,6 @@ goog.require('recoil.frp.Behaviour');
 recoil.ui.events.listen = function (src, type, callback, opt_capt) {
   goog.events.listen(src, type,
         function(e) {
-                callback.set(e);
+                callback.frp().accessTrans(function() {callback.set(e)}, callback);
         }, opt_capt);      
 };

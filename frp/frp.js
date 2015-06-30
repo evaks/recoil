@@ -310,6 +310,13 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
      */
     this.seqStr_ = String(sequence);
     this.accessors_ = 0;
+    if (providers) {
+      providers.forEach (function (p) {
+        if (! (p instanceof recoil.frp.Behaviour)) {
+              throw "provider not a behaviour";
+        }
+      });
+    }
     this.providers_ = providers || [];
 };
 
@@ -530,6 +537,26 @@ recoil.frp.Frp.prototype.createConstB = function(initial) {
 };
 
 /**
+ * allows access to behaviours and also puts the callback in a transaction
+ *  
+ * @param {function()} callback
+ * @param {...recoil.frp.Behaviour} var_behaviours
+ */
+
+recoil.frp.Frp.prototype.accessTrans = function (callback, var_behaviours) {
+
+   try {
+        for (var i = 1; i < arguments.length; i++) {
+            arguments[i].accessors_++;
+        }
+        this.transactionManager_.doTrans(callback);
+    } finally {
+        for (var i = 1; i < arguments.length; i++) {
+            arguments[i].accessors_--;
+        }
+    }
+};
+/**
  * @param {function()} callback
  * @param {...recoil.frp.Behaviour} var_behaviours
  */
@@ -657,6 +684,22 @@ recoil.frp.Frp.prototype.liftB = function(func, var_args) {
     }
     return this.liftBI.apply(this, args);
 };
+
+
+/**
+ * Creates callback, this is basically a behaviour with only an inverse 
+ * the calculate function always returns true 
+ */
+recoil.frp.Frp.prototype.createCallback = function (func, var_dependants) {
+       var params = [function () {return null;}, function(value) {return func.apply(this, arguments)}];
+       for (var i = 1; i < arguments.length; i++) {
+          params.push(arguments[i]);
+       }
+
+      var b = frp.liftBI.apply(frp, params);
+      b.type = "callback";
+      return b; 
+    } 
 
 /**
  * @template RT

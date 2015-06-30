@@ -5,8 +5,6 @@
  * you may access the behaviour attached to the helper inside the callback
  * 
  */
-console.log("loading widget helper");
-
 goog.provide('recoil.ui.WidgetHelper');
 
 goog.require('recoil.frp.Frp');
@@ -32,7 +30,7 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
      * @final
      */
     this.callback_ = function() {
-        callback.call(obj, me);
+        recoil.util.invokeOneParamAndArray(obj, callback, me, me.behaviours_);
     }
     /**
      * @type {Array<!recoil.frp.Behaviour<T>>}

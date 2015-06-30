@@ -51,13 +51,17 @@ See the COPYING file for details.
   <p><button onclick="cut()">Cut</button>
   <button onclick="paste()">Paste</button>
   <button onclick="test()">Test</button>
-  <div id="treeViewContainer" style="width:400px"></div>  
+  <div id="buttonWidget" style="width:400px"></div>  
   <div id="treeContainer" style="width:400px"></div>
 
   <script>
 
     var $ = goog.dom.getElement;
     var tree, clipboardNode;
+      var scope = new recoil.ui.WidgetScope();
+      var frp = scope.getFrp();
+    var textB = frp.createB('hello world');
+    var ii = 1;
 
     var divConsole = new goog.debug.DivConsole($('div-console'));
     divConsole.setCapturing(true);
@@ -68,34 +72,23 @@ See the COPYING file for details.
     
       goog.debug.Trace.initCurrentTrace();
       var tracerId = goog.debug.Trace.startTracer('makeTree');
-      var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
       //treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
-      tree = new goog.ui.tree.TreeControl('root', treeConfig);
 
-      var scope = new recoil.ui.WidgetScope();
-      var frp = scope.getFrp();
       var b = recoil.frp.struct.create(frp, {
-            'callback' : null,
-            'text' : 'hello world',
+            'callback' : frp.createCallback(function(e){        
+                textB.set("callback foo" + ii);
+                ii++;
+              }, textB),
+            'text' : textB,
             'enabled' : true,
             'tooltip' : 'a tool tip'       
             }); 
 
-      treeView.attach(b);
-      tree.render($('treeContainer'));
+      var button = new recoil.ui.widgets.ButtonWidget(scope, $("buttonWidget")); 
+      button.attach(b);
 
       var elapsed = goog.debug.Trace.stopTracer(tracerId);
       logger.info('Trace:\n' + goog.debug.Trace.getFormattedTrace());
-    }
-
-    function test() {
-      goog.dom.removeChildren($('treeContainer'));
-      var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
-      tree = new goog.ui.tree.TreeControl('root', treeConfig);
-
-      createTreeFromTestData(tree, testData);
-
-      tree.render($('treeContainer'));
     }
 
 
@@ -114,6 +107,11 @@ See the COPYING file for details.
     }
 
     function paste() {
+      frp.accessTrans(function() {
+        textB.set("foo" + ii);
+        ii++;
+      }, textB);
+      
       if (tree.getSelectedItem() && clipboardNode) {
         tree.getSelectedItem().add(clipboardNode);
         clipboardNode = null;

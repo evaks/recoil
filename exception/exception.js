@@ -28,6 +28,7 @@ recoil.exception.LoopDetected = function() {
  * @this {recoil.exception.NotAttached}
  */
 recoil.exception.NotAttached = function() {
+  this.name_ = "Not Attached";
 
 };
 
@@ -36,7 +37,7 @@ recoil.exception.NotAttached = function() {
  * @this {recoil.exception.NoAccessors}
  */
 recoil.exception.NoAccessors = function() {
-
+  this.name_ = "No Accessors";
 };
 
 /**
@@ -44,7 +45,7 @@ recoil.exception.NoAccessors = function() {
  * @this {recoil.exception.NotInTransaction}
  */
 recoil.exception.NotInTransaction = function() {
-
+  this.name_ = "Not In Transaction"; 
 };
 
 /**
