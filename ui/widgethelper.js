@@ -1,5 +1,5 @@
 /**
- * a utility clas that is used to update widgets based on a behaviour each time the the behaviour changes the callback
+ * a utility class that is used to update widgets based on a behaviour each time the the behaviour changes the callback
  * will be fired
  * 
  * you may access the behaviour attached to the helper inside the callback

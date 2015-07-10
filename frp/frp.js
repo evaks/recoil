@@ -696,7 +696,7 @@ recoil.frp.Frp.prototype.createCallback = function (func, var_dependants) {
           params.push(arguments[i]);
        }
 
-      var b = frp.liftBI.apply(frp, params);
+      var b = this.liftBI.apply(this, params);
       b.type = "callback";
       return b; 
     } 
