@@ -60,7 +60,7 @@ See the COPYING file for details.
     var tree, clipboardNode;
       var scope = new recoil.ui.WidgetScope();
       var frp = scope.getFrp();
-    var textB = frp.createB('hello world');
+    var textB = frp.createB('hello <b>Me</b> world');
     var ii = 1;
 
     var divConsole = new goog.debug.DivConsole($('div-console'));
@@ -76,7 +76,7 @@ See the COPYING file for details.
 
       var b = recoil.frp.struct.create(frp, {
             'callback' : frp.createCallback(function(e){        
-                textB.set("callback foo" + ii);
+                textB.set("callback <b>Me</b> \"foo" + ii);
                 ii++;
               }, textB),
             'text' : textB,
