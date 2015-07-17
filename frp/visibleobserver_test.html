@@ -7,12 +7,43 @@
 <script src="../../../closure-library/closure/goog/base.js"></script>
 <script src="../../../my-deps.js"></script>
 <script>
+function doObserveTest() {
+
+    var obs = new MutationObserver(function(mutations) {
+       console.log(mutations);
+    });
+    
+    var node = document. getElementById("ob_test");
+    var node1 = document.getElementById("ob_test1");
+    obs.observe(node, /** @type MutationObserverInit */
+    ({
+        attributes: true,
+        childList: true,
+    }));
+    
+    node.removeChild(node1);
+    console.log(obs.takeRecords());
+    obs.disconnect();
+    obs.observe(node, /** @type MutationObserverInit */
+    ({
+        attributes: true,
+        childList: true,
+    }));
+    
+    
+    
+}
+
 goog.require('recoil.frp.VisibleObserverTest');
 </script>
 </head>
 <body>
 <div id="body">
 <div>hi</div>
+<button onclick="doObserveTest()">Observer Test</button>
+</div>
+<div id="ob_test" bob="xxx" >
+  <div id="ob_test1"/>
 </div>
 
 

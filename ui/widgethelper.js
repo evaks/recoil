@@ -47,6 +47,26 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
 
 
 /**
+ * @param {Node} container new container to watch the old one will no longer 
+ *               be observed
+ */                 
+
+recoil.ui.WidgetHelper.prototype.setContainer = function(container) {
+   if (this.container_ === container) {
+      return;
+   } 
+   
+   if (this.container_) {
+     this.observer_.unlisten(this.container_, this.callback_);
+   }
+   this.container_ = container;
+   if (this.container_) {
+    this.observer_.listen(this.container_, this.callback_);
+  }
+   
+};
+
+/**
  * @return {!boolean} is the value good
  */
 recoil.ui.WidgetHelper.prototype.isGood = function() {

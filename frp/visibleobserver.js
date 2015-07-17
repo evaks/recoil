@@ -20,6 +20,7 @@ recoil.frp.VisibleObserver = function() {
     this.states_ = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
 
     this.observer_ = new MutationObserver(recoil.frp.VisibleObserver.observeFunc_(this));
+    this.forceReconnect_ = false;
 
 };
 
@@ -49,6 +50,10 @@ recoil.frp.VisibleObserver.State_ = function(node, callback) {
     this.exists = false;
     this.visible = false;
     this.callbacks = [callback];
+    /**
+     * @type Array<Node>
+     */
+    this.ancestors = [];
 };
 goog.inherits(recoil.frp.VisibleObserver.State_, recoil.frp.VisibleObserver.NodeAndValues_);
 
@@ -61,10 +66,6 @@ goog.inherits(recoil.frp.VisibleObserver.State_, recoil.frp.VisibleObserver.Node
 recoil.frp.VisibleObserver.State_.prototype.update = function (exists, visible) {
     this.exists = exists;
     this.visible = exists && visible;
-    /**
-     * @type Array<Node>
-     */
-    this.ancestors = [];
 };
 
 /**
@@ -129,7 +130,7 @@ recoil.frp.VisibleObserver.prototype.findChangedNodes_ = function(mutations) {
  * @private
  * 
  */
-recoil.frp.VisibleObserver.observeFunc_ = function(me) {
+recoil.frp.VisibleObserver.observeFunc_ = function(me, ) {
     return function(mutations) {
         var found = me.findChangedNodes_(mutations);
         var toRemove = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
@@ -216,12 +217,13 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
         });
 
         // if items removed from watched disconnect and re-add all watched items
-        if (toRemove.getCount() !== 0) {
-            me.observer_.disconnect();
+        if (toRemove.getCount() !== 0 || me.forceReconnect_) {
+            me.forceReconnect_ = false;
             toRemove.inOrderTraverse(function(travNode) {
-                me.watched_.remove(travNode);
-                return false;
+                    me.watched_.remove(travNode);
+                    return false;
             });
+            me.observer_.disconnect();
             me.watched_.inOrderTraverse(function(travNode) {
                 me.observe_(travNode.node);
                 return false;
@@ -384,6 +386,60 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
         me.observe_(ancestor);
     });
     callback(state.visible);
+};
+
+/**
+ * stops listening to the node, will not call the callback function
+ * 
+ * @param {Node} node
+ * @param {function(boolean)} callback
+ * @throws {recoil.exception.NotInDom}
+ */
+recoil.frp.VisibleObserver.prototype.unlisten = function(node, callback) {
+    var cur = node;
+    var ancestors = [];
+    recoil.frp.VisibleObserver.setUniqueDomId_(node);
+
+    var state = this.findState_(node);
+    var me = this;
+    
+    if (state !== null) {
+        for (var i = 0; i < state.callbacks.length; i--) {
+            if (state.callbacks[i] === callback) {
+              state.callbacks.splice(i, 1);
+              break;              
+            }
+        }
+        if (state.callbacks.length == 0) {
+          var toRemove = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
+
+          state.ancestors.forEach(function(ancestor) {
+            var w = me.findWatched_(cur);
+            if (w !== null) {
+                w.effected.remove(p);
+                if (w.effected.getCount() === 0) {
+                    toRemove.add(w);
+                }
+            }
+          });
+
+          if (toRemove.getCount() !== 0) {
+            toRemove.inOrderTraverse(function(travNode) {
+                me.watched_.remove(travNode);
+                return false;
+            });
+           this.states_.remove(state);
+           // we can't disconnect the observer here because doing so will mean we will lose all pending
+           // changes but we just force the next iteration disconnect and set up its listeners again          
+           me.forceReconnect_ = true;
+
+
+        }
+    }
+  }
+
+
+
 };
 
 /**
