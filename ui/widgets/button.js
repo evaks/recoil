@@ -1,4 +1,3 @@
-// TODO do not allow text to set the html directly
 // contains a widget that does the rendering
 
 goog.provide('recoil.ui.widgets.ButtonWidget');
@@ -13,18 +12,20 @@ goog.require('recoil.ui.events');
 /**
  * @constructor
  * @param {recoil.ui.WidgetScope} scope
- * @param {Element} container the container that the tree will go into
  */
-recoil.ui.widgets.ButtonWidget = function(scope, container) {
-    this.container_ = container;
+recoil.ui.widgets.ButtonWidget = function(scope) {
+    /**
+     * @type {Element}
+     */
+    this.container_ = null;
     /**
      * @private
      * @type goog.ui.Button
      * 
      */
     this.button_ = null;
-    this.config_ = new recoil.ui.WidgetHelper(scope, container, this, this.updateConfig_);
-    this.state_ = new recoil.ui.WidgetHelper(scope, container, this, this.updateState_);
+    this.config_ = new recoil.ui.WidgetHelper(scope, null, this, this.updateConfig_);
+    this.state_ = new recoil.ui.WidgetHelper(scope, null, this, this.updateState_);
 };
 
 recoil.ui.widgets.ButtonWidget.defaultConfig = {
@@ -32,7 +33,15 @@ recoil.ui.widgets.ButtonWidget.defaultConfig = {
         renderer: null,
         domHelper: null
 };
-
+/**
+ * sets the assoicated container for the widget
+ * 
+ * @param {Element} container
+ */
+recoil.ui.widgets.ButtonWidget.prototype.setContainer = function(container) {
+    this.config_.setContainer(container);
+    this.state_.setContainer(container);    
+}
 recoil.ui.widgets.ButtonWidget.prototype.attach = function(value) {
 
     this.callback_ = recoil.frp.struct.get('callback', value);

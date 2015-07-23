@@ -84,8 +84,9 @@ See the COPYING file for details.
             'tooltip' : 'a tool tip'       
             }); 
 
-      var button = new recoil.ui.widgets.ButtonWidget(scope, $("buttonWidget")); 
+      var button = new recoil.ui.widgets.ButtonWidget(scope); 
       button.attach(b);
+      button.setContainer($("buttonWidget"));
 
       var elapsed = goog.debug.Trace.stopTracer(tracerId);
       logger.info('Trace:\n' + goog.debug.Trace.getFormattedTrace());

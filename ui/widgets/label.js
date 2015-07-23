@@ -19,7 +19,7 @@ recoil.ui.widgets.LabelWidget = function(scope, container) {
     this.container_ = container;
     /**
      * @private
-     * @type goog.ui.Button
+     * @type goog.ui.Menu
      * 
      */
     this.label_ = null;
@@ -66,7 +66,7 @@ recoil.ui.widgets.LabelWidget.prototype.updateConfig_ = function(helper, configB
 recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper, callbackB, textB, tooltipB, enabledB) {
     if (this.label_) {
         this.label_.setEnabled(helper.isGood());
-        this.label_.setContent(textB.isGood() ? textB.get());
+        this.label_.setContent(textB.isGood() ? textB.get() :"");
         if (helper.isGood()) {
           this.label_.setTooltip(tooltipB.get());
           this.label_.setEnabled(enabledB.get());

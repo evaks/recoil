@@ -130,7 +130,7 @@ recoil.frp.VisibleObserver.prototype.findChangedNodes_ = function(mutations) {
  * @private
  * 
  */
-recoil.frp.VisibleObserver.observeFunc_ = function(me, ) {
+recoil.frp.VisibleObserver.observeFunc_ = function(me) {
     return function(mutations) {
         var found = me.findChangedNodes_(mutations);
         var toRemove = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
@@ -414,9 +414,9 @@ recoil.frp.VisibleObserver.prototype.unlisten = function(node, callback) {
           var toRemove = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
 
           state.ancestors.forEach(function(ancestor) {
-            var w = me.findWatched_(cur);
+            var w = me.findWatched_(ancestor);
             if (w !== null) {
-                w.effected.remove(p);
+                w.effected.remove({node : cur});
                 if (w.effected.getCount() === 0) {
                     toRemove.add(w);
                 }
@@ -515,6 +515,10 @@ recoil.frp.VisibleObserver.visible = function(node) {
  * @return {string} the unique id allocated
  */
 recoil.frp.VisibleObserver.setUniqueDomId_ = function(node) {
+    
+    if (node === null) {
+        return '';
+    }
     if (node.id === undefined || node.id === '') {
         node.id = 'recoil.frp.id.' + recoil.frp.VisibleObserver.nextDomId_.toString();
 

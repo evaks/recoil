@@ -25,12 +25,25 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
     this.frp_ = widgetScope.getFrp();
     this.container_ = container;
     var me = this;
+    this.listenFunc_ = function(visible) {
+        if (visible != me.isAttached_) {
+            me.isAttached_ = visible;
+            if (visible) {
+                me.frp_.attach(me.attachedBehaviour_);
+            } else {
+                me.frp_.detach(me.attachedBehaviour_);
+            }
+        }
+    };
+
     /**
      * @private
      * @final
      */
     this.callback_ = function() {
-        recoil.util.invokeOneParamAndArray(obj, callback, me, me.behaviours_);
+        if (me.container_ !== null) {
+            recoil.util.invokeOneParamAndArray(obj, callback, me, me.behaviours_);
+        }
     }
     /**
      * @type {Array<!recoil.frp.Behaviour<T>>}
@@ -45,37 +58,35 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
     this._isAttached = false;
 };
 
-
 /**
- * @param {Node} container new container to watch the old one will no longer 
- *               be observed
- */                 
+ * @param {Node} container new container to watch the old one will no longer be observed
+ */
 
 recoil.ui.WidgetHelper.prototype.setContainer = function(container) {
-   if (this.container_ === container) {
-      return;
-   } 
-   
-   if (this.container_) {
-     this.observer_.unlisten(this.container_, this.callback_);
-   }
-   this.container_ = container;
-   if (this.container_) {
-    this.observer_.listen(this.container_, this.callback_);
-  }
-   
+    if (this.container_ === container) {
+        return;
+    }
+
+    if (this.container_) {
+        this.observer_.unlisten(this.container_, this.listenFunc_);
+    }
+    this.container_ = container;
+    if (this.container_) {
+        this.observer_.listen(this.container_, this.listenFunc_);
+    }
+
 };
 
 /**
  * @return {!boolean} is the value good
  */
 recoil.ui.WidgetHelper.prototype.isGood = function() {
-    for (var key in this.behaviours_) {
+    for ( var key in this.behaviours_) {
         if (!this.behaviours_[key].metaGet().good()) {
             return false;
         }
     }
-    
+
     return true;
 };
 
@@ -109,7 +120,7 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
     if (same) {
         return;
     }
-    
+
     var hadBehaviour = this.behaviours_.length !== 0;
     if (hadBehaviour) {
         if (this._isAttached) {
@@ -127,15 +138,8 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
         }
     } else {
         this.isAttached_ = false;
-        this.observer_.listen(this.container_, function(visible) {
-            if (visible != me.isAttached_) {
-                me.isAttached_ = visible;
-                if (visible) {
-                    me.frp_.attach(me.attachedBehaviour_);
-                } else {
-                    me.frp_.detach(me.attachedBehaviour_);
-                }
-            }
-        });
+        if (this.container_ !== null) {
+            this.observer_.listen(this.container_, this.listenFunc_);
+        }
     }
 };
