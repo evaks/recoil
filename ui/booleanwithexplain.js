@@ -19,6 +19,11 @@ recoil.ui.BoolWithExplaination = function(val, opt_true, opt_false) {
     this.false_ = opt_false ? opt_false : null;
 };
 
+/**
+ * 
+ * @param var_values
+ * @returns {recoil.ui.BoolWithExplaination}
+ */
 recoil.ui.BoolWithExplaination.prototype.and = function(var_values) {
    
     var trueExplain = [];

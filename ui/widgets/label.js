@@ -9,6 +9,7 @@ goog.require('recoil.frp.struct');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.ui.events');
+goog.require('')
 
 /**
  * @constructor
@@ -19,7 +20,7 @@ recoil.ui.widgets.LabelWidget = function(scope, container) {
     this.container_ = container;
     /**
      * @private
-     * @type goog.ui.Menu
+     * @type goog.ui.Label
      * 
      */
     this.label_ = null;
