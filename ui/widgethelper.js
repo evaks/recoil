@@ -44,7 +44,7 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
         if (me.container_ !== null) {
             recoil.util.invokeOneParamAndArray(obj, callback, me, me.behaviours_);
         }
-    }
+    };
     /**
      * @type {Array<!recoil.frp.Behaviour<T>>}
      * @private

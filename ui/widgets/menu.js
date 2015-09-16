@@ -46,7 +46,7 @@ recoil.ui.widgets.MenuBarWidget.defaultConfig = {
 recoil.ui.widgets.MenuBarWidget.prototype.setContainer = function(container) {
     this.config_.setContainer(container);
     this.state_.setContainer(container);
-}
+};
 
 
 recoil.ui.widgets.MenuBarWidget.prototype.attach = function(config, menus, enabled) {
@@ -115,7 +115,7 @@ recoil.ui.widgets.MenuWidget = function (scope) {
 
 recoil.ui.widgets.MenuWidget.prototype.setContainer = function (container) {
     this.state_.setContainer(container);
-}
+};
 
 /**
  * @constructor

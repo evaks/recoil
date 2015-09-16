@@ -22,10 +22,47 @@ recoil.frp.VisibleObserver = function() {
     this.observer_ = new MutationObserver(recoil.frp.VisibleObserver.observeFunc_(this));
     this.forceReconnect_ = false;
 
+    if (recoil.frp.VisibleObserver.InsertionWatcher_ === null) {
+        var addRec = function(node) {
+            var toAdds = node ["$.recoil.watcher"];
+            if (toAdds !== undefined) {
+                toAdds.forEach(function (toAdd) {
+                            
+                    toAdd.observer.listen(node, toAdd.callback);
+                });
+                delete node ["$.recoil.watcher"];
+            }
+          goog.array.forEach(node.childNodes, function (child) {
+               addRec(child);
+            });
+             
+        };
+        recoil.frp.VisibleObserver.InsertionWatcher_ = new MutationObserver(function (mutations) {
+            mutations.forEach(function(mutation, index, array) {
+                for (var i = 0; i < mutation.addedNodes.length; i++) {
+                    var node = mutation.addedNodes[i];
+                    if (recoil.frp.VisibleObserver.exists(node)) {
+                        addRec(node);                        
+                    }
+                }
+            });
+        });
+
+        recoil.frp.VisibleObserver.InsertionWatcher_.observe(goog.dom.getDocument(), {childList: true, subtree :true});        
+
+     }
+
 };
+/**
+ * @private
+ * @type  
+ */
+recoil.frp.VisibleObserver.InsertionWatcher_ = null;
+    
+
 
 /**
- * the items that goes the trees, so we can store nodes along with data
+ * the items that go into the binary trees, so we can store nodes along with data
  * 
  * @constructor
  * @param {Node} opt_node
@@ -37,7 +74,7 @@ recoil.frp.VisibleObserver.NodeAndValues_ = function(opt_node) {
 
 
 /**
- * the items that goes the trees, so we can store nodes along with data
+ * the items that go into the binary trees, so we can store nodes along with data
  * 
  * @constructor
  * @extends {recoil.frp.VisibleObserver.NodeAndValues_}
@@ -183,8 +220,11 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
                     // if the node doesn't exist we simply want to remove it
                     // otherwise we will get
                     // memory leaks
+                    state.callbacks.forEach(function(cb) {
+                        me.watchForInsertion_(p.node, cb); 
+                    });
                     me.states_.remove(p);
-                }
+               }
 
                 // remove this node from effected if needed
                 oldAncestors.forEach(function(cur) {
@@ -308,7 +348,20 @@ recoil.frp.VisibleObserver.prototype.findState_ = function(node) {
     return (recoil.frp.VisibleObserver.find_(this.states_, node));
 };
 
-
+/**
+ * @param {Node} node
+ * @param {function(boolean)} callback
+ * @private 
+ */
+recoil.frp.VisibleObserver.prototype.watchForInsertion_ = function(node, callback) {
+    
+    if (node ["$.recoil.watcher"] === undefined) {
+        node["$.recoil.watcher"] = [{observer : this,  callback: callback}];
+    }
+    else {
+        node["$.recoil.watcher"].push({observer : this,  callback: callback});
+    }
+};
 
 /**
  * listens to node and fires callback when its visibility has changed if the node is removed from the DOM it will no
@@ -324,9 +377,11 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
     recoil.frp.VisibleObserver.setUniqueDomId_(node);
 
     var exists = recoil.frp.VisibleObserver.exists(node);
-
+    
     if (!exists) {
-        throw new recoil.exception.NotInDom(node);
+        callback(false);
+        this.watchForInsertion_(node, callback);
+        return;
     }
     var state = this.findState_(node);
 
@@ -432,14 +487,20 @@ recoil.frp.VisibleObserver.prototype.unlisten = function(node, callback) {
            // we can't disconnect the observer here because doing so will mean we will lose all pending
            // changes but we just force the next iteration disconnect and set up its listeners again          
            me.forceReconnect_ = true;
-
-
+          }
         }
     }
-  }
-
-
-
+    else {
+        var callbacks = node["$.recoil.watcher"];
+        if (callbacks !== undefined) {
+            goog.array.removeIf(callbacks, function (el) {
+                return el.callback === callback && el.observer === me;
+            });
+            if (callbacks.length === 0) {
+                delete node["$.recoil.watcher"];
+            }
+        }      
+    }
 };
 
 /**

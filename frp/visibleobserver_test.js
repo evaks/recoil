@@ -15,6 +15,7 @@ var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 asyncTestCase.stepTimeout = 5000;
 
 var visible;
+var visible1;
 var visible_e2;
 var div1;
 var observer;
@@ -25,7 +26,9 @@ function test01VisibleOnAttach() {
     div1 = document.createElement('div');
     div1.id = 'div_1';
     var div2 = document.createElement('div');
-    var element = document.createTextNode('xxx');
+    div2.id = "div2_start";
+    var element = document.createTextNode('xxx-');
+    element.id = 'element.xxx';
     var e2 = document.createElement('div');
     e2.appendChild(document.createTextNode('Fire Helper'));
     e2.id = 'e2';
@@ -121,21 +124,26 @@ function test06RemovingParent() {
 }
 
 function test07AttachInvalid() {
+    assertEquals(true, visible);
     var observer = new recoil.frp.VisibleObserver();
-    try {
 
-        var div = document.createElement('div');
-        observer.listen(div, function(v) {
-
-        });
-        fail('expected exception');
-    } catch (e) {
-        assertTrue(e instanceof recoil.exception.NotInDom);
-    }
+    var div = document.createElement('div');
+    observer.listen(div, function(v) {
+        visible1 = v;
+        asyncTestCase.continueTesting();
+    });
+    assertEquals(false, visible1);
+    var div2 = goog.dom.getElement('id_div2');
+    div2.appendChild(div);
+    asyncTestCase.waitForAsync('test adding not in dom');
 
     assertEquals(0, observer.getWatchedCount());
 }
-function test08MultipleListens() {
+function test08AddingNotInDom() {
+    assertEquals(true, visible1);
+}
+
+function test09MultipleListens() {
     var e2 = goog.dom.getElement('e2');
 
     var skip = 1;
@@ -154,6 +162,30 @@ function test08MultipleListens() {
     e2.hidden = false;
 }
 
-function test09MultipleListensDone() {
+function test10MultipleListensDone() {
     assertEquals(true, visible);
+}
+
+
+var t11visible;
+function test11UnListenNotInTree() {
+    var d = document.createElement('div');
+    var e2 = goog.dom.getElement('e2');
+    var listener = function (v) {
+        t11visible = v;
+    };
+    
+    observer.listen(d, listener);
+    assertEquals(false, t11visible);
+    observer.unlisten(d, listener);
+    var body = goog.dom.getElement('body');
+    body.appendChild(d);
+    asyncTestCase.waitForAsync('unlisten not in tree');
+    e2.hidden = true;
+}
+
+function test12Done() {
+    
+    assertEquals(false, t11visible);
+
 }
