@@ -55,14 +55,14 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
      * @private
      * @type {boolean}
      */
-    this._isAttached = false;
+    this.isAttached_ = false;
 };
 
 /**
  * @param {Node} container new container to watch the old one will no longer be observed
  */
 
-recoil.ui.WidgetHelper.prototype.setContainer = function(container) {
+recoil.ui.WidgetHelper.prototype.setComponent = function(container) {
     if (this.container_ === container) {
         return;
     }
@@ -75,6 +75,12 @@ recoil.ui.WidgetHelper.prototype.setContainer = function(container) {
         this.observer_.listen(this.container_, this.listenFunc_);
     }
 
+};
+
+recoil.ui.WidgetHelper.prototype.clearContainer = function () {
+    if(this.container_ !== null){
+        goog.dom.removeChildren(this.container_);
+    }
 };
 
 /**
@@ -123,7 +129,7 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
 
     var hadBehaviour = this.behaviours_.length !== 0;
     if (hadBehaviour) {
-        if (this._isAttached) {
+        if (this.isAttached_) {
             this.frp_.detach(this.attachedBehaviour_);
         }
     }

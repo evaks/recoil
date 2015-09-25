@@ -849,18 +849,22 @@ recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
  * make an array of all providers of behaviour
  * 
  * @template T
- * @param {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} behaviour
+ * @param {!recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} behaviour
  * @return {Map<Array<number>, recoil.frp.Behaviour} }
  */
 recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
+    
     var toDo = [{
         b: behaviour,
         path: {}
     }];
     var visited = [];
-
+    
     while (toDo.length > 0) {
         var cur = toDo.pop();
+        if(cur.b === null){
+            console.log("behaviour is: ", cur.b);
+        }
 
         if (visited[cur.b.seqStr_] !== undefined) {
             continue;

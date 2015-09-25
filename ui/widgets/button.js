@@ -38,9 +38,9 @@ recoil.ui.widgets.ButtonWidget.defaultConfig = {
  * 
  * @param {Element} container
  */
-recoil.ui.widgets.ButtonWidget.prototype.setContainer = function(container) {
-    this.config_.setContainer(container);
-    this.state_.setContainer(container);    
+recoil.ui.widgets.ButtonWidget.prototype.setComponent = function(container) {
+    this.config_.setComponent(container);
+    this.state_.setComponent(container);
 }
 recoil.ui.widgets.ButtonWidget.prototype.attach = function(value) {
 

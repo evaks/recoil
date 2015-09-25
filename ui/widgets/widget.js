@@ -12,6 +12,6 @@ recoil.ui.Widget = function() {
  * 
  * @param {Element} container
  */
-recoil.ui.Widget.prototype.setContainer = function(container) {
+recoil.ui.Widget.prototype.setComponent = function(container) {
 
 }
