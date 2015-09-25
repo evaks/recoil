@@ -5,7 +5,7 @@
  * you may access the behaviour attached to the helper inside the callback
  * 
  */
-goog.provide('recoil.ui.WidgetHelper');
+goog.provide('recoil.ui.ComponentWidgetHelper');
 
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
@@ -14,7 +14,7 @@ goog.require('recoil.ui.WidgetScope');
 /**
  * @template T
  * @param {recoil.ui.WidgetScope} widgetScope gui scope
- * @param {Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
+ * @param {!Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer callback will be called with
  * @param {function(recoil.ui.WidgetHelper,...)} callback
  * @constructor
@@ -58,35 +58,15 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
     this.isAttached_ = false;
 };
 
-/**
- * @param {Component} component new component to watch the old one will no longer be observed
- */
 
-recoil.ui.WidgetHelper.prototype.setComponent = function(component) {
-    if (this.component_ === component) {
-        return;
-    }
-
-    if (this.component_) {
-        this.observer_.unlisten(this.component_, this.listenFunc_);
-    }
-    this.component_ = component;
-    if (this.component_) {
-        this.observer_.listen(this.component_, this.listenFunc_);
-    }
-
-};
-
-recoil.ui.WidgetHelper.prototype.clearContainer = function () {
-    if(this.component_ !== null){
-        goog.dom.removeChildren(this.component_);
-    }
+recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function () {
+   goog.dom.removeChildren(this.component_);
 };
 
 /**
  * @return {!boolean} is the value good
  */
-recoil.ui.WidgetHelper.prototype.isGood = function() {
+recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
     for ( var key in this.behaviours_) {
         if (!this.behaviours_[key].metaGet().good()) {
             return false;
@@ -99,7 +79,7 @@ recoil.ui.WidgetHelper.prototype.isGood = function() {
 /**
  * force the change to fire
  */
-recoil.ui.WidgetHelper.prototype.forceUpdate = function() {
+recoil.ui.ComponentWidgetHelper.prototype.forceUpdate = function() {
     if (this.behaviours_.length !== 0) {
         recoil.util.invokeOneParamAndArray(null, recoil.frp.Frp.access, this.callback_, this.behaviours_);
     }
@@ -115,7 +95,7 @@ recoil.ui.WidgetHelper.prototype.forceUpdate = function() {
  * this is because there are no weak references in javascript
  */
 
-recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
+recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
 
     var newBehaviours = [];
     var same = arguments.length === this.behaviours_.length;
@@ -144,8 +124,9 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
         }
     } else {
         this.isAttached_ = false;
-        if (this.component_ !== null) {
-            this.observer_.listen(this.component_, this.listenFunc_);
+        if (!this.component_.getElement()) {
+            this.component_.createDom();
         }
+        this.observer_.listen(this.component_.getElementStrict(), this.listenFunc_);
     }
 };
