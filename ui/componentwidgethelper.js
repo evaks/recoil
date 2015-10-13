@@ -58,6 +58,12 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
     this.isAttached_ = false;
 };
 
+/**
+ *
+ */
+recoil.ui.ComponentWidgetHelper.prototype.getFrp = function () {
+    return this.frp_;
+};
 
 recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function () {
    goog.dom.removeChildren(this.component_);
@@ -68,7 +74,11 @@ recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function () {
  */
 recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
     for ( var key in this.behaviours_) {
-        if (!this.behaviours_[key].metaGet().good()) {
+        var b = this.behaviours_[key];
+        if (!b.hasRefs()) {
+            return false;
+        }
+        if (!b.metaGet().good()) {
             return false;
         }
     }
@@ -88,10 +98,11 @@ recoil.ui.ComponentWidgetHelper.prototype.forceUpdate = function() {
 /**
  * @param {...recoil.frp.Behaviour<T>} var_behaviour
  * 
- * note the node we are watch must be in the dom by now, the reason for this is if it isn't and is never added we will
- * have a leak observer maintains a list that can never be cleared also once it item is removed form the DOM and node
- * re-added within the same execution thread it will be considered disposed.
- * 
+ * note the node we are watch must be in the dom by now, the reason for this is if it isn't and
+ * is never added we will have a leak observer maintains a list that can never be cleared also once it
+ * item is removed form the DOM and node re-added within the same execution thread it will be
+ * considered disposed.
+ *
  * this is because there are no weak references in javascript
  */
 
