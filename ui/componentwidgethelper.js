@@ -78,7 +78,7 @@ recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
         if (!b.hasRefs()) {
             return false;
         }
-        if (!b.metaGet().good()) {
+        if (b.metaGet() !== null && !b.metaGet().good() ) {
             return false;
         }
     }

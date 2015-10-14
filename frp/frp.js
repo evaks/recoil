@@ -704,10 +704,13 @@ recoil.frp.Frp.prototype.liftB = function(func, var_args) {
     return this.liftBI.apply(this, args);
 };
 
-
 /**
- * Creates callback, this is basically a behaviour with only an inverse 
- * the calculate function always returns true 
+ * /**
+ * Creates callback, this is basically a behaviour with only an inverse
+ * the calculate function always returns true
+ * @param func
+ * @param var_dependants
+ * @returns {!recoil.frp.Behaviour<?>}
  */
 recoil.frp.Frp.prototype.createCallback = function (func, var_dependants) {
        var params = [function () {return null;}, function(value) {return func.apply(this, arguments)}];
@@ -718,7 +721,7 @@ recoil.frp.Frp.prototype.createCallback = function (func, var_dependants) {
       var b = this.liftBI.apply(this, params);
       b.type = "callback";
       return b; 
-    } 
+};
 
 /**
  * @template RT
