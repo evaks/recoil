@@ -1,4 +1,6 @@
 goog.provide('recoil.util');
+goog.provide('recoil.util.Handle');
+
 
 goog.require('goog.object');
 goog.require('goog.array');
@@ -120,3 +122,26 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
     }
     return false;
 };
+
+/**
+ * @template T
+ * @param {T=} opt_value
+ * @constructor
+ */
+recoil.util.Handle = function(opt_value) {
+  this.value_ = opt_value;
+};
+/**
+ *
+ * @param {T} value
+ */
+recoil.util.Handle.prototype.set = function (value) {
+   this.value_ = value;
+};
+
+/**
+ * @returns {T}
+ */
+recoil.util.Handle.prototype.get = function () {
+    return this.value_;
+}
