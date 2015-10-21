@@ -17,7 +17,7 @@ goog.require('')
  * @param {Element} container the container that the tree will go into
  */
 recoil.ui.widgets.LabelWidget = function(scope, container) {
-    this.container_ = container;
+    this.component_ = container;
     /**
      * @private
      * @type goog.ui.Label
@@ -52,11 +52,11 @@ recoil.ui.widgets.LabelWidget.prototype.updateConfig_ = function(helper, configB
 
     if (good) {
         if (me.button_ !== null) {
-            goog.dom.removeChildren(this.container_);
+            goog.dom.removeChildren(this.component_);
         }
         var config = configB.get();
         this.label_ = new goog.ui.Button(config.content, config.renderer, config.domHelper);
-        this.label_.render(me.container_);
+        this.label_.render(me.component_);
         recoil.ui.events.listen(this.button_, goog.ui.Component.EventType.ACTION, this.callback_);
 
         // and created a new one

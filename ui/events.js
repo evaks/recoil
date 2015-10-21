@@ -38,7 +38,7 @@ recoil.ui.events.listenH = function (src, type, callback, opt_capt) {
                   if (callback.get()) {
                         callback.get().frp().accessTrans(function () {
                               callback.get().set(e)
-                        }, callback);
+                        }, callback.get());
                   }
             }, opt_capt);
 };

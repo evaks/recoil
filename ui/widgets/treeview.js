@@ -29,7 +29,7 @@ recoil.ui.widgets.Tree = function() {
  */
 recoil.ui.widgets.TreeView = function(scope, container) {
     var me = this;
-    this.container_ = container;
+    this.component_ = container;
     /**
      * @private
      * @type goog.ui.tree.TreeControl
@@ -58,12 +58,12 @@ recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
 
     if (good) {
         if (me.tree_ !== null) {
-            goog.dom.removeChildren(this.container_);
+            goog.dom.removeChildren(this.component_);
         }
         var treeConfig = helper.value();
         me.tree_ = new goog.ui.tree.TreeControl('root', treeConfig);
         // now force the tree to re-render since we just destroyed
-        me.tree_.render(me.container_);
+        me.tree_.render(me.component_);
         // and created a new one
         me.state_.forceUpdate();
     } else if (me.tree_ !== null) {

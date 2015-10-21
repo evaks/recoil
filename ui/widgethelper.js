@@ -23,7 +23,7 @@ goog.require('recoil.ui.WidgetScope');
 recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
     this.observer_ = widgetScope.getObserver();
     this.frp_ = widgetScope.getFrp();
-    this.container_ = container;
+    this.component_ = container;
     var me = this;
     this.listenFunc_ = function(visible) {
         if (visible != me.isAttached_) {
@@ -41,7 +41,7 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
      * @final
      */
     this.callback_ = function() {
-        if (me.container_ !== null) {
+        if (me.component_ !== null) {
             recoil.util.invokeOneParamAndArray(obj, callback, me, me.behaviours_);
         }
     };
@@ -63,23 +63,23 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
  */
 
 recoil.ui.WidgetHelper.prototype.setComponent = function(container) {
-    if (this.container_ === container) {
+    if (this.component_ === container) {
         return;
     }
 
-    if (this.container_) {
-        this.observer_.unlisten(this.container_, this.listenFunc_);
+    if (this.component_) {
+        this.observer_.unlisten(this.component_, this.listenFunc_);
     }
-    this.container_ = container;
-    if (this.container_) {
-        this.observer_.listen(this.container_, this.listenFunc_);
+    this.component_ = container;
+    if (this.component_) {
+        this.observer_.listen(this.component_, this.listenFunc_);
     }
 
 };
 
 recoil.ui.WidgetHelper.prototype.clearContainer = function () {
-    if(this.container_ !== null){
-        goog.dom.removeChildren(this.container_);
+    if(this.component_ !== null){
+        goog.dom.removeChildren(this.component_);
     }
 };
 
@@ -144,8 +144,8 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
         }
     } else {
         this.isAttached_ = false;
-        if (this.container_ !== null) {
-            this.observer_.listen(this.container_, this.listenFunc_);
+        if (this.component_ !== null) {
+            this.observer_.listen(this.component_, this.listenFunc_);
         }
     }
 };

@@ -17,7 +17,7 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
     /**
      * @type {Element}
      */
-    this.container_ = null;
+    this.component_ = null;
     /**
      * @private
      * @type goog.ui.Button
@@ -62,11 +62,11 @@ recoil.ui.widgets.ButtonWidget.prototype.updateConfig_ = function(helper, config
 
     if (good) {
         if (me.button_ !== null) {
-            goog.dom.removeChildren(this.container_);
+            goog.dom.removeChildren(this.component_);
         }
         var config = configB.get();
         this.button_ = new goog.ui.Button(config.content, config.renderer, config.domHelper);
-        this.button_.render(me.container_);
+        this.button_.render(me.component_);
         recoil.ui.events.listen(this.button_, goog.ui.Component.EventType.ACTION, this.callback_);
 
         // and created a new one

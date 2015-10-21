@@ -19,6 +19,7 @@ goog.require('recoil.ui.events');
 /**
  * @constructor
  * @param {recoil.ui.WidgetScope} scope
+ * @extends
  */
 recoil.ui.widgets.MenuBarWidget = function(scope, component) {
     this.scope_ = scope;

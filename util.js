@@ -144,4 +144,4 @@ recoil.util.Handle.prototype.set = function (value) {
  */
 recoil.util.Handle.prototype.get = function () {
     return this.value_;
-}
+};
