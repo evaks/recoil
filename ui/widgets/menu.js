@@ -93,7 +93,6 @@ recoil.ui.widgets.MenuBarWidget.prototype.updateState_ = function(helper, menusB
         helper.clearContainer();
         var me = this;
         if (helper.isGood()) {
-            console.log("adding menus really we need to do a diff here");
             goog.array.forEach(menusB.get(), function(menuWidget) {
                 menuWidget.getComponent().setDispatchTransitionEvents(goog.ui.Component.State.ALL, true);
                 me.menuBar_.addChild(menuWidget.getComponent(), true);
@@ -165,7 +164,7 @@ recoil.ui.widgets.MenuButtonWidget.prototype.getComponent = function () {
 /**
  *
  * @param {recoil.ui.WidgetScope} scope
- * @const ructor
+ * @constructor
  */
 recoil.ui.widgets.MenuItemWidget = function(scope) {
     /**
@@ -180,7 +179,7 @@ recoil.ui.widgets.MenuItemWidget = function(scope) {
     this.state_    = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateState_);
     /**
      *
-     * @type {recoil.util.Handle<recoil.frp.Behaviour<*>}
+     * @type {recoil.util.Handle<recoil.frp.Behaviour<*>>}
      * @private
      */
     this.actionB_ = new recoil.util.Handle();

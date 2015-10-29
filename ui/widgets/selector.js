@@ -6,7 +6,7 @@ goog.require('goog.ui.Control');
 
 /**
  *
- * @param {recoil.frp.Behaviour} layoutB
+ * @param {recoil.ui.WidgetScope} scope
  * @constructor
  */
 recoil.ui.widgets.SelectorWidget = function (scope) {
@@ -47,7 +47,8 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
             screen = this.screenB_.get();
       }
 
-      this.component_.removeChildren();
+      this.component_.removeChildren(true);
+
       if(screen) {
             this.component_.addChild(screen.getComponent(), true);
       }
