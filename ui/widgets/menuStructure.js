@@ -50,14 +50,26 @@ recoil.ui.widgets.MenuStructure.prototype.add = function (menus, screenAction) {
  */
 recoil.ui.widgets.MenuStructure.prototype.create_ = function(menu, item) {
       if (item.children.length === 0) {
-            var menuItem = new recoil.ui.widgets.MenuItemWidget(this.scope_);
+            console.log(item.name);
+            var menuItem = new recoil.ui.widgets.MenuItemActionWidget(this.scope_);
             menuItem.attach(item.name, true, item.action.createCallback(this.scope_));
             return menuItem;
       }
       else {
             // submenu
+            var subMenu = new recoil.ui.widgets.SubMenuWidget(this.scope_);
 
 
+            var me = this;
+            var subitems = [];
+            item.children.forEach(function(it){
+                  var menuItem = me.create_(menu, it);
+                  subMenu.getComponent().addItem(menuItem.getComponent());
+                  subitems.push(me.create_(menu, it));
+            });
+            subMenu.attach(item.name, true);
+
+            return subMenu;
       }
 };
 
