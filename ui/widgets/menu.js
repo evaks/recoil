@@ -254,6 +254,24 @@ recoil.ui.widgets.SubMenuWidget = function (scope) {
 
 };
 
+
+/**
+ *
+ * @constructor
+ */
+recoil.ui.widgets.MenuSeparatorWidget = function () {
+    this.menuSeparator_ = new goog.ui.MenuSeparator();
+};
+
+/**
+ *
+ * @returns {goog.ui.MenuSeparator|*}
+ */
+recoil.ui.widgets.MenuSeparatorWidget.prototype.getComponent = function () {
+    return this.menuSeparator_;
+};
+
+
 /**
  *
  * @returns {goog.ui.MenuButton|*}

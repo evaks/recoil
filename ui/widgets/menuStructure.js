@@ -15,7 +15,7 @@ recoil.ui.widgets.MenuStructure = function (scope) {
  * @param {Array<string>} menus
  * @param {recoil.ui.actions.ScreenAction} screenAction
  */
-recoil.ui.widgets.MenuStructure.prototype.add = function (menus, screenAction) {
+recoil.ui.widgets.MenuStructure.prototype.add = function (menus, screenAction, opt_create) {
 
       var curMenus = this.menuArr_;
       for (var i = 0; i < menus.length; i++) {
@@ -28,6 +28,9 @@ recoil.ui.widgets.MenuStructure.prototype.add = function (menus, screenAction) {
                         name:  menus[i],
                         children : []
                   };
+                  if (opt_create) {
+                        menuStruct.create = opt_create;
+                  }
                   curMenus.push(menuStruct);
             }
             else {
@@ -41,6 +44,13 @@ recoil.ui.widgets.MenuStructure.prototype.add = function (menus, screenAction) {
       }
 };
 
+recoil.ui.widgets.MenuStructure.prototype.addSeparator = function (menus) {
+      var menus1 = goog.array.clone(menus);
+      menus1.push("");
+      this.add(menus1, null, function(scope) {
+         return new recoil.ui.widgets.MenuSeparatorWidget();
+      });
+}
 /**
  *
  * @param {recoil.ui.widgets.MenuButtonWidget} menu
@@ -50,15 +60,16 @@ recoil.ui.widgets.MenuStructure.prototype.add = function (menus, screenAction) {
  */
 recoil.ui.widgets.MenuStructure.prototype.create_ = function(menu, item) {
       if (item.children.length === 0) {
-            console.log(item.name);
-            var menuItem = new recoil.ui.widgets.MenuItemActionWidget(this.scope_);
-            menuItem.attach(item.name, true, item.action.createCallback(this.scope_));
+            if (item.create) {
+                  return  item.create(this.scope_);
+            }
+                  var menuItem = new recoil.ui.widgets.MenuItemActionWidget(this.scope_);
+                  menuItem.attach(item.name, true, item.action.createCallback(this.scope_));
+
             return menuItem;
-      }
-      else {
+      } else {
             // submenu
             var subMenu = new recoil.ui.widgets.SubMenuWidget(this.scope_);
-
 
             var me = this;
             var subitems = [];
@@ -86,8 +97,7 @@ recoil.ui.widgets.MenuStructure.prototype.create = function () {
             var items = [];
 
             goog.array.forEach(this.menuArr_[i].children, function(item) {
-                  items.push(me.create_(menu, item));
-
+                        items.push(me.create_(menu, item));
             });
             menu.attach(this.menuArr_[i].name, items);
             menuArr.push(menu);
