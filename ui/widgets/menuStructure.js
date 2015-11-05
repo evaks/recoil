@@ -47,10 +47,10 @@ recoil.ui.widgets.MenuStructure.prototype.add = function (menus, screenAction, o
 recoil.ui.widgets.MenuStructure.prototype.addSeparator = function (menus) {
       var menus1 = goog.array.clone(menus);
       menus1.push("");
-      this.add(menus1, null, function(scope) {
+      this.add(menus1, null, function() {
          return new recoil.ui.widgets.MenuSeparatorWidget();
       });
-}
+};
 /**
  *
  * @param {recoil.ui.widgets.MenuButtonWidget} menu
@@ -61,7 +61,7 @@ recoil.ui.widgets.MenuStructure.prototype.addSeparator = function (menus) {
 recoil.ui.widgets.MenuStructure.prototype.create_ = function(menu, item) {
       if (item.children.length === 0) {
             if (item.create) {
-                  return  item.create(this.scope_);
+                  return  item.create();
             }
                   var menuItem = new recoil.ui.widgets.MenuItemActionWidget(this.scope_);
                   menuItem.attach(item.name, true, item.action.createCallback(this.scope_));
