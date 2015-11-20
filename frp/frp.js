@@ -775,7 +775,7 @@ recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
 
 /**
  * @constructor
- * @param {recoil.frp.Frp}
+ * @param {recoil.frp.Frp} frp
  * 
  */
 recoil.frp.TransactionManager = function(frp) {
@@ -919,9 +919,6 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
  * @return {Array<goog.math.Long>}
  */
 recoil.frp.TransactionManager.prototype.nextIndex = function() {
-    if (this.curIndexLock_ > 0) {
-        throw new recoil.exception.InvalidState();
-    }
     var res = goog.array.clone(this._curIndexPrefix[this._curIndexPrefix.length - 1]);
     res.push(this._curIndex);
     this._curIndex = this._curIndex.add(goog.math.Long.ONE);

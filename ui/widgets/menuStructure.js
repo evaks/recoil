@@ -93,14 +93,16 @@ recoil.ui.widgets.MenuStructure.prototype.create = function () {
 
       var me = this;
       for (var i in this.menuArr_) {
-            var menu      = new recoil.ui.widgets.MenuButtonWidget(scope);
-            var items = [];
+          if(this.menuArr_.hasOwnProperty(i)) {
+              var menu  = new recoil.ui.widgets.MenuButtonWidget(scope);
+              var items = [];
 
-            goog.array.forEach(this.menuArr_[i].children, function(item) {
-                        items.push(me.create_(menu, item));
-            });
-            menu.attach(this.menuArr_[i].name, items);
-            menuArr.push(menu);
+              goog.array.forEach(this.menuArr_[i].children, function (item) {
+                  items.push(me.create_(menu, item));
+              });
+              menu.attach(this.menuArr_[i].name, items);
+              menuArr.push(menu);
+          }
       }
       return menuArr;
 };

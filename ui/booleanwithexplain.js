@@ -4,7 +4,7 @@
  * on the screen and providing a tooltip showing way something is disabled
  */
 
-goog.provide('recoil.ui.BoolWithExplaination')
+goog.provide('recoil.ui.BoolWithExplaination');
 
 goog.require('recoil.ui.Message');
 /**
@@ -18,6 +18,9 @@ recoil.ui.BoolWithExplaination = function(val, opt_true, opt_false) {
     this.true_ = opt_true ? opt_true : null;
     this.false_ = opt_false ? opt_false : null;
 };
+
+recoil.ui.BoolWithExplaination.TRUE = new recoil.ui.BoolWithExplaination(true);
+recoil.ui.BoolWithExplaination.FALSE = new recoil.ui.BoolWithExplaination(false);
 
 /**
  * 
@@ -49,6 +52,22 @@ recoil.ui.BoolWithExplaination.prototype.and = function(var_values) {
     }
 };
 
+/**
+ *
+ * @param frp
+ * @param var_behaviours
+ * @returns {null}
+ */
+recoil.ui.BoolWithExplaination.and = function(frp, var_behaviours) {
+    var behaviours = new recoil.frp.Util(frp).arrayToBehaviours(1, arguments);
+
+    if (behaviours.length > 0) {
+        return recoil.util.invokeParamsAndArray(frp.liftB, frp, function (arg1) {
+            return recoil.util.invokeParamsAndArray(arg1.and, arg1, goog.array.slice(arguments, 1));
+        }, behaviours);
+    }
+    return null;
+};
 /**
  * does an or on all the values and explains why it is true of false
  * 
@@ -87,7 +106,7 @@ recoil.ui.BoolWithExplaination.prototype.or = function(var_values) {
  */
 recoil.ui.BoolWithExplaination.prototype.not = function(var_values) {
     return new recoil.ui.BoolWithExplaination(!this.val_, this.false_, this.true_);
-}
+};
 
 /**
  * 
@@ -99,4 +118,4 @@ recoil.ui.BoolWithExplaination.prototype.addExplain_ = function(all, shouldAdd, 
     if (shouldAdd && explain) {
         all.push(explain);
     } 
-}
+};

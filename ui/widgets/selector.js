@@ -40,8 +40,6 @@ recoil.ui.widgets.SelectorWidget.prototype.attach = function (screenB) {
  * @private
  */
 recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
-      console.log('Inside SelectorWidget updateState_');
-
       var screen = null;
       if (helper.isGood()) {
             screen = this.screenB_.get();

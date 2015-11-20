@@ -155,7 +155,7 @@ recoil.ui.widgets.MenuButtonWidget.prototype.updateState_ = function(helper) {
 
 /**
  *
- * @returns {goog.ui.MenuButton}
+ * @returns {goog.ui.Component|*}
  */
 recoil.ui.widgets.MenuButtonWidget.prototype.getComponent = function () {
     return this.menuBtn_;
@@ -191,7 +191,7 @@ recoil.ui.widgets.MenuItemActionWidget = function(scope) {
 
 /**
  *
- * @returns {goog.ui.MenuItem}
+ * @returns {goog.ui.Component|*}
  */
 recoil.ui.widgets.MenuItemActionWidget.prototype.getComponent = function () {
     return this.menuItem_;
@@ -257,24 +257,7 @@ recoil.ui.widgets.SubMenuWidget = function (scope) {
 
 /**
  *
- * @constructor
- */
-recoil.ui.widgets.MenuSeparatorWidget = function () {
-    this.menuSeparator_ = new goog.ui.MenuSeparator();
-};
-
-/**
- *
- * @returns {goog.ui.MenuSeparator|*}
- */
-recoil.ui.widgets.MenuSeparatorWidget.prototype.getComponent = function () {
-    return this.menuSeparator_;
-};
-
-
-/**
- *
- * @returns {goog.ui.MenuButton|*}
+ * @returns {goog.ui.Component|*}
  */
 recoil.ui.widgets.SubMenuWidget.prototype.getComponent = function () {
     return this.subMenu_;
@@ -308,6 +291,21 @@ recoil.ui.widgets.SubMenuWidget.prototype.updateState_ = function (helper) {
     //this.subMenu_.setDispatchTransitionEvents(goog.ui.Component.State.ALL, true);
 };
 
+/**
+ *
+ * @constructor
+ */
+recoil.ui.widgets.MenuSeparatorWidget = function () {
+      this.menuSeparator_ = new goog.ui.MenuSeparator();
+};
+
+/**
+ *
+ * @returns {goog.ui.Component|*}
+ */
+recoil.ui.widgets.MenuSeparatorWidget.prototype.getComponent = function () {
+      return this.menuSeparator_;
+};
 
 /**
  *

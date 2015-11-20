@@ -141,3 +141,52 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
         this.observer_.listen(this.component_.getElementStrict(), this.listenFunc_);
     }
 };
+
+/**
+ *
+ * @param {EventTarget|goog.events.Listenable} src The node to listen to events on.
+ * @param {string|Array<string>|
+ *     !goog.events.EventId<EVENTOBJ>|!Array<!goog.events.EventId<EVENTOBJ>>}
+ *     type Event type or array of event types.
+ * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
+ *     false).
+ * @template EVENTOBJ
+ * @constructor
+ */
+
+recoil.ui.EventHelper = function(src, type, opt_capt) {
+    this.listener_  = null;
+    this.type_ = type;
+    this.src_ = src;
+    this.capt_ = opt_capt;
+    var me = this;
+    this.func_ = function(e) {
+        if (me.func_) {
+            callback.frp().accessTrans(function () {
+                callback.set(e)
+            }, callback);
+        }
+    };
+};
+
+/**
+ * @param {recoil.frp.Behaviour} callback the behaviour to set with the event
+ **/
+
+recoil.ui.EventHelper.prototype.listen = function (callback) {
+    if (this.listener_ !== null && callback === null) {
+
+        this.listener_ =  callback;
+
+        goog.events.unlisten(this.src_, this.type_,this.func_, this.capt_);
+    }
+    else if (this.listener_=== null && callback !== null) {
+        this.listener_ =  callback;
+        goog.events.listen(this.src_, this.type_,this.func_, this.capt_);
+    }
+    else {
+        this.listener_ =  callback;
+    }
+
+
+}

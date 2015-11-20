@@ -7,11 +7,8 @@ recoil.ui.Widget = function() {
 };
 
 /**
- * sets the associated container for the widget, you should be able to call this multiple times
- * on different containers
- * 
- * @param {Element} container
+ * returns widget
  */
-recoil.ui.Widget.prototype.setComponent = function(container) {
+recoil.ui.Widget.prototype.getComponent = function() {
 
-}
+};
