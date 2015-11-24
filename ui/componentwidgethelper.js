@@ -144,27 +144,41 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
 
 /**
  *
- * @param {EventTarget|goog.events.Listenable} src The node to listen to events on.
- * @param {string|Array<string>|
- *     !goog.events.EventId<EVENTOBJ>|!Array<!goog.events.EventId<EVENTOBJ>>}
- *     type Event type or array of event types.
+ * @param {recoil.ui.WidgetScope} scope
+ * @param {goog.ui.Component} comp
+ * @param {!goog.events.EventId<EVENTOBJ>|!Array<!goog.events.EventId<EVENTOBJ>>} type
+ *     Event type or array of event types.
  * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
  * @template EVENTOBJ
  * @constructor
  */
 
-recoil.ui.EventHelper = function(src, type, opt_capt) {
+recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
     this.listener_  = null;
+    this.handler_ = null;
     this.type_ = type;
-    this.src_ = src;
+    //this.src_ = src;
     this.capt_ = opt_capt;
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, comp, null, function(){} );
+
+    comp.createDom();
+    this.el = comp.getElement();
+
+    switch (type) {
+        case 'input':
+            this.handler_ = new goog.events.InputHandler(this.el);
+            break;
+        default:
+            this.handler_ = undefined;
+    }
+
     var me = this;
     this.func_ = function(e) {
-        if (me.func_) {
-            callback.frp().accessTrans(function () {
-                callback.set(e)
-            }, callback);
+        if (me.listener_) {
+            me.listener_.frp().accessTrans(function () {
+                me.listener_.set(e);
+            }, me.listener_);
         }
     };
 };
@@ -174,19 +188,20 @@ recoil.ui.EventHelper = function(src, type, opt_capt) {
  **/
 
 recoil.ui.EventHelper.prototype.listen = function (callback) {
+    this.helper_.attach(callback);
     if (this.listener_ !== null && callback === null) {
 
         this.listener_ =  callback;
 
-        goog.events.unlisten(this.src_, this.type_,this.func_, this.capt_);
+        goog.events.unlisten(this.handler_, this.type_,this.func_, this.capt_);
     }
     else if (this.listener_=== null && callback !== null) {
         this.listener_ =  callback;
-        goog.events.listen(this.src_, this.type_,this.func_, this.capt_);
+        goog.events.listen(this.handler_, this.type_,this.func_, this.capt_);
     }
     else {
         this.listener_ =  callback;
     }
 
 
-}
+};

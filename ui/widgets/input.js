@@ -4,7 +4,8 @@ goog.require('recoil.ui.widgets.LabelWidget');
 goog.require('recoil.frp.Util');
 goog.require('goog.ui.Component');
 goog.require('recoil.ui.BoolWithExplaination');
-
+goog.require('goog.events');
+goog.require('goog.events.InputHandler');
 /**
  *
  * @param {recoil.ui.WidgetScope} scope
@@ -20,7 +21,15 @@ recoil.ui.widgets.InputWidget = function (scope) {
     this.helper_      = new recoil.ui.ComponentWidgetHelper(scope, this.input_, this, this.updateState_);
 
 
-    this.changeHelper_ = new recoil.ui.EventHelper(this.input_,goog.ui.Component.EventType.CHANGE);
+    //this.input_.createDom();
+    //var el = this.input_.getElement();
+    //var ih = new goog.events.InputHandler(el);
+    //goog.events.listen(ih, goog.events.InputHandler.EventType.INPUT, function() {console.log("hi")});
+
+    //goog.events.listen(inputHandler, goog.events.InputHandler.EventType.INPUT, function() {console.log("hi")});
+
+
+    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.InputHandler.EventType.INPUT);
 };
 
 /**
@@ -61,14 +70,11 @@ recoil.ui.widgets.InputWidget.prototype.attach = function (name, value, enabled)
     var reallyEnabledB = recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB);
     this.helper_.attach(this.valueB_, reallyEnabledB, util.toBehaviour(this.labelWidget_));
 
-
     var me = this;
-    this.changeHelper_.listen(frp.createCallback(function() {
-         me.valueB_.set(me.input_.getValue());
-        console.log('here');
-    }), this.valueB_ );
-
-
+    this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
+        var inputEl = v.target;
+        me.valueB_.set(inputEl.value);
+    },  this.valueB_));
 };
 
 /**
