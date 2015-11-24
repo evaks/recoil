@@ -20,15 +20,6 @@ recoil.ui.widgets.InputWidget = function (scope) {
     this.input_       = new goog.ui.LabelInput();
     this.helper_      = new recoil.ui.ComponentWidgetHelper(scope, this.input_, this, this.updateState_);
 
-
-    //this.input_.createDom();
-    //var el = this.input_.getElement();
-    //var ih = new goog.events.InputHandler(el);
-    //goog.events.listen(ih, goog.events.InputHandler.EventType.INPUT, function() {console.log("hi")});
-
-    //goog.events.listen(inputHandler, goog.events.InputHandler.EventType.INPUT, function() {console.log("hi")});
-
-
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.InputHandler.EventType.INPUT);
 };
 

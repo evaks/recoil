@@ -156,21 +156,18 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
 
 recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
     this.listener_  = null;
-    this.handler_ = null;
     this.type_ = type;
-    //this.src_ = src;
     this.capt_ = opt_capt;
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, comp, null, function(){} );
 
     comp.createDom();
-    this.el = comp.getElement();
 
     switch (type) {
-        case 'input':
-            this.handler_ = new goog.events.InputHandler(this.el);
+        case goog.events.InputHandler.EventType.INPUT:
+            this.handler_ = new goog.events.InputHandler(comp.getElement());
             break;
         default:
-            this.handler_ = undefined;
+            throw ('Unsupported Event Type');
     }
 
     var me = this;
