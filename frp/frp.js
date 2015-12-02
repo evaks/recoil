@@ -132,7 +132,16 @@ recoil.frp.BStatus.notReady= function()  {
     var res = new recoil.frp.BStatus(undefined);
     res.ready_ = false;
     return res;
-}
+};
+
+recoil.frp.BStatus.errors = function(errors) {
+    var res = new recoil.frp.BStatus(undefined);
+    res.ready_ = true;
+    res.errors_ = errors;
+    return res;
+};
+
+
 /**
  * combine this error and another to get a result
  * 
