@@ -20,7 +20,7 @@ recoil.db.Database = function (frp) {
 recoil.db.Database.prototype.getList = function (table) {
 
     var loc = window.location;
-    var url = goog.Uri.create(loc.protocol, null, loc.hostname, goog.string.parseInt(loc.port), loc.pathname + 'db/' + encodeURIComponent(table) + '/getlist1', null, null, true);
+    var url = goog.Uri.create(loc.protocol, null, loc.hostname, goog.string.parseInt(loc.port), loc.pathname + 'db/' + encodeURIComponent(table) + '/getlist', null, null, true);
 
     var me = this;
     var b = this.frp_.createMetaB(recoil.frp.BStatus.notReady());

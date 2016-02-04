@@ -11,7 +11,6 @@ goog.require('recoil.errors.Error');
  */
 recoil.errors.HttpError = function (errorCode){
     this.errorCode_ = errorCode;
-    this.message = goog.net.ErrorCode.getDebugMessage(this.errorCode_);
     this.name = "HttpError";
 };
 
