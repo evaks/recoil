@@ -57,7 +57,7 @@ recoil.ui.widgets.InputWidget.prototype.attach = function (name, value, enabled)
 
     var readyB = util.isAllGood(this.nameB_, this.valueB_, this.enabledB_);
 
-    this.labelWidget_.attach(this.nameB_, recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
+    this.labelWidget_.attach(this.nameB_, this.valueB_, recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
     var reallyEnabledB = recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB);
     this.helper_.attach(this.valueB_, reallyEnabledB, util.toBehaviour(this.labelWidget_));
 
@@ -90,7 +90,7 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function (helper) {
 
     if (helper.isGood()) {
 
-        this.input_.setValue(this.valueB_.get());
+        //this.input_.setValue(this.valueB_.get());
     }
 };
 
