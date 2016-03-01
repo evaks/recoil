@@ -8,6 +8,9 @@ goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.frp.Behaviour');
 goog.require('goog.ui.Button');
 goog.require('recoil.ui.events');
+goog.require('goog.events');
+goog.require('goog.events.EventType');
+
 
 /**
  * @constructor
@@ -15,6 +18,8 @@ goog.require('recoil.ui.events');
  * @extends recoil.ui.Widget
  */
 recoil.ui.widgets.ButtonWidget = function(scope) {
+    this.scope_ = scope;
+
     /**
      * @type {Element}
      */
@@ -29,6 +34,8 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
     this.state_ = new recoil.ui.WidgetHelper(scope, null, this, this.updateState_);
 
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_);
+
+    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.button_, goog.ui.Component.EventType.ACTION);
 };
 
 /**
@@ -57,15 +64,23 @@ recoil.ui.widgets.ButtonWidget.prototype.setComponent = function(container) {
 //            value, true));
 //};
 
-recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callback, enabledB) {
+/**
+ *
+ * @param {recoil.frp.Behaviour<T>} nameB
+ * @param {recoil.frp.Behaviour<T>} textB
+ * @param callback
+ * @param {recoil.frp.Behaviour<T>} enabledB
+ */
+recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbackB, enabledB) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
-    
-    this.callbackB = recoil.frp.struct.get('callback', callback);
+
     this.enabledB = util.toBehaviour(enabledB);
 
-    this.helper_.attach(nameB, textB, this.callbackB, this.enabledB);
+    this.helper_.attach(nameB, textB, callbackB, this.enabledB);
 
+    var me = this;
+    this.changeHelper_.listen(callbackB);
 };
 
 
@@ -74,7 +89,6 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbac
  * @param {recoil.ui.WidgetHelper} helper
  * @param {recoil.frp.Behaviour} configB
  */
-
 recoil.ui.widgets.ButtonWidget.prototype.updateConfig_ = function(helper, configB) {
     var me = this;
     var good = helper.isGood();
@@ -93,13 +107,21 @@ recoil.ui.widgets.ButtonWidget.prototype.updateConfig_ = function(helper, config
     }
 };
 
-recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbackB, textB, tooltipB, enabledB) {
+/**
+ *
+ * @param {recoil.ui.WidgetHelper} helper
+ * @param callbackB
+ * @param textB
+ * @param enabledB
+ * @private
+ */
+recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbackB, textB, enabledB) {
     if (this.button_) {
+        console.log('in updateState');
         this.button_.setEnabled(helper.isGood());
         if (helper.isGood()) {
           this.button_.setContent(textB.get());
-          this.button_.setTooltip(tooltipB.get());
-          this.button_.setEnabled(enabledB.get());
+          //this.button_.setEnabled(enabledB.get());
         
         }
     }

@@ -166,6 +166,12 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         case goog.events.InputHandler.EventType.INPUT:
             this.handler_ = new goog.events.InputHandler(comp.getElement());
             break;
+        case goog.events.EventType.CLICK:
+            this.handler_ = comp;
+            break;
+        case goog.ui.Component.EventType.ACTION: //goog.events.EventType.ACTION:
+            this.handler_ = comp;
+            break;
         default:
             throw ('Unsupported Event Type');
     }

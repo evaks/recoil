@@ -44,7 +44,9 @@ recoil.layout.FieldLayoutWidget.prototype.updateState_ = function (helper) {
         for(var i = 0; i < widgets.get().length; i++){
             var pair = widgets.get()[i];
 
-            this.container_.addChild(pair.getX(), true);
+            if(pair.getX() !== null){
+                this.container_.addChild(pair.getX(), true);
+            }
             this.container_.addChild(pair.getY(), true);
         }
     }
