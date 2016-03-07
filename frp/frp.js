@@ -345,6 +345,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
         }
       });
     }
+    this.refListeners = [];
     this.providers_ = providers || [];
 };
 
@@ -354,7 +355,15 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
 recoil.frp.Behaviour.prototype.frp = function() {
     return this.frp_;
 };
-
+/**
+ * this adds a listener when the that behaviours come in and out of use
+ * it calls the callback with true when it goes into use and false when it stops being used
+ * 
+ * @param {function(boolean)} callback 
+ */
+recoil.frp.Behaviour.prototype.refListen = function (callback) {
+    this.refListeners_.push(callback);
+}
 /**
  * increases the reference count
  * 
@@ -364,15 +373,28 @@ recoil.frp.Behaviour.prototype.frp = function() {
  */
 recoil.frp.Behaviour.prototype.addRef = function(manager) {
 
+    var hadRefs = this.hasRefs();
+    
     var curRefs = this.refs_[manager.id_];
     if (curRefs === undefined) {
         this.refs_[manager.id_] = {
             manager: manager,
             count: 1
         };
+        if (!hadRefs) {
+            for (var l in this.refListeners_) {
+                l(true);
+            }
+        }
         return true;
     } else {
         this.refs_[manager.id_].count++;
+        if (!hadRefs) {
+            for (var l in this.refListeners_) {
+                l(true);
+            }
+        }
+
         return false;
     }
 };
@@ -390,6 +412,11 @@ recoil.frp.Behaviour.prototype.removeRef = function(manager) {
         return false;
     } else if (curRefs.count === 1) {
         delete this.refs_[manager.id_];
+        if (!this.hasRefs()) {
+            for (var l in this.refListeners_) {
+                l(false);
+            }
+        }
         return true;
     } else {
         this.refs_[manager.id_].count = curRefs.count - 1;
