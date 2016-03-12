@@ -140,25 +140,39 @@ recoil.frp.Status.prototype.set = function (value) {};
  * @constructor
  *
  */
-recoil.frp.EStatus = function (generator) {
-   this.errors = [];
+recoil.frp.EStatus = function (generator, values) {
    this.generator_ = generator;
-   this.values_ = [];
+   this.values_ = values || [];
 };
 
+recoil.frp.EStatus.notReady =  function (generator) {
+    return new recoil.frp.EStatus(generator);
+};
+
+/**
+ * no errors on events, the event itself can be an error
+ * thou
+ */
 recoil.frp.EStatus.prototype.errors = function () {
-  return this.errors_;
+  return [];
 };
 
 recoil.frp.EStatus.prototype.ready = function () {
-    return this.values.length_ > 0;
+    return this.values_.length_ > 0;
 };
 
 recoil.frp.EStatus.prototype.get = function () {
     if (this.values_.length === 0) {
        return null;
     }
-    return this.values_[0];
+    return this.values_;
+};
+
+recoil.frp.EStatus.prototype.addValue = function (value) {
+    var values = goog.array.clone(this.values_);
+    values.push(value);
+    var res = new recoil.frp.EStatus(this.generator_, values);
+    
 };
 
 recoil.frp.EStatus.prototype.set = function (value) {
@@ -638,7 +652,7 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
 
 recoil.frp.Behaviour.prototype.set = function(value) {
 // TODO not always a behaviour
-    if (this.val_ instanceof recol.frp.EStatus) {
+    if (this.val_ instanceof recoil.frp.EStatus) {
        this.metaSet(this.val_.addValue(value)); 
     }
     else {
@@ -659,9 +673,9 @@ recoil.frp.Frp.prototype.createB = function(initial) {
  * @template T
  * @brief create a generator event set this value to send values up the tree
 */
-recoil.frp.Frp.prototye.createE = function () {
+recoil.frp.Frp.prototype.createE = function () {
   var metaInitial = recoil.frp.EStatus.notReady(true);
-  return return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
+  return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
 };
 /**
  * @template T
@@ -834,8 +848,24 @@ recoil.frp.Frp.prototype.liftB = function(func, var_args) {
     return this.liftBI.apply(this, args);
 };
 
+
 /**
- * /**
+ * @template RT
+ * @param {function(...) : RT} func
+ * @param {...number|Object} var_args
+ * @return {!recoil.frp.Behaviour<RT>}
+ */
+
+recoil.frp.Frp.prototype.liftE = function(func, var_args) {
+    var args = [func, undefined];
+    for (var i = 1; i < arguments.length; i++) {
+        args.push(arguments[i]);
+    }
+    return this.liftEI.apply(this, args);
+};
+
+/**
+ * 
  * Creates callback, this is basically a behaviour with only an inverse
  * the calculate function always returns true
  * @param func
@@ -862,12 +892,12 @@ recoil.frp.Frp.prototype.createCallback = function (func, var_dependants) {
  */
 
 recoil.frp.Frp.prototype.liftBI = function (func, invFunc, var_args) {
-    recoil.util.invokeOneParamAndArray(this, this.liftBI_, function() {
+    return recoil.util.invokeOneParamAndArray(this, this.liftBI_, function() {
        return new recoil.frp.BStatus(null);
       }, arguments); 
 };
 
-**
+/**
  * @brief takes input behaviours and makes a new behaviour that stores an event
  * @template RT
  * @param {function(...) : RT} func
@@ -877,12 +907,14 @@ recoil.frp.Frp.prototype.liftBI = function (func, invFunc, var_args) {
  */
 
 recoil.frp.Frp.prototype.liftEI = function (func, invFunc, var_args) {
-    recoil.util.invokeOneParamAndArray(this, this.liftBI_, function() {
+    return recoil.util.invokeOneParamAndArray(this, this.liftBI_, function() {
        return new recoil.frp.EStatus(null, false);
       }, arguments);
 };
  
 /**
+ * func will fire if all dependant behaviours are good or
+ * or there is 1 ready event
  * @template RT
  * @private
  * @param {function() : recoil.frp.Status<RT>} statusFactory function to create an empty status
@@ -897,13 +929,31 @@ recoil.frp.Frp.prototype.liftBI_ = function(statusFactory, func, invFunc, var_ar
     var wrappedFunc = function() {
         var args = [];
         var metaResult = statusFactory();
+	var metaResultB = null;
+	var eventReady = false;
 
-        for (var i = 2; i < outerArgs.length; i++) {
+        for (var i = 3; i < outerArgs.length; i++) {
             var metaArg = outerArgs[i];
-            metaResult.merge(metaArg.metaGet());
+            var metaArgVal = metaArg.metaGet();
+            metaResult.merge(metaArgVal);
+	    
+	    if (metaArgVal instanceof recoil.frp.BStatus) {
+		if (metaResultB === null) {
+		  metaResultB = new recoil.frp.BStatus(null);
+		}
+		metaResultB.merge(metaArgVal);
+	    }
+	    else {
+		eventReady = eventReady || metaArgVal.ready();
+	    }
             args.push(metaArg.get());
         }
-        if (metaResult.good()) {
+
+	// fires if all provider behaviours a good
+	// or we have an event that is ready, note this means
+
+ 
+        if ((metaResultB !== null && metaResultB.good()) || eventReady) {
             var result = func.apply(this, args);
 
             metaResult.set(result);
@@ -919,14 +969,14 @@ recoil.frp.Frp.prototype.liftBI_ = function(statusFactory, func, invFunc, var_ar
         wrappedFuncInv = function(val) {
             var args = [val.get()];
 
-            for (var i = 2; i < outerArgs.length; i++) {
+            for (var i = 3; i < outerArgs.length; i++) {
                 args.push(outerArgs[i]);
             }
             invFunc.apply(this, args);
         };
     }
     var newArgs = [wrappedFunc, wrappedFuncInv];
-    for (var i = 2; i < outerArgs.length; i++) {
+    for (var i = 3; i < outerArgs.length; i++) {
         newArgs.push(outerArgs[i]);
     }
 
@@ -1229,9 +1279,12 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
  * mark the behaviour that it is being used it will now recieve update notifications
  * 
  * @template T
- * @param {recoil.frp.Behaviour<T>} behaviour
+ * @param {!recoil.frp.Behaviour<T>} behaviour
  */
 recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
+    if (! (behaviour instanceof recoil.frp.Behaviour) ) {
+	throw "you can only attach to a behaviour";
+    }
     var visited = this.visit(behaviour);
     var newStuff = this.getPending_(recoil.frp.Frp.Direction_.UP);
     var me = this;

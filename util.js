@@ -36,10 +36,10 @@ recoil.util.safeFreeze = function(value) {
  */
 recoil.util.invokeOneParamAndArray = function (me, func, arg1, rest) {
     var params = [arg1];
-    rest.forEach(function (p) {
-       params.push(p); 
-    });
-    return func.apply(me, params)
+    for (var i = 0; i < rest.length; i++) {
+       params.push(rest[i]); 
+    };
+    return func.apply(me, params);
 };
 
 

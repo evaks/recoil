@@ -52,6 +52,54 @@ function testBehaviourUp() {
     assertEquals(4, d.unsafeMetaGet().get());
 }
 
+function testEventUp() {
+    var count1 = 0;
+    var count2 = 0;
+    function add1(a) {
+	console.log("add 1", a);
+        count1++;
+        return a + 1;
+    }
+    function add2(a) {
+        count2++;
+        return a + 1;
+    }
+
+    
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var b = frp.createE();
+
+    b.set(2);
+
+    var c = frp.liftE(add1, b);
+
+    // nothing should propagate yet we need to attach it
+    assertEquals(null, c.unsafeMetaGet());
+
+    tm.attach(c);
+    
+    assertEquals(null, c.unsafeMetaGet().get());
+    assertEquals(0, count1);
+
+    // we might need to split this up so we wait for the update
+    b.set(2);
+    assertEquals(3, c.unsafeMetaGet().get());
+    assertEquals(1, count1);
+
+    b.set(2);
+    assertEquals(3, c.unsafeMetaGet().get());
+    assertEquals(2, count1);
+
+
+    b.set(3);
+    assertEquals(4, c.unsafeMetaGet().get());
+    assertEquals(1, count1);
+    assertEquals(4, d.unsafeMetaGet().get());
+}
+
+
 function testBehaviourDown() {
     var count1 = 0;
     var count2 = 0;
