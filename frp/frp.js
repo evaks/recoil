@@ -141,8 +141,9 @@ recoil.frp.Status.prototype.set = function (value) {};
  *
  */
 recoil.frp.EStatus = function (generator, values) {
-   this.generator_ = generator;
-   this.values_ = values || [];
+    this.generator_ = generator;
+    this.errors_ = [];
+    this.values_ = values || [];
 };
 
 recoil.frp.EStatus.notReady =  function (generator) {
@@ -154,11 +155,11 @@ recoil.frp.EStatus.notReady =  function (generator) {
  * thou
  */
 recoil.frp.EStatus.prototype.errors = function () {
-  return [];
+  return this.errors_;
 };
 
 recoil.frp.EStatus.prototype.ready = function () {
-    return this.values_.length_ > 0;
+    return this.values_.length > 0;
 };
 
 recoil.frp.EStatus.prototype.get = function () {
@@ -171,7 +172,7 @@ recoil.frp.EStatus.prototype.get = function () {
 recoil.frp.EStatus.prototype.addValue = function (value) {
     var values = goog.array.clone(this.values_);
     values.push(value);
-    var res = new recoil.frp.EStatus(this.generator_, values);
+    return new recoil.frp.EStatus(this.generator_, values);
     
 };
 
@@ -182,12 +183,21 @@ recoil.frp.EStatus.prototype.set = function (value) {
 /**
  * combine this error and another to get a result
  *
- * @param {recoil.frp.Status} other
+ * @param {!recoil.frp.Status} other
  */
 recoil.frp.EStatus.prototype.merge = function(other) {
     this.errors_ = goog.array.concat(this.errors_, other.errors());
 };
-
+/**
+ * @private
+ * @param {!recoil.frp.Direction_} dir
+ */
+recoil.frp.EStatus.prototype.clear_ = function (dir) {
+    if (dir === recoil.frp.Frp.Direction_.UP || !this.generator_) {
+	this.errors_ = [];
+	this.values_ = [];
+    }
+}
 /**
  * 
  * provides the status of the behaviour, e.g. is it ready, or an error occured
@@ -1188,13 +1198,14 @@ recoil.frp.TransactionManager.prototype.propagateAll_ = function() {
  */
 recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
     var pendingHeap = this.getPending_(dir);
-    // var visited = new Set();
+    var visited = {};
 
     var cur = pendingHeap.pop();
     var me = this;
     while (cur !== undefined) {
         // calculate changed something
         var deps;
+	visited[cur.seqStr_] = cur;
         var accessFunc = function() {
             if (dir === recoil.frp.Frp.Direction_.UP) {
                 me.nestIds(cur, function() {
@@ -1220,8 +1231,23 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
 
         cur = pendingHeap.pop();
     }
+    this.clearEvents_(dir, visited);
 };
-
+/**
+ * clear all event data after a pass
+ * @private
+ * @param {!recoil.frp.TraverseDirection} dir
+ * @param {*} visited a map string-> behaviour
+ */
+recoil.frp.TransactionManager.prototype.clearEvents_ = function(dir, visited) {
+    for (var id in visited) {
+	var b = visited[id];
+	var meta = b.unsafeMetaGet();
+	if (meta instanceof recoil.frp.EStatus) {
+	    meta.clear_(dir);
+	}
+    }
+};
 /**
  * helper function to add the inverse mapping provider to list of dependants
  * 

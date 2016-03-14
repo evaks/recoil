@@ -70,13 +70,14 @@ function testEventUp() {
     var tm = frp.tm();
 
     var b = frp.createE();
-
-    b.set(2);
-
+    frp.accessTrans(function() {
+	b.set(2);
+    }, b);
     var c = frp.liftE(add1, b);
 
-    // nothing should propagate yet we need to attach it
+    // get should always be null outside of the transaction
     assertEquals(null, c.unsafeMetaGet());
+    assertEquals(0, count1);
 
     tm.attach(c);
     
@@ -84,8 +85,10 @@ function testEventUp() {
     assertEquals(0, count1);
 
     // we might need to split this up so we wait for the update
-    b.set(2);
-    assertEquals(3, c.unsafeMetaGet().get());
+    frp.accessTrans(function() {
+	b.set(2);
+    });
+    assertEquals(null, c.unsafeMetaGet().get());
     assertEquals(1, count1);
 
     b.set(2);
