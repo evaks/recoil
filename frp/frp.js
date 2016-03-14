@@ -579,10 +579,13 @@ recoil.frp.Behaviour.prototype.unsafeMetaGet = function() {
  */
 recoil.frp.Behaviour.prototype.get = function() {
     var meta = this.metaGet();
-    if (!(meta instanceof recoil.frp.BStatus)) {
-        return null;
+    if (meta instanceof recoil.frp.BStatus) {
+	return meta.get();
     }
-    return meta.get();
+    if (meta instanceof recoil.frp.EStatus) {
+	return meta.get();
+    }
+    return null;
 };
 
 /**

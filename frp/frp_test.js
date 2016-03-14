@@ -55,8 +55,11 @@ function testBehaviourUp() {
 function testEventUp() {
     var count1 = 0;
     var count2 = 0;
+    var val1 = 0;
+    var val2 = 0;
     function add1(a) {
 	console.log("add 1", a);
+	val1 = a;
         count1++;
         return a + 1;
     }
@@ -77,21 +80,31 @@ function testEventUp() {
 
     // get should always be null outside of the transaction
     assertEquals(null, c.unsafeMetaGet());
+    assertEquals(0, val1);
     assertEquals(0, count1);
 
     tm.attach(c);
-    
-    assertEquals(null, c.unsafeMetaGet().get());
-    assertEquals(0, count1);
 
+    assertEquals(null, c.unsafeMetaGet().get());
+    assertEquals(0, val1);
+    assertEquals(0, count1);
+    
     // we might need to split this up so we wait for the update
     frp.accessTrans(function() {
 	b.set(2);
     });
     assertEquals(null, c.unsafeMetaGet().get());
     assertEquals(1, count1);
+    assertEquals([2], val1);
 
-    b.set(2);
+    frp.accessTrans(function() {
+	b.set(2);
+    });
+    assertEquals(null, c.unsafeMetaGet().get());
+    assertEquals(1, count1);
+    assertEquals([2], val1);
+
+    //TODO don't fire an event , or fire 2 events from ourselves
     assertEquals(3, c.unsafeMetaGet().get());
     assertEquals(2, count1);
 
