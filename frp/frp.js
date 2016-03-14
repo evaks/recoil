@@ -642,7 +642,6 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
     if (!recoil.util.isEqual(value, me.val_)) {
         if (!me.dirtyUp) {
             me.dirtyUp_ = true;
-            // TODO do something here for events since we just want to append to the event
             me.dirtyUpOldValue_ = me.val_;
         }
         me.dirtyDown_ = true;
@@ -661,7 +660,6 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
  */
 
 recoil.frp.Behaviour.prototype.set = function(value) {
-// TODO not always a behaviour
     if (this.val_ instanceof recoil.frp.EStatus) {
        this.metaSet(this.val_.addValue(value)); 
     }
