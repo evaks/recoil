@@ -1,2 +1,3 @@
-goog.provide('recoil.ui.table.BooleanColumn');
+goog.provide('recoil.ui.widgets.table.BooleanColumn');
 
+goog.require('recoil.ui.widgets.table.Column');

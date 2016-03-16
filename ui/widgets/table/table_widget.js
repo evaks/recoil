@@ -1,5 +1,6 @@
 goog.provide('recoil.ui.widgets.table.TableWidget');
 goog.provide('recoil.ui.widgets.table.TableMetaData');
+goog.provide('recoil.ui.widgets.table.Column');
 
 goog.require('recoil.ui.AttachableWidget');
 goog.require('recoil.structs.Table');
