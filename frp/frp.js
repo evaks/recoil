@@ -135,6 +135,7 @@ recoil.frp.Status.prototype.set = function (value) {};
  * events are cleared every pass off of the transaction, up or down
  * events are different than behaviours the contain a queue of values  
  * @template T
+ * @implements {recoil.frp.Status}
  * @param {T} initial
  * @param {!boolean} generator if true this is only clears after up event
  * @constructor
@@ -201,7 +202,8 @@ recoil.frp.EStatus.prototype.clear_ = function (dir) {
 /**
  * 
  * provides the status of the behaviour, e.g. is it ready, or an error occured
- * 
+ *
+ * @implements {recoil.frp.Status}
  * @param {T} initial
  * @constructor
  * @template T

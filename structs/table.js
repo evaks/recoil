@@ -1,4 +1,13 @@
 goog.provide('recoil.structs.table.Table');
+goog.provide('recoil.structs.table.MutableTable');
+goog.provide('recoil.structs.table.TableRow');
+goog.provide('recoil.structs.table.MutableTableRow');
+
+// TODO mutable/immutable versions of table and rows
+// a heirachy of rows
+// changes function
+// also in table widget factory produces widget, but we need a changed function
+// have a primary key, but what happens if that can change?
 
 goog.provide('recoil.structs.table.ColumnKey');
 goog.provide('recoil.structs.table.TableRow');
