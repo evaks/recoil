@@ -14,16 +14,24 @@ goog.provide('recoil.structs.table.TableRow');
 goog.provide('recoil.structs.table.TableCell');
 
 goog.require('goog.structs.Collection');
-
+goog.require('goog.math.Long');
 
 /**
  * @template T
- * @param name
+ * @param ?name
  * @constructor
  */
 recoil.structs.table.ColumnKey = function(name) {
     this.name_ = name;
+    this.id_ = String(recoil.structs.table.ColumnKey.nextId_); 
+    recoil.structs.table.ColumnKey.nextId_ = recoil.structs.table.ColumnKey.nextId.add(goog.math.Long.ONE);
 };
+
+/**
+ * @type goog.math.Long
+ * @private
+ */
+recoil.structs.table.ColumnKey.nextId_ = goog.math.Long.ZERO;
 
 /**
  *
@@ -32,10 +40,10 @@ recoil.structs.table.ColumnKey = function(name) {
  * @return !number
  */
 recoil.structs.table.ColumnKey.comparator = function (a , b) {
-    if (a.name_ < b.name_) {
+    if (a.id_ < b.id_) {
         return -1;
     }
-    if (a.name_ > b.name_) {
+    if (a.id_ > b.id_) {
         return 1;
     }
     return 0;
