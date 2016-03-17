@@ -41,6 +41,7 @@ recoil.structs.table.ColumnKey.comparator = function (a , b) {
     return 0;
 };
 
+//recoil.structs.table.Ta
 
 /**
  *
@@ -172,19 +173,73 @@ recoil.structs.table.TableRow = function() {
 };
 
 /**
- * @template T
- * @param {T} columnKey
- * @return T
+ * @template CT
+ * @nosideeffects
+ * @param {recoil.structs.table.ColumnKey<CT>} column
+ * @return recoil.structs.table.TableCell<CT>
  */
-recoil.structs.table.TableRow.prototype.getCell = function (columnKey) {
-    return this.cells_[columnKey.name_];
-};
-
-recoil.structs.table.TableRow.prototype.setCell = function (columnKey, val) {
-    this.cells_[columnKey.name_] = val;
+recoil.structs.table.TableRow.prototype.getCell = function (column) {
+    return this.cells_[columnKey.id_];
 };
 
 /**
+ * @template CT
+ * @nosideeffects
+ * @param {recoil.structs.table.ColumnKey<CT>} column
+ * @return CT
+ */
+
+recoil.structs.table.TableRow.prototype.get = function (column) {
+    return this.cells_[columnKey.id_].getValue();
+};
+
+
+/**
+ * @brief a table row that can changed use this to make a row then
+ * change it to a normal row
+ * @constructor
+ */
+   
+recoil.structs.table.MutableTableRow = function (opt_immutable) {
+    this.orig_ = opt_immutable.cells_;
+    this.changed_ = {};
+};
+
+/**
+ * @template CT
+ * @nosideeffects
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @return recoil.structs.table.TableCell<CT>
+ */
+
+recoil.structs.table.MutableTableRow.prototype.getCell = function  (column) {
+    if (this.changed_.hasOwnProperty(columnKey.id_)) {
+	return this.changed_[columnKey.id_];
+    }
+    return this.orig_[columnKey.id_];
+};
+
+/**
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @return CT
+ */
+recoil.structs.table.MutableTableRow.prototype.get = function (column) {
+    return this.getCell(column).getValue();
+};
+
+/**
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @param {!recoil.structs.table.TableCell<CT>} val the data and meta data of the cell
+ */
+
+recoil.structs.table.TableRow.prototype.setCell = function (columnKey, val) {
+    this.changed_[columnKey.id_] = val;
+};
+
+/**
+ * 
  * @template T
  * @param {T} value
  * @param {object=} opt_meta
@@ -196,19 +251,40 @@ recoil.structs.table.TableCell = function (value, opt_meta) {
     this.meta_ = opt_meta;
 };
 
+/**
+ * @nosideeffects
+ * @return *
+ */
+
 recoil.structs.table.TableCell.prototype.getMeta = function () {
     return this.meta_;
 };
 
+/**
+ * @nosideeffects
+ * @return T
+ */
 recoil.structs.table.TableCell.prototype.getValue = function () {
     return this.value_;
 };
 
+/**
+ * @brief returns a new cell with the meta data set
+ * @nosideeffects
+ * @param {*} meta
+ * @return recoil.structs.table.TableCell<T>
+ */
 recoil.structs.table.TableCell.prototype.setMeta = function (meta) {
-    this.meta_ = meta;
+    return new recoil.structs.table.TableCell(this.value_, meta);
 };
 
-recoil.structs.table.TableCell.prototype.setValue = function (value) {
-    this.value_ = value;
+/**
+ * @brief returns a new cell with the data set, keeps the metadata
+ * @nosideeffects
+ * @param {T} value
+ * @return recoil.structs.table.TableCell<T>
+ */
 
+recoil.structs.table.TableCell.prototype.setValue = function (value) {
+    return new recoil.structs.table.TableCell(value, this.meta_);
 };
