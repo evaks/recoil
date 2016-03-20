@@ -56,8 +56,8 @@ recoil.db.ReadOnlyDatabase = function(frp, dbComs) {
 /**
  * @template T
  * @param {string} id the id of the object to get
- * @param {...*} var_paramters the parameters to the get function, this can be usesful if you want to get something like
- *            a particular id
+ * @param {...*} var_parameters the parameters to the get function, this can be usesful if you want to get something
+ * like a particular id
  * @return recoil.frp.Behaviour<T>
  */
 recoil.db.ReadOnlyDatabase.prototype.get = function(id, var_parameters) {
@@ -66,17 +66,17 @@ recoil.db.ReadOnlyDatabase.prototype.get = function(id, var_parameters) {
         key.push(arguments[i]);
     }
 
-    var b = this.objects_.find({key : key});
+    var b = this.objects_.findFirst({key : key});
     if (b !== null) {
-        return b;
+        return b.value;
     }
     b = this.frp_.createMetaB(recoil.frp.BStatus.notReady());
     var me = this;
-    var args = [id, function(data) {
+    var args = [function(data) {
         b.set(data)
     }, function(error) {
         b.metaSet(error);
-    }];
+    }, id];
 
     for (var i = 1; i < arguments.length; i++) {
         args.push(arguments[i]);
@@ -118,13 +118,13 @@ recoil.db.ReadWriteDatabase = function (frp, dbComs) {
  *            a particular id
  * @return recoil.frp.Behaviour<T>
  */
-recoil.db.prototype.get = function (id, var_parameters)  {
+recoil.db.ReadWriteDatabase.prototype.get = function (id, var_parameters)  {
     var readB = this.readDb_.get.apply(this.readDb_, arguments);
     var changeB = this.frp_.createMetaB(recoil.frp.BStatus.notReady());
     
     return this.frp_.metaLiftBI(function (read, change) {
         if (change.ready()) {
-            return changed;
+            return change;
         }
         return read;
     }, function (val) {

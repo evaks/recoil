@@ -35,7 +35,7 @@ function testBehaviourUp() {
     var c = frp.liftB(add1, b);
 
     // nothing should propagate yet we need to attach it
-    assertEquals(null, c.unsafeMetaGet());
+    assertFalse(c.unsafeMetaGet().ready());
 
 
     tm.attach(c);
@@ -79,7 +79,7 @@ function testEventUp() {
     var c = frp.liftE(add1, b);
 
     // get should always be null outside of the transaction
-    assertEquals(null, c.unsafeMetaGet());
+    assertFalse(c.unsafeMetaGet().ready());
     assertEquals(0, val1);
     assertEquals(0, count1);
 
@@ -95,7 +95,7 @@ function testEventUp() {
     });
     assertEquals(null, c.unsafeMetaGet().get());
     assertEquals(1, count1);
-    assertEquals([2], val1);
+    assertArrayEquals([2], val1);
 
     frp.accessTrans(function() {
 	b.set(2);

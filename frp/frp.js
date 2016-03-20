@@ -342,7 +342,7 @@ function(behaviour, providers, dependents) {
     // a sequence associated with them you only get one at a time, but this could be delt with
     // outside the engine
     providers.forEach(function(b) {
-        params.push(b.get());
+        params.push(b.metaGet());
     });
     var newVal = behaviour._calc.apply(behaviour, params);
     var res = [];
@@ -449,7 +449,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
         }
       });
     }
-    this.refListeners = [];
+    this.refListeners_ = [];
     this.providers_ = providers || [];
 };
 
@@ -487,7 +487,7 @@ recoil.frp.Behaviour.prototype.addRef = function(manager) {
         };
         if (!hadRefs) {
             for (var l in this.refListeners_) {
-                l(true);
+                this.refListeners_[l](true);
             }
         }
         return true;
@@ -495,7 +495,7 @@ recoil.frp.Behaviour.prototype.addRef = function(manager) {
         this.refs_[manager.id_].count++;
         if (!hadRefs) {
             for (var l in this.refListeners_) {
-                l(true);
+                this.refListeners_[l](true);
             }
         }
 
@@ -518,7 +518,7 @@ recoil.frp.Behaviour.prototype.removeRef = function(manager) {
         delete this.refs_[manager.id_];
         if (!this.hasRefs()) {
             for (var l in this.refListeners_) {
-                l(false);
+                this.refListeners_[l](false);
             }
         }
         return true;
@@ -843,13 +843,30 @@ recoil.frp.Frp.prototype.metaLiftBI = function(func, invFunc, var_args) {
     for (var i = 2; i < arguments.length; i++) {
         providers.push(arguments[i]);
     }
-    return new recoil.frp.Behaviour(this, null, func, invFunc, [this.transactionManager_.nextIndex()], providers);
+    return new recoil.frp.Behaviour(this, recoil.frp.BStatus.notReady(), func, invFunc, [this.transactionManager_.nextIndex()], providers);
+};
+
+/**
+ * calls function, arguments and return value should contain meta information
+ *
+ * @template T
+ * @param {function(...) : T} func
+ * @param {function(T,...)} invFunc
+ * @param {...} var_args
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Frp.prototype.metaLiftEI = function(func, invFunc, var_args) {
+    var providers = [];
+    for (var i = 2; i < arguments.length; i++) {
+        providers.push(arguments[i]);
+    }
+    return new recoil.frp.Behaviour(this, recoil.frp.EStatus.notReady(false), func, invFunc, [this.transactionManager_.nextIndex()], providers);
 };
 
 /**
  * @template RT
  * @param {function(...) : RT} func
- * @param {...number|Object} var_args
+ * @param {...number|Object|recoil.frp.Behaviour} var_args
  * @return {!recoil.frp.Behaviour<RT>}
  */
 
@@ -865,7 +882,7 @@ recoil.frp.Frp.prototype.liftB = function(func, var_args) {
 /**
  * @template RT
  * @param {function(...) : RT} func
- * @param {...number|Object} var_args
+ * @param {...number|Object|recoil.frp.Behaviour} var_args
  * @return {!recoil.frp.Behaviour<RT>}
  */
 
@@ -905,7 +922,7 @@ recoil.frp.Frp.prototype.createCallback = function (func, var_dependants) {
  */
 
 recoil.frp.Frp.prototype.liftBI = function (func, invFunc, var_args) {
-    return recoil.util.invokeOneParamAndArray(this, this.liftBI_, function() {
+    return recoil.util.invokeParamsAndArray(this.liftBI_, this, this.metaLiftBI, function() {
        return new recoil.frp.BStatus(null);
       }, arguments); 
 };
@@ -920,16 +937,18 @@ recoil.frp.Frp.prototype.liftBI = function (func, invFunc, var_args) {
  */
 
 recoil.frp.Frp.prototype.liftEI = function (func, invFunc, var_args) {
-    return recoil.util.invokeOneParamAndArray(this, this.liftBI_, function() {
+    return recoil.util.invokeParamsAndArray(this.liftBI_,this, this.metaLiftEI, function() {
        return new recoil.frp.EStatus(null, false);
       }, arguments);
 };
- 
+
 /**
  * func will fire if all dependant behaviours are good or
  * or there is 1 ready event
  * @template RT
  * @private
+ * @param {function(function(...) : RT, function(RT, ...), ...) : recoil.frp.Behavliour<RT>} liftFunc function to call
+ * ever event or behaviour
  * @param {function() : recoil.frp.Status<RT>} statusFactory function to create an empty status
  * @param {function(...) : RT} func
  * @param {function(RT,...)} invFunc
@@ -937,7 +956,7 @@ recoil.frp.Frp.prototype.liftEI = function (func, invFunc, var_args) {
  * @return {!recoil.frp.Behaviour<RT>}
  */
 
-recoil.frp.Frp.prototype.liftBI_ = function(statusFactory, func, invFunc, var_args) {
+recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFunc, var_args) {
     var outerArgs = arguments;
     var wrappedFunc = function() {
         var args = [];
@@ -945,7 +964,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(statusFactory, func, invFunc, var_ar
 	var metaResultB = null;
 	var eventReady = false;
 
-        for (var i = 3; i < outerArgs.length; i++) {
+        for (var i = 4; i < outerArgs.length; i++) {
             var metaArg = outerArgs[i];
             var metaArgVal = metaArg.metaGet();
             metaResult.merge(metaArgVal);
@@ -982,18 +1001,18 @@ recoil.frp.Frp.prototype.liftBI_ = function(statusFactory, func, invFunc, var_ar
         wrappedFuncInv = function(val) {
             var args = [val.get()];
 
-            for (var i = 3; i < outerArgs.length; i++) {
+            for (var i = 4; i < outerArgs.length; i++) {
                 args.push(outerArgs[i]);
             }
             invFunc.apply(this, args);
         };
     }
     var newArgs = [wrappedFunc, wrappedFuncInv];
-    for (var i = 3; i < outerArgs.length; i++) {
+    for (var i = 4; i < outerArgs.length; i++) {
         newArgs.push(outerArgs[i]);
     }
 
-    return this.metaLiftBI.apply(this, newArgs);
+    return liftFunc.apply(this, newArgs);
 
 };
 
