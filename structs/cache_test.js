@@ -25,5 +25,5 @@ function testGet() {
     test.put(c);
     assertTrue(b === test.get({v : "b"}));
     assertTrue(c === test.get({v : "c"}));
-    assertFalse(a === test.get({v : "a"}));
+    assertNull(test.get({v : "a"}));
 }
