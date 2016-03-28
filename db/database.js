@@ -61,6 +61,11 @@ recoil.db.ReadOnlyDatabase = function(frp, dbComs) {
  * @return recoil.frp.Behaviour<T>
  */
 recoil.db.ReadOnlyDatabase.prototype.get = function(id, var_parameters) {
+    return this.getInternal_.apply(this, arguments).value;
+};
+
+
+recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters) {
     var key = [id];
     for (var i = 1; i < arguments.length; i++) {
         key.push(arguments[i]);
@@ -68,8 +73,9 @@ recoil.db.ReadOnlyDatabase.prototype.get = function(id, var_parameters) {
 
     var b = this.objects_.findFirst({key : key});
     if (b !== null) {
-        return b.value;
+        return b;
     }
+
     b = this.frp_.createMetaB(recoil.frp.BStatus.notReady());
     var me = this;
     var args = [function(data) {
@@ -91,10 +97,12 @@ recoil.db.ReadOnlyDatabase.prototype.get = function(id, var_parameters) {
 
     });
 
-    this.objects_.add({key : key, value : b});
-    return b;
-};
+    var readOnly = this.frp_.metaLiftB(function(v) {return v}, b);
+    var res = {key : key, value : readOnly, internal : b};
+    this.objects_.add(res);
+    return res;
 
+};
 
 
 /**
@@ -104,31 +112,46 @@ recoil.db.ReadOnlyDatabase.prototype.get = function(id, var_parameters) {
  * @param {recoil.db.DatabaseComms} dbComs the interface to get and set data to the backend
  */
 
-recoil.db.ReadWriteDatabase = function (frp, dbComs) {
+recoil.db.ReadWriteDatabase = function (frp, dbComs, opt_readDb) {
   this.frp_ = frp;
   this.comms_ = dbComs;
-  this.readDb_ = new recoil.db.ReadOnlyDatabase(frp, dbComs);  
-  this.dirty_ = [];
+  this.readDb_ = opt_readDb || new recoil.db.ReadOnlyDatabase(frp, dbComs);
 };
 
 /**
+ * Returns a behaviour, with a value that we can get, set etc
  * @template T
  * @param {string} id the id of the object to get
- * @param {...*} var_paramters the parameters to the get function, this can be usesful if you want to get something like
+ * @param {...*} var_parameters the parameters to the get function, this can be useful if you want to get something like
  *            a particular id
  * @return recoil.frp.Behaviour<T>
  */
 recoil.db.ReadWriteDatabase.prototype.get = function (id, var_parameters)  {
-    var readB = this.readDb_.get.apply(this.readDb_, arguments);
+    var readB = this.readDb_.getInternal_.apply(this.readDb_, arguments).internal;
     var changeB = this.frp_.createMetaB(recoil.frp.BStatus.notReady());
-    
+    var comms = this.comms_;
     return this.frp_.metaLiftBI(function (read, change) {
         if (change.ready()) {
             return change;
         }
         return read;
     }, function (val) {
-       changeB.metaSet(val);
+        //console.log(val.get() + ' - ' + changeB.get() + ' - ' + readB.get() + ' - ' + id);
+
+        if(!recoil.util.isEqual(readB.get(), changeB.get())){
+            changeB.metaSet(val);
+
+            comms.set(val.get(), readB.get(), function (value) {
+                //console.log(value.get() + ' - ' + id);
+                readB.set(value);
+                changeB.metaSet(recoil.frp.BStatus.notReady());
+            }, function (status) {
+                console.log("Failed: " + status.errors());
+            }, id, var_parameters);
+        } else{
+            changeB.metaSet(recoil.frp.BStatus.notReady());
+        }
+
     }, readB, changeB);
 };
 

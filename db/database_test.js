@@ -46,7 +46,8 @@ var MyDb = function() {
 };
 
 MyDb.prototype.set = function (data, oldData, successFunc, failFunc, id, var_parameters) {
-
+    this.values_[id] = data;
+    successFunc(data);
 };
 
 MyDb.prototype.get = function (success, failure, id, var_params) {
@@ -56,38 +57,55 @@ MyDb.prototype.get = function (success, failure, id, var_params) {
     success(this.values_[id]);
 };
 
+MyDb.prototype.getValue = function (key) {
+    return this.values_[key];
+};
+
 function testGet() {
     var frp = new recoil.frp.Frp();
 
     var db = new recoil.db.ReadOnlyDatabase(frp, new MyDb());
-    var b = db.get("hello");
+    var b = db.get("hello", "goodbye");
     assertTrue(b === db.get("hello"));
 
     assertFalse(b.unsafeMetaGet().ready());
     frp.attach(b);
     assertTrue(b.unsafeMetaGet().ready());
     assertEquals("xxxhello",b.unsafeMetaGet().get());
-
-
+    frp.accessTrans(function() {
+        b.set("fred");
+    }, b);
+    assertEquals("xxxhello",b.unsafeMetaGet().get());
 }
 
 
 function testSet() {
     var frp = new recoil.frp.Frp();
-    var db = new recoil.db.ReadWriteDatabase(frp, new MyDb());
+    var coms =  new MyDb();
+    var readDb = new recoil.db.ReadOnlyDatabase(frp, new MyDb());
+    var db = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
     var b = db.get("hello");
+    var x = readDb.get("hello");
+
+    assertFalse(x.unsafeMetaGet().ready());
+    frp.attach(x);
+    console.log(x.unsafeMetaGet().get());
 
     assertFalse(b.unsafeMetaGet().ready());
     frp.attach(b);
 
-    //assertTrue(b.unsafeMetaGet().ready());
-    //assertEquals("xxxhello",b.unsafeMetaGet().get());
-    //
-    //frp.accessTrans(function () {
-    //    b.set('goodbye');
-    //}, b);
-    //
-    //assertEquals('goodbye', b.unsafeMetaGet().get());
+    assertTrue(b.unsafeMetaGet().ready());
+    assertEquals("xxxhello",b.unsafeMetaGet().get());
+
+    frp.accessTrans(function () {
+        console.log(b.unsafeMetaGet().get());
+        b.set('goodbye');
+        console.log(b.unsafeMetaGet().get());
+    }, b);
+
+    assertEquals('goodbye', b.unsafeMetaGet().get());
+    assertEquals('goodbye', coms.getValue("hello"));
+
 
 
 }
