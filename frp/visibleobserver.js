@@ -6,6 +6,7 @@ goog.require('goog.math');
 goog.require('goog.math.Long');
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.exception.NotInDom');
+goog.require('recoil.util.Sequence');
 /**
  * @constructor
  * 
@@ -581,9 +582,7 @@ recoil.frp.VisibleObserver.setUniqueDomId_ = function(node) {
         return '';
     }
     if (node.id === undefined || node.id === '') {
-        node.id = 'recoil.frp.id.' + recoil.frp.VisibleObserver.nextDomId_.toString();
-
-        recoil.frp.VisibleObserver.nextDomId_ = recoil.frp.VisibleObserver.nextDomId_.add(goog.math.Long.ONE);
+        node.id = 'recoil.frp.id.' + recoil.frp.VisibleObserver.nextDomId_.next();
     }
     return node.id;
 };
@@ -602,4 +601,4 @@ recoil.frp.VisibleObserver.prototype.getWatchedCount = function() {
  * @private
  * 
  */
-recoil.frp.VisibleObserver.nextDomId_ = goog.math.Long.ZERO;
+recoil.frp.VisibleObserver.nextDomId_ = new recoil.util.Sequence();

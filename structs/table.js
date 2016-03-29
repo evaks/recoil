@@ -16,6 +16,7 @@ goog.require('goog.structs.Collection');
 goog.require('goog.math.Long');
 goog.require('goog.array');
 goog.require('goog.structs.AvlTree');
+goog.require('recoil.util.Sequence');
 
 /**
  * @template T
@@ -26,14 +27,13 @@ goog.require('goog.structs.AvlTree');
 recoil.structs.table.ColumnKey = function(name, opt_comparator) {
     this.name_ = name;
     this.comparator_ = opt_comparator || recoil.structs.table.ColumnKey.defaultComparator_;
-    this.id_ = String(recoil.structs.table.ColumnKey.nextId_); 
-    recoil.structs.table.ColumnKey.nextId_ = recoil.structs.table.ColumnKey.nextId_.add(goog.math.Long.ONE);
+    this.id_ = recoil.structs.table.ColumnKey.nextId_.next(); 
 };
 /**
  * @type goog.math.Long
  * @private
  */
-recoil.structs.table.ColumnKey.nextId_ = goog.math.Long.ZERO;
+recoil.structs.table.ColumnKey.nextId_ = new recoil.util.Sequence();
 
 /**
  *@private
