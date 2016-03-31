@@ -20,20 +20,61 @@ function testAddRow() {
     
     tbl.addRow(row);
     
-    assertEquals("hello",tbl.get(0, COL_A));
-    assertEquals("world",tbl.get(0, COL_B));
+    assertEquals("hello",tbl.get([0], COL_A));
+    assertEquals("world",tbl.get([0], COL_B));
 
     var table = tbl.freeze();
     
-    assertEquals("hello",table.get(0, COL_A));
-    assertEquals("world",table.get(0, COL_B));
+    assertEquals("hello",table.get([0], COL_A));
+    assertEquals("world",table.get([0], COL_B));
     
 
 }
 
 function testAddIncompleteRow() {
+    var tbl = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
+    var row = new recoil.structs.table.MutableTableRow();
+    var tblPk = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
+
+
+
+    row.set(COL_B, "world");
+
+    assertThrows(function() {
+	tbl.addRow(row);
+    });
+    
+    assertThrows(function() {
+	tblPk.addRow(row);
+    });
+
+    row.set(COL_A, "hello");
+    tbl.addRow(row);
+    tblPk.addRow(row);
+
+    assertEquals("hello",tbl.get([0], COL_A));
+    assertEquals("world",tbl.get([0], COL_B));
+    assertNull(tbl.get([0], COL_C));
+    
+    assertEquals("world",tblPk.get(["hello"], COL_B));
+    
+    row.set(COL_C, "!");
+
+    tbl.addRow(row);
+    assertNull(tbl.get([1], COL_C));
+    assertEquals("world",tbl.get([1], COL_B));
+}
+
+
+function testGetNonExestantRow() {
     assertTrue(false);
 }
+
+
+function testDuplicateRow() {
+    assertTrue(false);
+}
+
 function testRemoveRow() {
     assertTrue(false);
 }
