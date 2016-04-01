@@ -16,6 +16,7 @@ goog.require('goog.structs.Collection');
 goog.require('goog.math.Long');
 goog.require('goog.array');
 goog.require('goog.structs.AvlTree');
+goog.require('recoil.util.Sequence');
 
 /**
  * @template T
@@ -23,18 +24,38 @@ goog.require('goog.structs.AvlTree');
  * @param {?function(T,T) : number} opt_compartor used for key values only needed if > < = do not work and it is a primary key
  * @constructor
  */
-recoil.structs.table.ColumnKey = function(name, opt_comparator) {
+recoil.structs.table.ColumnKey = function(name, opt_comparator, opt_castTo) {
     this.name_ = name;
     this.comparator_ = opt_comparator || recoil.structs.table.ColumnKey.defaultComparator_;
-    this.id_ = String(recoil.structs.table.ColumnKey.nextId_); 
-    recoil.structs.table.ColumnKey.nextId_ = recoil.structs.table.ColumnKey.nextId_.add(goog.math.Long.ONE);
+    this.castTo_ = opt_castTo || function(x) {return x;}
+    this.id_ = recoil.structs.table.ColumnKey.nextId_.next(); 
 };
 /**
  * @type goog.math.Long
  * @private
  */
-recoil.structs.table.ColumnKey.nextId_ = goog.math.Long.ZERO;
+recoil.structs.table.ColumnKey.nextId_ = new recoil.util.Sequence();
 
+/**
+ * given the primary keys converts keys into a table, if there is more than
+ * 1 primary key this requires keys to be an array
+ * @param {Array<recoil.structs.table.ColumnKey>} primaryKeys
+ * @param {Array<*>|*}
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.ColumnKey.normalizeColumns = function (primaryKeys, keys) {
+    var res = new recoil.structs.table.MutableTableRow();
+
+    if (primaryKeys.length !== keys.length)  {
+	throw "incorrect number of primary keys";
+    }
+    else {
+	for (var i = 0; i < primaryKeys.length; i++ ) {
+	    res.set(primaryKeys[i], primaryKeys[i].castTo(keys[i]));
+	}
+    }
+    return res.freeze();
+};
 /**
  *@private
  */
@@ -72,7 +93,13 @@ recoil.structs.table.ColumnKey.defaultComparator_ = function (a, b) {
  * sequentually
  * @type recoil.structs.table.ColumnKey<goog.math.Long>
  */
-recoil.structs.table.ColumnKey.INDEX = new recoil.structs.table. ColumnKey("index");
+recoil.structs.table.ColumnKey.INDEX = new recoil.structs.table. ColumnKey("index", undefined,
+									   function(x) {
+									       if (x instanceof goog.math.Long) {
+										   return x;
+									       }
+									       return goog.math.Long.fromNumber(x);
+									   });
 
 /**
  * @param {T} a 
@@ -80,7 +107,21 @@ recoil.structs.table.ColumnKey.INDEX = new recoil.structs.table. ColumnKey("inde
  */
 recoil.structs.table.ColumnKey.prototype.compare = function(a,b) {
     return this.comparator_(a,b);
-}
+};
+
+
+/**
+ * @param {*} a 
+ * @return {T}
+ */
+recoil.structs.table.ColumnKey.prototype.castTo = function(a) {
+    return this.castTo_(a);
+};
+
+recoil.structs.table.ColumnKey.prototype.getName = function() {
+    return this.name_ === undefined ? ("ID(" + this.id_ + ")") : name;
+};
+
 
 /**
  *
@@ -122,7 +163,7 @@ recoil.structs.table.Table = function (table) {
  */
 recoil.structs.table.MutableTable = function (primaryKeys, otherColumns) {
     this.meta_ = {};
-    
+
     if (primaryKeys.length === 0) {
 	this.primaryColumns_ = [recoil.structs.table.ColumnKey.INDEX];
     }
@@ -133,7 +174,7 @@ recoil.structs.table.MutableTable = function (primaryKeys, otherColumns) {
     var me = this;
     this.rows_ = new goog.structs.AvlTree(function(rowA, rowB) {
 	for (var key in me.primaryColumns_) {
-	    var col = me.primaryColumns[key];
+	    var col = me.primaryColumns_[key];
 	    var res = col.compare(rowA.get(col), rowB.get(col));
 	    if (res !== 0) {
 		return res;
@@ -148,78 +189,110 @@ recoil.structs.table.Table.comparator = function(a, b) {
 };
 
 /**
- * @param {recoil.structs.table.TableRow<T>} row
- * @param {number=} opt_index The index at which to insert the object. if ommited adds to the end of the 
- *       table
- */
-recoil.structs.table.MutableTable.prototype.addRow = function(row, opt_index) {
-    if (opt_index === undefined) {
-	this.rows_.push(row);
-    }
-    else {
-        goog.array.insertAt(this.rows_, row, opt_index);
-    }
-};
-
-/**
+ * this uses the primary key of the row to insert the table
+ * 
+ * @param {recoil.structs.table.TableRow<T> | recoil.structs.table.MutableTableRow<T>} row
  *
- * @param {!number} index the index to remove
- * @return {boolean} True if an element was removed.
- */ 
-recoil.structs.table.Table.prototype.remove = function (index) {
-    return goog.array.removeAt(this.rows_, index);
+ */
+recoil.structs.table.MutableTable.prototype.addRow = function(row) {
+    var missingKeys = [];
+    if (row instanceof recoil.structs.table.MutableTableRow) {
+	row = row.freeze();
+    }
+    this.primaryColumns_.forEach(function(col) {
+	if (!row.hasColumn(col)) {
+	    missingKeys.push(col);
+	}
+    });
+    this.otherColumns_.forEach(function(col) {
+	if (!row.hasColumn(col)) {
+	    throw "missing column" + col.getName();
+	}
+    });
+
+    
+
+    if (missingKeys.length === 1
+	&& this.primaryColumns_.length === 1
+	&& this.primaryColumns_[0] === recoil.structs.table.ColumnKey.INDEX) {
+	var nextId;
+	if (this.rows_.getCount() === 0) {
+	    nextId = goog.math.Long.ZERO;
+	}
+	else {
+	    nextId = this.rows_.getMaximum().get(recoil.structs.table.ColumnKey.INDEX).add(goog.math.Long.ONE);
+	}
+	row = row.set(recoil.structs.table.ColumnKey.INDEX,nextId);
+    }	
+    else if (missingKeys.length > 0) {
+	throw "Must sepecify All primary keys";
+    }
+
+    this.rows_.add(row.keepColumns(goog.array.concat(this.primaryColumns_, this.otherColumns_)));
+};
+/**
+ * gets the row from a table, pass the primary keys as an array of values
+ * @param {Array<*>}
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.MutableTable.prototype.getRow = function(keys) {
+    var keyRow = recoil.structs.table.ColumnKey.normalizeColumns(this.primaryColumns_, keys);
+    return this.rows_.findFirst(keyRow);
+};
+
+
+
+recoil.structs.table.MutableTable.prototype.getCell = function(keys, column) {
+    var row = this.getRow(keys);
+    if (row === null) {
+	return null;
+    }
+    return row.getCell(column);
+};
+
+
+
+recoil.structs.table.MutableTable.prototype.get = function(keys, column) {
+    var row = this.getRow(keys);
+    if (row === null) {
+	return null;
+    }
+    return row.get(column);
 };
 
 /**
- *
- * @param {recoil.structs.table.TableRow<T>} row
- * @param {!number} index the index to set
+ * convert into immutable table
+ * @return {recoil.structs.table.Table}
  */
-recoil.structs.table.Table.prototype.setRow = function (row, index) {
-    this.rows_[index] = row;
-};
 
-/**
- * @template CT
- * @param {recoil.structs.table.TableRow<T>} row
- * @param {recoil.structs.table.ColumnKey<CT>} columnKey
- * @param {CT} value
- */
-recoil.structs.table.Table.prototype.set = function (row, columnKey, value) {
-    var old = this.rows_[row].getCell(columnKey);
-    old.setValue(value);
-};
-
-/**
- * @template CT
- * @param {recoil.structs.table.TableRow<T>} row
- * @param {recoil.structs.table.ColumnKey<CT>} columnKey
- * @param {CT} value
- */
-recoil.structs.table.Table.prototype.rowMetaSet = function (row, columnKey, value) {
-    var r = this.getRow(row);
-    r.setMeta(value);
-};
-
-/**
- * @template CT
- * @param {recoil.structs.table.TableRow<T>} row
- * @param {CT} value
- */
-recoil.structs.table.Table.prototype.tableMetaSet = function (row, value) {
-    this.meta_ = value;
+recoil.structs.table.MutableTable.prototype.freeze = function () {
+    return  new recoil.structs.table.Table(this);
 };
 
 /**
  * gets the value of a cell in the table, without the meta information
- * 
+ * @nosideeffects
  * @template CT
- * @param {!number} row the index to get
+ * @param {Array<*>} keys primary key of the row
  * @param {recoil.structs.table.ColumnKey<CT>} columnKey
-2 */
-recoil.structs.table.Table.prototype.get = function (row, columnKey) {
-    var r = this.getRow(row);
-    return r.getCell(columnKey);
+ */
+recoil.structs.table.Table.prototype.get = function (keys, columnKey) {
+    var r = this.getRow(keys);
+    if (r == null) {
+	return null;
+    }
+    return r.get(columnKey);
+};
+
+
+/**
+ * gets the row from a table, pass the primary keys as an array of values
+ * @param {Array<*>}
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.Table.prototype.getRow = function(keys) {
+    var keyRow = recoil.structs.table.ColumnKey.normalizeColumns(this.primaryColumns_, keys);
+    return this.rows_.findFirst(keyRow);
 };
 
 /**
@@ -249,11 +322,20 @@ recoil.structs.table.Table.prototype.metaGet = function (row, columnKey) {
 };
 
 /**
- * @template T
+ * @param {?recoil.structs.table.MutableTable} opt_tableRow
  * @constructor
  */
-recoil.structs.table.TableRow = function() {
+recoil.structs.table.TableRow = function(opt_tableRow) {
     this.cells_ = {};
+    if (opt_tableRow !== undefined) {
+	for (var key in opt_tableRow.orig_) {
+	    this.cells_[key] = opt_tableRow.orig_[key];
+	};
+
+	for (var key in opt_tableRow.changed_) {
+	    this.cells_[key] = opt_tableRow.changed_[key];
+	};
+    }
 };
 
 /**
@@ -263,8 +345,11 @@ recoil.structs.table.TableRow = function() {
  * @return recoil.structs.table.TableCell<CT>
  */
 recoil.structs.table.TableRow.prototype.getCell = function (column) {
-    return this.cells_[columnKey.id_];
+    var res  =  this.cells_[column.id_];
+    return res === undefined ? null : res;
 };
+
+
 
 /**
  * @template CT
@@ -274,9 +359,55 @@ recoil.structs.table.TableRow.prototype.getCell = function (column) {
  */
 
 recoil.structs.table.TableRow.prototype.get = function (column) {
-    return this.cells_[columnKey.id_].getValue();
+    var val = this.cells_[column.id_];
+    return val === undefined ? null : val.getValue();
 };
 
+/**
+ * sets the cell and returns a new row, this row is unmodified
+ * @template CT
+ * @nosideeffects
+ * @param {recoil.structs.table.ColumnKey<CT>} column
+ * @param {CT} value
+ * @return {recoil.structs.table.TableRow}
+ */
+
+recoil.structs.table.TableRow.prototype.set = function (column, value) {
+    var mutable = new recoil.structs.table.MutableTableRow(this);
+    mutable.set(column, value);
+    return mutable.freeze();
+};
+
+
+/**
+ * removes all columsn not in the columns parameter
+ * @nosideeffects
+ * @param {Arra<recoil.structs.table.ColumnKey>} column
+ * @return recoil.structs.table.TableRow
+ */
+
+recoil.structs.table.TableRow.prototype.keepColumns = function (columns) {
+    var mutable = new recoil.structs.table.MutableTableRow();
+    var me = this;
+    columns.forEach (function (col) {
+	if (me.hasColumn(col)) {
+	    mutable.setCell(col, me.getCell(col));
+	}
+    });
+    return mutable.freeze();
+};
+
+
+/**
+ * @template CT
+ * @nosideeffects
+ * @param {recoil.structs.table.ColumnKey<CT>} column
+ * @return CT
+ */
+
+recoil.structs.table.TableRow.prototype.hasColumn = function (column) {
+    return this.cells_[column.id_] !== undefined;
+};
 
 /**
  * @brief a table row that can changed use this to make a row then
@@ -302,18 +433,28 @@ recoil.structs.table.MutableTableRow.prototype.getCell = function  (column) {
     }
     var res = this.orig_[column.id_];
     if (res === undefined) {
-	return new recoil.structs.table.TableCell(undefined);
+	return null;
     }
     return this.orig_[column.id_];
 };
 
+/**
+ * converts a mutable table row to imutable table row
+ * @nosideeffects
+ * @return {recoil.structs.table.TableRow}
+ */
+ 
+recoil.structs.table.MutableTableRow.prototype.freeze = function () {
+    return new recoil.structs.table.TableRow(this);
+}; 
 /**
  * @template CT
  * @param {!recoil.structs.table.ColumnKey<CT>} column
  * @return CT
  */
 recoil.structs.table.MutableTableRow.prototype.get = function (column) {
-    return this.getCell(column).getValue();
+    var res = this.getCell(column);
+    return res === null ? null : res.getValue();
 };
 
 /**
@@ -334,7 +475,12 @@ recoil.structs.table.MutableTableRow.prototype.setCell = function (columnKey, va
  */
 
 recoil.structs.table.MutableTableRow.prototype.set = function (columnKey, val) {
-    this.setCell(this.getCell(columnKey).setValue(val));
+    var old = this.getCell(columnKey);
+    if (old === null) {
+	old = new recoil.structs.table.TableCell(undefined);
+    }
+
+    this.setCell(columnKey, old.setValue(val));
 };
 /**
  * 

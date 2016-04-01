@@ -1027,7 +1027,7 @@ recoil.frp.TransactionManager = function(frp) {
     this.pending_ = [new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator()),
             new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator())];
     this._dependancyMap = [];
-    this._curIndex = goog.math.Long.ZERO;
+    this._curIndex =  new recoil.util.Sequence();
     /**
      * @type Array<Array<goog.math.Long>>
      * @private
@@ -1038,20 +1038,19 @@ recoil.frp.TransactionManager = function(frp) {
      * @private
      */
     this.curIndexLock_ = 0;
-    this.id_ = recoil.frp.TransactionManager.nextId_.toString();
+    this.id_ = recoil.frp.TransactionManager.nextId_.next();
     /**
      * @type recoil.frp.Frp
      * @private
      */
     this.frp_ = frp;
-    recoil.frp.TransactionManager.nextId_ = recoil.frp.TransactionManager.nextId_.add(goog.math.Long.ONE);
 };
 
 /**
  * @type goog.math.Long
  * @private
  */
-recoil.frp.TransactionManager.nextId_ = goog.math.Long.ZERO;
+recoil.frp.TransactionManager.nextId_ = new recoil.util.Sequence();
 
 /**
  * this makes all ids generated sub ids of the current one I think this is wrong really we need it to be children of the
@@ -1163,8 +1162,7 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
  */
 recoil.frp.TransactionManager.prototype.nextIndex = function() {
     var res = goog.array.clone(this._curIndexPrefix[this._curIndexPrefix.length - 1]);
-    res.push(this._curIndex);
-    this._curIndex = this._curIndex.add(goog.math.Long.ONE);
+    res.push(this._curIndex.nextLong());
     return res;
 };
 
