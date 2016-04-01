@@ -39,7 +39,6 @@ recoil.db.DatabaseComms.prototype.set = function(data,oldData, successFunction, 
 
 };
 
-
 /**
  * @constructor
  * @implements {recoil.db.Database}
@@ -49,7 +48,7 @@ recoil.db.DatabaseComms.prototype.set = function(data,oldData, successFunction, 
 recoil.db.ReadOnlyDatabase = function(frp, dbComs) {
     this.frp_ = frp;
     this.dbComs_ = dbComs;
-    this.objects_ = new goog.structs.AvlTree(recoil.db.ReadOnlyDatabase.KEY_COMPARATOR_);
+    this.objects_ = new goog.structs.AvlTree(recoil.util.compare);
 };
 
 
@@ -65,6 +64,13 @@ recoil.db.ReadOnlyDatabase.prototype.get = function(id, var_parameters) {
 };
 
 
+/**
+ *
+ * @param id
+ * @param var_parameters
+ * @returns {*}
+ * @private
+ */
 recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters) {
     var key = [id];
     for (var i = 1; i < arguments.length; i++) {
@@ -110,6 +116,7 @@ recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters)
  * @implements {recoil.db.Database}
  * @param {recoil.frp.Frp} frp the associated FRP engine
  * @param {recoil.db.DatabaseComms} dbComs the interface to get and set data to the backend
+ * @param opt_readDb
  */
 
 recoil.db.ReadWriteDatabase = function (frp, dbComs, opt_readDb) {

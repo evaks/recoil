@@ -95,6 +95,111 @@ recoil.util.invokeParamsAndArray = function (func, obj, var_arguments) {
     return func.apply(obj, args);
 };
 
+recoil.util.compare = function (a, b) {
+    return recoil.util.compare_(a, b, [], []);
+};
+
+recoil.util.compare_ = function(a, b, aPath, bPath) {
+
+    // check for loops
+
+    var aIndex = goog.array.indexOf(aPath, a);
+    var bIndex = goog.array.indexOf(bPath, b);
+
+    if (aIndex !== -1 || bIndex !== -1) {
+        if (aIndex === bIndex) {
+            return 0
+        }
+        if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex;
+        }
+        return aIndex === -1 ? 1 : -1;
+    }
+
+    if (a === b) {
+        return 0;
+    }
+
+    if (a === undefined) {
+        return -1;
+    }
+
+    if ( b === undefined) {
+        return 1;
+    }
+    if (a === null) {
+        return -1;
+    }
+
+    if ( b === null) {
+        return 1;
+    }
+    if (a.compare !== undefined && a.compare instanceof Function) {
+        return a.compare(b);
+    }
+    if (b.compare !== undefined && b.compare instanceof Function) {
+        return -b.compare(a);
+    }
+
+    // if 1 and only 1 of a and b is an array
+    if (goog.isArrayLike(a) != goog.isArrayLike(b)) {
+        if (goog.isArrayLike(a)) {
+            return 1;
+        }
+        return -1;
+    }
+
+    var newAPath = goog.array.concat(aPath, [a]);
+    var newBPath = goog.array.concat(bPath, [b]);
+
+    if (goog.isArrayLike(a)) {
+
+        return goog.array.compare3(/** @type {goog.array.ArrayLike} */
+              (a), /** @type {goog.array.ArrayLike} */
+              (b), function(a, b) {
+                  return recoil.util.compare_(a, b, newAPath, newBPath);
+              });
+    }
+
+    if (a instanceof Object && b instanceof Object) {
+        var aKeys = [];
+        var bKeys = [];
+        for ( var k in a.key) {
+            if(a.key.hasOwnProperty(k)){
+                aKeys.push(k);
+            }
+        }
+        for (var k in b.key) {
+            if(b.key.hasOwnProperty(k)){
+                bKeys.push(k);
+            }
+        }
+        goog.array.sort(aKeys);
+        goog.array.sort(bKeys);
+
+        var res = goog.array.compare3(aKeys, bKeys);
+        if (res !== 0) {
+            return res;
+        }
+        for (var i = 0; i <aKeys.length; i++) {
+            var k = aKeys[i];
+            res = recoil.util.compare_(a[k], b[k], newAPath, newBPath);
+            if (res !== 0) {
+                return res;
+            }
+        }
+        return 0;
+    }
+    if (a instanceof Object) {
+        return -1;
+    }
+    if (b instanceof Object) {
+        return 1;
+    }
+
+    return goog.array.defaultCompare(a, b);
+};
+
 /**
  * compares 2 objects
  * 

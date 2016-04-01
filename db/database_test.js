@@ -8,35 +8,6 @@ goog.require('recoil.frp.Frp');
 goog.setTestOnly('recoil.db.DatabaseTest');
 
 /**
- * gets data from the database
- *
- * @template T
- * @param {function(T)} successFunction called when the data is retrieve from the database, maybe called multiple times
- * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database, maybe called multiple times
- * @param {string} id identifier of the object that to be retrieve from the database
- * @param {...*} var_parameters any extra parameters that maybe passed to the database
- *
- */
-recoil.db.DatabaseComms.prototype.get = function(successFunction, failFunction, id, var_parameters) {
-};
-
-/**
- * sets data to the database
- * @template T
- * @param {T} data to set
- * @param {T} oldData old data that we already been received this can be used to only send changes
- * @param {function(T)} successFunction called when the data is retrieve from the database, the parameter is the set data
- * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database
- * @param {string} id identifier of the object that to be retrieve from the database
- * @param {...*} var_parameters any extra parameters that maybe passed to the database
- *
- */
-
-recoil.db.DatabaseComms.prototype.set = function(data, oldData, successFunction, failFunction, id, var_parameters) {
-
-};
-
-/**
  * @implements recoil.db.DatabaseComms
  * @constructor
  */
@@ -45,18 +16,67 @@ var MyDb = function() {
 
 };
 
+/**
+ *
+ * @param data
+ * @param oldData
+ * @param successFunc
+ * @param failFunc
+ * @param id
+ * @param var_parameters
+ */
 MyDb.prototype.set = function (data, oldData, successFunc, failFunc, id, var_parameters) {
     this.values_[id] = data;
     successFunc(data);
 };
 
+/**
+ *
+ * @param success
+ * @param failure
+ * @param id
+ * @param var_params
+ */
 MyDb.prototype.get = function (success, failure, id, var_params) {
-    if (this.values_[id] == undefined) {
+    if (var_params !== undefined) {
+        var value = id;
+
+        for (var i = 3; i < arguments.length; i++) {
+            var vals = getVals(arguments[i]);
+            for (var j = 0; j < vals.length; j++) {
+                value += "-" + vals[j];
+            }
+        }
+        this.values_[id] = value;
+    }
+    else if (this.values_[id] === undefined) {
         this.values_[id] = "xxx" + id;
     }
+
     success(this.values_[id]);
 };
 
+function getVals(vals){
+    var res = [];
+    var i  = 0;
+
+    if(typeof vals === 'object') {
+        for (var key in vals) {
+            if (vals.hasOwnProperty(key)) {
+                res[i] = vals[key];
+                i++;
+            }
+        }
+    }
+
+    return res;
+}
+
+/**
+ *
+ * @param key
+ * @returns {*}
+ */
 MyDb.prototype.getValue = function (key) {
     return this.values_[key];
 };
@@ -65,16 +85,18 @@ function testGet() {
     var frp = new recoil.frp.Frp();
 
     var db = new recoil.db.ReadOnlyDatabase(frp, new MyDb());
-    var b = db.get("hello", "goodbye");
+    var b = db.get("hello");
     assertTrue(b === db.get("hello"));
 
     assertFalse(b.unsafeMetaGet().ready());
     frp.attach(b);
     assertTrue(b.unsafeMetaGet().ready());
     assertEquals("xxxhello",b.unsafeMetaGet().get());
+
     frp.accessTrans(function() {
         b.set("fred");
     }, b);
+
     assertEquals("xxxhello",b.unsafeMetaGet().get());
 }
 
@@ -83,29 +105,57 @@ function testSet() {
     var frp = new recoil.frp.Frp();
     var coms =  new MyDb();
     var readDb = new recoil.db.ReadOnlyDatabase(frp, new MyDb());
-    var db = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
-    var b = db.get("hello");
-    var x = readDb.get("hello");
+    var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
+    var readwriteB = readwriteDb.get("hello");
+    var readB = readDb.get("hello");
 
-    assertFalse(x.unsafeMetaGet().ready());
-    frp.attach(x);
-    console.log(x.unsafeMetaGet().get());
+    assertFalse(readB.unsafeMetaGet().ready());
+    frp.attach(readB);
+    assertTrue(readB.unsafeMetaGet().ready());
 
-    assertFalse(b.unsafeMetaGet().ready());
-    frp.attach(b);
+    assertFalse(readwriteB.unsafeMetaGet().ready());
+    frp.attach(readwriteB);
+    assertTrue(readwriteB.unsafeMetaGet().ready());
 
-    assertTrue(b.unsafeMetaGet().ready());
-    assertEquals("xxxhello",b.unsafeMetaGet().get());
+    assertEquals("xxxhello",readwriteB.unsafeMetaGet().get());
 
     frp.accessTrans(function () {
-        console.log(b.unsafeMetaGet().get());
-        b.set('goodbye');
-        console.log(b.unsafeMetaGet().get());
-    }, b);
+        readwriteB.set('goodbye');
+    }, readwriteB);
 
-    assertEquals('goodbye', b.unsafeMetaGet().get());
+    assertEquals('goodbye', readwriteB.unsafeMetaGet().get());
     assertEquals('goodbye', coms.getValue("hello"));
 
+    // Writing to the readwritedb the change should be reflected on the readdb and
+    // write to the readdb and the change should not be on the readwritedb
+    frp.accessTrans(function () {
+        readwriteB.set("boo");
+        readB.set('smokey');
+    }, readwriteB, readB);
 
+    assertEquals("boo", readB.unsafeMetaGet().get());
+    assertEquals('boo', readwriteB.unsafeMetaGet().get());
+
+}
+
+function testParameterGet() {
+    var frp = new recoil.frp.Frp();
+    var coms =  new MyDb();
+    var readDb = new recoil.db.ReadOnlyDatabase(frp, new MyDb());
+    var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
+    //var readwriteB = readwriteDb.get("hello");
+    var user1B = readDb.get("user", {name: "bob"});
+    var user2B = readDb.get("user", {name: "jimbo", age: 9}, {x:"ss"});
+
+
+    frp.attach(user1B);
+    frp.attach(user2B);
+
+    assertEquals("user-bob", user1B.unsafeMetaGet().get());
+    assertEquals("user-jimbo-9-ss", user2B.unsafeMetaGet().get());
+
+    //var b = {v:"stuff"};
+    //var key =  {name : "hello", loop : b};
+    //b.back = key;
 
 }
