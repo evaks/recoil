@@ -95,10 +95,24 @@ recoil.util.invokeParamsAndArray = function (func, obj, var_arguments) {
     return func.apply(obj, args);
 };
 
+/**
+ *
+ * @param {*} a
+ * @param {*} b
+ */
 recoil.util.compare = function (a, b) {
     return recoil.util.compare_(a, b, [], []);
 };
 
+/**
+ *
+ * @param {*} a
+ * @param {*} b
+ * @param {Array<Object>} aPath
+ * @param {Array<Object>} bPath
+ * @returns {number}
+ * @private
+ */
 recoil.util.compare_ = function(a, b, aPath, bPath) {
 
     // check for loops
@@ -164,13 +178,13 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
     if (a instanceof Object && b instanceof Object) {
         var aKeys = [];
         var bKeys = [];
-        for ( var k in a.key) {
-            if(a.key.hasOwnProperty(k)){
+        for ( var k in a) {
+            if(a.hasOwnProperty(k)){
                 aKeys.push(k);
             }
         }
-        for (var k in b.key) {
-            if(b.key.hasOwnProperty(k)){
+        for (var k in b) {
+            if(b.hasOwnProperty(k)){
                 bKeys.push(k);
             }
         }

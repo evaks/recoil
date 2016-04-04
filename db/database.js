@@ -48,7 +48,10 @@ recoil.db.DatabaseComms.prototype.set = function(data,oldData, successFunction, 
 recoil.db.ReadOnlyDatabase = function(frp, dbComs) {
     this.frp_ = frp;
     this.dbComs_ = dbComs;
-    this.objects_ = new goog.structs.AvlTree(recoil.util.compare);
+
+    this.objects_ = new goog.structs.AvlTree(function(a, b) {
+        return recoil.util.compare(a.key, b.key);
+    });
 };
 
 
