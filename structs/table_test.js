@@ -66,7 +66,7 @@ function testAddIncompleteRow() {
 }
 
 
-function testGetNonExestantRow() {
+function testGetNonExistantRow() {
     assertTrue(false);
 }
 
@@ -83,7 +83,22 @@ function testChangeCell() {
     assertTrue(false);
 }
 function testImmutableTable() {
-    assertTrue(false);
+
+    var mTable = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
+    var tblRow = new recoil.structs.table.TableRow(mTable);
+
+    mTable.addRow(tblRow.create(COL_A, 1, COL_B, 8));
+    mTable.addRow(tblRow.create(COL_A, 7, COL_B, 9));
+
+    var table = mTable.freeze();
+
+    console.log(table.get([1], COL_B));
+
+    assertEquals(1, table.get([0], COL_A));
+    mTable.set([0], COL_A, 3);
+    assertEquals(1, table.get([0], COL_A));
+    assertEquals(3, mTable.get([0], COL_A));
+
 }
 
 function testComplexPrimaryKey() {
