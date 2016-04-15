@@ -122,7 +122,7 @@ recoil.structs.table.ColumnKey.prototype.castTo = function(a) {
 };
 
 recoil.structs.table.ColumnKey.prototype.getName = function() {
-    return this.name_ === undefined ? ("ID(" + this.id_ + ")") : name;
+    return this.name_ === undefined ? ("ID(" + this.id_ + ")") : this.name_;
 };
 
 
@@ -213,11 +213,9 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
     });
     this.otherColumns_.forEach(function(col) {
 	if (!row.hasColumn(col)) {
-	    throw "missing column" + col.getName();
+	    throw "missing column: " + col.getName();
 	}
     });
-
-    
 
     if (missingKeys.length === 1
 	&& this.primaryColumns_.length === 1
@@ -232,10 +230,14 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
 	row = row.set(recoil.structs.table.ColumnKey.INDEX,nextId);
     }	
     else if (missingKeys.length > 0) {
-	throw "Must sepecify All primary keys";
+	throw "Must specify All primary keys";
     }
 
-    this.rows_.add(row.keepColumns(goog.array.concat(this.primaryColumns_, this.otherColumns_)));
+    var tblRow = row.keepColumns(goog.array.concat(this.primaryColumns_, this.otherColumns_));
+    if(this.rows_.findFirst(tblRow) !== null){
+        throw "row already exists ";
+    }
+    this.rows_.add(tblRow);
 };
 /**
  * @private
@@ -254,6 +256,19 @@ recoil.structs.table.MutableTable.prototype.makeKeys_ = function (keys) {
 
     return row.freeze();
 };
+
+/**
+ *
+ * @param func
+ */
+recoil.structs.table.MutableTable.prototype.forEach = function (func) {
+    this.rows_.inOrderTraverse(function (row) {
+        return func (row);
+    });
+    //var table = this.freeze();
+    //table.forEach(func);
+};
+
 /**
  * this uses the primary key of the row to insert the table
  *
@@ -377,7 +392,7 @@ recoil.structs.table.Table.prototype.getMeta = function (keys, column) {
 
 /**
  *
- * @param {recoil.structs.table.MutableTable} table
+ * @param func
  */
 recoil.structs.table.Table.prototype.forEach = function (func) {
     this.rows_.inOrderTraverse(function (row) {
@@ -532,7 +547,6 @@ recoil.structs.table.TableRow.prototype.keepColumns = function (columns) {
     });
     return mutable.freeze();
 };
-
 
 /**
  * @template CT

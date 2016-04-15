@@ -140,20 +140,19 @@ function testChangeCell() {
 }
 
 function testColKeyComparator() {
-    var orderdTable = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
+    var orderedTable = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
     var revTable = new recoil.structs.table.MutableTable([COL_D], [COL_B]);
     var rowF = recoil.structs.table.TableRow;
 
-    orderdTable.addRow(rowF.create(COL_A, 7, COL_B, 9));
-    orderdTable.addRow(rowF.create(COL_A, 1, COL_B, 8));
+    orderedTable.addRow(rowF.create(COL_A, 7, COL_B, 9));
+    orderedTable.addRow(rowF.create(COL_A, 1, COL_B, 8));
 
     revTable.addRow(rowF.create(COL_D, 1, COL_B, 8));
     revTable.addRow(rowF.create(COL_D, 7, COL_B, 9));
 
-
     var expected = [{a:1, b: 8}, {a:7, b: 9}];
     var i = 0;
-    orderdTable.freeze().forEach(function (row) {
+    orderedTable.freeze().forEach(function (row) {
         assertEquals(expected[i].a, row.get(COL_A));
         assertEquals(expected[i].b, row.get(COL_B));
         i++;
@@ -162,7 +161,7 @@ function testColKeyComparator() {
     assertEquals(i, expected.length);
 
     var i = 0;
-    orderdTable.forEach(function (row) {
+    orderedTable.forEach(function (row) {
         assertEquals(expected[i].a, row.get(COL_A));
         assertEquals(expected[i].b, row.get(COL_B));
         i++;
@@ -199,15 +198,46 @@ function testColKeyComparator() {
 }
 
 function testGetNonExistantRow() {
-    assertTrue(false);
+    var mTable = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
+    var rowF = recoil.structs.table.TableRow;
+
+    mTable.addRow(rowF.create(COL_A, 1, COL_B, 8));
+
+    var table = mTable.freeze();
+
+    assertNull(table.get([1], COL_D));
 }
 
 function testDuplicateRow() {
-    assertTrue(false);
+    var mTable = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
+    var rowF = recoil.structs.table.TableRow;
+
+    mTable.addRow(rowF.create(COL_A, 1, COL_B, 8));
+
+    assertThrows(function () {
+        mTable.addRow(rowF.create(COL_A, 1, COL_B, 6));
+    });
 }
 
 function testComplexPrimaryKey() {
-    assertTrue(false);
+    var mTable = new recoil.structs.table.MutableTable([COL_A, COL_B], [COL_C]);
+    var rowF = recoil.structs.table.TableRow;
+
+    mTable.addRow(rowF.create(COL_A, 1, COL_B, 8, COL_C, 9));
+    mTable.addRow(rowF.create(COL_A, 4, COL_B, 6, COL_C, 10));
+
+    assertEquals(9, mTable.get([1, 8], COL_C));
+    assertEquals(10, mTable.get([4, 6], COL_C));
+
+    assertNull(mTable.get([1, 6], COL_C));
+
+    mTable.set([1, 8], COL_C, 15);
+    assertEquals(15, mTable.get([1, 8], COL_C));
+
+    assertThrows(function () {
+        assertEquals(15, mTable.get([1], COL_C));
+    });
+
 }
 
 function testForEach() {
