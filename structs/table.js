@@ -122,7 +122,7 @@ recoil.structs.table.ColumnKey.prototype.castTo = function(a) {
 };
 
 recoil.structs.table.ColumnKey.prototype.getName = function() {
-    return this.name_ === undefined ? ("ID(" + this.id_ + ")") : name;
+    return this.name_ === undefined ? ("ID(" + this.id_ + ")") : this.name_;
 };
 
 
@@ -213,11 +213,9 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
     });
     this.otherColumns_.forEach(function(col) {
 	if (!row.hasColumn(col)) {
-	    throw "missing column" + col.getName();
+	    throw "missing column: " + col.getName();
 	}
     });
-
-    
 
     if (missingKeys.length === 1
 	&& this.primaryColumns_.length === 1
@@ -232,10 +230,43 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
 	row = row.set(recoil.structs.table.ColumnKey.INDEX,nextId);
     }	
     else if (missingKeys.length > 0) {
-	throw "Must sepecify All primary keys";
+	throw "Must specify All primary keys";
     }
 
-    this.rows_.add(row.keepColumns(goog.array.concat(this.primaryColumns_, this.otherColumns_)));
+    var tblRow = row.keepColumns(goog.array.concat(this.primaryColumns_, this.otherColumns_));
+    if(this.rows_.findFirst(tblRow) !== null){
+        throw "row already exists ";
+    }
+    this.rows_.add(tblRow);
+};
+/**
+ * @private
+ * @param {Array<*>} keys
+ * @return {recoil.structs.table.TableRow} the key as a row so it can be used to lookup the value in the map
+
+ */
+recoil.structs.table.MutableTable.prototype.makeKeys_ = function (keys) {
+    if (keys.length !== this.primaryColumns_.length) {
+        throw "Incorrect number of primary keys";
+    }
+    var row = new recoil.structs.table.MutableTableRow();
+    for (var i = 0; i < keys.length; i++) {
+        row.set(this.primaryColumns_[i], keys[i]);
+    }
+
+    return row.freeze();
+};
+
+/**
+ *
+ * @param func
+ */
+recoil.structs.table.MutableTable.prototype.forEach = function (func) {
+    this.rows_.inOrderTraverse(function (row) {
+        return func (row);
+    });
+    //var table = this.freeze();
+    //table.forEach(func);
 };
 
 /**
@@ -245,15 +276,7 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
  *
  */
 recoil.structs.table.MutableTable.prototype.removeRow = function(keys) {
-    if (keys.length !== this.primaryColumns_.length) {
-        throw "Incorrect number of primary keys";
-    }
-
-    var row = new recoil.structs.table.MutableTableRow();
-    for (var i = 0; i < keys.length; i++) {
-        row.set(this.primaryColumns_[i], keys[i]);
-    }
-    if (this.rows_.remove(row.freeze()) === null) {
+    if (this.rows_.remove(this.makeKeys_(keys)) === null) {
         throw "Row does not exist";
     }
 };
@@ -356,6 +379,31 @@ recoil.structs.table.Table.prototype.get = function (keys, columnKey) {
     return r.get(columnKey);
 };
 
+/**
+ * @template CT
+ * @param {Array<*>} keys
+ * @param {recoil.structs.table.ColumnKey<CT>} column
+ * @return {*}
+ */
+recoil.structs.table.Table.prototype.getMeta = function (keys, column) {
+    console.log(column);
+
+};
+
+/**
+ *
+ * @param func
+ */
+recoil.structs.table.Table.prototype.forEach = function (func) {
+    this.rows_.inOrderTraverse(function (row) {
+        var rowWithMeta = row;
+        return func (rowWithMeta);
+    });
+};
+
+recoil.structs.table.Table.prototype.size = function () {
+    return this.rows_.getCount();
+};
 
 /**
  * gets the row from a table, pass the primary keys as an array of values
@@ -473,8 +521,8 @@ recoil.structs.table.TableRow.prototype.setCell = function (column, value) {
  * @param {*} value
  * @returns {recoil.structs.table.MutableTableRow}
  */
-recoil.structs.table.TableRow.prototype.create = function () {
-    var mutableRow =new recoil.structs.table.MutableTableRow(this);
+recoil.structs.table.TableRow.create = function () {
+    var mutableRow =new recoil.structs.table.MutableTableRow();
     for(var i = 0; i < arguments.length; i += 2){
         mutableRow.set(arguments[i], arguments[i+1]);
     }
@@ -499,7 +547,6 @@ recoil.structs.table.TableRow.prototype.keepColumns = function (columns) {
     });
     return mutable.freeze();
 };
-
 
 /**
  * @template CT

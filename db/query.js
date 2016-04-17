@@ -154,7 +154,7 @@ recoil.db.QueryScope.prototype.exists = function (parts) {
 	}
     }
     return true;
-}
+};
 
 /**
  * @param {string} exp  expressoin to eval
@@ -223,7 +223,8 @@ recoil.db.Query = function (opt_expr) {
 
 recoil.db.Query.prototype.eval = function (scope) {
     return this.expr_.eval(scope);
-}
+};
+
 /**
  * applies variable number operators together to the function
  * @private
@@ -312,7 +313,7 @@ recoil.db.Query.prototype.not = function (opt_x) {
 
 recoil.db.Query.prototype.not$ = function (opt_x) {
     return this.set_(this.not(opt_x));
-}
+};
 
 recoil.db.Query.prototype.val = function (val) {
     return this.query_(new recoil.db.expr.Value(val)); 
@@ -782,7 +783,7 @@ recoil.db.expr.LessThanEquals.prototype.eval = function (scope) {
 /**
  * @constructor
  * @param {string} field
- * @param {Array<*> list
+ * @param {Array<*>} list
  * @implements recoil.db.QueryExp
  */
 recoil.db.expr.In = function (field, list) {
@@ -804,7 +805,7 @@ recoil.db.expr.In.prototype.eval = function (scope) {
 /**
  * @constructor
  * @param {string} field
- * @param {Array<*> list
+ * @param {Array<*>} list
  * @implements recoil.db.QueryExp
  */
 recoil.db.expr.NotIn = function (field, list) {
@@ -863,8 +864,8 @@ recoil.db.expr.Value.prototype.eval = function (scope) {
 /**
  * @constructor
  * @param {string} field this can be a dot seperated and use [] to acces arrays or maps
- * @param {RegExp|string} the pattern to match
- * @param {?string} opt_pattern extra options for matching only used when pattern is a string
+ * @param {RegExp|string} pattern the pattern to match
+ * @param {?string} opt_options extra options for matching only used when pattern is a string
  * @implements recoil.db.QueryExp
  */
 recoil.db.expr.RegExp = function (field, pattern, opt_options) {
