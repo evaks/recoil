@@ -1,5 +1,6 @@
 goog.provide('recoil.db.Query');
 goog.provide('recoil.db.QueryExp');
+goog.provide('recoil.db.QueryOptions');
 goog.provide('recoil.db.QueryScope');
 goog.provide('recoil.db.expr.And');
 goog.provide('recoil.db.expr.Or');
