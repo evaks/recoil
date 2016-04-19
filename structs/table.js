@@ -169,7 +169,8 @@ recoil.structs.table.Table = function (table) {
  * 
  */
 recoil.structs.table.MutableTable = function (primaryKeys, otherColumns) {
-    this.meta_ = {};
+    this.meta_ = {}; // table meta data
+    this.columnMeta_ = {}; // column meta data
 
     if (primaryKeys.length === 0) {
 	this.primaryColumns_ = [recoil.structs.table.ColumnKey.INDEX];
@@ -179,7 +180,8 @@ recoil.structs.table.MutableTable = function (primaryKeys, otherColumns) {
     }
     this.otherColumns_ = goog.array.clone(otherColumns);
     var me = this;
-    this.rows_ = new goog.structs.AvlTree(function(rowA, rowB) {
+    
+    var comparator = function(rowA, rowB) {
 	for (var key in me.primaryColumns_) {
 	    var col = me.primaryColumns_[key];
 	    var res = col.compare(rowA.get(col), rowB.get(col));
@@ -188,11 +190,55 @@ recoil.structs.table.MutableTable = function (primaryKeys, otherColumns) {
 	    }
 	}
 	return 0;
-    }); 
+    };
+
+    this.rows_ = new goog.structs.AvlTree(comparator); 
+    this.rowMeta_ = new goog.structs.AvlTree(comparator); 
+
 };
 
 recoil.structs.table.Table.comparator = function(a, b) {
     return recoil.structs.table.ColumnKey.comparator(a.key, b.key);
+};
+
+recoil.structs.table.MutableTable.prototype.setMeta = function (meta) {
+    this.meta_ = goog.object.createImmutableView(meta);
+};
+
+recoil.structs.table.MutableTable.prototype.getMeta = function (meta) {
+    return this.meta_;
+};
+
+
+recoil.structs.table.MutableTable.prototype.addMeta = function (meta) {
+    var newMeta = goog.object.clone(this.meta_);
+    for (var field in meta) {
+	newMeta[field] = meta[field];
+    }
+    this.meta_ = goog.object.createImmutableView(meta);
+};
+
+recoil.structs.table.MutableTable.prototype.getColumnMeta = function (key) {
+    var res = this.columnMeta_[key.id_];
+    if (res === undefined) {
+	return {};
+    }
+    
+    return res;
+};
+
+recoil.structs.table.MutableTable.prototype.setColumnMeta = function (key, meta) {
+    this.columnMeta_[key.id_] = goog.object.createImmutableView(meta);
+}
+
+recoil.structs.table.MutableTable.prototype.addColumnMeta = function (key, meta) {
+    var newMeta = goog.object.clone(this.getColumnMeta(key));
+    
+    for (var field in meta) {
+	newMeta[field] = meta[field];
+    }
+
+    this.setColumnMeta(key, newMeta);
 };
 
 /**
