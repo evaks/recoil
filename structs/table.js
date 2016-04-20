@@ -499,32 +499,20 @@ recoil.structs.table.Table.create = function (typeFactories, tableMeta, rawTable
     var keys =this.extractKeys_(tableMeta);
     console.log(keys);
     var tbl = new recoil.structs.table.MutableTable(keys.primaryKeys, keys.otherKeys);
-    var row = new recoil.structs.table.MutableTableRow();
 
-    //for(var i = 0; i < rawTable.length; i++){
-    //    for(var val in tableMeta){
-    //        var t = tableMeta[val];
-    //        console.log(t);
-    //    }
-    //    console.log(rawTable[i]);
-    //}
+    var rows = [];
+    rawTable.forEach(function (item) {
+        var row = new recoil.structs.table.MutableTableRow();
 
-    for(var tMeta in tableMeta){
-        var key = tableMeta[tMeta].key;
-        for(var raw in rawTable){
-            var v = rawTable[raw];
-            //if(tMeta === raw.nam)
-            if(v.hasOwnProperty(tMeta)){
-                console.log(tMeta);
-                row.set();
-            }
-
+        for(var tMeta in tableMeta){
+            var colKey = tableMeta[tMeta].key;
+            row.set(colKey, item[tMeta]);
         }
+        rows.push(row);
 
-        //if(meta.key)
-    }
+    });
 
-    console.log('here');
+    console.log(rows);
     //row.set();
 };
 
