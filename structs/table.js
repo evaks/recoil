@@ -229,7 +229,7 @@ recoil.structs.table.MutableTable.prototype.getColumnMeta = function (key) {
 
 recoil.structs.table.MutableTable.prototype.setColumnMeta = function (key, meta) {
     this.columnMeta_[key.id_] = goog.object.createImmutableView(meta);
-}
+};
 
 recoil.structs.table.MutableTable.prototype.addColumnMeta = function (key, meta) {
     var newMeta = goog.object.clone(this.getColumnMeta(key));
@@ -485,6 +485,87 @@ recoil.structs.table.Table.prototype.metaGet = function (row, columnKey) {
         }
     }
     return result;
+};
+
+
+/**
+ *
+ * @param {object} typeFactories
+ * @param {object} tableMeta
+ * @param {Array} rawTable
+ */
+recoil.structs.table.Table.create = function (typeFactories, tableMeta, rawTable) {
+
+    var keys =this.extractKeys_(tableMeta);
+    console.log(keys);
+    var tbl = new recoil.structs.table.MutableTable(keys.primaryKeys, keys.otherKeys);
+    var row = new recoil.structs.table.MutableTableRow();
+
+    //for(var i = 0; i < rawTable.length; i++){
+    //    for(var val in tableMeta){
+    //        var t = tableMeta[val];
+    //        console.log(t);
+    //    }
+    //    console.log(rawTable[i]);
+    //}
+
+    for(var tMeta in tableMeta){
+        var key = tableMeta[tMeta].key;
+        for(var raw in rawTable){
+            var v = rawTable[raw];
+            //if(tMeta === raw.nam)
+            if(v.hasOwnProperty(tMeta)){
+                console.log(tMeta);
+                row.set();
+            }
+
+        }
+
+        //if(meta.key)
+    }
+
+    console.log('here');
+    //row.set();
+};
+
+/**
+ *
+ * @param {object} tableMeta
+ * @returns {object}
+ * @private
+ */
+recoil.structs.table.Table.extractKeys_ = function (tableMeta) {
+    var primaryKeys = [];
+    var otherKeys = [];
+
+    for(var obj in tableMeta){
+        if(tableMeta.hasOwnProperty(obj)) {
+            var val = tableMeta[obj];
+            if (val.hasOwnProperty('primary')) {
+                primaryKeys.push(val);
+            }
+            else {
+                otherKeys.push(val.key);
+            }
+        }
+    }
+
+    primaryKeys.sort(function (a, b) {
+        return a.primary - b.primary;
+    });
+
+
+    return {primaryKeys: this.getColumnKeys_(primaryKeys),
+            otherKeys: otherKeys};
+};
+
+recoil.structs.table.Table.getColumnKeys_ = function (array) {
+    var res = [];
+
+    for( var i = 0 ; i < array.length; i++){
+        res.push(array[i].key);
+    }
+    return res;
 };
 
 /**

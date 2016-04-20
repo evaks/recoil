@@ -20,7 +20,7 @@ recoil.util.Sequence = function () {
 recoil.util.Sequence.prototype.next = function () {
     var res = new String(this.val_);
     this.val_ = this.val_.add(goog.math.Long.ONE);
-    return res;
+    return res.toString();
 };
 
 /**

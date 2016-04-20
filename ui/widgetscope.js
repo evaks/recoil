@@ -27,4 +27,4 @@ recoil.ui.WidgetScope.prototype.getFrp = function() {
  */
 recoil.ui.WidgetScope.prototype.getObserver = function() {
     return this.observer_;
-}
+};

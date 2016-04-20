@@ -3,8 +3,8 @@ goog.provide('recoil.ui.widgets.table.TableMetaData');
 goog.provide('recoil.ui.widgets.table.Column');
 
 goog.require('recoil.ui.AttachableWidget');
-goog.require('recoil.structs.Table');
-goog.require('recoil.structs.TableRow');
+goog.require('recoil.structs.table.Table');
+goog.require('recoil.structs.table.TableRow');
 
 
 
@@ -21,10 +21,10 @@ recoil.ui.widgets.table.TableWidget.prototype.getComponent = function () {
 };
 
 
-recoil.ui.widget.table.TableWidget.prototype.attachStruct = function () {
+recoil.ui.widgets.table.TableWidget.prototype.attachStruct = function () {
 };
 /**
- * @param {recoil.ui.Behaviour<recoil.structs.Table> | recoil.structs.Table} table
+ * @param {recoil.ui.Behaviour<recoil.structs.table.Table> | recoil.structs.table.Table} table
  * @param {recoil.ui.Behaviour<recoil.ui.widgets.TableMetaData> |recoil.ui.widgets.TableMetaData} meta
  */
 recoil.ui.widgets.table.TableWidget.prototype.attach = function (table, meta) {
@@ -70,7 +70,21 @@ recoil.ui.widgets.TableMetaData = function() {
     this.columns_ = [];
 };
 
+/**
+ * @template CT
+ * @param {recoil.structs.table.ColumnKey<CT>} col
+ */
 recoil.ui.widgets.TableMetaData.prototype.addColumn = function (col) {
     this.columns_.push(col);
 };
 
+/**
+ *
+ * @template CT
+ * @param {recoil.structs.table.ColumnKey<CT>} key
+ * @param {String} val
+ */
+recoil.ui.widgets.TableMetaData.prototype.add = function (key, val) {
+    //console.log(key.getName());
+    //console.log(val);
+};

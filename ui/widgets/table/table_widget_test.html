@@ -1,11 +1,13 @@
 <html>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <title>recoil.ui.widgets.TableWidget</title>
-<script src="../../../../closure-library/closure/goog/base.js"></script>
-<script src="../../../../my-deps.js"></script>
+<script src="../../../../../closure-library/closure/goog/base.js"></script>
+<script src="../../../../../my-deps.js"></script>
+
 <script>
   goog.require('recoil.frp.Frp');
-  goog.require('recoil.ui.widgets.TableWidget');
+  goog.require('recoil.ui.widgets.table.TableWidget');
+  goog.require('recoil.ui.WidgetScope');
 </script>
 
 <body>
@@ -15,6 +17,7 @@
     var scope = new recoil.ui.WidgetScope();
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
+
     var rawTable = [
     {id: 1, name: "row 1", count:2, check: true},
     {id: 2, name: "row 2", count:4, check: true},
@@ -28,10 +31,10 @@
     };
 
     var rawTableMeta = {
-    id : { type : "int", primary : 0, key : new recoil.structs.table.ColumnKey("id")},
-    name : { type : "string", length : 20, key : new recoil.structs.table.ColumnKey("id")},
-    count : { type: "int", min : 1, max:100},
-    check : { type: "bool"}
+    name : { type : "string", primary: 1, length : 20, key : tblKeys.name},
+    id : { type : "int", primary : 0, key : tblKeys.id},
+    count : { type: "int", min : 1, max:100, key: tblKeys.count},
+    check : { type: "bool", key: tblKeys.check}
     };
 
     
@@ -40,9 +43,17 @@
     columns.add(tblKeys.count, "Count");
     columns.add(tblKeys.check, "Check");
 
+    var typeFactories = {"int": function(meta) {
+        return new recoil.ui.widgets.table.NumberColumn(meta);
+    }, "string": function (meta) {
+        return new recoil.ui.widgets.table.StringColumn(meta);
+    }, "boolean": function (meta) {
+        return new recoil.ui.widgets.table.BooleanColumn(meta);
+    }};
+
     var table = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
     
-    var tableWidget = new recoil.ui.widgets.TableWidget($('tablediv'));
+    var tableWidget = new recoil.ui.widgets.table.TableWidget($('tablediv'));
 
     tableWidget.attach(frp.createB(columns), table);
 
