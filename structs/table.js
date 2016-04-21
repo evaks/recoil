@@ -500,7 +500,6 @@ recoil.structs.table.Table.create = function (typeFactories, tableMeta, rawTable
     console.log(keys);
     var tbl = new recoil.structs.table.MutableTable(keys.primaryKeys, keys.otherKeys);
 
-    var rows = [];
     rawTable.forEach(function (item) {
         var row = new recoil.structs.table.MutableTableRow();
 
@@ -508,12 +507,11 @@ recoil.structs.table.Table.create = function (typeFactories, tableMeta, rawTable
             var colKey = tableMeta[tMeta].key;
             row.set(colKey, item[tMeta]);
         }
-        rows.push(row);
+        tbl.addRow(row);
 
     });
-
-    console.log(rows);
-    //row.set();
+    console.log(tbl.freeze());
+   return tbl.freeze();
 };
 
 /**

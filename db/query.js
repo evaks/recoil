@@ -210,6 +210,15 @@ recoil.db.QueryScope.prototype.evalWhere = function (func) {
     return func.apply(this.map_, vals);
 };
 
+
+/**
+ * @constructor
+ * @param {number} pollRate milliseconds between polls <0 means notify, if not 
+ */
+recoil.db.QueryOptions = function (polRate, extra) {
+    this.pollRate_ = pollRate;
+};
+
 /**
  * makes a query, this is utility class for building up expression
  * that can be sent to the database to filter requests
