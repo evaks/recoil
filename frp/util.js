@@ -7,7 +7,7 @@ goog.require('recoil.util');
  * @constructor
  * @param {recoil.frp.Frp} frp the frp engine to do operations on
  */
-recoil.frp.Util = function (frp) {
+recoil.frp.Util = function(frp) {
     this.frp_ = frp;
 };
 
@@ -17,7 +17,7 @@ recoil.frp.Util = function (frp) {
  * @template T
  * @param {recoil.frp.Behaviour<T> | T} value
  * @return {recoil.frp.Behaviour<T>}
- * 
+ *
  */
 recoil.frp.Util.prototype.toBehaviour = function(value) {
 
@@ -30,16 +30,16 @@ recoil.frp.Util.prototype.toBehaviour = function(value) {
 };
 /**
  * if value is undefined returns behaviour with def
- * 
+ *
  * @template T
  * @param {recoil.frp.Behaviour<T>|T} value
  * @param {recoil.frp.Behaviour<T>|T} def
- * @return {recoil.frp.Behaviour<T>} 
+ * @return {recoil.frp.Behaviour<T>}
  */
 recoil.frp.Util.prototype.getDefault = function(value, def) {
     value = this.toBehaviour(value);
     def = this.toBehaviour(def);
-    
+
     return this.frp_.liftBI(function() {
         if (value.get() === undefined) {
             return def.get();
@@ -48,18 +48,18 @@ recoil.frp.Util.prototype.getDefault = function(value, def) {
     }, function(v) {
         value.set(v);
     }, value, def);
-    
+
 };
 /**
  * converts each item into a behaviour if it is not already one
  *
  * @param {Number} start only convert items >= this index
  * @param {Array<recoil.ui.frp.Behaviour|*>} items
- * @returns {Array<recoil.ui.frp.Behaviour>} items made into behaviours
+ * @return {Array<recoil.ui.frp.Behaviour>} items made into behaviours
  */
 recoil.frp.Util.prototype.arrayToBehaviours = function(start, items) {
     var res = [];
-    for (var i = start; i <items.length; i++) {
+    for (var i = start; i < items.length; i++) {
         res.push(this.toBehaviour(items[i]));
     }
     return res;
@@ -69,11 +69,11 @@ recoil.frp.Util.prototype.arrayToBehaviours = function(start, items) {
  *
  * @param {Number} start only convert items >= this index
  * @param {Array<recoil.ui.frp.Behaviour>} items
- * @returns {Array} an array of values stored in the behaviours
+ * @return {Array} an array of values stored in the behaviours
  */
 recoil.frp.Util.arrayToValues = function(start, items) {
     var res = [];
-    for (var i = start; i <items.length; i++) {
+    for (var i = start; i < items.length; i++) {
         res.push(items[i].get());
     }
     return res;
@@ -82,12 +82,13 @@ recoil.frp.Util.arrayToValues = function(start, items) {
 /**
  *
  * @param {...recoil.frp.Behaviour} var_values
+ * @return {!recoil.frp.BStatus}
  */
-recoil.frp.Util.prototype.isAllGood = function (var_values) {
+recoil.frp.Util.prototype.isAllGood = function(var_values) {
 
     var outerArg = arguments;
     return recoil.util.invokeParamsAndArray(this.frp_.metaLiftB, this.frp_, function() {
-        for(var i = 0 ; i < outerArg.length; i++) {
+        for (var i = 0; i < outerArg.length; i++) {
             if (!outerArg[i].metaGet().good()) {
                 return new recoil.frp.BStatus(false);
             }

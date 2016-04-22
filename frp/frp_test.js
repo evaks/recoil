@@ -24,7 +24,7 @@ function testBehaviourUp() {
         return a + 1;
     }
 
-    
+
     var frp = new recoil.frp.Frp();
     var tm = frp.tm();
 
@@ -39,7 +39,7 @@ function testBehaviourUp() {
 
 
     tm.attach(c);
-    
+
     assertEquals(3, c.unsafeMetaGet().get());
 
     assertEquals(1, count1);
@@ -58,7 +58,7 @@ function testEventUp() {
     var val1 = 0;
     var val2 = 0;
     function add1(a) {
-	console.log("add 1", a);
+	console.log('add 1', a);
 	val1 = a;
         count1++;
         return a + 1;
@@ -68,7 +68,7 @@ function testEventUp() {
         return a + 1;
     }
 
-    
+
     var frp = new recoil.frp.Frp();
     var tm = frp.tm();
 
@@ -88,7 +88,7 @@ function testEventUp() {
     assertEquals(null, c.unsafeMetaGet().get());
     assertEquals(0, val1);
     assertEquals(0, count1);
-    
+
     // we might need to split this up so we wait for the update
     frp.accessTrans(function() {
 	b.set(2);
@@ -127,13 +127,13 @@ function testBehaviourDown() {
     function sub1(val, a) {
         a.set(val - 1);
     }
-        
+
     function add2(a) {
         count2++;
         return a + 1;
     }
 
-    
+
     var frp = new recoil.frp.Frp();
     var tm = frp.tm();
 
@@ -146,7 +146,7 @@ function testBehaviourDown() {
           c.set(7);
         }, c);
     });
-    
+
     assertEquals(6, b.unsafeMetaGet().get());
 
     tm.detach(c);
@@ -157,7 +157,7 @@ function testSwitchBDown() {
     var frp = new recoil.frp.Frp();
     var tm = frp.tm();
     var src1 = frp.createB(1);
-    var src2 = frp.createB(2);    
+    var src2 = frp.createB(2);
 
     function make1Or2(val) {
         if (val) {
@@ -172,10 +172,10 @@ function testSwitchBDown() {
 
     var d = frp.liftB(make1Or2, c);
     d.name = 'd';
-    
+
     var switchTest = frp.switchB(d);
     switchTest.name = 'switchTest';
-    
+
     tm.attach(switchTest);
 
     assertEquals(1, switchTest.unsafeMetaGet().get());
@@ -187,13 +187,13 @@ function testSwitchBDown() {
     }, switchTest);
 
     assertEquals(11, src1.unsafeMetaGet().get());
-    
+
     tm.doTrans(function() {
         c.set(false);
     });
-    
+
     assertEquals(2, switchTest.unsafeMetaGet().get());
-    
+
     tm.detach(switchTest);
 
 }
@@ -206,22 +206,22 @@ function testConst() {
     var two = frp.liftB(function(a) {return a + 1;}, one);
     var three = frp.liftB(function(a) {count++;return a + 1;},two);
     assertEquals('zero fire', 0, count);
-    
-    
+
+
     tm.attach(three);
-    assertEquals('one fire', 1, count);    
-    
+    assertEquals('one fire', 1, count);
+
       tm.doTrans(function() {
         recoil.frp.Frp.access(function() {
           two.set(3);
         }, two);
     });
-    recoil.frp.Frp.access( function() {
+    recoil.frp.Frp.access(function() {
         assertEquals('value right', 3, three.get());
     }, three);
-    assertEquals('one fire again', 1, count);    
+    assertEquals('one fire again', 1, count);
     tm.detach(three);
-    
+
 }
 function testNoSetOutsideTransaction() {
 
@@ -232,10 +232,10 @@ function testNoSetOutsideTransaction() {
     var one = frp.createB(1);
 
     one.set(2);
- 
+
     var two = frp.liftB(function(a) {return a + 1;}, one);
- 
-    try { 
+
+    try {
       two.set(3);
          fail('expected exception');
     } catch (e) {
@@ -243,7 +243,7 @@ function testNoSetOutsideTransaction() {
     }
 
     tm.attach(two);
-    try { 
+    try {
       two.set(3);
          fail('expected exception');
     } catch (e) {
@@ -251,7 +251,7 @@ function testNoSetOutsideTransaction() {
     }
 
     recoil.frp.Frp.access(function() {
-        try { 
+        try {
           two.set(3);
              fail('expected exception');
         } catch (e) {
@@ -269,16 +269,16 @@ function testNoSetOutsideTransaction() {
 function testLiftBOnlyGood() {
 
     var frp = new recoil.frp.Frp();
-    
+
     function testNotCall() {
-        fail("should not be called");
+        fail('should not be called');
     }
     var a = frp.createMetaB(recoil.frp.BStatus.notReady());
     var d = frp.liftB(testNotCall, a);
     frp.attach(d);
     frp.detach(d);
-      
-    
+
+
 }
 function testSwitchBUp() {
 
@@ -290,7 +290,7 @@ function testSwitchBUp() {
             return frp.createB(1);
         } else {
             var two = frp.createB(1);
-            return frp.liftB(function (a) {return a + 1;}, two);
+            return frp.liftB(function(a) {return a + 1;}, two);
         }
     }
 
@@ -299,10 +299,10 @@ function testSwitchBUp() {
 
     var d = frp.liftB(make1Or2, c);
     d.name = 'd';
-    
+
     var switchTest = frp.switchB(d);
     switchTest.name = 'switchTest';
-    
+
     tm.attach(switchTest);
 
     assertEquals(1, switchTest.unsafeMetaGet().get());
@@ -310,9 +310,9 @@ function testSwitchBUp() {
     tm.doTrans(function() {
         c.set(false);
     });
-    
+
     assertEquals(2, switchTest.unsafeMetaGet().get());
-    
+
     tm.detach(switchTest);
 }
 
@@ -322,7 +322,7 @@ function testAttachDetach() {
     var tm = frp.tm();
 
     var one = frp.createB(1);
-    var two = frp.liftB(function (a) {return a + 1;},one);
+    var two = frp.liftB(function(a) {return a + 1;},one);
 
     one.set(2);
 

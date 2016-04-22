@@ -1,8 +1,8 @@
 goog.provide('recoil.frp.struct');
 
 goog.require('goog.object');
-goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.Frp');
 
 /**
  * @param {string} name the attribute name of the element to get out of the struct
@@ -28,9 +28,10 @@ recoil.frp.struct.get = function(name, value, opt_default) {
 /**
  * takes object with the fields being behaviours and converts them into an behaviour with objects in them note: fields
  * that are not behaviours will be lost
- * 
+ * @param {recoil.frp.Frp} frp
+ * @param {Object} struct
+ * @return {recoil.frp.Behaviour<Object>}
  */
-
 recoil.frp.struct.create = function(frp, struct) {
     var args = [];
 
@@ -61,7 +62,7 @@ recoil.frp.struct.create = function(frp, struct) {
 
         });
     });
-    
+
     goog.object.forEach(struct, function(obj) {
         if (obj instanceof recoil.frp.Behaviour) {
             args.push(obj);

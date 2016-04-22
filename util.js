@@ -3,21 +3,22 @@ goog.provide('recoil.util.Handle');
 goog.provide('recoil.util.Sequence');
 
 
-goog.require('goog.object');
 goog.require('goog.array');
 goog.require('goog.math.Long');
+goog.require('goog.object');
 /**
  * a class to create a incrementing sequence
  * of strings
+ * @constructor
  */
-recoil.util.Sequence = function () {
+recoil.util.Sequence = function() {
     this.val_ = goog.math.Long.ZERO;
 };
 /**
  * get the next value and increment the counter
- * @return string
+ * @return {string}
  */
-recoil.util.Sequence.prototype.next = function () {
+recoil.util.Sequence.prototype.next = function() {
     var res = new String(this.val_);
     this.val_ = this.val_.add(goog.math.Long.ONE);
     return res.toString();
@@ -27,7 +28,7 @@ recoil.util.Sequence.prototype.next = function () {
  * get the next value and increment the counter
  * @return {goog.math.Long}
  */
-recoil.util.Sequence.prototype.nextLong = function () {
+recoil.util.Sequence.prototype.nextLong = function() {
     var res = this.val_;
     this.val_ = this.val_.add(goog.math.Long.ONE);
     return res;
@@ -35,7 +36,8 @@ recoil.util.Sequence.prototype.nextLong = function () {
 
 /**
  * @template T
- * @return T
+ * @param {T} value
+ * @return {T}
  */
 recoil.util.safeFreeze = function(value) {
 
@@ -53,18 +55,19 @@ recoil.util.safeFreeze = function(value) {
 
 /**
  * invokes function with arg1 and converts the rest array the rest of the paramters
- * 
+ *
+ * @template T
  * @param {Object} me
- * @param {function} func
+ * @param {function(*,...*) : T} func
  * @param {*} arg1
  * @param {Array<*>} rest
- * 
+ * @return {T}
  */
-recoil.util.invokeOneParamAndArray = function (me, func, arg1, rest) {
+recoil.util.invokeOneParamAndArray = function(me, func, arg1, rest) {
     var params = [arg1];
     for (var i = 0; i < rest.length; i++) {
-       params.push(rest[i]); 
-    };
+       params.push(rest[i]);
+    }
     return func.apply(me, params);
 };
 
@@ -78,17 +81,17 @@ recoil.util.invokeOneParamAndArray = function (me, func, arg1, rest) {
  * @param {Object} obj the this parameter to call
  * @param {...} var_arguments a list of arguments the last one should be an array
  *
- *
+ * @return {T}
  */
-recoil.util.invokeParamsAndArray = function (func, obj, var_arguments) {
+recoil.util.invokeParamsAndArray = function(func, obj, var_arguments) {
     var args = [];
-    for (var i = 2; i < arguments.length -1; i++) {
+    for (var i = 2; i < arguments.length - 1; i++) {
         args.push(arguments[i]);
 
     }
     if (arguments.length > 2) {
-        var arr = arguments[arguments.length -1];
-        for (var i = 0; i <  arr.length; i++) {
+        var arr = arguments[arguments.length - 1];
+        for (var i = 0; i < arr.length; i++) {
             args.push(arr[i]);
         }
     }
@@ -96,11 +99,13 @@ recoil.util.invokeParamsAndArray = function (func, obj, var_arguments) {
 };
 
 /**
+ * a generic compare function that should handle anything
  *
  * @param {*} a
  * @param {*} b
+ * @return {!number}
  */
-recoil.util.compare = function (a, b) {
+recoil.util.compare = function(a, b) {
     return recoil.util.compare_(a, b, [], []);
 };
 
@@ -110,7 +115,7 @@ recoil.util.compare = function (a, b) {
  * @param {*} b
  * @param {Array<Object>} aPath
  * @param {Array<Object>} bPath
- * @returns {number}
+ * @return {number}
  * @private
  */
 recoil.util.compare_ = function(a, b, aPath, bPath) {
@@ -122,7 +127,7 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
 
     if (aIndex !== -1 || bIndex !== -1) {
         if (aIndex === bIndex) {
-            return 0
+            return 0;
         }
         if (aIndex !== -1 && bIndex !== -1) {
             return aIndex - bIndex;
@@ -138,14 +143,14 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
         return -1;
     }
 
-    if ( b === undefined) {
+    if (b === undefined) {
         return 1;
     }
     if (a === null) {
         return -1;
     }
 
-    if ( b === null) {
+    if (b === null) {
         return 1;
     }
     if (a.compare !== undefined && a.compare instanceof Function) {
@@ -178,13 +183,13 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
     if (a instanceof Object && b instanceof Object) {
         var aKeys = [];
         var bKeys = [];
-        for ( var k in a) {
-            if(a.hasOwnProperty(k)){
+        for (var k in a) {
+            if (a.hasOwnProperty(k)) {
                 aKeys.push(k);
             }
         }
         for (var k in b) {
-            if(b.hasOwnProperty(k)){
+            if (b.hasOwnProperty(k)) {
                 bKeys.push(k);
             }
         }
@@ -195,7 +200,7 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
         if (res !== 0) {
             return res;
         }
-        for (var i = 0; i <aKeys.length; i++) {
+        for (var i = 0; i < aKeys.length; i++) {
             var k = aKeys[i];
             res = recoil.util.compare_(a[k], b[k], newAPath, newBPath);
             if (res !== 0) {
@@ -216,7 +221,7 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
 
 /**
  * compares 2 objects
- * 
+ *
  * @param {Object|number|undefined} a
  * @param {Object|number|undefined} b
  * @return {!boolean}
@@ -280,12 +285,12 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
             return false;
         }
 
-        for ( var k in a) {
+        for (var k in a) {
             if (!(k in b) || !recoil.util.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath)) {
                 return false;
             }
         }
-        for ( var k in b) {
+        for (var k in b) {
             if (!(k in a)) {
                 return false;
             }
@@ -307,13 +312,13 @@ recoil.util.Handle = function(opt_value) {
  *
  * @param {T} value
  */
-recoil.util.Handle.prototype.set = function (value) {
+recoil.util.Handle.prototype.set = function(value) {
    this.value_ = value;
 };
 
 /**
- * @returns {T}
+ * @return {T}
  */
-recoil.util.Handle.prototype.get = function () {
+recoil.util.Handle.prototype.get = function() {
     return this.value_;
 };

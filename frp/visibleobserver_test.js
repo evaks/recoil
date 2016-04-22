@@ -10,7 +10,7 @@ goog.setTestOnly('recoil.frp.VisibleObserverTest');
 
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 /**
- * 
+ *
  */
 asyncTestCase.stepTimeout = 5000;
 
@@ -26,7 +26,7 @@ function test01VisibleOnAttach() {
     div1 = document.createElement('div');
     div1.id = 'div_1';
     var div2 = document.createElement('div');
-    div2.id = "div2_start";
+    div2.id = 'div2_start';
     var element = document.createTextNode('xxx-');
     element.id = 'element.xxx';
     var e2 = document.createElement('div');
@@ -171,10 +171,10 @@ var t11visible;
 function test11UnListenNotInTree() {
     var d = document.createElement('div');
     var e2 = goog.dom.getElement('e2');
-    var listener = function (v) {
+    var listener = function(v) {
         t11visible = v;
     };
-    
+
     observer.listen(d, listener);
     assertEquals(false, t11visible);
     observer.unlisten(d, listener);
@@ -185,7 +185,7 @@ function test11UnListenNotInTree() {
 }
 
 function test12Done() {
-    
+
     assertEquals(false, t11visible);
 
 }
