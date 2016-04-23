@@ -14,5 +14,5 @@ goog.require('goog.events.InputHandler');
  * @extends recoil.ui.Widget
  */
 recoil.ui.widgets.TextWidget = function (scope) {
-
+    
 };

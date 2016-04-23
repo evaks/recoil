@@ -12,8 +12,65 @@ goog.require('recoil.structs.table.TableRow');
  * @constructor
  * @implements recoil.ui.AttachableWidget
  */
-recoil.ui.widgets.table.TableWidget = function() {
+recoil.ui.widgets.table.TableWidget = function(scope) {
+    this.scope_ = scope;
     
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.table_, this, this.updateState_);
+
+    
+};
+
+
+recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function (helper, tableB) {
+    var me = this;
+    if (helper.isGood()) {
+        // TODO this is just me thinking at the moment this needs to do a difference
+        // not just build table 
+        var table = tableB.get();
+        var tableMeta = table.getTableMeta();
+        var tableDecorator = this.getMetaValue('tableDecorator', tableMeta);
+
+        
+        var tableComponent = tableDecorator.create();
+        var headerRowDecorator = this.getMetaValue('headerRowDecorator', tableMeta).create();
+
+       
+        if (headerRowDecorator) {
+            //this allows the no header on a table the header row decorator returns false
+
+            // build the column header
+
+            table.forEachColumn(function (columnMeta) {
+                var columnHeaderDecorator = this.getMetaValue('headerDecorator', tableMeta, columnMeta);
+            
+
+                var headerContainer = columnHeaderDecorator.create();
+                
+                tableComponent.addChild(headerContainer);
+                // create a widget of the header
+                
+            });
+        }
+
+        table.forEach(function (row, rowKey, rowMeta) {
+            // do this in order of the columns defined in the meta data
+            var rowDecorator = this.getMetaValue('rowDecorator', tableMeta, rowMeta);
+            var rowComponent = rowDecorator.create();
+
+            tableComponent.addChild(rowComponent.outer);
+
+            table.forEachColumn(function (columnMeta) {
+                var cellDecorator = this.getMetaValue('cellDecorator', tableMeta, rowMeta, columnMeta);
+                var cellFactory = this.getMetaValue('widgetFactory', tableMeta, rowMeta, columnMeta);
+                var cellComponent = cellComponent.create();
+                rowComponent.inner.addChild(cellComponent.outer);
+                cellFactory.create(cellComponent.inner, recoil.frp.structs.table.CellValue.create(me.frp_, table, rowKey, columnMeta.key));
+            });
+        });
+    }
+    else {
+        // display error or not ready state
+        }
 };
 
 recoil.ui.widgets.table.TableWidget.prototype.getComponent = function () {
