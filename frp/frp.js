@@ -354,40 +354,41 @@ recoil.frp.Frp.Direction_ = {};
  *
  * @final
  */
-recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection('up',
-                                                                /**
-                                                                 * @param {recoil.frp.Behaviour} behaviour
-                                                                 * @param {Array <recoil.frp.Behaviour>} providers
-                                                                 * @param {Array <recoil.frp.Behaviour>} dependents
-                                                                 * @return {Array <recoil.frp.Behaviour>}
-                                                                 */
-                                                                function(behaviour, providers, dependents) {
-                                                                    var oldVal = behaviour.val_;
-
-                                                                    var params = [];
-                                                                    // TODO put a loop around this so we get all events, take care if we clear the events
-                                                                    // other behaviours may not get the events so we have to probably queue them unless
-                                                                    // we consider an event as always a seqenence of events, then the lift just has to deal
-                                                                    // with them this may allow more power to the function, alternatively events could just have
-                                                                    // a sequence associated with them you only get one at a time, but this could be delt with
-                                                                    // outside the engine
-                                                                    providers.forEach(function(b) {
-                                                                        params.push(b.metaGet());
-                                                                    });
-                                                                    var newVal = behaviour._calc.apply(behaviour, params);
-                                                                    var res = [];
-                                                                    if (behaviour.dirtyUp_ && recoil.util.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
-                                                                        behaviour.val_ = behaviour.dirtyUpOldValue_;
-                                                                    } else if (behaviour.dirtyUp_ || !recoil.util.isEqual(oldVal, newVal)) {
-                                                                        behaviour.val_ = newVal;
-                                                                        res = dependents;
-                                                                    }
-                                                                    behaviour.dirtyUpOldValue_ = null;
-                                                                    behaviour.dirtyUp_ = false;
-                                                                    return res;
-                                                                }, function(a, b) {
-                                                                    return recoil.frp.Frp.compareSeq_(a.seq_, b.seq_);
-                                                                }),
+recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
+    'up',
+    /**
+     * @param {recoil.frp.Behaviour} behaviour
+     * @param {Array <recoil.frp.Behaviour>} providers
+     * @param {Array <recoil.frp.Behaviour>} dependents
+     * @return {Array <recoil.frp.Behaviour>}
+     */
+    function(behaviour, providers, dependents) {
+        var oldVal = behaviour.val_;
+        
+        var params = [];
+        // TODO put a loop around this so we get all events, take care if we clear the events
+        // other behaviours may not get the events so we have to probably queue them unless
+        // we consider an event as always a seqenence of events, then the lift just has to deal
+        // with them this may allow more power to the function, alternatively events could just have
+        // a sequence associated with them you only get one at a time, but this could be delt with
+        // outside the engine
+        providers.forEach(function(b) {
+            params.push(b.metaGet());
+        });
+        var newVal = behaviour._calc.apply(behaviour, params);
+        var res = [];
+        if (behaviour.dirtyUp_ && recoil.util.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
+            behaviour.val_ = behaviour.dirtyUpOldValue_;
+        } else if (behaviour.dirtyUp_ || !recoil.util.isEqual(oldVal, newVal)) {
+            behaviour.val_ = newVal;
+            res = dependents;
+        }
+        behaviour.dirtyUpOldValue_ = null;
+        behaviour.dirtyUp_ = false;
+        return res;
+    }, function(a, b) {
+        return recoil.frp.Frp.compareSeq_(a.seq_, b.seq_);
+    }),
 
 /**
  * Down is from behaviour to providers
@@ -959,6 +960,15 @@ recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
 };
 
 /**
+ * like liftBI except returns a Status, this is useful for calculation
+ * errors, inputs are still guaranteed to be good
+ */
+recoil.frp.Frp.prototype.statusLiftBI = function (func, invFunc, var_args) {
+    return recoil.util.invokeParamsAndArray(this.liftBI_, this, this.metaLiftBI, null, arguments);
+
+};
+
+/**
  * takes input behaviours and makes a new behaviour that stores an event
  * @template RT
  * @param {function(...) : RT} func
@@ -991,7 +1001,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
     var outerArgs = arguments;
     var wrappedFunc = function() {
         var args = [];
-        var metaResult = statusFactory();
+        var metaResult = statusFactory === null ? new recoil.frp.Behaviour(null) : statusFactory();
         var metaResultB = null;
         var eventReady = false;
 
@@ -1018,8 +1028,13 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
 
         if ((metaResultB !== null && metaResultB.good()) || eventReady) {
             var result = func.apply(this, args);
-
-            metaResult.set(result);
+            if (statusFactory === null) {
+                // if status factory null then we expect the result a status object
+                metaResultB = result;
+            }
+            else {
+                metaResult.set(result);
+            }
         }
         else {
             console.log(metaResult);
