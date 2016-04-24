@@ -9,10 +9,9 @@ goog.require('recoil.errors.Error');
  * @extends {Error}
  * @constructor
  */
-recoil.errors.HttpError = function (errorCode){
+recoil.errors.HttpError = function(errorCode) {
     this.errorCode_ = errorCode;
-    this.name = "HttpError";
+    this.name = 'HttpError';
 };
-
 goog.inherits(recoil.errors.HttpError, Error);
 
