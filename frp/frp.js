@@ -137,6 +137,12 @@ recoil.frp.Status.prototype.get = function() {};
  */
 recoil.frp.Status.prototype.set = function(value) {};
 
+
+/**
+ * @param {*} error
+ */
+recoil.frp.Status.prototype.addError = function (error) {};
+
 /**
  * provides the status of the event, e.g. is it ready, or an error has occured
  * events are cleared every pass off of the transaction, up or down
@@ -170,6 +176,12 @@ recoil.frp.EStatus.notReady = function(generator) {
  */
 recoil.frp.EStatus.prototype.errors = function() {
     return this.errors_;
+};
+/**
+ * @param {*} error
+ */
+recoil.frp.EStatus.prototype.addError = function (error) {
+    this.errors_.push(error);
 };
 
 /**
@@ -305,13 +317,18 @@ recoil.frp.BStatus.prototype.good = function() {
     return this.ready_ && this.errors_.length === 0;
 };
 /**
- *
+ * @nosideeffects
  * @return  {Array<*>} current errors
  */
 recoil.frp.BStatus.prototype.errors = function() {
     return this.errors_;
 };
-
+/**
+ * @param {*} error
+ */
+recoil.frp.BStatus.prototype.addError = function (error) {
+    this.errors_.push(error);
+};
 /**
  * @private
  * @param {Array<goog.math.Long>} a
@@ -1027,13 +1044,18 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
 
 
         if ((metaResultB !== null && metaResultB.good()) || eventReady) {
+            try {
             var result = func.apply(this, args);
-            if (statusFactory === null) {
-                // if status factory null then we expect the result a status object
-                metaResultB = result;
+                if (statusFactory === null) {
+                    // if status factory null then we expect the result a status object
+                    metaResultB = result;
+                }
+                else {
+                    metaResult.set(result);
+                }
             }
-            else {
-                metaResult.set(result);
+            catch (error) {
+                metaResult.addError(error);
             }
         }
         else {

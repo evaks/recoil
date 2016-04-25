@@ -107,6 +107,13 @@ recoil.structs.table.ColumnKey.INDEX = new recoil.structs.table. ColumnKey('inde
                                                                            });
 
 /**
+ * A default column that is used to store meta information for the row
+ * @type recoil.structs.table.ColumnKey<*>
+ */
+recoil.structs.table.ColumnKey.ROW_META = new recoil.structs.table. ColumnKey('meta', undefined, undefined);
+
+
+/**
  * compares to values for column
  * @param {T} a
  * @param {T} b
@@ -157,7 +164,11 @@ recoil.structs.table.ColumnKey.comparator = function(a , b) {
  * @constructor
  */
 recoil.structs.table.Table = function(table) {
-    this.meta_ = table.meta_;
+    this.meta_ = {};
+    goog.object.extend(this.meta_,table.meta_);
+    this.columnMeta = {};
+    goog.object.extend(this.columnMeta_,table.columnMeta_);
+
     this.primaryColumns_ = table.primaryColumns_;
     this.otherColumns_ = table.otherColumns_;
     this.rows_ = new goog.structs.AvlTree(table.rows_.comparator_);
@@ -167,6 +178,20 @@ recoil.structs.table.Table = function(table) {
     });
 };
 
+/**
+ * convert to a mutable table
+ * @return {recoil.structs.table.MutableTable}
+ */
+recoil.structs.table.Table.prototype.unfreeze = function () {
+    var res = new recoil.structs.table.MutableTable(this.primaryColumns_, this.otherColumns_);
+    goog.object.extend(res.meta_,this.meta_);
+    this.columnMeta = {};
+    goog.object.extend(this.columnMeta_, res.columnMeta_);
+    goog.object.extend(this.meta_, res.meta_);
+    this.rows_.inOrderTraverse(function(row) {
+        this.addRow(row);
+    });
+};
 /**
  *
  * @param {Array<ColumnKey>} primaryKeys
@@ -200,7 +225,6 @@ recoil.structs.table.MutableTable = function(primaryKeys, otherColumns) {
     };
 
     this.rows_ = new goog.structs.AvlTree(comparator);
-    this.rowMeta_ = new goog.structs.AvlTree(comparator);
 
 };
 /**
@@ -288,6 +312,50 @@ recoil.structs.table.MutableTable.prototype.addColumnMeta = function(key, meta) 
 
     this.setColumnMeta(key, newMeta);
 };
+
+
+/**
+ * get row meta data
+ * @param {Array<*>} keys
+ * @return {*}
+ */
+
+recoil.structs.table.MutableTable.prototype.getRowMeta = function(keys) {
+    var res = this.columnMeta_[key.id_];
+    if (res === undefined) {
+        return {};
+    }
+
+    return res;
+};
+
+
+/**
+ * set new column meta data replacing already existing meta data there
+ * if it is not overriden by the new meta data
+ * @param {Array<*>} keys
+ * @param {*} meta
+ */
+
+recoil.structs.table.MutableTable.prototype.setRowMeta = function(keys, meta) {
+    this.rows_.setCell(keys,recoil.structs.table.ColumnKey.ROW_META, meta); 
+};
+
+/**
+ * add new column meta data leaving already existing meta data there
+ * if it is not overriden by the new meta data
+ * @param {Array<*>} keys
+ * @param {*} meta
+ */
+recoil.structs.table.MutableTable.prototype.addRowMeta = function(keys, meta) {
+    var newMeta = {};
+    goog.object.extend(newMeta, this.getRowMeta(keys));
+
+    this.setRowMeta(keys, newMeta);
+};
+
+
+
 
 /**
  * this uses the primary key of the row to insert the table
@@ -407,7 +475,8 @@ recoil.structs.table.MutableTable.prototype.set = function(keys, column, value) 
  * @param {Array<*>} keys
  * @param {recoil.structs.table.ColumnKey<CT>} column
  * @param {CT} value
- */recoil.structs.table.MutableTable.prototype.setCell = function(keys, column, value) {
+ */
+recoil.structs.table.MutableTable.prototype.setCell = function(keys, column, value) {
 
      var row = this.getRow(keys, column);
 
@@ -420,6 +489,7 @@ recoil.structs.table.MutableTable.prototype.set = function(keys, column, value) 
 
 
  };
+
 
 /**
  * @template CT
@@ -712,6 +782,9 @@ recoil.structs.table.TableRow.prototype.keepColumns = function(columns) {
             mutable.setCell(col, me.getCell(col));
         }
     });
+    if (me.hasColumn(recoil.structs.table.ColumnKey.ROW_META)) {
+        mutable.setRowMeta(me.getRowMeta());
+    }
     return mutable.freeze();
 };
 

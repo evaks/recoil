@@ -177,7 +177,7 @@ function testColKeyComparator() {
         i++;
     });
 
-    assertEquals(i, expected.leburngth);
+    assertEquals(i, expected.length);
 
     i = 0;
     revTable.forEach(function (row) {
