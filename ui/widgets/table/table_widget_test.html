@@ -53,7 +53,7 @@
 
     var table = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
     
-    var tableWidget = new recoil.ui.widgets.table.TableWidget($('tablediv'));
+    var tableWidget = new recoil.ui.widgets.table.TableWidget(scope);
 
     tableWidget.attach(frp.createB(columns), table);
 
