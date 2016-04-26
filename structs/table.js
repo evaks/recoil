@@ -17,6 +17,7 @@ goog.require('goog.math.Long');
 goog.require('goog.structs.AvlTree');
 goog.require('goog.structs.Collection');
 goog.require('recoil.util.Sequence');
+goog.require('recoil.util.object');
 
 /**
  * @template T
@@ -166,7 +167,7 @@ recoil.structs.table.ColumnKey.comparator = function(a , b) {
 recoil.structs.table.Table = function(table) {
     this.meta_ = {};
     goog.object.extend(this.meta_,table.meta_);
-    this.columnMeta = {};
+    this.columnMeta_ = {};
     goog.object.extend(this.columnMeta_,table.columnMeta_);
 
     this.primaryColumns_ = table.primaryColumns_;
@@ -184,13 +185,14 @@ recoil.structs.table.Table = function(table) {
  */
 recoil.structs.table.Table.prototype.unfreeze = function () {
     var res = new recoil.structs.table.MutableTable(this.primaryColumns_, this.otherColumns_);
-    goog.object.extend(res.meta_,this.meta_);
-    this.columnMeta = {};
-    goog.object.extend(this.columnMeta_, res.columnMeta_);
-    goog.object.extend(this.meta_, res.meta_);
+    recoil.util.object.addProps(res.meta_,this.meta_);
+    res.columnMeta_ = {};
+    recoil.util.object.addProps(res.columnMeta_, this.columnMeta_);
+
     this.rows_.inOrderTraverse(function(row) {
-        this.addRow(row);
+        res.addRow(row);
     });
+    return res;
 };
 /**
  *
@@ -243,7 +245,7 @@ recoil.structs.table.Table.comparator = function(a, b) {
  */
 
 recoil.structs.table.MutableTable.prototype.setMeta = function(meta) {
-    this.meta_ = goog.object.createImmutableView(meta);
+    this.meta_ = goog.object.clone(meta);
 };
 
 
@@ -262,11 +264,9 @@ recoil.structs.table.MutableTable.prototype.getMeta = function() {
  */
 
 recoil.structs.table.MutableTable.prototype.addMeta = function(meta) {
-    var newMeta = goog.object.clone(this.meta_);
-    for (var field in meta) {
-        newMeta[field] = meta[field];
-    }
-    this.meta_ = goog.object.createImmutableView(meta);
+    var newMeta = {};goog.object.clone(this.meta_);
+    recoil.util.object.addProps(newMeta, this.meta_, meta);
+    this.meta_ = goog.object.clone(newMeta);
 };
 
 
@@ -294,7 +294,7 @@ recoil.structs.table.MutableTable.prototype.getColumnMeta = function(key) {
  */
 
 recoil.structs.table.MutableTable.prototype.setColumnMeta = function(key, meta) {
-    this.columnMeta_[key.id_] = goog.object.createImmutableView(meta);
+    this.columnMeta_[key.id_] = goog.object.clone(meta);
 };
 
 /**
@@ -321,12 +321,13 @@ recoil.structs.table.MutableTable.prototype.addColumnMeta = function(key, meta) 
  */
 
 recoil.structs.table.MutableTable.prototype.getRowMeta = function(keys) {
-    var res = this.columnMeta_[key.id_];
-    if (res === undefined) {
-        return {};
-    }
+    var row = this.getRow(keys);
 
-    return res;
+    if (row === null) {
+        return null;
+    }
+    
+    return row.getMeta();
 };
 
 
@@ -334,11 +335,11 @@ recoil.structs.table.MutableTable.prototype.getRowMeta = function(keys) {
  * set new column meta data replacing already existing meta data there
  * if it is not overriden by the new meta data
  * @param {Array<*>} keys
- * @param {*} meta
+ * @param {Object} meta
  */
 
 recoil.structs.table.MutableTable.prototype.setRowMeta = function(keys, meta) {
-    this.rows_.setCell(keys,recoil.structs.table.ColumnKey.ROW_META, meta); 
+    this.setCell(keys,recoil.structs.table.ColumnKey.ROW_META, new recoil.structs.table.TableCell(undefined, meta)); 
 };
 
 /**
@@ -349,7 +350,7 @@ recoil.structs.table.MutableTable.prototype.setRowMeta = function(keys, meta) {
  */
 recoil.structs.table.MutableTable.prototype.addRowMeta = function(keys, meta) {
     var newMeta = {};
-    goog.object.extend(newMeta, this.getRowMeta(keys));
+    recoil.util.object.addProps(newMeta, this.getRowMeta(keys), meta);
 
     this.setRowMeta(keys, newMeta);
 };
@@ -545,14 +546,41 @@ recoil.structs.table.Table.prototype.get = function(keys, columnKey) {
 };
 
 /**
+ * @return {*}
+ */
+recoil.structs.table.Table.prototype.getMeta = function() {
+    return this.meta_;
+};
+
+/**
+ * @template CT
+ * @param {recoil.structs.table.ColumnKey<CT>} column
+ * @return {*}
+ */
+recoil.structs.table.Table.prototype.getColumnMeta = function(column) {
+    var res = this.columnMeta_[column.id_];
+    if (res === undefined) {
+        return {};
+    }
+
+    return res;
+};
+
+
+/**
  * @template CT
  * @param {Array<*>} keys
  * @param {recoil.structs.table.ColumnKey<CT>} column
  * @return {*}
  */
-recoil.structs.table.Table.prototype.getMeta = function(keys, column) {
-    console.log(column);
+recoil.structs.table.Table.prototype.getRowMeta = function(keys, column) {
+    var row = this.getRow(keys);
 
+    if (row === null) {
+        return null;
+    }
+    
+    return row.getMeta();
 };
 
 
@@ -599,13 +627,13 @@ recoil.structs.table.Table.prototype.metaGet = function(row, columnKey) {
     var col = this.columns_.get(columnKey);
     var rowInfo = this.getRow(row);
     if (col) {
-        goog.object.extend(result, col.meta);
+        recoil.util.object.addProps(result, col.meta);
     }
     if (rowInfo) {
         var cell = rowInfo.getCell(columnKey);
-        goog.object.extend(result, rowInfo.getMeta());
+        recoil.util.object.addProps(result, rowInfo.getMeta());
         if (cell) {
-            goog.object.extend(result, cell.getMeta());
+            recoil.util.object.addProps(result, cell.getMeta());
             goog.object.set(result, 'value', cell.getValue());
         }
     }
@@ -709,6 +737,20 @@ recoil.structs.table.TableRow.prototype.getCell = function(column) {
 };
 
 
+/**
+ * Get the value and meta data from the cell
+ * @template CT
+ * @nosideeffects
+ * @param {recoil.structs.table.ColumnKey<CT>} column
+ * @return {recoil.structs.table.TableCell<CT>}
+ */
+recoil.structs.table.TableRow.prototype.getMeta = function() {
+    var res = this.cells_[recoil.structs.table.ColumnKey.ROW_META.id_];
+    return res === undefined ? {} : res.getMeta();
+};
+
+
+
 
 /**
  * Gets only the value from the cell
@@ -765,6 +807,14 @@ recoil.structs.table.TableRow.create = function(var_args) {
     }
 
     return mutableRow;
+};
+
+/**
+ * @return {Object}
+ */
+recoil.structs.table.TableRow.prototype.getRowMeta = function() {
+    var cell = this.getCell(recoil.structs.table.ColumnKey.ROW_META);
+    return cell.getMeta();
 };
 
 /**
@@ -827,6 +877,19 @@ recoil.structs.table.MutableTableRow.prototype.getCell = function(column) {
         return null;
     }
     return this.orig_[column.id_];
+};
+
+recoil.structs.table.MutableTableRow.prototype.setRowMeta = function(meta) {
+    var cell = this.getCell(recoil.structs.table.ColumnKey.ROW_META);
+    if (cell == null) {
+        cell = new recoil.structs.table.TableCell(undefined, {});
+    }
+    this.setCell(recoil.structs.table.ColumnKey.ROW_META, cell.setMeta(meta));
+};
+
+recoil.structs.table.MutableTableRow.prototype.getRowMeta = function(meta) {
+    var cell = this.getCell(recoil.structs.table.ColumnKey.ROW_META);
+    return cell.getMeta();
 };
 
 /**

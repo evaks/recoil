@@ -99,6 +99,69 @@ function testRemoveRow() {
 
 }
 
+function testMetaData () {
+    var mTable = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
+    var tblRow = recoil.structs.table.TableRow;
+
+    
+    mTable.addRow(tblRow.create(COL_A, 1, COL_B, 8));
+    mTable.addRow(tblRow.create(COL_A, 7, COL_B, 9));
+    var table = mTable.freeze();
+
+    assertObjectEquals({},table.getMeta());
+    assertObjectEquals({},mTable.getMeta());
+    var stuff = {a:1};
+    
+    mTable.setMeta({foo: stuff});
+    table = mTable.freeze();
+    assertObjectEquals({foo: {a:1}},mTable.getMeta());
+    assertObjectEquals({foo: {a:1}},table.getMeta());
+
+
+    mTable.setMeta({foo: stuff, x: 1});
+
+    assertObjectEquals({foo: {a:1}},table.getMeta());
+    assertObjectEquals({foo: {a:1}, x : 1},mTable.getMeta());
+    
+    mTable.addMeta({y:2});
+
+    assertObjectEquals({foo: {a:1}},table.getMeta());
+    assertObjectEquals({foo: {a:1}, x : 1, y : 2},mTable.getMeta());
+
+    mTable.setColumnMeta(COL_A, {a: 2});
+    mTable.addColumnMeta(COL_A, {b: 4});
+
+    assertObjectEquals({a: 2, b:4}, mTable.getColumnMeta(COL_A));
+    assertObjectEquals({}, table.getColumnMeta(COL_A));
+    table = mTable.freeze();
+    assertObjectEquals({a: 2, b:4}, table.getColumnMeta(COL_A));
+    
+    assertObjectEquals({}, mTable.getRowMeta([1]));
+    assertObjectEquals({}, table.getRowMeta([1]));
+
+    assertNull(mTable.getRowMeta([2]));
+    assertNull(table.getRowMeta([2]));
+    assertThrows(function () {
+        mTable.setRowMeta([2], {a:10});
+    });
+    mTable.setRowMeta([1], {a:10});
+    mTable.addRowMeta([1], {b:11});
+    assertObjectEquals({a:10, b:11}, mTable.getRowMeta([1]));
+    assertObjectEquals({}, table.getRowMeta([1]));
+
+    table = mTable.freeze();
+    
+    assertObjectEquals({a:10, b:11}, table.getRowMeta([1]));
+    
+    mTable = table.unfreeze();
+    assertObjectEquals({a:10, b:11}, mTable.getRowMeta([1]));
+    assertObjectEquals({foo: {a:1}, x : 1, y : 2},mTable.getMeta());
+    assertObjectEquals({a: 2, b:4}, mTable.getColumnMeta(COL_A));
+
+    
+
+}
+
 function testImmutableTable() {
 
     var mTable = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
@@ -106,6 +169,8 @@ function testImmutableTable() {
 
     mTable.addRow(tblRow.create(COL_A, 1, COL_B, 8));
     mTable.addRow(tblRow.create(COL_A, 7, COL_B, 9));
+
+    
 
     var table = mTable.freeze();
 

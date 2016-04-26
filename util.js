@@ -1,6 +1,7 @@
 goog.provide('recoil.util');
 goog.provide('recoil.util.Handle');
 goog.provide('recoil.util.Sequence');
+goog.provide('recoil.util.object');
 
 
 goog.require('goog.array');
@@ -321,4 +322,17 @@ recoil.util.Handle.prototype.set = function(value) {
  */
 recoil.util.Handle.prototype.get = function() {
     return this.value_;
+};
+
+
+recoil.util.object.addProps = function (source, var_args) {
+    var src = arguments[0];
+    
+    for (var i = 1; i < arguments.length; i++) {
+        for (var prop in arguments[i]) {
+            if (arguments[i].hasOwnProperty(prop)) {
+                src[prop] = arguments[i][prop];
+            }
+        }
+    }
 };
