@@ -87,6 +87,15 @@ recoil.ui.widgets.table.TableWidget.prototype.attachStruct = function () {
  */
 recoil.ui.widgets.table.TableWidget.prototype.attach = function (table, meta) {
     
+    var util = new recoil.frp.Util(this.frp);
+    
+    table = util.toBehaviour(table);
+    meta = util.toBehaviour(table);
+    
+    var complete = this.frp.liftBI(function() {return meta.get().applyMeta(table.get());}, function(val) {table.set(val);}, table, meta);
+
+    
+
 };
 /**
  * @interface
@@ -95,29 +104,29 @@ recoil.ui.widgets.table.TableWidget.prototype.attach = function (table, meta) {
 recoil.ui.widgets.table.Column = function () {
 };
 /**
- * @brief constructs a widget and attaches the data to it
- *
- * @param {recoil.ui.WidgetScope} scope 
- * @param {recoil.frp.Behaviour<T>} data the value to be entered, displayed
- * @param {recoil.frp.Behaviour<*>} metaData extra information that may be used to render the widget
- * @param {?recoil.ui.Widget} oldWidget the old widget that already exists, if no need to change then the function should return this
- * @return recoil.ui.Widget, return a widget with the data already attached
+ * @param {Object} curMeta
  */
-recoil.ui.widgets.table.Column.prototype.createWidget = function (scope, data, metaData, oldWidget){
+recoil.ui.widgets.table.Column.prototype.getMeta = function (curMeta) {
+    
 };
+
 
 /**
- * @brief constructs a widget to display the table header
- *
- * @param {recoil.ui.WidgetScope} scope 
- * @param {recoil.frp.Behaviour<T>} data the value to be entered, displayed
- * @param {recoil.frp.Behaviour<*>} metaData extra information that may be used to render the widget
- * @param {?recoil.ui.Widget} oldWidget the old widget that already exists, if no need to change then the function should return this
- * @return recoil.ui.Widget, return a widget with the data already attached
+ * @constructor
+ * @template T
+ * @implements {recoil.ui.widgets.table.Constructor}
  */
-
-recoil.ui.widgets.table.Column.prototype.createHeader = function (scope, data, metaData, oldWidget) {
+recoil.ui.widgets.table.DefaultColumn = function (key, name) {
+    this.name_ = name;
+    this.key_ = key;
 };
+/**
+ * @param {Object} curMeta
+ */
+recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function (curMeta) {
+    xxx
+};
+
 
 /**
  * @brief data that describes the table, it contains the columns and how to contruct the render widget
@@ -130,7 +139,7 @@ recoil.ui.widgets.TableMetaData = function() {
 
 /**
  * @template CT
- * @param {recoil.structs.table.ColumnKey<CT>} col
+ * @param {recoil.structs.table.Column<CT>} col
  */
 recoil.ui.widgets.TableMetaData.prototype.addColumn = function (col) {
     this.columns_.push(col);
@@ -140,9 +149,21 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function (col) {
  *
  * @template CT
  * @param {recoil.structs.table.ColumnKey<CT>} key
- * @param {String} val
+ * @param {String} name
  */
-recoil.ui.widgets.TableMetaData.prototype.add = function (key, val) {
-    //console.log(key.getName());
-    //console.log(val);
+recoil.ui.widgets.TableMetaData.prototype.add = function (key, name) {
+    this.add(new recoil.ui.widgets.table.DefaultColumn(key, name));
+};
+/**
+ * @nosideeffects
+ * @param {recoil.structs.table.Table} table
+ * @return {recoil.structs.table.Table}
+ */
+recoil.ui.widgets.TableMetaData.prototype.applyMeta = function (table) {
+    var mtable = table.unfreeze();
+    this.columns_.forEach(function (col) {
+        mtable.setColumnMeta(col.getKey(), col.getMeta(mtable.getColumnMeta(col.getKey())));
+    });
+        
+    return mtable.freeze();
 };
