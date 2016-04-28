@@ -11,7 +11,7 @@
 </script>
 
 <body>
-  <div id='tabldiv'/>
+  <div id='tablediv'/>
   
   <script>
     var scope = new recoil.ui.WidgetScope();
@@ -55,7 +55,12 @@
     
     var tableWidget = new recoil.ui.widgets.table.TableWidget(scope);
 
-    tableWidget.attach(frp.createB(columns), table);
+    console.log('table', $('tablediv'), tableWidget.getComponent().getElement());
+
+    tableWidget.attach(table,columns);
+
+    tableWidget.getComponent().render($('tablediv'));
+    
 
     
   </script>

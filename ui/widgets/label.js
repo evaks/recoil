@@ -101,8 +101,9 @@ recoil.ui.widgets.LabelWidget.prototype.updateConfig_ = function(helper, configB
 
 
 /**
- *
- * @returns {goog.ui.Component}
+ * gets the component of the widget that should be placed in the
+ * dom
+ * @return {goog.ui.Component}
  */
 recoil.ui.widgets.LabelWidget.prototype.getComponent = function () {
       return this.label_;

@@ -1055,6 +1055,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
                 }
             }
             catch (error) {
+		console.log(error);
                 metaResult.addError(error);
             }
         }

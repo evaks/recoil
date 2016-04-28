@@ -336,3 +336,33 @@ recoil.util.object.addProps = function (source, var_args) {
         }
     }
 };
+/**
+ * @param {Object} obj
+ * return {Object}
+ */
+
+recoil.util.object.removeUndefined = function (obj) {
+    for (var k in obj) {
+	if (obj[k] === undefined) {
+	    delete obj[k];
+	}
+    }
+    return obj;
+};
+
+/**
+ * @param {Object} obj
+ * @param {...Object} parts
+ * return {*}
+ */
+
+recoil.util.object.getByParts = function (obj, var_parts) {
+    var cur = obj;
+    for (var i = 1; i < arguments.length; i++) {
+	if (!(cur instanceof Object)) {
+	    return undefined;
+	}
+	cur = cur[arguments[i]];
+    }
+    return cur;
+};

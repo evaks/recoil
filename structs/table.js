@@ -422,11 +422,16 @@ recoil.structs.table.MutableTable.prototype.makeKeys_ = function(keys) {
 
 /**
  *
- * @param {function(recoil.structs.table.TableRow) : *} func
+ * @param {function(recoil.structs.table.TableRow,Array<*>,Object) : *} func
  */
 recoil.structs.table.MutableTable.prototype.forEach = function(func) {
+    var me = this;
     this.rows_.inOrderTraverse(function(row) {
-        return func(row);
+	var keys = [];
+	for (var i = 0; i  < me.primaryColumns_.length; i++) {
+	    keys.push(row.getMeta(me.primaryColumns_[i]));
+	}
+        return func(row, keys, row.getMeta());
     });
     //var table = this.freeze();
     //table.forEach(func);
@@ -590,9 +595,37 @@ recoil.structs.table.Table.prototype.getRowMeta = function(keys, column) {
  */
 
 recoil.structs.table.Table.prototype.forEach = function(func) {
+    var me = this;
     this.rows_.inOrderTraverse(function(row) {
-        var rowWithMeta = row;
-        return func(rowWithMeta);
+	var keys = [];
+	for (var i = 0; i  < me.primaryColumns_.length; i++) {
+	    keys.push(row.getMeta(me.primaryColumns_[i]));
+	}
+        return func(row, keys, row.getMeta());
+    });
+};
+
+
+/**
+ * this ensures the sort order
+ *
+ * @param {function(Object) : *} func
+ */
+
+recoil.structs.table.Table.prototype.forEachPlacedColumn = function(func) {
+    var cols = [];
+    goog.object.forEach(this.columnMeta_, function (col) {
+	if (col.position !== undefined) {
+	    cols.push(col);
+	}
+    });
+
+    goog.array.sort(cols, function (x, y) {
+	return x.position - y.position;
+    });
+	
+    cols.forEach(function (col) {
+	func(col);
     });
 };
 
