@@ -630,6 +630,20 @@ recoil.structs.table.Table.prototype.forEach = function(func) {
 
 
 /**
+ * @return {Array<recoil.structs.table.ColumnKey<*>}
+ */
+recoil.structs.table.Table.prototype.getKeyColumns = function () {
+    return this.primaryColumns_;
+};
+
+/**
+ * @return {Array<recoil.structs.table.ColumnKey<*>}
+ */
+recoil.structs.table.Table.prototype.getColumns = function () {
+    return goog.array.concat(this.primaryColumns_, this.otherColumns_);
+};
+
+/**
  * this ensures the sort order
  *
  * @param {function(recoil.structs.table.ColumnKey,Object) : *} func
