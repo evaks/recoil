@@ -8,7 +8,7 @@ goog.provide('recoil.db.User');
  * @param {String} password
  * @constructor
  */
-recoil.db.User = function (name, userName, email, password) {
+recoil.db.User = function(name, userName, email, password) {
     this.name_ = name;
     this.userName_ = userName;
     this.email_ = email;
@@ -17,32 +17,32 @@ recoil.db.User = function (name, userName, email, password) {
 
 /**
  *
- * @returns {String}
+ * @return {String}
  */
-recoil.db.User.prototype.getName = function () {
+recoil.db.User.prototype.getName = function() {
     return this.name_;
 };
 
 /**
  *
- * @returns {String}
+ * @return {String}
  */
-recoil.db.User.prototype.getUserName = function () {
+recoil.db.User.prototype.getUserName = function() {
     return this.userName_;
 };
 
 /**
  *
- * @returns {String}
+ * @return {String}
  */
-recoil.db.User.prototype.getEmail = function () {
+recoil.db.User.prototype.getEmail = function() {
     return this.email_;
 };
 
 /**
  *
- * @returns {String}
+ * @return {String}
  */
-recoil.db.User.prototype.getPassword = function () {
+recoil.db.User.prototype.getPassword = function() {
     return this.password_;
 };

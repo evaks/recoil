@@ -14,12 +14,12 @@ goog.require('recoil.frp.Behaviour');
  * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
  * @template EVENTOBJ
- **/   
-recoil.ui.events.listen = function (src, type, callback, opt_capt) {
+ **/
+recoil.ui.events.listen = function(src, type, callback, opt_capt) {
   goog.events.listen(src, type,
         function(e) {
                 callback.frp().accessTrans(function() {callback.set(e)}, callback);
-        }, opt_capt);      
+        }, opt_capt);
 };
 
 /**
@@ -32,12 +32,12 @@ recoil.ui.events.listen = function (src, type, callback, opt_capt) {
  *     false).
  * @template EVENTOBJ
  **/
-recoil.ui.events.listenH = function (src, type, callback, opt_capt) {
+recoil.ui.events.listenH = function(src, type, callback, opt_capt) {
       goog.events.listen(src, type,
             function(e) {
                   if (callback.get()) {
-                        callback.get().frp().accessTrans(function () {
-                              callback.get().set(e)
+                        callback.get().frp().accessTrans(function() {
+                              callback.get().set(e);
                         }, callback.get());
                   }
             }, opt_capt);

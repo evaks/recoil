@@ -8,7 +8,7 @@ goog.provide('recoil.ui.actions.ScreenAction');
  * @constructor
  * @extends {recoil.ui.actions.Action}
  */
-recoil.ui.actions.ScreenAction = function (name, selectorB, factory) {
+recoil.ui.actions.ScreenAction = function(name, selectorB, factory) {
       this.name_ = name;
       this.selectorB_ = selectorB;
       this.factory_ = factory;
@@ -19,9 +19,9 @@ recoil.ui.actions.ScreenAction = function (name, selectorB, factory) {
 /**
  *
  * @param {recoil.ui.WidgetScope} scope
- * @returns {!recoil.frp.Behaviour.<*>}
+ * @return {!recoil.frp.Behaviour.<*>}
  */
-recoil.ui.actions.ScreenAction.prototype.createCallback =  function(scope) {
+recoil.ui.actions.ScreenAction.prototype.createCallback = function(scope) {
       var me = this;
       return scope.getFrp().createCallback(function() {
             me.selectorB_.set(me.factory_(scope));

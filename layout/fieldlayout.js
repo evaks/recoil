@@ -8,7 +8,7 @@ goog.require('recoil.ui.widgets.InputWidget');
  * @param {recoil.ui.WidgetScope} scope
  * @constructor
  */
-recoil.layout.FieldLayoutWidget = function (scope) {
+recoil.layout.FieldLayoutWidget = function(scope) {
     this.container_ = new goog.ui.Component();
     this.scope_ = scope;
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
@@ -19,7 +19,7 @@ recoil.layout.FieldLayoutWidget = function (scope) {
  *
  * @param {Array<Pair<recoil.ui.Widget, recoil.ui.Widget>>|Behaviour<Array<Pair<recoil.ui.Widget, recoil.ui.Widget>>>} widgetsB
  */
-recoil.layout.FieldLayoutWidget.prototype.attach = function (widgetsB) {
+recoil.layout.FieldLayoutWidget.prototype.attach = function(widgetsB) {
     var util = new recoil.frp.Util(this.helper_.getFrp());
 
 
@@ -34,17 +34,17 @@ recoil.layout.FieldLayoutWidget.prototype.attach = function (widgetsB) {
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
-recoil.layout.FieldLayoutWidget.prototype.updateState_ = function (helper) {
+recoil.layout.FieldLayoutWidget.prototype.updateState_ = function(helper) {
     var widgets = this.widgetsB_;
 
     helper.clearContainer();
 
-    if(helper.isGood()) {
+    if (helper.isGood()) {
 
-        for(var i = 0; i < widgets.get().length; i++){
+        for (var i = 0; i < widgets.get().length; i++) {
             var pair = widgets.get()[i];
 
-            if(pair.getX() !== null){
+            if (pair.getX() !== null) {
                 this.container_.addChild(pair.getX(), true);
             }
             this.container_.addChild(pair.getY(), true);
@@ -54,9 +54,9 @@ recoil.layout.FieldLayoutWidget.prototype.updateState_ = function (helper) {
 
 /**
  *
- * @returns {goog.ui.Container}
+ * @return {goog.ui.Container}
  */
-recoil.layout.FieldLayoutWidget.prototype.getComponent = function () {
+recoil.layout.FieldLayoutWidget.prototype.getComponent = function() {
     return this.container_;
 };
 

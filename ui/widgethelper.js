@@ -1,9 +1,9 @@
 /**
  * a utility class that is used to update widgets based on a behaviour each time the the behaviour changes the callback
  * will be fired
- * 
+ *
  * you may access the behaviour attached to the helper inside the callback
- * 
+ *
  */
 goog.provide('recoil.ui.WidgetHelper');
 
@@ -77,8 +77,8 @@ recoil.ui.WidgetHelper.prototype.setComponent = function(container) {
 
 };
 
-recoil.ui.WidgetHelper.prototype.clearContainer = function () {
-    if(this.component_ !== null){
+recoil.ui.WidgetHelper.prototype.clearContainer = function() {
+    if (this.component_ !== null) {
         goog.dom.removeChildren(this.component_);
     }
 };
@@ -87,7 +87,7 @@ recoil.ui.WidgetHelper.prototype.clearContainer = function () {
  * @return {!boolean} is the value good
  */
 recoil.ui.WidgetHelper.prototype.isGood = function() {
-    for ( var key in this.behaviours_) {
+    for (var key in this.behaviours_) {
         if (!this.behaviours_[key].metaGet().good()) {
             return false;
         }
@@ -107,11 +107,11 @@ recoil.ui.WidgetHelper.prototype.forceUpdate = function() {
 
 /**
  * @param {...recoil.frp.Behaviour<T>} var_behaviour
- * 
+ *
  * note the node we are watch must be in the dom by now, the reason for this is if it isn't and is never added we will
  * have a leak observer maintains a list that can never be cleared also once it item is removed form the DOM and node
  * re-added within the same execution thread it will be considered disposed.
- * 
+ *
  * this is because there are no weak references in javascript
  */
 

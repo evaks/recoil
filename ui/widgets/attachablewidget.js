@@ -19,6 +19,6 @@ recoil.ui.AttachableWidget.prototype.getComponent = function() {
 /**
  *
  */
-recoil.ui.AttachableWidget.prototype.attachStruct = function () {
+recoil.ui.AttachableWidget.prototype.attachStruct = function() {
 
 };

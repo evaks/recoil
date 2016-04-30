@@ -1,15 +1,15 @@
 
 goog.provide('recoil.ui.widgets.SelectorWidget');
-goog.require('recoil.frp.Behaviour');
 goog.require('goog.ui.Container');
 goog.require('goog.ui.Control');
+goog.require('recoil.frp.Behaviour');
 
 /**
  *
  * @param {recoil.ui.WidgetScope} scope
  * @constructor
  */
-recoil.ui.widgets.SelectorWidget = function (scope) {
+recoil.ui.widgets.SelectorWidget = function(scope) {
       this.scope_ = scope;
       this.component_ = new goog.ui.Component();
 
@@ -18,9 +18,9 @@ recoil.ui.widgets.SelectorWidget = function (scope) {
 
 /**
  *
- * @returns {goog.ui.Component|*}
+ * @return {goog.ui.Component|*}
  */
-recoil.ui.widgets.SelectorWidget.prototype.getComponent = function () {
+recoil.ui.widgets.SelectorWidget.prototype.getComponent = function() {
       return this.component_;
 };
 
@@ -29,7 +29,7 @@ recoil.ui.widgets.SelectorWidget.prototype.getComponent = function () {
  *
  * @param {recoil.frp.Behaviour} screenB
  */
-recoil.ui.widgets.SelectorWidget.prototype.attach = function (screenB) {
+recoil.ui.widgets.SelectorWidget.prototype.attach = function(screenB) {
       this.screenB_ = screenB;
       this.state_.attach(screenB);
 };
@@ -39,7 +39,7 @@ recoil.ui.widgets.SelectorWidget.prototype.attach = function (screenB) {
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
-recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
+recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function(helper) {
       var screen = null;
       if (helper.isGood()) {
             screen = this.screenB_.get();
@@ -47,7 +47,7 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 
       this.component_.removeChildren(true);
 
-      if(screen) {
+      if (screen) {
             this.component_.addChild(screen.getComponent(), true);
       }
 };

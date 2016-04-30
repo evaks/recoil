@@ -1,14 +1,14 @@
-goog.provide('recoil.ui.widgets.table.TableWidget');
-goog.provide('recoil.ui.widgets.table.TableMetaData');
 goog.provide('recoil.ui.widgets.table.Column');
+goog.provide('recoil.ui.widgets.table.TableMetaData');
+goog.provide('recoil.ui.widgets.table.TableWidget');
 
-goog.require('goog.ui.Container');
 goog.require('goog.string');
-goog.require('recoil.ui.AttachableWidget');
+goog.require('goog.ui.Container');
+goog.require('recoil.frp.Util');
 goog.require('recoil.structs.table.Table');
 goog.require('recoil.structs.table.TableRow');
+goog.require('recoil.ui.AttachableWidget');
 goog.require('recoil.ui.ComponentWidgetHelper');
-goog.require('recoil.frp.Util');
 goog.require('recoil.ui.widgets.table.StringColumn');
 
 /**
@@ -22,39 +22,39 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
     this.state_ = recoil.ui.widgets.table.TableWidget.emptyState_();
     this.renderState_ = {
-        rows : new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_),
-        headerCols : []
+        rows: new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_),
+        headerCols: []
     };
 };
 /**
  * @return {Object}
  * @private
  */
-recoil.ui.widgets.table.TableWidget.emptyState_ = function () {
+recoil.ui.widgets.table.TableWidget.emptyState_ = function() {
     return {
-        rowMeta : new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_),
-        columnMeta : [],
-        tableMeta : {}
+        rowMeta: new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_),
+        columnMeta: [],
+        tableMeta: {}
     };
 };
 
 /**
- * this gets the most relevant value for this field int the meta, it goes backwards 
+ * this gets the most relevant value for this field int the meta, it goes backwards
  * through the meta information until it finds the key that it is looking for
  * if it does not find it there it then will check the scope for that value with the name
  * recoil.ui.widgets.table.TableWidget.'value' if it is not there it will then return
  * recoil.ui.widgets.table.TableWidget.default'Value'_ (note the first letter is capitalised)
- 
+
  * @param {string} value the key of value to get
  * @param {...Object} var_meta all the meta information
  */
-recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function (value, var_meta) {
+recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var_meta) {
     var val;
 
-    for (var i = arguments.length -1; i>0; i--) {
+    for (var i = arguments.length - 1; i > 0; i--) {
         var arg = arguments[i];
         if (arg === undefined) {
-            console.log("undefined arg");
+            console.log('undefined arg');
         } else {
 	    val = arg[value];
 	    if (val !== undefined) {
@@ -70,30 +70,30 @@ recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function (value, va
 
     return recoil.ui.widgets.table.TableWidget['default' + goog.string.toTitleCase(value) + '_'];
 };
-recoil.ui.widgets.table.TableWidget.defaultTableDecorator_ = function () {
-    var val = goog.dom.createDom('table', {border:1});
-    return {inner : val, outer : val};
+recoil.ui.widgets.table.TableWidget.defaultTableDecorator_ = function() {
+    var val = goog.dom.createDom('table', {border: 1});
+    return {inner: val, outer: val};
 };
 
-recoil.ui.widgets.table.TableWidget.defaultHeaderRowDecorator_ = function () {
+recoil.ui.widgets.table.TableWidget.defaultHeaderRowDecorator_ = function() {
     var val = goog.dom.createDom('tr');
-    return {inner : val, outer : val};
+    return {inner: val, outer: val};
 };
 
-recoil.ui.widgets.table.TableWidget.defaultRowDecorator_ = function () {
+recoil.ui.widgets.table.TableWidget.defaultRowDecorator_ = function() {
     var val = goog.dom.createDom('tr');
-    return {inner : val, outer : val};
+    return {inner: val, outer: val};
 };
 
-recoil.ui.widgets.table.TableWidget.defaultCellDecorator_ = function () {
+recoil.ui.widgets.table.TableWidget.defaultCellDecorator_ = function() {
     var val = goog.dom.createDom('td');
-    return {inner : val, outer : val};
+    return {inner: val, outer: val};
 };
 
 
-recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator_ = function () {
+recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator_ = function() {
     var val = goog.dom.createDom('th');
-    return {inner : val, outer : val};
+    return {inner: val, outer: val};
 };
 /**
  * utility function to compare rows in meta data
@@ -101,24 +101,24 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator_ = function () {
  * @param {Object} y
  * @return {number}
  */
-recoil.ui.widgets.table.TableWidget.rowMetaCompare_ = function (x, y) {
+recoil.ui.widgets.table.TableWidget.rowMetaCompare_ = function(x, y) {
     var res = 0;
-    for (var i = 0; i < x.key.length ;i++) {
-        res = x.keyCols[i].compare(x.key[i],y.key[i]);
+    for (var i = 0; i < x.key.length; i++) {
+        res = x.keyCols[i].compare(x.key[i], y.key[i]);
         if (res !== 0) {
             return res;
         }
     }
 
-    return 0; 
+    return 0;
 };
 /**
  * @param {Array<string>} fields array of fields to copy
- * @param {...Array<Object>} var_metas each array should be size 2 and 
+ * @param {...Array<Object>} var_metas each array should be size 2 and
  *                                     like [src,dest]
  * @return {number} number of fields copied
  */
-recoil.ui.widgets.table.TableWidget.copyMeta = function (fields, var_metas) {
+recoil.ui.widgets.table.TableWidget.copyMeta = function(fields, var_metas) {
     var copied = 0;
     for (var i = 0; i < fields.length; i++) {
         var field = fields[i];
@@ -135,27 +135,27 @@ recoil.ui.widgets.table.TableWidget.copyMeta = function (fields, var_metas) {
 };
 
 /**
- * creates a data structure with all the information needed to layout the 
+ * creates a data structure with all the information needed to layout the
  * table but does not contain the actual data, this is useful because
- * it will only fire when we need to update the table, it is the widgets inside 
+ * it will only fire when we need to update the table, it is the widgets inside
  * the table to update the data itself when it changes
  *
  * @param {recoil.frp.Behaviour<recoil.structs.table.Table>} tableB
- * @return {recoil.frp.Behaviour<Object>} 
+ * @return {recoil.frp.Behaviour<Object>}
  */
-recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function (tableB) {
+recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(tableB) {
     var frp = this.scope_.getFrp();
-    
-    
-    return frp.liftB(function (table) {
+
+
+    return frp.liftB(function(table) {
 	var info = recoil.ui.widgets.table.TableWidget.emptyState_();
 
 
         var tableMeta = table.getMeta();
-	recoil.ui.widgets.table.TableWidget.copyMeta(['tableDecorator','headerRowDecorator'], [tableMeta, info.tableMeta]);
+	recoil.ui.widgets.table.TableWidget.copyMeta(['tableDecorator', 'headerRowDecorator'], [tableMeta, info.tableMeta]);
         var primaryColumns = table.getPrimaryColumns();
 	var rowAndColumnFields = ['cellWidgetFactory', 'cellDecorator'];
-	table.forEachPlacedColumn(function (columnMeta) {
+	table.forEachPlacedColumn(function(columnMeta) {
 
 	    var myInfo = {key: columnMeta.key};
 	    recoil.ui.widgets.table.TableWidget.copyMeta(
@@ -165,9 +165,9 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function (tabl
 		[tableMeta, info.tableMeta], [columnMeta, myInfo]);
 	    info.columnMeta.push(myInfo);
 	});
-	
 
-        table.forEach(function (row, rowKey, tableRowMeta) {
+
+        table.forEach(function(row, rowKey, tableRowMeta) {
 	    var rowMeta = {};
 	    recoil.ui.widgets.table.TableWidget.copyMeta(
                 goog.array.concat(
@@ -175,12 +175,12 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function (tabl
                     ['rowDecorator']),
                 [tableRowMeta, rowMeta], [tableMeta, info.tableMeta]);
             var rowAndCellMeta = {key: rowKey,
-                                  keyCols : table.getKeyColumns(),
-                                  meta :  rowMeta,
-                                  cellMeta  : {}};
+                                  keyCols: table.getKeyColumns(),
+                                  meta: rowMeta,
+                                  cellMeta: {}};
 	    info.rowMeta.add(rowAndCellMeta);
-	    
-            table.forEachPlacedColumn(function (key, columnMeta) {
+
+            table.forEachPlacedColumn(function(key, columnMeta) {
                 var cell = table.getCell(rowKey, key);
 		var cellMeta = {};
 		var added = recoil.ui.widgets.table.TableWidget.copyMeta(
@@ -191,15 +191,15 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function (tabl
             });
         });  // table.forEach
         return info;
-	
+
     }, tableB);
 };
 
-recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves = function (newColumnInfo) {
+recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves = function(newColumnInfo) {
     var delColumns = [];
     var newColMap = {};
     var curColumnInfo = this.state_.columnMeta;
-    
+
     var i = 0;
     for (i = 0; i < newColumnInfo.length; i++) {
         newColMap[newColumnInfo[i].key] = newColumnInfo[i];
@@ -210,11 +210,11 @@ recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves = function (newCo
     for (i = curColumnInfo.length - 1; i >= 0; i--) {
         var info = curColumnInfo[i];
         if (newColMap[info.key] === undefined) {
-            delColumns.push({pos: i, meta : info});
+            delColumns.push({pos: i, meta: info});
         }
     }
     return delColumns;
-    
+
 };
 
 
@@ -222,13 +222,13 @@ recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves = function (newCo
  * we should guaranteed that there are columns in cur that are not in new, since whe should delete the old cols
  * before calling this
  */
-recoil.ui.widgets.table.TableWidget.prototype.getColumnMoves = function (newColumnInfo) {
+recoil.ui.widgets.table.TableWidget.prototype.getColumnMoves = function(newColumnInfo) {
     var delColumns = [];
     var curColMap = [];
     var curColumnInfo = this.state_.columnMeta;
     var curPositions = {};
     var result = [];
-    
+
     var i = 0;
     for (i = 0; i < curColumnInfo.length; i++) {
         curColumnInfo[newColumnInfo[i].key] = newColumnInfo[i];
@@ -248,11 +248,11 @@ recoil.ui.widgets.table.TableWidget.prototype.getColumnMoves = function (newColu
  * we should guaranteed that there are columns in cur that are not in new, since whe should delete the old cols
  * before calling this
  */
-recoil.ui.widgets.table.TableWidget.prototype.getRowRemoves = function (newRows) {
+recoil.ui.widgets.table.TableWidget.prototype.getRowRemoves = function(newRows) {
     var oldRows = this.state_.rowMeta;
 
     var result = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_);
-    oldRows.inOrderTraverse(function (oldRow) {
+    oldRows.inOrderTraverse(function(oldRow) {
         if (!newRows.findFirst(oldRow)) {
             result.add(oldRow);
         }
@@ -260,11 +260,11 @@ recoil.ui.widgets.table.TableWidget.prototype.getRowRemoves = function (newRows)
     return result;
 };
 
-recoil.ui.widgets.table.TableWidget.prototype.addRowColumns = function (columns, tableMeta) {
+recoil.ui.widgets.table.TableWidget.prototype.addRowColumns = function(columns, tableMeta) {
     var me = this;
     var renderState = this.renderState_;
-    renderState.rows.inOrderTraverse(function (row) {
-        columns.forEach(function (columnMeta) {
+    renderState.rows.inOrderTraverse(function(row) {
+        columns.forEach(function(columnMeta) {
             var cellDecorator = me.getMetaValue('cellDecorator', tableMeta, row.meta, columnMeta);
             var cellFactory = me.getMetaValue('cellWidgetFactory', tableMeta, row.meta, columnMeta);
             var renderInfo = cellDecorator();
@@ -273,19 +273,19 @@ recoil.ui.widgets.table.TableWidget.prototype.addRowColumns = function (columns,
             row.inner.appendChild(renderInfo.outer);
             row.cols.push(renderInfo);
             //                cellFactory.create(cellComponent.inner, recoil.frp.structs.table.CellValue.create(me.frp_, table, rowKey,            });
-            
+
         });
     });
 
 };
 
-recoil.ui.widgets.table.TableWidget.prototype.addHeaders = function (columns, tableMeta) {
+recoil.ui.widgets.table.TableWidget.prototype.addHeaders = function(columns, tableMeta) {
     var renderState = this.renderState_;
     var me = this;
     if (!renderState.headerRow) {
         return;
     }
-    columns.forEach(function (meta) {
+    columns.forEach(function(meta) {
         var columnHeaderDecorator = me.getMetaValue('headerDecorator', tableMeta, meta);
         var renderInfo = columnHeaderDecorator();
         renderInfo.decorator = columnHeaderDecorator;
@@ -295,13 +295,13 @@ recoil.ui.widgets.table.TableWidget.prototype.addHeaders = function (columns, ta
 };
 
 
-recoil.ui.widgets.table.TableWidget.prototype.doRemoves = function (table) {
+recoil.ui.widgets.table.TableWidget.prototype.doRemoves = function(table) {
     var renderState = this.renderState_;
     var me = this;
     var state = this.state_;
     var rowRemoves = this.getRowRemoves(table.rowMeta);
-    rowRemoves.inOrderTraverse(function (key) {
-        var renderRow = renderState.rows.remove({key : key});
+    rowRemoves.inOrderTraverse(function(key) {
+        var renderRow = renderState.rows.remove({key: key});
         if (renderRow) {
             renderState.table.inner.removeChild(renderRow.outer);
         }
@@ -310,17 +310,17 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves = function (table) {
 
     // remove the header rows if any
     var colRemoves = this.getColumnRemoves(table.columnMeta);
-    colRemoves.forEach(function (col) {
+    colRemoves.forEach(function(col) {
         var renderInfo = renderState.headerCols[col.pos];
         renderState.headerRow.inner.removeChild(renderInfo.outer);
         renderState.headerCols.splice(col.pos, 1);
         state.columnMeta.splice(col.pos, 1);
     });
 
-        
+
         // remove the columns from each row
-    renderState.rows.inOrderTraverse(function (row) {
-        colRemoves.forEach(function (col) {
+    renderState.rows.inOrderTraverse(function(row) {
+        colRemoves.forEach(function(col) {
             var renderInfo = row.cols[col.pos];
             row.inner.removeChild(renderInfo.outer);
             row.cols.splice(col.pos, 1);
@@ -331,22 +331,22 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves = function (table) {
 /**
  * @param {function() : Object}  decorator
  * @param {function() : recoil.ui.Widget}  factory
- * @param {Object} oldRenderInfo  
+ * @param {Object} oldRenderInfo
  * @param {Node} parent
  * @param {number} position
  * @return {Object}
  */
-recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = function (decorator, factory, oldRenderInfo, parent, position) {
-    if (decorator === oldRenderInfo.decorator && factory === oldRenderInfo.factory) { 
+recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = function(decorator, factory, oldRenderInfo, parent, position) {
+    if (decorator === oldRenderInfo.decorator && factory === oldRenderInfo.factory) {
         return oldRenderInfo;
     }
     var res = {};
-    
+
     if (decorator !== oldRenderInfo.decorator) {
         res = decorator();
         parent.removeChild(oldRenderInfo.outer);
         oldRenderInfo.outer.removeChild(oldRenderInfo.widget.getComponent().getElement());
-        
+
         if (factory === oldRenderInfo.factory) {
             this.moveChildren(oldRenderInfo.inner, res.inner);
             res.widget = oldRenderInfo.widget;
@@ -356,7 +356,7 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
             res.widget.getComponent().render(res.inner);
         }
         res.factory = factory;
-        
+
     }
     else {
         res.inner = oldRenderInfo.inner;
@@ -366,7 +366,7 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
 
     return res;
 };
-recoil.ui.widgets.table.TableWidget.prototype.doUpdates = function (table) {
+recoil.ui.widgets.table.TableWidget.prototype.doUpdates = function(table) {
     var renderState = this.renderState_;
     var me = this;
     var state = this.state_;
@@ -374,17 +374,17 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates = function (table) {
     var meta;
     for (var i = 0; i < table.columnMeta.length; i++) {
         meta = table.columnMeta[i];
-        
+
         if (renderState.headerRow) {
             var oldRenderInfo = renderState.headerCols[i];
             var decorator = me.getMetaValue('headerDecorator', tableMeta, meta);
             var factory = me.getMetaValue('headerWidgetFactory', tableMeta, meta);
-            renderState.headerCols[i] = this.replaceWidgetAndDecorator_(decorator,factory, oldRenderInfo,renderState.headerRow.inner, i);
+            renderState.headerCols[i] = this.replaceWidgetAndDecorator_(decorator, factory, oldRenderInfo, renderState.headerRow.inner, i);
         }
     }
-    
+
     // remove the columns from each row
-    renderState.rows.inOrderTraverse(function (row) {
+    renderState.rows.inOrderTraverse(function(row) {
         for (var i = 0; i < table.columnMeta.length; i++) {
             var columnMeta = table.columnMeta[meta];
             var newRow = table.rowMeta.findFirst(row);
@@ -393,33 +393,33 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates = function (table) {
             var decorator = me.getMetaValue('cellDecorator', tableMeta, newRow.meta, columnMeta, cellMeta);
             var factory = me.getMetaValue('cellWidgetFactory', tableMeta, newRow.meta, columnMeta, cellMeta);
 
-            row.cols[i] = this.replaceWidgetAndDecorator_(decorator,factory, oldRenderInfo,row.inner, i);
-        };
+            row.cols[i] = this.replaceWidgetAndDecorator_(decorator, factory, oldRenderInfo, row.inner, i);
+        }
     });
 };
 
 
-recoil.ui.widgets.table.TableWidget.prototype.getAddedColumns = function (columnMeta) {
+recoil.ui.widgets.table.TableWidget.prototype.getAddedColumns = function(columnMeta) {
     var oldColumns = this.state_.columnMeta;
     var oldColMap = {};
-    var res =[];
-    
+    var res = [];
+
     var i = 0;
     for (i = 0; i < oldColumns.length; i++) {
         oldColMap[oldColumns[i].key] = true;
     }
 
-    
-    for (i = 0; i < columnMeta.length ; i++) {
+
+    for (i = 0; i < columnMeta.length; i++) {
         if (!oldColumns[columnMeta[i].key]) {
             res.push(columnMeta[i]);
         }
     }
     return res;
 
-}
-    
-recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds = function (table) {
+};
+
+recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds = function(table) {
     var renderState = this.renderState_;
     var me = this;
     var state = this.state_;
@@ -427,10 +427,12 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds = function (table) {
     var addedColumns = this.getAddedColumns(table.columnMeta);
     var headerRowDecorator = this.getMetaValue('headerRowDecorator', tableMeta);
     var headerRowDecoratorVal = headerRowDecorator();
-    
+
+
     if (headerRowDecoratorVal && renderState.headerRow) {
+        console.log('header exists -> header exists');
         if (headerRowDecorator === renderState.headerRow.decorator) {
-            //nothing has changed 
+            //nothing has changed
         }
         else {
             var newHeaderRow = headerRowDecorator();
@@ -439,25 +441,33 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds = function (table) {
             renderState.headerRow = newHeaderRow;
         }
     } else if (headerRowDecoratorVal) {
+
+        console.log('header not exists -> header exists');
         renderState.headerRow = headerRowDecoratorVal;
         headerRowDecoratorVal.decorator = headerRowDecorator;
         this.addHeaders(state.columnMeta, tableMeta);
+        goog.dom.insertChildAt(renderState.table.inner, renderState.headerRow.outer, 0);
+
+
+
         // just construct the existing headers TODO
     }
     else if (renderState.headerRow) {
+        console.log('header exists -> header not exists');
+
         table.inner.removeChild(renderState.headerRow.outer);
         renderState.headerRow = false;
     }
 
     // add new columns to existing rows and headers
     this.addHeaders(addedColumns, tableMeta);
-    addedColumns.forEach(function (meta) {
+    addedColumns.forEach(function(meta) {
         state.columnMeta.push(meta);
     });
     this.addRowColumns(addedColumns, tableMeta);
 };
 
-recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves = function (table) {
+recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves = function(table) {
     var movedColumns = this.getColumnMoves(table.columnMeta);
     var renderState = this.renderState_;
     var me = this;
@@ -478,17 +488,17 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves = function (table) {
 
             if (from !== to) {
                 renderState.headerRow.inner.removeChild(renderInfo.outer);
-                goog.dom.insertChildAt(renderState.headerRow.inner, renderInfo.outer,to);
+                goog.dom.insertChildAt(renderState.headerRow.inner, renderInfo.outer, to);
             }
-            
+
         }
         newHeaderCols.push(renderInfo);
-        
+
     }
-    
+
     renderState.headerCols = newHeaderCols;
-    
-    renderState.rows.inOrderTraverse(function (row) {
+
+    renderState.rows.inOrderTraverse(function(row) {
         var newCols = [];
         for (to = 0; to < movedColumns.length; to++) {
             from = movedColumns[to];
@@ -503,30 +513,64 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves = function (table) {
     });
 
     state.columnMeta = newColumnMeta;
-    
+
+};
+/**
+ *
+ */
+recoil.ui.widgets.table.TableWidget.prototype.getNewRows_ = function(rowMeta) {
+
+    var me = this;
+    var state = this.state_;
+    var result = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_);
+    var pos = 0;
+
+    rowMeta.inOrderTraverse(function(row) {
+        if (!state.rowMeta.findFirst(row)) {
+            var newRow = goog.object.clone(row);
+            newRow.pos = pos;
+            result.add(newRow);
+        }
+        pos++;
+    });
+
+    return result;
+
 };
 /**
  * todo split out the table, and the useful meta data from a table
  * this will be helpful, because we don't really need to trigger an update
  * unless the useful parts have changed
  */
-recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function (helper, tableB) {
+recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, tableB) {
     var me = this;
     var state = this.state_;
     var renderState = this.renderState_;
-    
+
     if (helper.isGood()) {
         // TODO this is just me thinking at the moment this needs to do a difference
-        // not just build table 
+        // not just build table
         var table = tableB.get();
         var tableMeta = table.tableMeta;
         //TODO don't forget table decorator
         var tableDecorator = this.getMetaValue('tableDecorator', tableMeta);
         var tableComponent = tableDecorator();
-	this.container_.getElement().appendChild(tableComponent.outer);
 
+        if (this.renderState_.table) {
+            if (this.renderState_.decorator !== tableDecorator) {
+                this.conatiner_.getElement().removeChild(this.renderState_.outer);
+                this.moveChildren(this.renderState_.table.inner, tableComponent.inner);
+                goog.dom.insertChildAt(this.container_.getElement(), tableComponent.outer, 0);
 
-        
+            }
+
+        }
+        else {
+	    this.container_.getElement().appendChild(tableComponent.outer);
+        }
+        this.renderState_.table = tableComponent;
+        this.renderState_.table.decorator = tableDecorator;
+
         this.doRemoves(table);
         this.doColumnAdds(table);
         this.doColumnMoves(table);
@@ -537,27 +581,26 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function (helper, t
         // at this point every existing cell has the correct behaviour
         // now all we have to do is add th new rows
 
-        
+
         // no such thing as a moved row since it is sorted by primary key
-                    
-        
-        
+
+
+
 	console.log(table);
-        
 
-        var newRows = this.getNewRows(state.rowMeta, table.rowMeta);
-        newRows.inOrderTraverse(function (row) {
 
-            console.log("Row", row);
+        var newRows = this.getNewRows_(table.rowMeta);
+        newRows.inOrderTraverse(function(row) {
+
+            console.log('Row', row);
             // do this in order of the columns defined in the meta data
             var rowDecorator = me.getMetaValue('rowDecorator', tableMeta, row.meta);
             var rowComponent = rowDecorator();
 
-            goog.dom.insertChildAt(tableComponent.inner.appendChild, rowComponent.outer, row.pos);
+            goog.dom.insertChildAt(tableComponent.inner, rowComponent.outer, me.renderState_.headerRow ? row.pos + 1 : row.pos);
 
-            tableComponent.inner.appendChild(rowComponent.outer);
 
-            table.columnMeta.forEach(function (columnMeta) {
+            table.columnMeta.forEach(function(columnMeta) {
                 var cellDecorator = me.getMetaValue('cellDecorator', tableMeta, row.meta, columnMeta, row.cellMeta[columnMeta.key]);
                 var cellFactory = me.getMetaValue('cellWidgetFactory', tableMeta, row.meta, columnMeta, row.cellMeta[columnMeta.key]);
                 var cellComponent = cellDecorator();
@@ -577,32 +620,32 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function (helper, t
 /**
  * @return {goog.ui.Component}
  */
-recoil.ui.widgets.table.TableWidget.prototype.getComponent = function () {
+recoil.ui.widgets.table.TableWidget.prototype.getComponent = function() {
     return this.container_;
 };
 
 
-recoil.ui.widgets.table.TableWidget.prototype.attachStruct = function (table) {
+recoil.ui.widgets.table.TableWidget.prototype.attachStruct = function(table) {
     var util = new recoil.frp.Util(this.scope_.getFrp());
     this.table_ = util.toBehaviour(table);
 
     this.helper_.attach(this.table_);
-    
+
 };
 /**
  * @param {recoil.ui.Behaviour<recoil.structs.table.Table> | recoil.structs.table.Table} table
  * @param {recoil.ui.Behaviour<recoil.ui.widgets.TableMetaData> |recoil.ui.widgets.TableMetaData} meta
  */
-recoil.ui.widgets.table.TableWidget.prototype.attach = function (table, meta) {
-    
+recoil.ui.widgets.table.TableWidget.prototype.attach = function(table, meta) {
+
     var util = new recoil.frp.Util(this.scope_.getFrp());
     var frp = this.scope_.getFrp();
-    
+
     table = util.toBehaviour(table);
     meta = util.toBehaviour(meta);
-    
-    var complete = frp.liftBI(function() {console.log("meta",meta.get());return meta.get().applyMeta(table.get());}, function(val) {table.set(val);}, table, meta);
-    
+
+    var complete = frp.liftBI(function() {console.log('meta', meta.get());return meta.get().applyMeta(table.get());}, function(val) {table.set(val);}, table, meta);
+
 
     this.tableB_ = complete;
     this.renderInfoB_ = this.createRenderInfo_(complete);
@@ -613,7 +656,7 @@ recoil.ui.widgets.table.TableWidget.prototype.attach = function (table, meta) {
  * @interface
  * @template T
  */
-recoil.ui.widgets.table.Column = function () {
+recoil.ui.widgets.table.Column = function() {
 };
 /**
  * adds all the meta information that a column should need
@@ -627,15 +670,15 @@ recoil.ui.widgets.table.Column = function () {
  * @param {Object} curMeta
  * @return {Object}
  */
-recoil.ui.widgets.table.Column.prototype.getMeta = function (curMeta) {
-    
+recoil.ui.widgets.table.Column.prototype.getMeta = function(curMeta) {
+
 };
 
 /**
  * @return {recoil.structs.table.ColumnKey}
  */
-recoil.ui.widgets.table.Column.prototype.getKey = function () {
-    
+recoil.ui.widgets.table.Column.prototype.getKey = function() {
+
 };
 
 /**
@@ -645,7 +688,7 @@ recoil.ui.widgets.table.Column.prototype.getKey = function () {
  * @param {string} name
  * @implements {recoil.ui.widgets.table.Constructor}
  */
-recoil.ui.widgets.table.DefaultColumn = function (key, name) {
+recoil.ui.widgets.table.DefaultColumn = function(key, name) {
     this.name_ = name;
     this.key_ = key;
 };
@@ -655,8 +698,8 @@ recoil.ui.widgets.table.DefaultColumn = function (key, name) {
  * @return {Object}
  * @nosideeffects
  */
-recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function (curMeta) {
-    var meta = {name : this.name_};
+recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function(curMeta) {
+    var meta = {name: this.name_};
     goog.object.extend(meta, curMeta);
 
     var factoryMap = meta.typeFactories;
@@ -664,7 +707,7 @@ recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function (curMeta) {
 	? undefined : factoryMap[meta.type];
     var column = factory === undefined
 	? undefined : factory(this.key_, meta.name);
-    
+
     if (column === undefined) {
 	column = new recoil.ui.widgets.table.StringColumn(this.key_, meta.name);
     }
@@ -674,7 +717,7 @@ recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function (curMeta) {
 /**
  * @return {recoil.structs.table.ColumnKey}
  */
-recoil.ui.widgets.table.DefaultColumn.prototype.getKey = function () {
+recoil.ui.widgets.table.DefaultColumn.prototype.getKey = function() {
     return this.key_;
 };
 
@@ -692,7 +735,7 @@ recoil.ui.widgets.TableMetaData = function() {
  * @template CT
  * @param {recoil.structs.table.Column<CT>} col
  */
-recoil.ui.widgets.TableMetaData.prototype.addColumn = function (col) {
+recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
     this.columns_.push(col);
 };
 
@@ -702,7 +745,7 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function (col) {
  * @param {recoil.structs.table.ColumnKey<CT>} key
  * @param {String} name
  */
-recoil.ui.widgets.TableMetaData.prototype.add = function (key, name) {
+recoil.ui.widgets.TableMetaData.prototype.add = function(key, name) {
     this.addColumn(new recoil.ui.widgets.table.DefaultColumn(key, name));
 };
 /**
@@ -710,17 +753,17 @@ recoil.ui.widgets.TableMetaData.prototype.add = function (key, name) {
  * @param {recoil.structs.table.Table} table
  * @return {recoil.structs.table.Table}
  */
-recoil.ui.widgets.TableMetaData.prototype.applyMeta = function (table) {
+recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
     var mtable = table.unfreeze();
     var pos = 0;
-    this.columns_.forEach(function (col) {
+    this.columns_.forEach(function(col) {
 	var meta = col.getMeta(mtable.getColumnMeta(col.getKey()));
 	if (meta.position === undefined) {
 	    meta.position = pos;
 	}
-        mtable.setColumnMeta(col.getKey(),meta);
+        mtable.setColumnMeta(col.getKey(), meta);
 	pos++;
     });
-    console.log("frozen",mtable.freeze());
+    console.log('frozen', mtable.freeze());
     return mtable.freeze();
 };

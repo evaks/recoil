@@ -2,14 +2,14 @@
 
 goog.provide('recoil.ui.widgets.ButtonWidget');
 
-goog.require('recoil.ui.WidgetScope');
-goog.require('recoil.frp.struct');
-goog.require('recoil.ui.WidgetHelper');
-goog.require('recoil.frp.Behaviour');
-goog.require('goog.ui.Button');
-goog.require('recoil.ui.events');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
+goog.require('goog.ui.Button');
+goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.struct');
+goog.require('recoil.ui.WidgetHelper');
+goog.require('recoil.ui.WidgetScope');
+goog.require('recoil.ui.events');
 
 
 /**
@@ -27,7 +27,7 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
     /**
      * @private
      * @type goog.ui.Button
-     * 
+     *
      */
     this.button_ = new goog.ui.Button();
     this.config_ = new recoil.ui.WidgetHelper(scope, null, this, this.updateConfig_);
@@ -40,15 +40,15 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
 
 /**
  *
- * @returns {goog.ui.Component}
+ * @return {goog.ui.Component}
  */
-recoil.ui.widgets.ButtonWidget.prototype.getComponent = function () {
+recoil.ui.widgets.ButtonWidget.prototype.getComponent = function() {
     return this.button_;
 };
 
 /**
  * sets the associated container for the widget
- * 
+ *
  * @param {Element} container
  */
 recoil.ui.widgets.ButtonWidget.prototype.setComponent = function(container) {
@@ -122,7 +122,7 @@ recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbac
         if (helper.isGood()) {
           this.button_.setContent(textB.get());
           //this.button_.setEnabled(enabledB.get());
-        
+
         }
     }
 };

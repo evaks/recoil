@@ -9,12 +9,12 @@ goog.require('recoil.frp.VisibleObserver');
  * @constructor
  */
 recoil.ui.WidgetScope = function(opt_frp, opt_observer) {
-    this.frp_ = opt_frp  || new recoil.frp.Frp();
+    this.frp_ = opt_frp || new recoil.frp.Frp();
     this.observer_ = opt_observer || new recoil.frp.VisibleObserver();
 };
 
 /**
- * 
+ *
  * @return !recoil.frp.Frp
  */
 recoil.ui.WidgetScope.prototype.getFrp = function() {
@@ -22,7 +22,7 @@ recoil.ui.WidgetScope.prototype.getFrp = function() {
 };
 
 /**
- * 
+ *
  * @return !recoil.frp.VisibleObserver
  */
 recoil.ui.WidgetScope.prototype.getObserver = function() {

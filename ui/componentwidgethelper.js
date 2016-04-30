@@ -1,9 +1,9 @@
 /**
  * a utility class that is used to update widgets based on a behaviour each time the the behaviour changes the callback
  * will be fired
- * 
+ *
  * you may access the behaviour attached to the helper inside the callback
- * 
+ *
  */
 goog.provide('recoil.ui.ComponentWidgetHelper');
 
@@ -61,11 +61,11 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
 /**
  *
  */
-recoil.ui.ComponentWidgetHelper.prototype.getFrp = function () {
+recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
     return this.frp_;
 };
 
-recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function () {
+recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function() {
    goog.dom.removeChildren(this.component_);
 };
 
@@ -73,12 +73,12 @@ recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function () {
  * @return {!boolean} is the value good
  */
 recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
-    for ( var key in this.behaviours_) {
+    for (var key in this.behaviours_) {
         var b = this.behaviours_[key];
         if (!b.hasRefs()) {
             return false;
         }
-        if (b.metaGet() !== null && !b.metaGet().good() ) {
+        if (b.metaGet() !== null && !b.metaGet().good()) {
             return false;
         }
     }
@@ -97,7 +97,7 @@ recoil.ui.ComponentWidgetHelper.prototype.forceUpdate = function() {
 
 /**
  * @param {...recoil.frp.Behaviour<T>} var_behaviour
- * 
+ *
  * note the node we are watch must be in the dom by now, the reason for this is if it isn't and
  * is never added we will have a leak observer maintains a list that can never be cleared also once it
  * item is removed form the DOM and node re-added within the same execution thread it will be
@@ -155,10 +155,10 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
  */
 
 recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
-    this.listener_  = null;
+    this.listener_ = null;
     this.type_ = type;
     this.capt_ = opt_capt;
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, comp, null, function(){} );
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, comp, null, function() {});
 
     comp.createDom();
 
@@ -179,7 +179,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
     var me = this;
     this.func_ = function(e) {
         if (me.listener_) {
-            me.listener_.frp().accessTrans(function () {
+            me.listener_.frp().accessTrans(function() {
                 me.listener_.set(e);
             }, me.listener_);
         }
@@ -190,20 +190,20 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
  * @param {recoil.frp.Behaviour} callback the behaviour to set with the event
  **/
 
-recoil.ui.EventHelper.prototype.listen = function (callback) {
+recoil.ui.EventHelper.prototype.listen = function(callback) {
     this.helper_.attach(callback);
     if (this.listener_ !== null && callback === null) {
 
-        this.listener_ =  callback;
+        this.listener_ = callback;
 
-        goog.events.unlisten(this.handler_, this.type_,this.func_, this.capt_);
+        goog.events.unlisten(this.handler_, this.type_, this.func_, this.capt_);
     }
-    else if (this.listener_=== null && callback !== null) {
-        this.listener_ =  callback;
-        goog.events.listen(this.handler_, this.type_,this.func_, this.capt_);
+    else if (this.listener_ === null && callback !== null) {
+        this.listener_ = callback;
+        goog.events.listen(this.handler_, this.type_, this.func_, this.capt_);
     }
     else {
-        this.listener_ =  callback;
+        this.listener_ = callback;
     }
 
 

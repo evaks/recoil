@@ -1,10 +1,10 @@
 goog.provide('recoil.ui.widgets.TextWidget');
 
 goog.require('goog.ui.Component');
-goog.require('recoil.frp.Util');
-goog.require('goog.ui.Component');
 goog.require('goog.events');
 goog.require('goog.events.InputHandler');
+goog.require('goog.ui.Component');
+goog.require('recoil.frp.Util');
 
 
 /**
@@ -13,6 +13,6 @@ goog.require('goog.events.InputHandler');
  * @constructor
  * @extends recoil.ui.Widget
  */
-recoil.ui.widgets.TextWidget = function (scope) {
-    
+recoil.ui.widgets.TextWidget = function(scope) {
+
 };

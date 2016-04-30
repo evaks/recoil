@@ -325,9 +325,9 @@ recoil.util.Handle.prototype.get = function() {
 };
 
 
-recoil.util.object.addProps = function (source, var_args) {
+recoil.util.object.addProps = function(source, var_args) {
     var src = arguments[0];
-    
+
     for (var i = 1; i < arguments.length; i++) {
         for (var prop in arguments[i]) {
             if (arguments[i].hasOwnProperty(prop)) {
@@ -341,7 +341,7 @@ recoil.util.object.addProps = function (source, var_args) {
  * return {Object}
  */
 
-recoil.util.object.removeUndefined = function (obj) {
+recoil.util.object.removeUndefined = function(obj) {
     for (var k in obj) {
 	if (obj[k] === undefined) {
 	    delete obj[k];
@@ -356,7 +356,7 @@ recoil.util.object.removeUndefined = function (obj) {
  * return {*}
  */
 
-recoil.util.object.getByParts = function (obj, var_parts) {
+recoil.util.object.getByParts = function(obj, var_parts) {
     var cur = obj;
     for (var i = 1; i < arguments.length; i++) {
 	if (!(cur instanceof Object)) {

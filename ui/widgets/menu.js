@@ -3,19 +3,19 @@ goog.provide('recoil.ui.widgets.MenuButtonWidget');
 goog.provide('recoil.ui.widgets.MenuItemActionWidget');
 
 
-goog.require('recoil.ui.WidgetScope');
-goog.require('recoil.frp.struct');
-goog.require('recoil.ui.WidgetHelper');
-goog.require('recoil.ui.ComponentWidgetHelper');
-goog.require('recoil.frp.Behaviour');
-goog.require('recoil.frp.Util');
-goog.require('goog.ui.MenuButton');
-goog.require('goog.ui.menuBar');
-goog.require('goog.ui.Menu');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
-goog.require('recoil.ui.events');
+goog.require('goog.ui.Menu');
+goog.require('goog.ui.MenuButton');
 goog.require('goog.ui.SubMenu');
+goog.require('goog.ui.menuBar');
+goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.Util');
+goog.require('recoil.frp.struct');
+goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.WidgetHelper');
+goog.require('recoil.ui.WidgetScope');
+goog.require('recoil.ui.events');
 
 /**
  * @constructor
@@ -38,7 +38,7 @@ recoil.ui.widgets.MenuBarWidget = function(scope, component) {
 /**
  * @return {goog.ui.Component}
  */
-recoil.ui.widgets.MenuBarWidget.prototype.getComponent = function () {
+recoil.ui.widgets.MenuBarWidget.prototype.getComponent = function() {
     return this.menuBar_;
 };
 
@@ -106,7 +106,7 @@ recoil.ui.widgets.MenuBarWidget.prototype.updateState_ = function(helper, menusB
  * @constructor
  * @param {recoil.ui.WidgetScope} scope
  */
-recoil.ui.widgets.MenuButtonWidget = function (scope) {
+recoil.ui.widgets.MenuButtonWidget = function(scope) {
     /**
      * @private
      * @type goog.ui.MenuButton
@@ -122,7 +122,7 @@ recoil.ui.widgets.MenuButtonWidget = function (scope) {
  * @param {String} name the name of the menuItem
  * @param {Array<recoil.ui.widgets.MenuItemActionWidget>|recoil.frp.Behaviour<Array<recoil.ui.widgets.MenuItemWidget>>} menuItems
  */
-recoil.ui.widgets.MenuButtonWidget.prototype.attach = function (name, menuItems) {
+recoil.ui.widgets.MenuButtonWidget.prototype.attach = function(name, menuItems) {
     this.nameB_ = this.state_.getFrp().makeBehaviour(name);
     this.itemsB_ = this.state_.getFrp().makeBehaviour(menuItems);
     this.state_.attach(this.itemsB_, this.nameB_);
@@ -140,10 +140,10 @@ recoil.ui.widgets.MenuButtonWidget.prototype.updateState_ = function(helper) {
         this.menuBtn_.removeChildren();
     }
 
-    if(helper.isGood()) {
+    if (helper.isGood()) {
         this.menuBtn_.setContent(this.nameB_.get());
 
-        goog.array.forEach(this.itemsB_.get(), function (item) {
+        goog.array.forEach(this.itemsB_.get(), function(item) {
 
             item.getComponent().setDispatchTransitionEvents(goog.ui.Component.State.ALL, true);
             menu.addChild(item.getComponent(), true);
@@ -155,9 +155,9 @@ recoil.ui.widgets.MenuButtonWidget.prototype.updateState_ = function(helper) {
 
 /**
  *
- * @returns {goog.ui.Component|*}
+ * @return {goog.ui.Component|*}
  */
-recoil.ui.widgets.MenuButtonWidget.prototype.getComponent = function () {
+recoil.ui.widgets.MenuButtonWidget.prototype.getComponent = function() {
     return this.menuBtn_;
 };
 
@@ -174,10 +174,10 @@ recoil.ui.widgets.MenuItemActionWidget = function(scope) {
      *
      */
 
-    this.menuItem_ = new goog.ui.MenuItem("");
+    this.menuItem_ = new goog.ui.MenuItem('');
     this.scope_ = scope;
-    this.config_   = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateConfig_);
-    this.state_    = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateState_);
+    this.config_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateConfig_);
+    this.state_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateState_);
     /**
      *
      * @type {recoil.util.Handle<recoil.frp.Behaviour<*>>}
@@ -185,15 +185,15 @@ recoil.ui.widgets.MenuItemActionWidget = function(scope) {
      */
     this.actionB_ = new recoil.util.Handle();
     var me = this;
-    recoil.ui.events.listenH(this.menuItem_,goog.ui.Component.EventType.ACTION,
+    recoil.ui.events.listenH(this.menuItem_, goog.ui.Component.EventType.ACTION,
                 me.actionB_);
 };
 
 /**
  *
- * @returns {goog.ui.Component|*}
+ * @return {goog.ui.Component|*}
  */
-recoil.ui.widgets.MenuItemActionWidget.prototype.getComponent = function () {
+recoil.ui.widgets.MenuItemActionWidget.prototype.getComponent = function() {
     return this.menuItem_;
 };
 
@@ -219,12 +219,12 @@ recoil.ui.widgets.MenuItemActionWidget.prototype.attach = function(name, enabled
  * @param {!recoil.frp.Behaviour<?>} actionB
  * @private
  */
-recoil.ui.widgets.MenuItemActionWidget.prototype.updateState_ = function (helper, nameB, enabledB, actionB) {
+recoil.ui.widgets.MenuItemActionWidget.prototype.updateState_ = function(helper, nameB, enabledB, actionB) {
     if (helper.isGood()) {
         this.menuItem_.setContent(this.nameB_.get());
     }
     else {
-        this.menuItem_.setContent("?");
+        this.menuItem_.setContent('?');
     }
 
     this.menuItem_.setDispatchTransitionEvents(goog.ui.Component.State.ALL, true);
@@ -237,9 +237,9 @@ recoil.ui.widgets.MenuItemActionWidget.prototype.updateState_ = function (helper
  * @constructor
  * @extends {recoil.ui.widgets.MenuItemWidget}
  */
-recoil.ui.widgets.SubMenuWidget = function (scope) {
+recoil.ui.widgets.SubMenuWidget = function(scope) {
     this.scope_ = scope;
-    this.subMenu_ = new goog.ui.SubMenu("");
+    this.subMenu_ = new goog.ui.SubMenu('');
     this.state_ = new recoil.ui.ComponentWidgetHelper(scope, this.subMenu_, this, this.updateState_);
 
     /**
@@ -249,7 +249,7 @@ recoil.ui.widgets.SubMenuWidget = function (scope) {
      */
     this.actionB_ = new recoil.util.Handle();
     var me = this;
-    recoil.ui.events.listenH(this.subMenu_,goog.ui.Component.EventType.ACTION,
+    recoil.ui.events.listenH(this.subMenu_, goog.ui.Component.EventType.ACTION,
           me.actionB_);
 
 };
@@ -257,9 +257,9 @@ recoil.ui.widgets.SubMenuWidget = function (scope) {
 
 /**
  *
- * @returns {goog.ui.Component|*}
+ * @return {goog.ui.Component|*}
  */
-recoil.ui.widgets.SubMenuWidget.prototype.getComponent = function () {
+recoil.ui.widgets.SubMenuWidget.prototype.getComponent = function() {
     return this.subMenu_;
 };
 
@@ -268,7 +268,7 @@ recoil.ui.widgets.SubMenuWidget.prototype.getComponent = function () {
  * @param {recoil.frp.Behaviour<String>} name
  * @param {recoil.frp.Behaviour<Boolean>} enabledB
  */
-recoil.ui.widgets.SubMenuWidget.prototype.attach = function (name, enabledB) {
+recoil.ui.widgets.SubMenuWidget.prototype.attach = function(name, enabledB) {
     var util = new recoil.frp.Util(this.state_.getFrp());
 
     this.nameB_ = this.state_.getFrp().makeBehaviour(name);
@@ -280,12 +280,12 @@ recoil.ui.widgets.SubMenuWidget.prototype.attach = function (name, enabledB) {
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
-recoil.ui.widgets.SubMenuWidget.prototype.updateState_ = function (helper) {
+recoil.ui.widgets.SubMenuWidget.prototype.updateState_ = function(helper) {
     if (helper.isGood()) {
         this.subMenu_.setContent(this.nameB_.get());
     }
     else {
-        this.subMenu_.setContent("?");
+        this.subMenu_.setContent('?');
     }
 
     //this.subMenu_.setDispatchTransitionEvents(goog.ui.Component.State.ALL, true);
@@ -295,15 +295,15 @@ recoil.ui.widgets.SubMenuWidget.prototype.updateState_ = function (helper) {
  *
  * @constructor
  */
-recoil.ui.widgets.MenuSeparatorWidget = function () {
+recoil.ui.widgets.MenuSeparatorWidget = function() {
       this.menuSeparator_ = new goog.ui.MenuSeparator();
 };
 
 /**
  *
- * @returns {goog.ui.Component|*}
+ * @return {goog.ui.Component|*}
  */
-recoil.ui.widgets.MenuSeparatorWidget.prototype.getComponent = function () {
+recoil.ui.widgets.MenuSeparatorWidget.prototype.getComponent = function() {
       return this.menuSeparator_;
 };
 
@@ -311,7 +311,7 @@ recoil.ui.widgets.MenuSeparatorWidget.prototype.getComponent = function () {
  *
  * @interface
  */
-recoil.ui.widgets.MenuItemWidget = function () {
+recoil.ui.widgets.MenuItemWidget = function() {
 };
 
 

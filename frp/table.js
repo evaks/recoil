@@ -16,14 +16,14 @@ goog.require('goog.object');
  * @param {Array<*>|recoil.frp.Behaviour<recoil.struct.table.Table>}  keys
  * @return {recoil.frp.Behaviour<recoil.structs.table.TableRow>}
  */
-recoil.frp.table.TableRow.create = function (frp, table, keys) {
+recoil.frp.table.TableRow.create = function(frp, table, keys) {
     var util = new recoil.frp.Util(frp);
-    
+
     keys = util.toBehaviour(keys);
     table = util.toBehaviour(table);
 
     return frp.statusLiftBI(
-        function () {
+        function() {
             var row = table.get(keys.get());
             if (row === null) {
                 return recoil.frp.BStatus.notReady();
@@ -31,7 +31,7 @@ recoil.frp.table.TableRow.create = function (frp, table, keys) {
 
             return new recoil.frp.BStatus(row);
         },
-        function (row) {
+        function(row) {
             var mTable = new recoil.struct.MutableTable.createFromTable(table.get());
             mTable.setRow(row);
             table.set(mTable.freeze());
@@ -49,34 +49,34 @@ recoil.frp.table.TableRow.create = function (frp, table, keys) {
  * @return {recoil.frp.Behaviour<recoil.structs.table.TableCell>}
  **/
 
-recoil.frp.table.TableCell.create = function (frp, table, keys, column) {
-    
+recoil.frp.table.TableCell.create = function(frp, table, keys, column) {
+
     var util = new recoil.frp.Util(frp);
-    
+
 
     table = util.toBehaviour(table);
     keys = util.toBehaviour(keys);
 
     column = util.toBehaviour(column);
-    
+
     return frp.liftBI(
-        function () {
-            var  cell = table.get().getCell(keys.get(), column.get());
-            var  tableMeta = table.getMeta();
-            var  rowMeta = table.getRowMeta(keys.get());
-            var  columnMeta = table.getColumnMeta(column.get());
+        function() {
+            var cell = table.get().getCell(keys.get(), column.get());
+            var tableMeta = table.getMeta();
+            var rowMeta = table.getRowMeta(keys.get());
+            var columnMeta = table.getColumnMeta(column.get());
             var meta = {};
 
             if (cell === null) {
-                throw "cell not found";
+                throw 'cell not found';
             }
-            
+
             goog.object.extend(meta, tableMeta, rowMeta, columnMeta, cell.getMeta());
-            
+
             return new recoil.frp.BStatus(cell.setMeta(meta));
-            
+
         },
-        function (val) {
+        function(val) {
             table.set(table.get().unfreeze().set(keys.get(), column.get(), val));
         }, table, keys, column);
 };

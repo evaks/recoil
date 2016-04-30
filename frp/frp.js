@@ -141,7 +141,7 @@ recoil.frp.Status.prototype.set = function(value) {};
 /**
  * @param {*} error
  */
-recoil.frp.Status.prototype.addError = function (error) {};
+recoil.frp.Status.prototype.addError = function(error) {};
 
 /**
  * provides the status of the event, e.g. is it ready, or an error has occured
@@ -180,7 +180,7 @@ recoil.frp.EStatus.prototype.errors = function() {
 /**
  * @param {*} error
  */
-recoil.frp.EStatus.prototype.addError = function (error) {
+recoil.frp.EStatus.prototype.addError = function(error) {
     this.errors_.push(error);
 };
 
@@ -326,7 +326,7 @@ recoil.frp.BStatus.prototype.errors = function() {
 /**
  * @param {*} error
  */
-recoil.frp.BStatus.prototype.addError = function (error) {
+recoil.frp.BStatus.prototype.addError = function(error) {
     this.errors_.push(error);
 };
 /**
@@ -381,7 +381,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
      */
     function(behaviour, providers, dependents) {
         var oldVal = behaviour.val_;
-        
+
         var params = [];
         // TODO put a loop around this so we get all events, take care if we clear the events
         // other behaviours may not get the events so we have to probably queue them unless
@@ -980,7 +980,7 @@ recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
  * like liftBI except returns a Status, this is useful for calculation
  * errors, inputs are still guaranteed to be good
  */
-recoil.frp.Frp.prototype.statusLiftBI = function (func, invFunc, var_args) {
+recoil.frp.Frp.prototype.statusLiftBI = function(func, invFunc, var_args) {
     return recoil.util.invokeParamsAndArray(this.liftBI_, this, this.metaLiftBI, null, arguments);
 
 };

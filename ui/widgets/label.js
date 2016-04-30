@@ -1,16 +1,16 @@
 /**
  * a simple widget to provide just text no formatting
- * 
- */   
+ *
+ */
 goog.provide('recoil.ui.widgets.LabelWidget');
 
-goog.require('recoil.ui.WidgetScope');
+goog.require('goog.ui.LabelInput');
+goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.Util');
 goog.require('recoil.frp.struct');
 goog.require('recoil.ui.WidgetHelper');
-goog.require('recoil.frp.Behaviour');
+goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
-goog.require('goog.ui.LabelInput');
-goog.require('recoil.frp.Util');
 
 
 /**
@@ -62,7 +62,7 @@ recoil.ui.widgets.LabelWidget.prototype.attach = function(name, value, enabled) 
 
     //this.label_.setContent(this.nameB_.get());
     //util.toBehaviour(this.label_),
-    this.helper_.attach( this.nameB_, this.valueB_, this.enabledB_);
+    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
 
       //var readyB = util.isAllGood(this.nameB, this.enabledB);
 };
@@ -70,9 +70,9 @@ recoil.ui.widgets.LabelWidget.prototype.attach = function(name, value, enabled) 
 /**
  * {Object} value
  */
-recoil.ui.widgets.LabelWidget.prototype.attachStruct = function (value) {
-      var nameB = recoil.structs.get("name", value);
-      var enabledB = recoil.structs.get("enabled", value);
+recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
+      var nameB = recoil.structs.get('name', value);
+      var enabledB = recoil.structs.get('enabled', value);
 
       this.attach(nameB, enabledB);
 };
@@ -105,7 +105,7 @@ recoil.ui.widgets.LabelWidget.prototype.updateConfig_ = function(helper, configB
  * dom
  * @return {goog.ui.Component}
  */
-recoil.ui.widgets.LabelWidget.prototype.getComponent = function () {
+recoil.ui.widgets.LabelWidget.prototype.getComponent = function() {
       return this.label_;
 };
 
@@ -115,11 +115,11 @@ recoil.ui.widgets.LabelWidget.prototype.getComponent = function () {
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
-recoil.ui.widgets.LabelWidget.prototype.updateState_ = function (helper) {
+recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
 
-    if(helper.isGood()) {
+    if (helper.isGood()) {
         var arr = this.valueB_.get();
-        for(var i = 0; i < arr.length; i++){
+        for (var i = 0; i < arr.length; i++) {
             //this.label_.addChild(arr[i].getName());
             //this.label_.setContent(this.nameB_.get());
             this.label_.setContent(arr);
@@ -128,7 +128,7 @@ recoil.ui.widgets.LabelWidget.prototype.updateState_ = function (helper) {
         }
     }
     else {
-        this.label_.setContent("??");
+        this.label_.setContent('??');
     }
 };
 
@@ -137,7 +137,7 @@ recoil.ui.widgets.LabelWidget.prototype.updateState_ = function (helper) {
  * @param {recoil.ui.WidgetScope} scope
  * @constructor
  */
-recoil.ui.widgets.LabelWidgetHelper = function (scope) {
+recoil.ui.widgets.LabelWidgetHelper = function(scope) {
     this.scope_ = scope;
 
 };
@@ -147,9 +147,9 @@ recoil.ui.widgets.LabelWidgetHelper = function (scope) {
  * @param {String} name
  * @param {String} value
  * @param {Boolean} enabled
- * @returns {recoil.ui.widgets.LabelWidget}
+ * @return {recoil.ui.widgets.LabelWidget}
  */
-recoil.ui.widgets.LabelWidgetHelper.prototype.createAndAttach = function (name, value, enabled) {
+recoil.ui.widgets.LabelWidgetHelper.prototype.createAndAttach = function(name, value, enabled) {
     var label = new recoil.ui.widgets.LabelWidget(this.scope_);
     label.attach(name, value, enabled);
     return label;

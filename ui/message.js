@@ -1,8 +1,8 @@
 /**
  * a utility class that wraps a message and its optional parameters
- * 
+ *
  * the parameter can be messages as well just strings, it allows translation of the text
- * 
+ *
  */
 
 goog.provide('recoil.ui.Message');
@@ -19,7 +19,7 @@ recoil.ui.Message = function(message, opt_params) {
 
 /**
  * Gets the translated string as an actual string
- * 
+ *
  * @return {string}
  */
 recoil.ui.Message.prototype.toString = function() {
@@ -28,13 +28,13 @@ recoil.ui.Message.prototype.toString = function() {
 
 /**
  * converts any messages in the params object to strings
- * 
+ *
  * @param params
  */
 recoil.ui.Message.resolve_ = function(params) {
     var res = {};
 
-    for ( var k in params) {
+    for (var k in params) {
         var val = params[k];
         if (val instanceof recoil.ui.Message) {
             res[k] = val.toString();
@@ -47,7 +47,7 @@ recoil.ui.Message.resolve_ = function(params) {
 
 /**
  * puts a conjunction between the messages
- * 
+ *
  * @param {Array<!recoil.ui.Message>} messages
  * @return recoil.ui.Message
  */
@@ -56,7 +56,7 @@ recoil.ui.Message.join = function(messages) {
         return null;
     }
     if (messages.length === 1) {
-        return messages[0]
+        return messages[0];
     }
     var res = messages[0];
 
@@ -64,7 +64,7 @@ recoil.ui.Message.join = function(messages) {
         res = new recoil.ui.Message('{a} and {b}', {
             a: res,
             b: messages[i]
-        })
+        });
     }
     return res;
 };
