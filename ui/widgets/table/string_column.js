@@ -1,6 +1,9 @@
 goog.provide('recoil.ui.widgets.table.StringColumn');
 
 goog.require('recoil.ui.widgets.table.Column');
+goog.require('recoil.ui.widgets.InputWidget');
+goog.require('recoil.ui.BoolWithExplaination');
+goog.require('recoil.frp.struct');
 
 
 /**
@@ -35,7 +38,25 @@ recoil.ui.widgets.table.StringColumn.prototype.getMeta = function(curMeta) {
     return meta;
 };
 
-recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ = function() {};
+/**
+ * @param {recoil.ui.WidgetScope} scope
+ * @param {recoil.frp.Behavour<recoil.structs.table.TableCell>} cell
+ * @return {recoil.ui.Widget}
+ */
+recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ = 
+    function(scope, cellB) 
+{
+    var frp = scope.getFrp();
+    var widget = new recoil.ui.widgets.InputWidget(scope);
+    var value = recoil.frp.table.TableCell.getValue(frp, cellB);
+
+    var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
+    
+            
+    widget.attach("", value, 
+                  recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplaination));
+    return widget;
+};
 
 /**
  * @return {recoil.structs.table.ColumnKey}

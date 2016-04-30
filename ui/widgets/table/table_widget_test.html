@@ -7,11 +7,15 @@
 <script>
   goog.require('recoil.frp.Frp');
   goog.require('recoil.ui.widgets.table.TableWidget');
+  goog.require('recoil.ui.widgets.ButtonWidget');
+  goog.require('recoil.ui.BoolWithExplaination');
   goog.require('recoil.ui.WidgetScope');
 </script>
 
 <body>
   <div id='tablediv'/>
+  <div id='addB'/>
+  
   
   <script>
     var scope = new recoil.ui.WidgetScope();
@@ -57,10 +61,25 @@
 
     console.log('table', $('tablediv'), tableWidget.getComponent().getElement());
 
+
+    var buttonWidget = new recoil.ui.widgets.ButtonWidget(scope);
+
+    buttonWidget.attach("", "Add Row", frp.createCallback(function () {
+    
+    var mtable = table.get().unfreeze();
+    var row = new recoil.structs.table.MutableTableRow();
+    row.set(tblKeys.id, 7);
+    row.set(tblKeys.name, "row 7");
+    row.set(tblKeys.count, 7);
+    row.set(tblKeys.check, false);
+    
+    mtable.addRow(row);
+    table.set(mtable.freeze());
+    }, table));
     tableWidget.attach(table,columns);
 
     tableWidget.getComponent().render($('tablediv'));
-    
+    buttonWidget.getComponent().render($('addB'));
 
     
   </script>

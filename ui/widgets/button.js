@@ -66,7 +66,7 @@ recoil.ui.widgets.ButtonWidget.prototype.setComponent = function(container) {
 
 /**
  *
- * @param {recoil.frp.Behaviour<T>} nameB
+ * @param {recoil.frp.Behaviour<T>} nameB the name on the label
  * @param {recoil.frp.Behaviour<T>} textB
  * @param callback
  * @param {recoil.frp.Behaviour<T>} enabledB
@@ -74,9 +74,11 @@ recoil.ui.widgets.ButtonWidget.prototype.setComponent = function(container) {
 recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbackB, enabledB) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
+    nameB = util.toBehaviour(nameB);
+    textB = util.toBehaviour(textB);
 
     this.enabledB = util.toBehaviour(enabledB);
-
+    
     this.helper_.attach(nameB, textB, callbackB, this.enabledB);
 
     var me = this;

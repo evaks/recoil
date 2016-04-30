@@ -32,7 +32,8 @@ recoil.frp.table.TableRow.create = function(frp, table, keys) {
             return new recoil.frp.BStatus(row);
         },
         function(row) {
-            var mTable = new recoil.struct.MutableTable.createFromTable(table.get());
+            var mTable = new recoil.struct.MutableTable.createFromTable(
+                table.get());
             mTable.setRow(row);
             table.set(mTable.freeze());
         }, table, keys);
@@ -49,22 +50,19 @@ recoil.frp.table.TableRow.create = function(frp, table, keys) {
  * @return {recoil.frp.Behaviour<recoil.structs.table.TableCell>}
  **/
 
-recoil.frp.table.TableCell.create = function(frp, table, keys, column) {
-
+recoil.frp.table.TableCell.create = function(frp, tableB, keysB, columnB) {
     var util = new recoil.frp.Util(frp);
+    tableB = util.toBehaviour(tableB);
+    keysB = util.toBehaviour(keysB);
 
-
-    table = util.toBehaviour(table);
-    keys = util.toBehaviour(keys);
-
-    column = util.toBehaviour(column);
+    columnB = util.toBehaviour(columnB);
 
     return frp.liftBI(
-        function() {
-            var cell = table.get().getCell(keys.get(), column.get());
+        function(table, keys, column) {
+            var cell = table.getCell(keys, column);
             var tableMeta = table.getMeta();
-            var rowMeta = table.getRowMeta(keys.get());
-            var columnMeta = table.getColumnMeta(column.get());
+            var rowMeta = table.getRowMeta(keys);
+            var columnMeta = table.getColumnMeta(column);
             var meta = {};
 
             if (cell === null) {
@@ -77,8 +75,10 @@ recoil.frp.table.TableCell.create = function(frp, table, keys, column) {
 
         },
         function(val) {
-            table.set(table.get().unfreeze().set(keys.get(), column.get(), val));
-        }, table, keys, column);
+            var mTable = tableB.get().unfreeze();
+            mTable.set(keysB.get(), columnB.get(), val.getValue());
+            tableB.set(mTable.freeze());
+        }, tableB, keysB, columnB);
 };
 
 /**
@@ -90,6 +90,7 @@ recoil.frp.table.TableCell.create = function(frp, table, keys, column) {
  * @param {recoil.structs.table.ColumnKey|recoil.frp.Behaviur<recoil.structs.table.ColumnKey>} column
  * @return {recoil.frp.Behaviour<recoil.structs.table.TableCell>}
  **/
+
 
 recoil.frp.table.TableCell.createHeader = function(frp, tableB, columnB) {
     var util = new recoil.frp.Util(frp);
@@ -111,3 +112,36 @@ recoil.frp.table.TableCell.createHeader = function(frp, tableB, columnB) {
         }, tableB, columnB);
     
 }
+
+
+/**
+ * gets just the meta information out of a cell
+ * @template CT
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>} cell
+ * @return {recoil.frp.Behaviour<CT>} 
+ */
+recoil.frp.table.TableCell.getValue = function(frp, cellB) {
+    return frp.liftBI (
+        function (cell) {
+            return cell.getValue();
+        },
+        function (val) {
+            cellB.set(cellB.get().setValue(val));
+        }, cellB);
+};
+
+
+
+/**
+ * gets just the meta information out of a cell
+ * @template CT
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>} cell
+ * @return {recoil.frp.Behaviour<*>} 
+ */
+
+recoil.frp.table.TableCell.getMeta = function(frp, cellB) {
+    return frp.liftB (
+        function (cell) {
+            return cell.getMeta();
+        }, cellB);
+};

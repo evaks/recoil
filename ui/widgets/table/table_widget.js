@@ -212,7 +212,7 @@ recoil.ui.widgets.table.TableWidget.copyMeta = function(fields, var_metas) {
  */
 recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(tableB) {
     var frp = this.scope_.getFrp();
-
+    var me = this;
 
     return frp.liftB(function(table) {
         var info = recoil.ui.widgets.table.TableWidget.emptyState_();
@@ -257,6 +257,10 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
                 }
             });
         });  // table.forEach
+       
+        console.log("InfoEqual", info, me.state_);
+        console.log("result = ", recoil.util.isEqual(info, me.state_));
+        
         return info;
 
     }, tableB);
@@ -336,27 +340,52 @@ recoil.ui.widgets.table.TableWidget.prototype.getRowRemoves = function(newRows) 
     });
     return result;
 };
+recoil.ui.widgets.table.TableWidget.prototype.createCell_ = 
+    function (tableMeta, row, rowMeta, columnMeta)
+{
+    var cellMeta = rowMeta.cellMeta[columnMeta.key];
+    var cellDecorator = this.getMetaValue(
+        'cellDecorator', tableMeta, rowMeta.meta, columnMeta, cellMeta);
+    var cellFactory = this.getMetaValue(
+        'cellWidgetFactory', tableMeta, rowMeta.meta, columnMeta, cellMeta);
+    var renderInfo = cellDecorator();
+    renderInfo.decorator = cellDecorator;
+    renderInfo.factory = cellFactory;
+    row.inner.appendChild(renderInfo.outer);
+    row.cols.push(renderInfo);
 
-recoil.ui.widgets.table.TableWidget.prototype.addRowColumns = function(columns, tableMeta) {
+    console.log("factory", cellFactory);
+    var widget = renderInfo.factory(
+        this.scope_,
+        recoil.frp.table.TableCell.create(
+            this.scope_.getFrp(), this.tableB_,
+            row.key, columnMeta.key));
+
+    widget.getComponent().render(renderInfo.inner);
+};
+
+recoil.ui.widgets.table.TableWidget.prototype.addRowColumns = function(columns, tableMeta, rowsMeta) {
     var me = this;
     var renderState = this.renderState_;
     renderState.rows.inOrderTraverse(function(row) {
+        var rowMeta = rowsMeta.findFirst(row);
+        
         columns.forEach(function(columnMeta) {
-            var cellDecorator = me.getMetaValue('cellDecorator', tableMeta, row.meta, columnMeta);
-            var cellFactory = me.getMetaValue('cellWidgetFactory', tableMeta, row.meta, columnMeta);
-            var renderInfo = cellDecorator();
-            renderInfo.decorator = cellDecorator;
-            renderInfo.factory = cellFactory;
-            row.inner.appendChild(renderInfo.outer);
-            row.cols.push(renderInfo);
-            //                cellFactory.create(cellComponent.inner, recoil.frp.structs.table.CellValue.create(me.frp_, table, rowKey,            });
-
+            
+            me.createCell_(tableMeta,row, rowMeta, columnMeta);
         });
+
     });
 
 };
-
-recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ = function(columns, tableMeta) {
+/**
+ * add any headers to the table specified by columns
+ * @param {Array<Object>} columns array of relevant meta data to be added
+ * @param {Object} tableMeta
+ */
+recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ = 
+    function(columns, tableMeta) 
+{
     var renderState = this.renderState_;
     var me = this;
     if (!renderState.headerRow) {
@@ -365,14 +394,14 @@ recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ = function(columns, ta
     columns.forEach(function(meta) {
         var columnHeaderDecorator = me.getMetaValue(
             'headerDecorator', tableMeta, meta);
-
+        
         var columnHeaderWidgetFactory = me.getMetaValue(
             'headerWidgetFactory', tableMeta, meta);
-
-        var renderInfo = columnHeaderDecorator();
-        renderState.headerRow.inner.appendChild(renderInfo.outer);
-        renderState.headerCols.push(renderInfo);
         
+        var renderInfo = columnHeaderDecorator();
+            renderState.headerRow.inner.appendChild(renderInfo.outer);
+        renderState.headerCols.push(renderInfo);
+            
         renderInfo.factory = columnHeaderWidgetFactory;
         var widget = columnHeaderWidgetFactory(
             me.scope_, 
@@ -476,14 +505,14 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates = function(table) {
     // remove the columns from each row
     renderState.rows.inOrderTraverse(function(row) {
         for (var i = 0; i < table.columnMeta.length; i++) {
-            var columnMeta = table.columnMeta[meta];
+            var columnMeta = table.columnMeta[i];
             var newRow = table.rowMeta.findFirst(row);
             var cellMeta = newRow.cellMeta[columnMeta.key];
             var oldRenderInfo = row.cols[i];
             var decorator = me.getMetaValue('cellDecorator', tableMeta, newRow.meta, columnMeta, cellMeta);
             var factory = me.getMetaValue('cellWidgetFactory', tableMeta, newRow.meta, columnMeta, cellMeta);
 
-            row.cols[i] = this.replaceWidgetAndDecorator_(decorator, factory, oldRenderInfo, row.inner, i);
+            row.cols[i] = me.replaceWidgetAndDecorator_(decorator, factory, oldRenderInfo, row.inner, i);
         }
     });
 };
@@ -501,7 +530,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getAddedColumns = function(columnM
 
 
     for (i = 0; i < columnMeta.length; i++) {
-        if (!oldColumns[columnMeta[i].key]) {
+        if (!oldColMap[columnMeta[i].key]) {
             res.push(columnMeta[i]);
         }
     }
@@ -555,7 +584,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds = function(table) {
     addedColumns.forEach(function(meta) {
         state.columnMeta.push(meta);
     });
-    this.addRowColumns(addedColumns, tableMeta);
+    this.addRowColumns(addedColumns, tableMeta, table.rowMeta);
 };
 
 recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves = function(table) {
@@ -566,10 +595,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves = function(table) {
     var to;
     var from;
     var newColumnMeta = [];
-
-    // do header
     var newHeaderCols = [];
-    var newColumnMeta = [];
 
     for (to = 0; to < movedColumns.length; to++) {
         from = movedColumns[to];
@@ -639,27 +665,26 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
     var renderState = this.renderState_;
 
     if (helper.isGood()) {
-        // TODO this is just me thinking at the moment this needs to do a difference
         // not just build table
         var table = tableB.get();
         var tableMeta = table.tableMeta;
-        //TODO don't forget table decorator
         var tableDecorator = this.getMetaValue('tableDecorator', tableMeta);
         var tableComponent = tableDecorator();
 
         if (this.renderState_.table) {
-            if (this.renderState_.decorator !== tableDecorator) {
-                this.conatiner_.getElement().removeChild(this.renderState_.outer);
+            if (this.renderState_.table.decorator !== tableDecorator) {
+                this.container_.getElement().removeChild(this.renderState_.outer);
                 this.moveChildren(this.renderState_.table.inner, tableComponent.inner);
                 goog.dom.insertChildAt(this.container_.getElement(), tableComponent.outer, 0);
-
+                this.renderState_.table = tableComponent;
             }
 
         }
         else {
             this.container_.getElement().appendChild(tableComponent.outer);
+            this.renderState_.table = tableComponent;
+
         }
-        this.renderState_.table = tableComponent;
         this.renderState_.table.decorator = tableDecorator;
 
         this.doRemoves(table);
@@ -672,14 +697,6 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         // at this point every existing cell has the correct behaviour
         // now all we have to do is add th new rows
 
-
-        // no such thing as a moved row since it is sorted by primary key
-
-
-
-        console.log(table);
-
-
         var newRows = this.getNewRows_(table.rowMeta);
         newRows.inOrderTraverse(function(row) {
 
@@ -687,20 +704,20 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
             // do this in order of the columns defined in the meta data
             var rowDecorator = me.getMetaValue('rowDecorator', tableMeta, row.meta);
             var rowComponent = rowDecorator();
-
-            goog.dom.insertChildAt(tableComponent.inner, rowComponent.outer, me.renderState_.headerRow ? row.pos + 1 : row.pos);
-
+            rowComponent.cols = [];
+            rowComponent.key = row.key;
+            rowComponent.keyCols = row.keyCols;
+            console.log("ROW", row);
+            goog.dom.insertChildAt(me.renderState_.table.inner, rowComponent.outer, me.renderState_.headerRow ? row.pos + 1 : row.pos);
+            
+            console.log("rows",renderState.rows.getCount(), renderState.rows);
 
             table.columnMeta.forEach(function(columnMeta) {
-                var cellDecorator = me.getMetaValue('cellDecorator', tableMeta, row.meta, columnMeta, row.cellMeta[columnMeta.key]);
-                var cellFactory = me.getMetaValue('cellWidgetFactory', tableMeta, row.meta, columnMeta, row.cellMeta[columnMeta.key]);
-                var cellComponent = cellDecorator();
-
-                rowComponent.inner.appendChild(cellComponent.outer);
-                //                cellFactory.create(cellComponent.inner, recoil.frp.structs.table.CellValue.create(me.frp_, table, rowKey, columnMeta.key));
+                me.createCell_(tableMeta,rowComponent,row, columnMeta);
             });
+            renderState.rows.add(rowComponent);
+            
         });
-
         this.state_ = table;
     }
     else {
@@ -733,7 +750,12 @@ recoil.ui.widgets.table.TableWidget.prototype.attach = function(table, meta) {
 
 
 
-    var complete = frp.liftBI(function() {console.log('meta', meta.get());return meta.get().applyMeta(table.get());}, function(val) {table.set(val);}, table, meta);
+    var complete = frp.liftBI(function() {
+        console.log('meta', meta.get());
+        return meta.get().applyMeta(table.get());
+    }, function(val) {
+        table.set(val);
+    }, table, meta);
 
 
     this.tableB_ = complete;

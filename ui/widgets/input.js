@@ -64,6 +64,7 @@ recoil.ui.widgets.InputWidget.prototype.attach = function(name, value, enabled) 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
+        console.log("INPUT SET");
         me.valueB_.set(inputEl.value);
     }, this.valueB_));
 };
@@ -89,8 +90,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(data) {
 recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
-
-        //this.input_.setValue(this.valueB_.get());
+        this.input_.setValue(this.valueB_.get());
     }
 };
 

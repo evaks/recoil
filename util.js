@@ -229,8 +229,31 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
  */
 recoil.util.isEqual = function(a, b) {
 
-    return recoil.util.isEqual.isEqualRec_(a, b, [], []);
+    return recoil.util.isEqual.isEqualRec_(a, b, [], [], [], []);
 };
+
+goog.structs.AvlTree.prototype.equals =  function(other) {
+    if (other instanceof goog.structs.AvlTree) {
+        var count = other.getCount();
+        if (this.getCount() != count) {
+            return false;
+        }
+
+        var myRows = [];
+        var otherRows = [];
+        this.inOrderTraverse(function(row) {
+            myRows.push(row);
+        });
+
+        other.inOrderTraverse(function(row) {
+            otherRows.push(row);
+        });
+        return recoil.util.isEqual(myRows, otherRows);
+    }
+    return false;
+};
+
+
 /**
  * @private
  * @param {Object|number|undefined} a
@@ -239,8 +262,8 @@ recoil.util.isEqual = function(a, b) {
  * @param {Array<Object>} bPath
  * @return {!boolean}
  */
-recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
-
+recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
+    
     // check for loops
 
     var aIndex = goog.array.indexOf(aPath, a);
@@ -254,53 +277,68 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
         return true;
     }
 
-    if (a === undefined || b === undefined || a === null || b === null) {
-        return false;
+    if (a === undefined || b === undefined || a === null || b === null) { 
+        return recoil.util.isEqualDebug_(false,debugPath);
     }
 
     if (a.equals !== undefined && a.equals instanceof Function) {
         return a.equals(b);
     }
     if (b.equals !== undefined && b.equals instanceof Function) {
-        return b.equals(a);
+        return recoil.util.isEqualDebug_(b.equals(a),debugPath);
     }
 
     if (goog.isArrayLike(a) != goog.isArrayLike(b)) {
-        return false;
+
+        return recoil.util.isEqualDebug_(false,debugPath);
     }
 
     var newAPath = goog.array.concat(aPath, [a]);
     var newBPath = goog.array.concat(bPath, [b]);
 
+
     if (goog.isArrayLike(a)) {
+        var idx = 0;
 
         return goog.array.equals(/** @type {goog.array.ArrayLike} */
             (a), /** @type {goog.array.ArrayLike} */
             (b), function(a, b) {
-                return recoil.util.isEqual.isEqualRec_(a, b, newAPath, newBPath);
+                var newDebugPath = goog.array.concat(debugPath, "[" + idx +"]");
+
+                return recoil.util.isEqual.isEqualRec_(
+                    a, b, newAPath, newBPath, newDebugPath);
             });
     }
 
     if (a instanceof Object || b instanceof Object) {
         if (!(a instanceof Object) || !(b instanceof Object)) {
-            return false;
+            return recoil.util.isEqualDebug_(false, debugPath);
         }
 
         for (var k in a) {
-            if (!(k in b) || !recoil.util.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath)) {
+            var newDebugPath = goog.array.concat(debugPath, k);
+            if (!(k in b) || !recoil.util.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath, newDebugPath)) {
                 return false;
             }
         }
         for (var k in b) {
             if (!(k in a)) {
-                return false;
+                newDebugPath = goog.array.concat(debugPath, k);
+                return recoil.util.isEqualDebug_(false, newDebugPath);
             }
         }
         return true;
     }
+    console.log("Not Equal", debugPath);
     return false;
 };
 
+recoil.util.isEqualDebug_ = function (val, path) {
+    if (!val) {
+        console.log("Not Equal", path);
+    }
+    return val;
+};
 /**
  * @template T
  * @param {T=} opt_value
