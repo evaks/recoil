@@ -56,13 +56,12 @@ recoil.ui.widgets.LabelWidget.prototype.attach = function(name, value, enabled) 
     var util = new recoil.frp.Util(this.helper_.getFrp());
 
     this.nameB_ = util.toBehaviour(name);
-    this.valueB_ = util.toBehaviour(value);
     this.enabledB_ = util.toBehaviour(enabled);
 
 
     //this.label_.setContent(this.nameB_.get());
     //util.toBehaviour(this.label_),
-    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
+    this.helper_.attach(this.nameB_, this.enabledB_);
 
       //var readyB = util.isAllGood(this.nameB, this.enabledB);
 };
@@ -118,7 +117,7 @@ recoil.ui.widgets.LabelWidget.prototype.getComponent = function() {
 recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
-        var arr = this.valueB_.get();
+        var arr = this.nameB_.get();
         for (var i = 0; i < arr.length; i++) {
             //this.label_.addChild(arr[i].getName());
             //this.label_.setContent(this.nameB_.get());

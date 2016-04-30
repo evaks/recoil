@@ -583,7 +583,7 @@ recoil.structs.table.Table.prototype.getMeta = function() {
 /**
  * @template CT
  * @param {recoil.structs.table.ColumnKey<CT>} column
- * @return {*}
+ * @return {*}+
  */
 recoil.structs.table.Table.prototype.getColumnMeta = function(column) {
     var res = this.columnMeta_[column];

@@ -73,7 +73,7 @@ recoil.frp.table.TableCell.create = function(frp, table, keys, column) {
 
             goog.object.extend(meta, tableMeta, rowMeta, columnMeta, cell.getMeta());
 
-            return new recoil.frp.BStatus(cell.setMeta(meta));
+            return cell.setMeta(meta);
 
         },
         function(val) {
@@ -81,3 +81,33 @@ recoil.frp.table.TableCell.create = function(frp, table, keys, column) {
         }, table, keys, column);
 };
 
+/**
+ * this wil return an bidirectional table cell it will contain the meta data from the
+ * cell, column, row, and table. Setting the meta data will have no effect
+ *
+ * @param {recoil.frp.Frp} frp the frp engine
+ * @param {recoil.struct.table.Table|recoil.frp.Behaviour<recoil.struct.table.Table>}  table
+ * @param {recoil.structs.table.ColumnKey|recoil.frp.Behaviur<recoil.structs.table.ColumnKey>} column
+ * @return {recoil.frp.Behaviour<recoil.structs.table.TableCell>}
+ **/
+
+recoil.frp.table.TableCell.createHeader = function(frp, tableB, columnB) {
+    var util = new recoil.frp.Util(frp);
+
+    console.log("tableB",tableB);
+    tableB = util.toBehaviour(tableB);
+    columnB = util.toBehaviour(columnB);
+
+    return frp.liftB(
+        function(table, column) {
+            var tableMeta = table.getMeta();
+            var columnMeta = table.getColumnMeta(column);
+            var meta = {};
+
+            goog.object.extend(meta, tableMeta, columnMeta);
+
+            return new recoil.structs.table.TableCell(undefined, meta);
+
+        }, tableB, columnB);
+    
+}

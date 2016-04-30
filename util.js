@@ -67,7 +67,7 @@ recoil.util.safeFreeze = function(value) {
 recoil.util.invokeOneParamAndArray = function(me, func, arg1, rest) {
     var params = [arg1];
     for (var i = 0; i < rest.length; i++) {
-       params.push(rest[i]);
+        params.push(rest[i]);
     }
     return func.apply(me, params);
 };
@@ -175,10 +175,10 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
     if (goog.isArrayLike(a)) {
 
         return goog.array.compare3(/** @type {goog.array.ArrayLike} */
-              (a), /** @type {goog.array.ArrayLike} */
-              (b), function(a, b) {
-                  return recoil.util.compare_(a, b, newAPath, newBPath);
-              });
+            (a), /** @type {goog.array.ArrayLike} */
+            (b), function(a, b) {
+                return recoil.util.compare_(a, b, newAPath, newBPath);
+            });
     }
 
     if (a instanceof Object && b instanceof Object) {
@@ -275,10 +275,10 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
     if (goog.isArrayLike(a)) {
 
         return goog.array.equals(/** @type {goog.array.ArrayLike} */
-        (a), /** @type {goog.array.ArrayLike} */
-        (b), function(a, b) {
-            return recoil.util.isEqual.isEqualRec_(a, b, newAPath, newBPath);
-        });
+            (a), /** @type {goog.array.ArrayLike} */
+            (b), function(a, b) {
+                return recoil.util.isEqual.isEqualRec_(a, b, newAPath, newBPath);
+            });
     }
 
     if (a instanceof Object || b instanceof Object) {
@@ -307,14 +307,14 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath) {
  * @constructor
  */
 recoil.util.Handle = function(opt_value) {
-  this.value_ = opt_value;
+    this.value_ = opt_value;
 };
 /**
  *
  * @param {T} value
  */
 recoil.util.Handle.prototype.set = function(value) {
-   this.value_ = value;
+    this.value_ = value;
 };
 
 /**
@@ -343,8 +343,8 @@ recoil.util.object.addProps = function(source, var_args) {
 
 recoil.util.object.removeUndefined = function(obj) {
     for (var k in obj) {
-	if (obj[k] === undefined) {
-	    delete obj[k];
+        if (obj[k] === undefined) {
+            delete obj[k];
 	}
     }
     return obj;
@@ -359,10 +359,10 @@ recoil.util.object.removeUndefined = function(obj) {
 recoil.util.object.getByParts = function(obj, var_parts) {
     var cur = obj;
     for (var i = 1; i < arguments.length; i++) {
-	if (!(cur instanceof Object)) {
-	    return undefined;
-	}
-	cur = cur[arguments[i]];
+        if (!(cur instanceof Object)) {
+            return undefined;
+        }
+        cur = cur[arguments[i]];
     }
     return cur;
 };
