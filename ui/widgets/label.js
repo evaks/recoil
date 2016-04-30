@@ -118,13 +118,8 @@ recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
         var arr = this.nameB_.get();
-        for (var i = 0; i < arr.length; i++) {
-            //this.label_.addChild(arr[i].getName());
-            //this.label_.setContent(this.nameB_.get());
-            this.label_.setContent(arr);
+        this.label_.setContent(arr);
 
-
-        }
     }
     else {
         this.label_.setContent('??');

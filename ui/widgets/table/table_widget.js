@@ -748,8 +748,6 @@ recoil.ui.widgets.table.TableWidget.prototype.attach = function(table, meta) {
     table = util.toBehaviour(table);
     meta = util.toBehaviour(meta);
 
-
-
     var complete = frp.liftBI(function() {
         console.log('meta', meta.get());
         return meta.get().applyMeta(table.get());

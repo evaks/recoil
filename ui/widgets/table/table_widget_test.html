@@ -15,6 +15,8 @@
 <body>
   <div id='tablediv'/>
   <div id='addB'/>
+  <div id='hideB'/>
+  <div id='showB'/>
   
   
   <script>
@@ -41,11 +43,13 @@
     check : { type: "bool", key: tblKeys.check}
     };
 
-    
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
     columns.add(tblKeys.count, "Count");
     columns.add(tblKeys.check, "Check");
+    
+    var columnsB = frp.createB(columns);
+
 
     var typeFactories = {"int": function(meta) {
         return new recoil.ui.widgets.table.NumberColumn(meta);
@@ -65,21 +69,48 @@
     var buttonWidget = new recoil.ui.widgets.ButtonWidget(scope);
 
     buttonWidget.attach("", "Add Row", frp.createCallback(function () {
-    
+    var max = 1;
+    table.get().forEach( function(row) {
+    max = Math.max(row.get(tblKeys.id), max);
+    });
+
+    max ++;
     var mtable = table.get().unfreeze();
     var row = new recoil.structs.table.MutableTableRow();
-    row.set(tblKeys.id, 7);
-    row.set(tblKeys.name, "row 7");
-    row.set(tblKeys.count, 7);
+    row.set(tblKeys.id, max);
+    row.set(tblKeys.name, "row "+ max);
+    row.set(tblKeys.count, max);
     row.set(tblKeys.check, false);
     
     mtable.addRow(row);
     table.set(mtable.freeze());
     }, table));
-    tableWidget.attach(table,columns);
+    tableWidget.attach(table,columnsB);
+    var hideWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var showWidget = new recoil.ui.widgets.ButtonWidget(scope);
+
+
+    hideWidget.attach("", "Hide", frp.createCallback(function () {
+    var columns = new recoil.ui.widgets.TableMetaData();
+    columns.add(tblKeys.name, "Name");
+    //columns.add(tblKeys.count, "Count");
+    columns.add(tblKeys.check, "Check");
+    columnsB.set(columns);
+    },columnsB));
+
+
+    showWidget.attach("", "Show", frp.createCallback(function () {
+    var columns = new recoil.ui.widgets.TableMetaData();
+    columns.add(tblKeys.name, "Name");
+    columns.add(tblKeys.count, "Count");
+    columns.add(tblKeys.check, "Check");
+    columnsB.set(columns);
+    },columnsB));
 
     tableWidget.getComponent().render($('tablediv'));
     buttonWidget.getComponent().render($('addB'));
+    hideWidget.getComponent().render($('hideB'));
+    showWidget.getComponent().render($('showB'));
 
     
   </script>
