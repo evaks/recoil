@@ -4,14 +4,13 @@ goog.require('recoil.ui.widgets.table.Column');
 
 /**
  *
- * @param meta
+ * @param {recoil.structs.table.ColumnKey} key
+ * @param {string} name
+ * @param {number} min
+ * @param {number} max
  * @constructor
  */
-recoil.ui.widgets.table.NumberColumn = function(meta) {
-    console.log(meta);
-    this.meta_ = meta;
+recoil.ui.widgets.table.NumberColumn = function(key, name, min, max) {
+    this.key_ = key;
 };
 
-recoil.ui.widgets.table.NumberColumn.prototype.test = function() {
-    console.log('hello');
-};

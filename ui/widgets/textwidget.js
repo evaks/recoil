@@ -1,6 +1,5 @@
 goog.provide('recoil.ui.widgets.TextWidget');
 
-goog.require('goog.ui.Component');
 goog.require('goog.events');
 goog.require('goog.events.InputHandler');
 goog.require('goog.ui.Component');

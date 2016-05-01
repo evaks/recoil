@@ -15,7 +15,7 @@ recoil.ui.WidgetScope = function(opt_frp, opt_observer) {
 
 /**
  *
- * @return !recoil.frp.Frp
+ * @return {!recoil.frp.Frp}
  */
 recoil.ui.WidgetScope.prototype.getFrp = function() {
     return this.frp_;
@@ -23,7 +23,7 @@ recoil.ui.WidgetScope.prototype.getFrp = function() {
 
 /**
  *
- * @return !recoil.frp.VisibleObserver
+ * @return {!recoil.frp.VisibleObserver}
  */
 recoil.ui.WidgetScope.prototype.getObserver = function() {
     return this.observer_;

@@ -1,19 +1,25 @@
 goog.provide('recoil.ui.widgets.table.StringColumn');
 
-goog.require('recoil.ui.widgets.table.Column');
-goog.require('recoil.ui.widgets.InputWidget');
-goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.frp.struct');
+goog.require('recoil.ui.BoolWithExplaination');
+goog.require('recoil.ui.widgets.InputWidget');
+goog.require('recoil.ui.widgets.table.Column');
 
 
 /**
  * @implements {recoil.ui.widgets.table.Column}
  * @template T
+ * @constructor
+ * @param {recoil.structs.table.ColumnKey} key
+ * @param {string} name
+ * @param {number} maxChars
+ * @param {boolean} editable
+ *
  */
 recoil.ui.widgets.table.StringColumn = function(key, name, maxChars, editable) {
     this.meta_ = recoil.util.object.removeUndefined(
-	{maxChars: maxChars,
-	 editable: editable === undefined ? true : editable});
+        {maxChars: maxChars,
+         editable: editable === undefined ? true : editable});
     this.key_ = key;
     this.name_ = name;
 };
@@ -32,18 +38,19 @@ recoil.ui.widgets.table.StringColumn = function(key, name, maxChars, editable) {
  */
 recoil.ui.widgets.table.StringColumn.prototype.getMeta = function(curMeta) {
     var meta = {name: this.name_,
-		cellWidgetFactory: recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_};
+                cellWidgetFactory: recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_};
 
     goog.object.extend(meta, this.meta_, curMeta);
     return meta;
 };
 
 /**
+ * @private
  * @param {recoil.ui.WidgetScope} scope
- * @param {recoil.frp.Behavour<recoil.structs.table.TableCell>} cell
+ * @param {recoil.frp.Behavour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
  */
-recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ = 
+recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ =
     function(scope, cellB) 
 {
     var frp = scope.getFrp();
@@ -51,9 +58,9 @@ recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ =
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
 
     var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
-    
-            
-    widget.attach("", value, 
+
+
+    widget.attach('', value,
                   recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplaination));
     return widget;
 };

@@ -21,6 +21,7 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
     this.scope_ = scope;
 
     /**
+     * @private
      * @type {Element}
      */
     this.component_ = null;
@@ -68,7 +69,7 @@ recoil.ui.widgets.ButtonWidget.prototype.setComponent = function(container) {
  *
  * @param {recoil.frp.Behaviour<T>} nameB the name on the label
  * @param {recoil.frp.Behaviour<T>} textB
- * @param callback
+ * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {recoil.frp.Behaviour<T>} enabledB
  */
 recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbackB, enabledB) {
@@ -78,7 +79,7 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbac
     textB = util.toBehaviour(textB);
 
     this.enabledB = util.toBehaviour(enabledB);
-    
+
     this.helper_.attach(nameB, textB, callbackB, this.enabledB);
 
     var me = this;
@@ -112,9 +113,9 @@ recoil.ui.widgets.ButtonWidget.prototype.updateConfig_ = function(helper, config
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
- * @param callbackB
- * @param textB
- * @param enabledB
+ * @param {recoil.frp.Behaviour<*>} callbackB
+ * @param {recoil.frp.Behaviour<string>} textB
+ * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplaination>} enabledB
  * @private
  */
 recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbackB, textB, enabledB) {
