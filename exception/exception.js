@@ -32,6 +32,11 @@ recoil.exception.NotAttached = function() {
 
 };
 
+recoil.exception.NotAttached.prototype.toString = function() {
+    return this.name_;
+
+};
+
 /**
  * @constructor
  * @this {recoil.exception.NoAccessors}

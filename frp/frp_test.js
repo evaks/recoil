@@ -337,3 +337,23 @@ function testAttachDetach() {
     tm.detach(two);
     one.set(1);
 }
+
+function testDependancyRemoved() {
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+    var count = 0;
+    var one = frp.createB(1);
+    var two = frp.liftB(function(a) {count++;return a + 1;},one);
+    var three = frp.liftB(function(a) {return a + 1;},two);
+    var four = frp.liftB(function(a) {return a + 1;},three);
+
+    tm.attach(four);
+    tm.attach(two);
+    assertEquals(4, four.unsafeMetaGet().get());
+    tm.detach(four);
+    frp.accessTrans(function() {
+        one.set(2);
+    }, one);
+    
+}
+    

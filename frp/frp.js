@@ -1385,7 +1385,7 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
         var deps = me._dependancyMap[String(prov.seq_)];
         if (deps !== undefined) {
             // TODO what about the same provider twice?
-            goog.array.removeIf(deps, recoil.frp.Frp._ptrEqual, prov);
+            goog.array.removeIf(deps, recoil.frp.Frp._ptrEqual, b);
             if (deps.length === 0) {
                 delete me._dependancyMap[String(prov.seq_)];
             }
