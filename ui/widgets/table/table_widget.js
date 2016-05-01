@@ -623,10 +623,10 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves = function(table) {
             newCols.push(renderInfo);
             if (from !== to) {
                 row.inner.removeChild(renderInfo.outer);
-                goog.dom.insertChildAt(renderState.headerRow.inner, renderInfo.outer, to);
+                goog.dom.insertChildAt(row.inner, renderInfo.outer, to);
             }
         }
-        row.renderInfo = newCols;
+        row.cols = newCols;
     });
 
     state.columnMeta = newColumnMeta;
