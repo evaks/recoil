@@ -329,13 +329,13 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
         }
         return true;
     }
-    console.log('Not Equal', debugPath);
+    recoil.util.isEqualDebug_(false, debugPath);
     return false;
 };
 
 recoil.util.isEqualDebug_ = function(val, path) {
     if (!val) {
-        console.log('Not Equal', path);
+//        console.log('Not Equal', path);
     }
     return val;
 };

@@ -24,6 +24,9 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
     this.observer_ = widgetScope.getObserver();
     this.frp_ = widgetScope.getFrp();
     this.component_ = component;
+    if (!(callback instanceof Function)) {
+        throw "callback not a function";
+    }
     var me = this;
     this.listenFunc_ = function(visible) {
         if (visible != me.isAttached_) {

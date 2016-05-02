@@ -392,7 +392,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         providers.forEach(function(b) {
             params.push(b.metaGet());
         });
-        var newVal = behaviour._calc.apply(behaviour, params);
+        var newVal = behaviour.calc_.apply(behaviour, params);
         var res = [];
         if (behaviour.dirtyUp_ && recoil.util.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
             behaviour.val_ = behaviour.dirtyUpOldValue_;
@@ -431,7 +431,7 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection('down', functi
             args.push(behaviour.providers_[i]);
         }
 
-        behaviour._inv.apply(behaviour, args);
+        behaviour.inv_.apply(behaviour, args);
         var newDirty = getDirty(behaviour.providers_);
 
         var id;
@@ -467,12 +467,21 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.frp_ = frp;
     var myValue = value;
     this.val_ = value;
-    this._calc = calc || function() {
+    this.calc_ = calc || function() {
         return myValue;
     };
-    this._inv = inverse || function(newVal) {
+    if (!(this.calc_ instanceof Function)) {
+	throw "calc not function";
+    }
+	
+    this.inv_ = inverse || function(newVal) {
         myValue = newVal;
     };
+
+    if (!(this.inv_ instanceof Function)) {
+	throw "inverse not function";
+    }
+
     this.dirtyUp_ = false;
     this.dirtyUpOldValue_ = null;
     this.dirtyDown_ = false;

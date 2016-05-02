@@ -13,12 +13,22 @@ goog.require('recoil.frp.Behaviour');
  * @param {recoil.frp.Behaviour} callback the behaviour to set with the event
  * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
+ * @param {*=} opt_data Extra data to send to the callback, this is passed
+ *                      the callback will be in the format {event:x, data: opt_data}
+ *                      otherwize the event will just be passed
  * @template EVENTOBJ
  **/
-recoil.ui.events.listen = function(src, type, callback, opt_capt) {
+recoil.ui.events.listen = function(src, type, callback, opt_capt, opt_data) {
   goog.events.listen(src, type,
         function(e) {
-                callback.frp().accessTrans(function() {callback.set(e)}, callback);
+            callback.frp().accessTrans(function() {
+                if (opt_data === undefined) {
+                    callback.set(e);
+                }
+                else {
+                    callback.set({event : e, data : opt_data});
+                }
+            }, callback);
         }, opt_capt);
 };
 

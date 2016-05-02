@@ -11,23 +11,34 @@
   goog.require('recoil.ui.BoolWithExplaination');
   goog.require('recoil.ui.WidgetScope');
 </script>
+<style>
+  .recoil_table_selected {background-color:green;}
+</style>
 
 <body>
   <div id='tablediv'/>
   <div id='addB'/>
   <div id='hideB'/>
   <div id='showB'/>
+  <div id='deleteB'/>
+  <div class="selected" id='clickTest'>Click Test
+    </div>
   TODO <br/>all decorators<br/>
-  remove rows<br/>
-  add in middle<br/>
+  hide/show headers <br/>
   cell renderers<br/>
-  selection<br/>
   
   <script>
     var scope = new recoil.ui.WidgetScope();
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
+    var toSet = frp.createCallback(
+                                function(e) {console.log("event",e);});
+    
+    
+    recoil.ui.events.listen($('clickTest'), goog.events.EventType.CLICK,
+                            toSet);
 
+    frp.tm().attach(toSet);
     var rawTable = [
     {id: 1, name: "row 1", count:2, check: true},
     {id: 2, name: "row 2", count:4, check: true},
@@ -71,14 +82,22 @@
 
 
     var buttonWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var deleteButton = new recoil.ui.widgets.ButtonWidget(scope);
 
     buttonWidget.attach("", "Add Row", frp.createCallback(function () {
-    var max = 1;
+    var ids = [];
+    var max = 0;
     table.get().forEach( function(row) {
-    max = Math.max(row.get(tblKeys.id), max);
+    ids.push(row.get(tblKeys.id));
     });
+    ids.sort();
+    for (var i = 0; i < ids.length; i++) {
+			if (max !== ids[i]) {
+			break;
+			}
+			max++;
+    }
 
-    max ++;
     var mtable = table.get().unfreeze();
     var row = new recoil.structs.table.MutableTableRow();
     row.set(tblKeys.id, max);
@@ -102,6 +121,19 @@
     columnsB.set(columns);
     },columnsB));
 
+    var selectedB = tableWidget.createSelected();
+    
+    deleteButton.attach("", "Delete", frp.createCallback(function() {
+    console.log(selectedB.get());
+    var selected = selectedB.get();
+    var mtable = table.get().unfreeze();
+    
+    for (var i = 0; i < selected.length; i++) {
+	mtable.removeRow(selected[i]);
+    }
+	table.set(mtable.freeze());
+    }, selectedB, table));
+
 
     showWidget.attach("", "Show", frp.createCallback(function () {
     var columns = new recoil.ui.widgets.TableMetaData();
@@ -115,6 +147,7 @@
     buttonWidget.getComponent().render($('addB'));
     hideWidget.getComponent().render($('hideB'));
     showWidget.getComponent().render($('showB'));
+    deleteButton.getComponent().render($('deleteB'));
 
     
   </script>
