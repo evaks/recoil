@@ -7,6 +7,7 @@ goog.provide('recoil.util.object');
 goog.require('goog.array');
 goog.require('goog.math.Long');
 goog.require('goog.object');
+goog.require('goog.structs.AvlTree');
 /**
  * a class to create a incrementing sequence
  * of strings
@@ -174,8 +175,8 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
 
     if (goog.isArrayLike(a)) {
 
-        return goog.array.compare3(/** @type {goog.array.ArrayLike} */
-            (a), /** @type {goog.array.ArrayLike} */
+        return goog.array.compare3(/** @type {!goog.array.ArrayLike} */
+            (a), /** @type {!goog.array.ArrayLike} */
             (b), function(a, b) {
                 return recoil.util.compare_(a, b, newAPath, newBPath);
             });
@@ -229,7 +230,7 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
  */
 recoil.util.isEqual = function(a, b) {
 
-    return recoil.util.isEqual.isEqualRec_(a, b, [], [], [], []);
+    return recoil.util.isEqual.isEqualRec_(a, b, [], [], []);
 };
 
 goog.structs.AvlTree.prototype.equals = function(other) {
@@ -334,9 +335,9 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
 };
 
 recoil.util.isEqualDebug_ = function(val, path) {
-    if (!val) {
+//    if (!val) {
 //        console.log('Not Equal', path);
-    }
+//    }
     return val;
 };
 /**
@@ -390,7 +391,7 @@ recoil.util.object.removeUndefined = function(obj) {
 
 /**
  * @param {Object} obj
- * @param {...Object} parts
+ * @param {...Object} var_parts
  * return {*}
  */
 
