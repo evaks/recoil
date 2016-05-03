@@ -46,7 +46,8 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
             var selectMeta = selectMetaB.get();
             
             for (i = 0; i < me.curSelected_.length; i++) {
-                selector = me.getMetaValue('rowSelector', selectMetaB.table, selectMeta.rowMeta.findFirst({key : me.curSelected_[i]}));
+                var rowMeta = selectMeta.rowMeta.findFirst({key : me.curSelected_[i]});
+                selector = me.getMetaValue('rowSelector', selectMetaB.table, rowMeta ? rowMeta.meta : undefined);
                 row = me.renderState_.rows.findFirst({key : me.curSelected_[i]});
                 if (row) {
                     selector(row.outer,false);
@@ -149,7 +150,10 @@ recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var
 
     for (var i = arguments.length - 1; i > 0; i--) {
         var arg = arguments[i];
-        if (arg === undefined) {
+        if (arg === null) {
+            console.log("arg is null");
+        }
+        else if (arg === undefined) {
 
         } else {
             val = arg[value];
@@ -567,7 +571,7 @@ recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ =
             'headerWidgetFactory', tableMeta, meta);
 
         var renderInfo = columnHeaderDecorator();
-            renderState.headerRow.inner.appendChild(renderInfo.outer);
+        renderState.headerRow.inner.appendChild(renderInfo.outer);
         renderState.headerCols.push(renderInfo);
 
         renderInfo.factory = columnHeaderWidgetFactory;
@@ -604,8 +608,10 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
     var colRemoves = this.getColumnRemoves_(table.columnMeta);
     colRemoves.forEach(function(col) {
         var renderInfo = renderState.headerCols[col.pos];
-        renderState.headerRow.inner.removeChild(renderInfo.outer);
-        renderState.headerCols.splice(col.pos, 1);
+        if (renderState.headerRow) {
+            renderState.headerRow.inner.removeChild(renderInfo.outer);
+            renderState.headerCols.splice(col.pos, 1);
+        }
         state.columnMeta.splice(col.pos, 1);
     });
 
@@ -763,7 +769,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds_ = function(table) {
     }
     else if (renderState.headerRow) {
 
-        table.inner.removeChild(renderState.headerRow.outer);
+        renderState.table.inner.removeChild(renderState.headerRow.outer);
         renderState.headerRow = false;
     }
 
@@ -799,9 +805,9 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves_ = function(table) {
                 renderState.headerRow.inner.removeChild(renderInfo.outer);
                 goog.dom.insertChildAt(renderState.headerRow.inner, renderInfo.outer, to);
             }
+            newHeaderCols.push(renderInfo);
 
         }
-        newHeaderCols.push(renderInfo);
 
     }
 

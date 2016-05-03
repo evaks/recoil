@@ -31,6 +31,8 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
      *
      */
     this.button_ = new goog.ui.Button();
+    this.button_.setEnabled(false);
+    this.button_.setContent("??");
     this.config_ = new recoil.ui.WidgetHelper(scope, null, this, this.updateConfig_);
     this.state_ = new recoil.ui.WidgetHelper(scope, null, this, this.updateState_);
 
@@ -127,5 +129,6 @@ recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbac
           //this.button_.setEnabled(enabledB.get());
 
         }
+
     }
 };

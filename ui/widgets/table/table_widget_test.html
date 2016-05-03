@@ -19,6 +19,7 @@
   <div id='tablediv'/>
   <div id='addB'/>
   <div id='hideB'/>
+  <div id='hideHeadersB'/>
   <div id='showB'/>
   <div id='deleteB'/>
   <div class="selected" id='clickTest'>Click Test
@@ -110,9 +111,25 @@
     }, table));
     tableWidget.attach(table,columnsB);
     var hideWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var hideHeadersWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var showWidget = new recoil.ui.widgets.ButtonWidget(scope);
 
-
+			hideHeadersWidget.attach("", "Hide/Show Headers", frp.createCallback(
+			function() {
+			var mtable =table.get().unfreeze();
+			var tmeta = mtable.getMeta();
+			if (tmeta.headerRowDecorator) {
+			delete tmeta['headerRowDecorator'];
+			}
+			else {
+			tmeta.headerRowDecorator = function () {
+			return null;
+			};
+			}
+			table.set(mtable.freeze());
+			console.log("table meta", tmeta);
+			},table));
+			
     hideWidget.attach("", "Hide", frp.createCallback(function () {
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
@@ -146,6 +163,7 @@
     tableWidget.getComponent().render($('tablediv'));
     buttonWidget.getComponent().render($('addB'));
     hideWidget.getComponent().render($('hideB'));
+    hideHeadersWidget.getComponent().render($('hideHeadersB'));
     showWidget.getComponent().render($('showB'));
     deleteButton.getComponent().render($('deleteB'));
 
