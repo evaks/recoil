@@ -707,8 +707,8 @@ recoil.structs.table.Table.prototype.getCell = function(row, columnKey) {
 
 /**
  *
- * @param {object} typeFactories
- * @param {object} tableMeta
+ * @param {Object} typeFactories
+ * @param {Object} tableMeta
  * @param {Array<Object>} rawTable
  * @return {recoil.structs.table.Table}
  */
@@ -734,8 +734,8 @@ recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable)
 
 /**
  *
- * @param {object} tableMeta
- * @return {object}
+ * @param {Object} tableMeta
+ * @return {Object}
  * @private
  */
 recoil.structs.table.Table.extractKeys_ = function(tableMeta) {

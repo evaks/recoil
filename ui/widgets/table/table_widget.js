@@ -1,4 +1,3 @@
-goog.provide('recoil.ui.widgets.table.Column');
 goog.provide('recoil.ui.widgets.table.TableMetaData');
 goog.provide('recoil.ui.widgets.table.TableWidget');
 
@@ -14,6 +13,7 @@ goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.RenderedDecorator');
 goog.require('recoil.ui.widgets.LabelWidget');
+goog.require('recoil.ui.widgets.table.Column');
 goog.require('recoil.ui.widgets.table.StringColumn');
 
 /**
@@ -930,7 +930,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getComponent = function() {
 };
 
 /**
- * @param {recoil.frp.Behaviour<recoil.structs.table.Table?} table
+ * @param {recoil.frp.Behaviour<recoil.structs.table.Table>} table
  */
 recoil.ui.widgets.table.TableWidget.prototype.attachStruct = function(table) {
     this.tableB_ = table;
@@ -940,53 +940,25 @@ recoil.ui.widgets.table.TableWidget.prototype.attachStruct = function(table) {
 
 };
 /**
- * @param {recoil.ui.Behaviour<recoil.structs.table.Table> | recoil.structs.table.Table} table
- * @param {recoil.ui.Behaviour<recoil.ui.widgets.TableMetaData> |recoil.ui.widgets.TableMetaData} meta
+ * @param {recoil.frp.Behaviour<recoil.structs.table.Table> | recoil.structs.table.Table} table
+ * @param {recoil.frp.Behaviour<recoil.ui.widgets.TableMetaData> |recoil.ui.widgets.TableMetaData} meta
  */
 recoil.ui.widgets.table.TableWidget.prototype.attach = function(table, meta) {
 
     var util = new recoil.frp.Util(this.scope_.getFrp());
     var frp = this.scope_.getFrp();
 
-    table = util.toBehaviour(table);
-    meta = util.toBehaviour(meta);
+    var tableB = util.toBehaviour(table);
+    var metaB = util.toBehaviour(meta);
 
     var complete = frp.liftBI(function() {
-        return meta.get().applyMeta(table.get());
+        return metaB.get().applyMeta(tableB.get());
     }, function(val) {
-        table.set(val);
-    }, table, meta);
+        tableB.set(val);
+    }, tableB, metaB);
 
 
     this.attachStruct(complete);
-
-};
-/**
- * @interface
- * @template T
- */
-recoil.ui.widgets.table.Column = function() {
-};
-/**
- * adds all the meta information that a column should need
- * this should at least include cellWidgetFactory
- * other meta data can include:
- *   headerDecorator
- *   cellDecorator
- * and anything else specific to this column such as options for a combo box
- *
- * @nosideeffects
- * @param {Object} curMeta
- * @return {Object}
- */
-recoil.ui.widgets.table.Column.prototype.getMeta = function(curMeta) {
-
-};
-
-/**
- * @return {recoil.structs.table.ColumnKey}
- */
-recoil.ui.widgets.table.Column.prototype.getKey = function() {
 
 };
 
@@ -995,7 +967,7 @@ recoil.ui.widgets.table.Column.prototype.getKey = function() {
  * @template T
  * @param {recoil.structs.table.ColumnKey} key
  * @param {string} name
- * @implements {recoil.ui.widgets.table.Constructor}
+ * @implements {recoil.ui.widgets.table.Column}
  */
 recoil.ui.widgets.table.DefaultColumn = function(key, name) {
     this.name_ = name;
@@ -1008,10 +980,13 @@ recoil.ui.widgets.table.DefaultColumn = function(key, name) {
  * @nosideeffects
  */
 recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function(curMeta) {
+    /**
+     * @type Object<string, *>
+     */
     var meta = {name: this.name_};
     goog.object.extend(meta, curMeta);
 
-    var factoryMap = meta.typeFactories;
+    var factoryMap = meta['typeFactories'];
     var factory = (factoryMap === undefined || meta.type === undefined)
             ? undefined : factoryMap[meta.type];
     var column = factory === undefined
@@ -1042,7 +1017,7 @@ recoil.ui.widgets.TableMetaData = function() {
 
 /**
  * @template CT
- * @param {recoil.structs.table.Column<CT>} col
+ * @param {recoil.ui.widgets.table.Column<CT>} col
  */
 recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
     this.columns_.push(col);
@@ -1052,7 +1027,7 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
  *
  * @template CT
  * @param {recoil.structs.table.ColumnKey<CT>} key
- * @param {String} name
+ * @param {string} name
  */
 recoil.ui.widgets.TableMetaData.prototype.add = function(key, name) {
     this.addColumn(new recoil.ui.widgets.table.DefaultColumn(key, name));

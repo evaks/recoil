@@ -12,14 +12,14 @@ goog.require('recoil.ui.widgets.table.Column');
  * @constructor
  * @param {recoil.structs.table.ColumnKey} key
  * @param {string} name
- * @param {number} maxChars
- * @param {boolean} editable
+ * @param {number=} opt_maxChars
+ * @param {boolean=} opt_editable
  *
  */
-recoil.ui.widgets.table.StringColumn = function(key, name, maxChars, editable) {
+recoil.ui.widgets.table.StringColumn = function(key, name, opt_maxChars, opt_editable) {
     this.meta_ = recoil.util.object.removeUndefined(
-        {maxChars: maxChars,
-         editable: editable === undefined ? true : editable});
+        {maxChars: opt_maxChars === undefined ? 0 : opt_maxChars,
+         editable: opt_editable === undefined ? true : opt_editable});
     this.key_ = key;
     this.name_ = name;
 };
