@@ -33,11 +33,11 @@
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
     var toSet = frp.createCallback(
-                                function(e) {console.log("event",e);});
+    function(e) {console.log("event",e);});
     
     
     recoil.ui.events.listen($('clickTest'), goog.events.EventType.CLICK,
-                            toSet);
+    toSet);
 
     frp.tm().attach(toSet);
     var rawTable = [

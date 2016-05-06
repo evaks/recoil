@@ -89,9 +89,8 @@ recoil.ui.widgets.LabelWidget.prototype.updateConfig_ = function(helper, configB
             goog.dom.removeChildren(this.component_);
         }
         var config = configB.get();
-        this.label_ = new goog.ui.Button(config.content, config.renderer, config.domHelper);
+        this.label_ = new goog.ui.Container(config.content, config.renderer, config.domHelper);
         this.label_.render(me.component_);
-        recoil.ui.events.listen(this.button_, goog.ui.Component.EventType.ACTION, this.callback_);
 
         // and created a new one
         me.state_.forceUpdate();

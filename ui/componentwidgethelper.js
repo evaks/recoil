@@ -13,7 +13,7 @@ goog.require('recoil.ui.WidgetScope');
 
 /**
  * @template T
- * @param {recoil.ui.WidgetScope} widgetScope gui scope
+ * @param {!recoil.ui.WidgetScope} widgetScope gui scope
  * @param {!Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer callback will be called with
  * @param {function(recoil.ui.WidgetHelper,...)} callback
