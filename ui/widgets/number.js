@@ -63,7 +63,6 @@ recoil.ui.widgets.NumberWidget.NumberInput = function () {
         // Ensure that it is a number and stop the keypress
         if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
             e.preventDefault();
-            console.log("keypress prevented", e.keyCode);
         }
     };
 
@@ -83,11 +82,21 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
     
     goog.events.listen(element
                        ,goog.events.EventType.KEYDOWN, this.keyFilter_);              
-    goog.events.listen(new goog.events.InputHandler(element)
-                       ,goog.events.InputHandler.EventType.INPUT, 
+    goog.events.listen(new goog.events.PasteHandler(element)
+                       ,goog.events.PasteHandler.EventType.PASTE, 
                        function (e) {
-//                           var txt = e.clipboardData.getData('text/plain');
-                           console.log("paste",e);
+                           var inputEl = e.target;
+                           var origText = inputEl;
+
+                           var clip = e.getBrowserEvent().clipboardData;
+                           var txt = clip.getData('text/plain');
+                           
+                           txt = txt.replace(/[^0-9.+]/g, "F"); 
+                           console.log("paste",e, txt);
+                           clip.clearData('text/plain');
+                           clip.setData('text/plain', txt);
+//            e.preventDefault();
+//                           e.stopPropagation();
                            //filter stuff here
                        });        
 
