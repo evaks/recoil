@@ -1103,6 +1103,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
 recoil.frp.TransactionManager = function(frp) {
     this.providers_ = [];
     this.level_ = 0;
+    this.watching_ = 0;
     this.pending_ = [new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator()),
                      new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator())];
     this._dependancyMap = [];
@@ -1427,8 +1428,11 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
                 me.addProvidersToDependancyMap_(b);
             }
             visited[idx].addRef(me);
+            me.watching_++;
         }
     });
+    console.log("Attach Watching = ", this.watching_);
+
 };
 
 /**
@@ -1518,7 +1522,8 @@ recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
                 me.removeProvidersFromDependancyMap_(b);
                 me.removePending_(b);
             }
+            me.watching_--;
         }
     });
-
+    console.log("Detach Watching = ", this.watching_);
 };
