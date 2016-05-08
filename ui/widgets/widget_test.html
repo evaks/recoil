@@ -17,6 +17,7 @@
 
 <body>
   <div id="numberW"/>
+  <div id="number1W"/>
   <input type="number"/>
   <script>
     var scope = new recoil.ui.WidgetScope();
@@ -24,10 +25,14 @@
     var $ = goog.dom.getElement;
 
     var numberWidget = new recoil.ui.widgets.NumberWidget(scope);
+    var numberWidget1 = new recoil.ui.widgets.NumberWidget(scope);
     numberWidget.getComponent().render($('numberW'));
+    numberWidget1.getComponent().render($('number1W'));
 
     var value = frp.createB(7);
-    numberWidget.attach(value);
+    numberWidget.attach("",value, undefined, undefined, 1);
+    numberWidget1.attach("",value, undefined, undefined, 1);
+
   </script>
 </body>
 </html>

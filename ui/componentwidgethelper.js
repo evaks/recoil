@@ -10,6 +10,7 @@ goog.provide('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
 goog.require('recoil.ui.WidgetScope');
+goog.require('goog.events.FocusHandler');
 
 /**
  * @template T
@@ -166,21 +167,26 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
     comp.createDom();
 
     switch (type) {
-        case goog.events.InputHandler.EventType.INPUT:
-            this.handler_ = new goog.events.InputHandler(comp.getElement());
-            break;
-        case goog.events.EventType.CLICK:
-            this.handler_ = comp;
-            break;
-        case goog.ui.Component.EventType.ACTION: //goog.events.EventType.ACTION:
-            this.handler_ = comp;
-            break;
-        default:
-            throw ('Unsupported Event Type');
+    case goog.events.InputHandler.EventType.INPUT:
+        this.handler_ = new goog.events.InputHandler(comp.getElement());
+        break;
+    case goog.events.EventType.CLICK:
+        this.handler_ = comp;
+        break;
+    case goog.events.EventType.BLUR:
+    case goog.events.EventType.FOCUS:
+        this.handler_ = comp.getElement();
+        break;
+    case goog.ui.Component.EventType.ACTION: //goog.events.EventType.ACTION:
+        this.handler_ = comp;
+        break;
+    default:
+        throw ('Unsupported Event Type');
     }
 
     var me = this;
     this.func_ = function(e) {
+        console.log("evt", e);
         if (me.listener_) {
             me.listener_.frp().accessTrans(function() {
                 me.listener_.set(e);

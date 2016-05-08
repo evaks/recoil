@@ -16,15 +16,19 @@ recoil.frp.Util = function(frp) {
  * does nothing
  * @template T
  * @param {recoil.frp.Behaviour<T> | T} value
+ * @param {T} opt_default
  * @return {recoil.frp.Behaviour<T>}
  *
  */
-recoil.frp.Util.prototype.toBehaviour = function(value) {
+recoil.frp.Util.prototype.toBehaviour = function(value, opt_default) {
 
     if (value instanceof recoil.frp.Behaviour) {
         return value;
     }
     else {
+        if (opt_default !== undefined && value === undefined) {
+            return this.frp_.createConstB(opt_default);
+        }
         return this.frp_.createConstB(value);
     }
 };
