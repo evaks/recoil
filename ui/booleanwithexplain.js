@@ -22,6 +22,17 @@ recoil.ui.BoolWithExplaination = function(val, opt_true, opt_false) {
 recoil.ui.BoolWithExplaination.TRUE = new recoil.ui.BoolWithExplaination(true);
 recoil.ui.BoolWithExplaination.FALSE = new recoil.ui.BoolWithExplaination(false);
 
+
+recoil.ui.BoolWithExplaination.prototype.val = function () {
+    return this.val_;
+};
+
+
+recoil.ui.BoolWithExplaination.prototype.reason = function () {
+    return this.val_ ? this.true_ : this.false_;
+};
+
+
 /**
  *
  * @param var_values

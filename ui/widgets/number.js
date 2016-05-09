@@ -7,6 +7,7 @@ goog.require('goog.ui.Component');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.ui.widgets.LabelWidget');
+goog.require('goog.ui.Tooltip');
 
 /**
  *
@@ -73,67 +74,12 @@ goog.inherits(recoil.ui.widgets.NumberWidget.NumberInput, goog.ui.LabelInput);
 
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.enterDocument = function() {
   recoil.ui.widgets.NumberWidget.NumberInput.superClass_.enterDocument.call(this);
-  this.attachEvents_();
 };
 
 
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.exitDocument = function() {
   recoil.ui.widgets.NumberWidget.NumberInput.superClass_.exitDocument.call(this);
-  this.detachEvents_();
-
 };
-
-
-
-/**
- * Attaches the events we need to listen to.
- * @private
- */
-recoil.ui.widgets.NumberWidget.NumberInput.prototype.attachEvents_ = function() {
-  var eh = new goog.events.EventHandler(this);
-
-    goog.events.listen(this.getElement(), goog.events.EventType.BLUR,function () {
-        console.log("foo");
-    });
-
-  eh.listen(this.getElement(), goog.events.EventType.FOCUS, this.handleFocus_);
-  eh.listen(this.getElement(), goog.events.EventType.BLUR, this.handleBlur_);
-    console.log("attachx",this.getElement());
-};
-
-recoil.ui.widgets.NumberWidget.NumberInput.prototype.handleFocus_ = function() {
-
-    console.log("handle focus");
-};
-
-
-/** @override */
-recoil.ui.widgets.NumberWidget.NumberInput.prototype.disposeInternal = function() {
-  goog.ui.LabelInput.superClass_.disposeInternal.call(this);
-  this.detachEvents_();
-};
-
-
-/**
- * Stops listening to the events.
- * @private
- */
-recoil.ui.widgets.NumberWidget.NumberInput.prototype.detachEvents_ = function() {
-  if (this.eventHandler_) {
-    this.eventHandler_.dispose();
-    this.eventHandler_ = null;
-  }
-};
-
-
-recoil.ui.widgets.NumberWidget.NumberInput.prototype.handeFocus_ = function() {
-    console.log("x");
-};
-
-recoil.ui.widgets.NumberWidget.NumberInput.prototype.handeBlur_ = function() {
-    console.log("x");
-};
-
 
 
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.setMin = function(min) {
@@ -305,9 +251,19 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         this.number_.setMin(this.minB_.get());
     }
 
-
+    if (this.maxB_.metaGet().good()) {
+        this.number_.setStep(this.maxB_.get());
+    }
+    
     if (this.stepB_.metaGet().good()) {
         this.number_.setStep(this.stepB_.get());
     }
 
+    this.number_.setEnabled(enabled && this.enabledB_.get().val());
+    if (enabled) {
+        console.log("enabled", this.number_);
+    }
+
+    new goog.ui.Tooltip (this.number_.getElement(), "this is a test");
+    
 };

@@ -10,6 +10,7 @@ goog.provide('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
 goog.require('recoil.ui.WidgetScope');
+goog.require('recoil.messages');
 goog.require('goog.events.FocusHandler');
 
 /**
@@ -89,6 +90,40 @@ recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
 
     return true;
 };
+
+/**
+ * @return {!Array<*>} an array of errors
+ */
+recoil.ui.ComponentWidgetHelper.prototype.errors = function() {
+    var result = [];
+    
+    
+    for (var key in this.behaviours_) {
+        var b = this.behaviours_[key];
+
+        
+        if (!b.hasRefs()) {
+            continue;
+        }
+
+        var meta = b.metaGet();
+
+        if (meta !== null) {
+            var errors = meta.errors();
+            
+            for (var i = 0; i < errors.length; i++) {
+                var error = errors[i];
+                if (result.indexOf(error) === -1 ) {
+                    result.push(error);
+                }
+            }
+        }
+    }
+
+    return result;
+};
+
+
 
 /**
  * force the change to fire
@@ -216,4 +251,58 @@ recoil.ui.EventHelper.prototype.listen = function(callback) {
     }
 
 
+};
+
+/**
+ * This class will but the correct tooltip on the component
+ * including not ready, and error messaged
+ * @param {!recoil.ui.WidgetScope} widgetScope gui scope
+ * @param {!Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
+ * @param {Object} obj the this pointer callback will be called with
+ * @param {function(recoil.ui.WidgetHelper,...)} callback
+ */
+
+recoil.ui.TooltipHelper = function(widgetScope, component) {
+    this.behaviours_ =[];
+    this.enabledB_ = null;
+    this.component_ = component;
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(widgetScope, component, this, recoil.ui.TooltipHelper.update_);
+};
+
+
+/**
+*/
+recoil.ui.TooltipHelper.prototype.attach = function (component, enabledB, var_helpers) {
+    
+    this.enabledB_ = enabledB;
+    this.behaviours_ = [enabledB];
+    for (var i = 2; i < arguments.length; i++) {
+        var helper = arguments[i];
+        for (var b = 0; b < helper.behaviours_.length; b++) {
+            this.behaviours_.push(helper.behaviours_[b]);
+        }
+    }
+    this.helper_.attach.apply(this.helper_, this.behaviours_);
+    
+};
+
+recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
+    var tooltip = null;
+    if (helper.isGood()) {
+        tooltip = this.enabledB_.get().reason();
+    }
+    else {
+        var errors = this.helper_.errors();;
+        if (errors.length > 0) {
+            for (var i = 0; i < errors.length; i++) {
+                if (tooltip === null) {
+                    tooltip = errors[i];
+                }
+                else {
+                    tooltip = recoil.messages.AND.resolve({first: tooltip, second : errors[i]});
+                }
+            }
+        }
+    }
+    goog.ui.Tooltip (this.component_.getElement(), tooltip);
 };
