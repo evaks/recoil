@@ -718,6 +718,13 @@ recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable)
     console.log(keys);
     var tbl = new recoil.structs.table.MutableTable(keys.primaryKeys, keys.otherKeys);
 
+    tbl.setMeta({'typeFactories': typeFactories});
+
+    for (var tMeta in tableMeta) {
+        var colKey = tableMeta[tMeta].key;
+        tbl.setColumnMeta(colKey,tableMeta[tMeta]);
+    }
+    
     rawTable.forEach(function(item) {
         var row = new recoil.structs.table.MutableTableRow();
 

@@ -10,7 +10,7 @@ goog.provide('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
 goog.require('recoil.ui.WidgetScope');
-goog.require('recoil.messages');
+goog.require('recoil.ui.messages');
 goog.require('goog.events.FocusHandler');
 
 /**
@@ -27,7 +27,7 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
     this.frp_ = widgetScope.getFrp();
     this.component_ = component;
     if (!(callback instanceof Function)) {
-        throw "callback not a function";
+        throw new Error("callback not a function");
     }
     var me = this;
     this.listenFunc_ = function(visible) {
@@ -265,14 +265,17 @@ recoil.ui.EventHelper.prototype.listen = function(callback) {
 recoil.ui.TooltipHelper = function(widgetScope, component) {
     this.behaviours_ =[];
     this.enabledB_ = null;
+    this.tooltip_ = null;
     this.component_ = component;
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(widgetScope, component, this, recoil.ui.TooltipHelper.update_);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(widgetScope, component, this, this.update_);
 };
 
 
 /**
-*/
-recoil.ui.TooltipHelper.prototype.attach = function (component, enabledB, var_helpers) {
+ * @param {recoil.frp.Behaviour<goog.ui.BoolWithExplaination>} enabledB
+ * @param {...recoil.ui.ComponentWidgetHelper} var_helpers
+ */
+recoil.ui.TooltipHelper.prototype.attach = function (enabledB, var_helpers) {
     
     this.enabledB_ = enabledB;
     this.behaviours_ = [enabledB];
@@ -289,20 +292,23 @@ recoil.ui.TooltipHelper.prototype.attach = function (component, enabledB, var_he
 recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
     var tooltip = null;
     if (helper.isGood()) {
-        tooltip = this.enabledB_.get().reason();
+        var reason = this.enabledB_.get().reason();
+        tooltip = reason === null ? null : reason.toString();
+    
     }
     else {
         var errors = this.helper_.errors();;
         if (errors.length > 0) {
-            for (var i = 0; i < errors.length; i++) {
-                if (tooltip === null) {
-                    tooltip = errors[i];
-                }
-                else {
-                    tooltip = recoil.messages.AND.resolve({first: tooltip, second : errors[i]});
-                }
-            }
+            tooltip = recoil.ui.messages.join(errors).toString();
         }
     }
-    goog.ui.Tooltip (this.component_.getElement(), tooltip);
+    if (this.tooltip_) {
+        this.tooltip_.detach(this.component_.getElement());
+    }
+    if (tooltip === null) {
+            this.tooltip_ = null;
+    }
+    else {
+        this.tooltip_ = goog.ui.Tooltip (this.component_.getElement(), tooltip);
+    }
 };

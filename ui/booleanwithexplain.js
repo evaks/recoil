@@ -6,11 +6,12 @@
 
 goog.provide('recoil.ui.BoolWithExplaination');
 
-goog.require('recoil.ui.Message');
+goog.require('recoil.ui.messages');
+goog.require('recoil.ui.message.Message');
 /**
  * @param {!boolean} val
- * @param {recoil.ui.Message=} opt_true
- * @param {recoil.ui.Message=} opt_false
+ * @param {recoil.ui.message.Message=} opt_true
+ * @param {recoil.ui.message.Message=} opt_false
  * @constructor
  */
 recoil.ui.BoolWithExplaination = function(val, opt_true, opt_false) {
@@ -27,7 +28,8 @@ recoil.ui.BoolWithExplaination.prototype.val = function () {
     return this.val_;
 };
 
-
+/**
+ * @return {?recoil.ui.message.Message}
 recoil.ui.BoolWithExplaination.prototype.reason = function () {
     return this.val_ ? this.true_ : this.false_;
 };
@@ -56,10 +58,10 @@ recoil.ui.BoolWithExplaination.prototype.and = function(var_values) {
     }
 
     if (res) {
-        return new recoil.ui.BoolWithExplaination(true, recoil.ui.Message.join(trueExplain), null);
+        return new recoil.ui.BoolWithExplaination(true, recoil.ui.messages.join(trueExplain), null);
     }
     else {
-        return new recoil.ui.BoolWithExplaination(false, null, recoil.ui.Message.join(falseExplain));
+        return new recoil.ui.BoolWithExplaination(false, null, recoil.ui.messages.join(falseExplain));
     }
 };
 

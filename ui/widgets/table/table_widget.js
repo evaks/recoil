@@ -1047,7 +1047,9 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
     var mtable = table.unfreeze();
     var pos = 0;
     this.columns_.forEach(function(col) {
-        var meta = col.getMeta(mtable.getColumnMeta(col.getKey()));
+        var inMeta = {};
+        goog.object.extend(inMeta, table.getMeta(),mtable.getColumnMeta(col.getKey())); 
+        var meta = col.getMeta(inMeta);
         if (meta.position === undefined) {
             meta.position = pos;
         }

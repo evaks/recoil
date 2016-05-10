@@ -26,6 +26,8 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.configHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateConfig_);
 
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.number_, goog.events.EventType.BLUR);
+    this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.number_);
+    
 };
 
 recoil.ui.widgets.NumberWidget.DomHelper_ = function() {
@@ -90,7 +92,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.setMin = function(min) {
 };
 
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.setMax = function(max) {
-    this.max_ = ma;
+    this.max_ = max;
     if (this.element_) {
         this.element_.mac = max;
     }
@@ -185,18 +187,24 @@ recoil.ui.widgets.NumberWidget.prototype.getLabel = function() {
  * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplaination>} enabled
  */
 recoil.ui.widgets.NumberWidget.prototype.attach = function(name, value, min, max,step, enabled) {
+};
 
-    
-
+recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(name, value, min, max,step, enabled) {
+    var frp = this.valueHelper_.getFrp();
+    this.attachMeta(recoil.frp.struct.extend(options, {'name' : name, value : value});
+};
+recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var frp = this.valueHelper_.getFrp();
     var util = new recoil.frp.Util(frp);
-
-    this.nameB_ = util.toBehaviour(name,"");
-    this.valueB_ = util.toBehaviour(value);
-    this.minB_ = util.toBehaviour(min, NaN);
-    this.maxB_ = util.toBehaviour(max, NaN);
-    this.stepB_ = util.toBehaviour(step,1);
-    this.enabledB_ = util.toBehaviour(enabled, recoil.ui.BoolWithExplaination.TRUE);
+    var structs = recoil.frp.struct;
+    var optionsB = structs.flattern(frp, options);
+    
+    this.nameB_ = structs.get('name',optionsB, "");
+    this.valueB_ = structs.get('value',options);
+    this.minB_ = structs.get('min', optionsB,NaN);
+    this.maxB_ = structs.get('max', optionsB,NaN);
+    this.stepB_ = structs.get('step', optionsB, step,1);
+    this.enabledB_ = structs.get('enabled',optionsB,recoil.ui.BoolWithExplaination.TRUE);
 
     var readyB = util.isAllGood(
         this.nameB_, this.valueB_,
@@ -216,6 +224,8 @@ recoil.ui.widgets.NumberWidget.prototype.attach = function(name, value, min, max
         console.log("INPUT SET");
         me.valueB_.set(inputEl.value);
     }, this.valueB_));
+
+    this.enabledHelper_.attach(this.enabledB_, this.valueHelper_, this.configHelper_);
 };
 
 /**
@@ -264,6 +274,5 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         console.log("enabled", this.number_);
     }
 
-    new goog.ui.Tooltip (this.number_.getElement(), "this is a test");
     
 };
