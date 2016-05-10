@@ -49,7 +49,7 @@ recoil.ui.widgets.NumberWidget.NumberInput = function () {
     this.keyFilter_ = function (e) {
 
         // Allow: backspace, delete, tab, escape, enter and .
-        if (goog.array.contains([46, 8, 9, 27, 13, 110, 190],e.keyCode) ||
+        if (goog.array.contains([46, 40, 8, 9, 27, 13, 110, 190],e.keyCode) ||
             // Allow: Ctrl+A
             (e.keyCode == 65 && e.ctrlKey === true) ||
             // Allow: Ctrl+C
@@ -65,6 +65,7 @@ recoil.ui.widgets.NumberWidget.NumberInput = function () {
         }
         // Ensure that it is a number and stop the keypress
         if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+            console.log("prevent", e.keyCode);
             e.preventDefault();
         }
     };
@@ -121,7 +122,6 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
                        ,goog.events.EventType.KEYDOWN, this.keyFilter_);              
     goog.events.listen(element, goog.events.EventType.BLUR,
                        function () {
-                           console.log("blur");
                            if (!element.validity.valid) {
                                element.value = lastValid;
                            }

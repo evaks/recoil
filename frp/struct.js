@@ -36,24 +36,29 @@ recoil.frp.struct.get = function(name, value, opt_default) {
 recoil.frp.struct.extend = function (frp, structB, var_extensionsB) {
     var args = [];
     var util = new recoil.frp.Util(frp);
-    
+    var outerArgs = arguments;
     args.push(function() {
         var res = {};
-        recoil.util.object.addProps(arguments);
+        for (var i = 0; i < arguments.length; i++) {
+            recoil.util.object.addProps(res,arguments[i]);
+        }
         return res;
     });
 
     args.push(function(val) {
-        for (var key in val) {
-            var done = false;
-            for (var i = arguments.length; i >= 1 && !done; i--) {
-                var arg = arguments[i][key];
-                if (arg instanceof recoil.frp.Behaviour) {
-                    arg.set(val[key]);
-                    done = true;
-                    break;
+        var done = {};
+        for (var i = arguments.length - 1; i >= 1 && !done; i--) {
+            var argB = arguments[i];
+            var oldVal = goog.object.clone(argB.get());
+            for (var key in val) {
+
+                if (!done[key] && oldVal.hasOwnProperty(key)) {
+                    done[key] =true;
+                    oldVal[key] = val[key];
                 }
             }
+            argB.set(oldVal);
+            
         }
     });
     for (var i = 1; i < arguments.length; i++) {
@@ -84,7 +89,7 @@ recoil.frp.struct.getBehavioursRec_ = function (struct, path, res) {
     else if (struct instanceof Object) {
         for (var prop in struct) {
             if (struct.hasOwnProperty(prop)) {
-                res.push(recoil.frp.struct.getBehavioursRec_(struct[prop],newPath, res));
+                recoil.frp.struct.getBehavioursRec_(struct[prop],newPath, res);
             }
         }
     }
@@ -186,16 +191,21 @@ recoil.frp.struct.flattern = function (frp, structB) {
 
     var args = [
         function () {
+            console.log("flattern", recoil.frp.struct.flatternRec_(structB, []));
             return recoil.frp.struct.flatternRec_(structB, []);
         },
-        function () {
-            return recoil.frp.struct.setFatternRec_(structB, []);
+        function (val) {
+            console.log("inv flattern", val);
+            return recoil.frp.struct.setFlatternRec_(structB, val, []);
 
         }
     ];
 
-    recoil.frp.struct.getBehavioursRec_(structB, args, []);
+    recoil.frp.struct.getBehavioursRec_(structB, [],args);
 
+    if (args.length === 2) {
+        return frp.createConstB(structB);
+    }
     return frp.liftBI.apply(frp, args);
     
 };
