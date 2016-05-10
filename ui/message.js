@@ -31,7 +31,7 @@ recoil.ui.message.Message.prototype.resolve = function (data) {
 };
 
 
-recoil.ui.message.Message.prototype.toMessage = function (message) {
+recoil.ui.message.toMessage = function (message) {
     if (message instanceof recoil.ui.message.Message) {
             return message;
     }

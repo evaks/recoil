@@ -216,7 +216,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         this.handler_ = comp;
         break;
     default:
-        throw ('Unsupported Event Type');
+        throw new Error('Unsupported Event Type');
     }
 
     var me = this;
@@ -279,7 +279,7 @@ recoil.ui.TooltipHelper.prototype.attach = function (enabledB, var_helpers) {
     
     this.enabledB_ = enabledB;
     this.behaviours_ = [enabledB];
-    for (var i = 2; i < arguments.length; i++) {
+    for (var i = 1; i < arguments.length; i++) {
         var helper = arguments[i];
         for (var b = 0; b < helper.behaviours_.length; b++) {
             this.behaviours_.push(helper.behaviours_[b]);
@@ -292,6 +292,7 @@ recoil.ui.TooltipHelper.prototype.attach = function (enabledB, var_helpers) {
 recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
     var tooltip = null;
     if (helper.isGood()) {
+        console.log("enabled", this.enabledB_.get());
         var reason = this.enabledB_.get().reason();
         tooltip = reason === null ? null : reason.toString();
     
@@ -302,13 +303,14 @@ recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
             tooltip = recoil.ui.messages.join(errors).toString();
         }
     }
+    this.component_.createDom();
     if (this.tooltip_) {
-        this.tooltip_.detach(this.component_.getElement());
+        this.tooltip_.detach(this.component_);
     }
     if (tooltip === null) {
-            this.tooltip_ = null;
+        this.tooltip_ = null;
     }
     else {
-        this.tooltip_ = goog.ui.Tooltip (this.component_.getElement(), tooltip);
+        this.tooltip_ = new goog.ui.Tooltip (this.component_.getElement(), tooltip);
     }
 };

@@ -23,6 +23,10 @@ recoil.exception.LoopDetected = function() {
 
 };
 
+recoil.exception.LoopDetected.toString = function() {
+    return "Loop Detected";
+};
+
 /**
  * @constructor
  * @this {recoil.exception.NotAttached}
@@ -32,6 +36,7 @@ recoil.exception.NotAttached = function() {
 
 };
 
+
 recoil.exception.NotAttached.prototype.toString = function() {
     return this.name_;
 
@@ -39,11 +44,28 @@ recoil.exception.NotAttached.prototype.toString = function() {
 
 /**
  * @constructor
+ * @extends {Error}
  * @this {recoil.exception.NoAccessors}
  */
 recoil.exception.NoAccessors = function() {
-  this.name_ = 'No Accessors';
+    this.constructor.prototype.__proto__ = Error.prototype
+/*//    Error.captureStackTrace(this, this.constructor)
+    this.name = this.constructor.name
+    this.message = 'No Accessors';
+    console.log("error", Error);*/
+    var e = new Error(); 
+    this.message = 'No Accessors';
+    this.stack = e.stack;
+    this.fileName = e.fileName;
+    this.lineNumber = e.lineNumber;
+    this.stack = e.stack;
 };
+
+
+//recoil.exception.NoAccessors.prototype = Error.prototype;
+
+//goog.inherits(Error,recoil.exception.NoAccessors);
+
 
 /**
  * @constructor
@@ -53,10 +75,19 @@ recoil.exception.NotInTransaction = function() {
   this.name_ = 'Not In Transaction';
 };
 
+
+recoil.exception.NotInTransaction.toString = function() {
+    return this.name_;
+};
+
 /**
  * @constructor
  * @this {recoil.exception.InvalidState}
  */
 recoil.exception.InvalidState = function() {
 
+};
+
+recoil.exception.InvalidState.toString = function() {
+    return "Invalid State";
 };

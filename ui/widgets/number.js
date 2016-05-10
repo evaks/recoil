@@ -189,10 +189,17 @@ recoil.ui.widgets.NumberWidget.prototype.getLabel = function() {
 recoil.ui.widgets.NumberWidget.prototype.attach = function(name, value, min, max,step, enabled) {
 };
 
-recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(name, value, min, max,step, enabled) {
+recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(name, value, options) {
     var frp = this.valueHelper_.getFrp();
-    this.attachMeta(recoil.frp.struct.extend(options, {'name' : name, value : value});
+    this.attachStruct(recoil.frp.struct.extend(frp,options, {'name' : name, value : value}));
 };
+
+
+/**
+ *
+ * @param data
+ */
+
 recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var frp = this.valueHelper_.getFrp();
     var util = new recoil.frp.Util(frp);
@@ -203,7 +210,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.valueB_ = structs.get('value',options);
     this.minB_ = structs.get('min', optionsB,NaN);
     this.maxB_ = structs.get('max', optionsB,NaN);
-    this.stepB_ = structs.get('step', optionsB, step,1);
+    this.stepB_ = structs.get('step', optionsB,1);
     this.enabledB_ = structs.get('enabled',optionsB,recoil.ui.BoolWithExplaination.TRUE);
 
     var readyB = util.isAllGood(
@@ -230,19 +237,6 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 
 /**
  *
- * @param data
- */
-recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(data) {
-
-    var nameB = recoil.struct.get('name', data);
-    var enabledB = recoil.struct.get('enabled', data);
-    var valueB = recoil.struct.get('value', data);
-
-    this.attach(nameB.get(), valueB.get(), enabledB.get());
-};
-
-/**
- *
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
@@ -254,7 +248,7 @@ recoil.ui.widgets.NumberWidget.prototype.updateValue_ = function(helper) {
 };
 
 recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
-    var enabled = helper.isGood() && this.valueHelper_.isGood();
+    var enabled = helper.isGood();
     
 
     if (this.minB_.metaGet().good()) {
@@ -269,10 +263,4 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         this.number_.setStep(this.stepB_.get());
     }
 
-    this.number_.setEnabled(enabled && this.enabledB_.get().val());
-    if (enabled) {
-        console.log("enabled", this.number_);
-    }
-
-    
 };

@@ -3,6 +3,7 @@ goog.provide('recoil.frp.struct');
 goog.require('goog.object');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
+goog.require('recoil.util.object');
 
 /**
  * @param {string} name the attribute name of the element to get out of the struct
@@ -38,7 +39,7 @@ recoil.frp.struct.extend = function (frp, structB, var_extensionsB) {
     
     args.push(function() {
         var res = {};
-        recoil.ui.object.addProps(arguments);
+        recoil.util.object.addProps(arguments);
         return res;
     });
 

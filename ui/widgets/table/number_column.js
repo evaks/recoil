@@ -31,6 +31,7 @@ recoil.ui.widgets.table.NumberColumn.defaultWidgetFactory_ = function (scope, ce
     var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
 
     widget.attachMeta('', value, recoil.frp.struct.extend(scope.getFrp(),this.options_, meta));
+    return widget;
 };
 
 /**

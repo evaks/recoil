@@ -20,7 +20,7 @@ recoil.ui.messages.join = function (messages) {
         return new recoil.ui.message.Message(['']);
     }
     if (messages.length === 1) {
-        return new recoil.ui.message.toMessage(messages[0]);
+        return recoil.ui.message.toMessage(messages[0]);
     }
 
     var first = messages[0];

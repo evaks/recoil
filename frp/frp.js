@@ -662,7 +662,9 @@ recoil.frp.Behaviour.prototype.metaGet = function() {
 
     if (hasProviders && this.accessors_ === 0) {
         // if providers are feeding into me then it is NOT ok just to set the value
-        throw new recoil.exception.NoAccessors();
+        var acc = new recoil.exception.NoAccessors();
+        
+        throw acc;
     }
 
     return this.val_;
@@ -684,7 +686,9 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
 
     if (hasProviders && this.accessors_ === 0) {
         // if providers are feeding into me then it is NOT ok just to set the value
-        throw new recoil.exception.NoAccessors();
+        var acc = new recoil.exception.NoAccessors();
+
+        throw acc;
     }
 
     if (hasTm) {

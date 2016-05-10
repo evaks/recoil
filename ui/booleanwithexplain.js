@@ -30,6 +30,7 @@ recoil.ui.BoolWithExplaination.prototype.val = function () {
 
 /**
  * @return {?recoil.ui.message.Message}
+ */
 recoil.ui.BoolWithExplaination.prototype.reason = function () {
     return this.val_ ? this.true_ : this.false_;
 };
