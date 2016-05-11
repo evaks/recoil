@@ -481,6 +481,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
 	throw "inverse not function";
     }
 
+    
     this.dirtyUp_ = false;
     this.dirtyUpOldValue_ = null;
     this.dirtyDown_ = false;
@@ -501,14 +502,28 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     if (providers) {
         providers.forEach(function(p) {
             if (! (p instanceof recoil.frp.Behaviour)) {
-                throw Error('provider not a behaviour');
+                throw new Error('provider not a behaviour');
             }
         });
     }
     this.refListeners_ = [];
     this.providers_ = providers || [];
+
+    this.loopCheck({});
 };
 
+recoil.frp.Behaviour.prototype.loopCheck = function(path) {
+    if (path[this.seqStr_] !== undefined) {
+        throw new recoil.exception.LoopDetected();
+    }
+    path = goog.object.clone(path);
+    path[this.seqStr_] = this;
+    
+    for (var i = 0; i < this.providers_; i++) {
+	this.providers_[i].loopCheck(path);
+    }
+	
+}
 /**
  * @return {recoil.frp.Frp} the associated frp engine
  */
@@ -1224,13 +1239,13 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
 
         for (var prov = 0; prov < cur.b.providers_.length; prov++) {
             var provObj = cur.b.providers_[prov];
-            if (cur.path[String(provObj.seq_)] !== undefined) {
+            if (cur.path[provObj.seqStr_] !== undefined) {
                 throw new recoil.exception.LoopDetected();
             }
 
-            var newPath = goog.array.clone(cur.path);
-            newPath[String(provObj.seq_)] = provObj;
-
+            var newPath = goog.object.clone(cur.path);
+            newPath[provObj.seqStr_] = provObj;
+	    console.log("seq", provObj.seqStr_, newPath);
             toDo.push({
                 b: provObj,
                 path: newPath

@@ -20,25 +20,28 @@ recoil.exception.NotInDom = function(node) {
  * @this {recoil.exception.LoopDetected}
  */
 recoil.exception.LoopDetected = function() {
+    var e = new Error(); 
+    this.message = 'Loop Detected';
+    this.stack = e.stack;
+    this.fileName = e.fileName;
+    this.lineNumber = e.lineNumber;
+    this.stack = e.stack;
 
 };
 
-recoil.exception.LoopDetected.toString = function() {
-    return "Loop Detected";
-};
 
 /**
  * @constructor
  * @this {recoil.exception.NotAttached}
  */
 recoil.exception.NotAttached = function() {
-  this.name_ = 'Not Attached';
+    var e = new Error(); 
+    this.message = 'Not Attached';
+    this.stack = e.stack;
+    this.fileName = e.fileName;
+    this.lineNumber = e.lineNumber;
+    this.stack = e.stack;
 
-};
-
-
-recoil.exception.NotAttached.prototype.toString = function() {
-    return this.name_;
 
 };
 
@@ -48,7 +51,7 @@ recoil.exception.NotAttached.prototype.toString = function() {
  * @this {recoil.exception.NoAccessors}
  */
 recoil.exception.NoAccessors = function() {
-    this.constructor.prototype.__proto__ = Error.prototype
+//    this.constructor.prototype.__proto__ = Error.prototype
 /*//    Error.captureStackTrace(this, this.constructor)
     this.name = this.constructor.name
     this.message = 'No Accessors';

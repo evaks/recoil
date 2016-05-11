@@ -31,14 +31,11 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
     }
     var me = this;
     this.listenFunc_ = function(visible) {
-        console.log("attaching behaviour", me.attachedBehaviour_, visible);
         if (visible != me.isAttached_) {
             me.isAttached_ = visible;
             if (visible) {
-                console.log("attaching behaviour", me.attachedBehaviour_);
                 me.frp_.attach(me.attachedBehaviour_);
             } else {
-                console.log("detaching behaviour", me.attachedBehaviour_);
                 me.frp_.detach(me.attachedBehaviour_);
             }
         }

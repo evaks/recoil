@@ -71,9 +71,17 @@
     //this is wrong we can't simply go create b because tableMetaData contain
     //behaviours
 
-    //var columnsB = columns.createB(frp);
+    var bb = columns.createB(frp);
+    console.log("is behavior", bb instanceof recoil.frp.Behaviour);
+    bb.x ='foo';
+    var switchB = frp.createB(bb);
+    switchB.x ='switch';
+    console.log("is behavior", switchB instanceof recoil.frp.Behaviour);
+    var columnsB = frp.switchB(switchB);
+    
 
-    var  columnsB = frp.createB(columns);
+
+//    var  columnsB = frp.createB(columns);
     
 
 
@@ -146,8 +154,8 @@
     columns.add(tblKeys.name, "Name");
     //columns.add(tblKeys.count, "Count");
     columns.add(tblKeys.check, "Check");
-    columnsB.set(columns);
-    },columnsB));
+    switchB.set(columns.columnsB());
+    },switchB));
 
     var selectedB = tableWidget.createSelected();
     
