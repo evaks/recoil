@@ -8,6 +8,7 @@ goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.ui.widgets.LabelWidget');
 goog.require('goog.ui.Tooltip');
+goog.require('goog.events.KeyCodes');
 
 /**
  *
@@ -48,6 +49,9 @@ recoil.ui.widgets.NumberWidget.NumberInput = function () {
     // we need this because some browsers don't filter keys
     this.keyFilter_ = function (e) {
 
+        if (!goog.events.KeyCodes.isTextModifyingKeyEvent(e)) {
+            return;
+        }
         // Allow: backspace, delete, tab, escape, enter and .
         if (goog.array.contains([116, 46, 40, 8, 9, 27, 13, 110, 190],e.keyCode) ||
             // Allow: Ctrl+A

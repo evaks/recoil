@@ -852,7 +852,7 @@ recoil.frp.Frp.accessList = function(callback, behaviours) {
  */
 recoil.frp.Frp.prototype.switchB = function(Bb) {
     var me = this;
-    return this.metaLiftBI(function() {
+    var res = this.metaLiftBI(function() {
         var switchB = this;
         /** @type recoil.frp.Status<recoil.frp.Behaviour<recoil.frp.Behaviour>> */
         var metaBb = Bb.metaGet();
@@ -885,6 +885,8 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
         }
 
     }, Bb);
+    res.isSwitch = true;
+    return res;
 };
 
 /**
@@ -1413,7 +1415,9 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
     b.providers_.forEach(function(prov) {
         var deps = me._dependancyMap[String(prov.seq_)];
         if (deps !== undefined) {
-            // TODO what about the same provider twice?
+            // TODO what about the same provider twice? i think it ok
+            // because we always use visited so we only ever count
+            // each child once
             goog.array.removeIf(deps, recoil.frp.Frp._ptrEqual, b);
             if (deps.length === 0) {
                 delete me._dependancyMap[String(prov.seq_)];
@@ -1463,7 +1467,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     var oldVisited = this.visit(dependant);
     var oldProviders = goog.array.clone(dependant.providers_);
     dependant.providers_ = goog.array.clone(arguments);
-    // TODO remove the first argument it is the dependant
+    dependant.providers_.shift();
     var newVisited = this.visit(dependant);
     /** @type recoil.frp.Behaviour */
     var b;

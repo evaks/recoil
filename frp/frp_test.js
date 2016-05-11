@@ -280,6 +280,25 @@ function testLiftBOnlyGood() {
 
 
 }
+
+function testSwitchBOutsideBehaviour() {
+    
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+    
+    var a = frp.createB(frp.liftB(
+        function(z) {return z + ".";},frp.createB("hello")));
+    var b = frp.switchB(a);
+    var c = frp.liftB(function (v) { return v;}, b);
+    frp.attach(c);
+    frp.attach(c);
+    assertEquals("hello.",c.unsafeMetaGet().get());
+    frp.detach(c);
+    frp.detach(c);
+
+
+}
+
 function testSwitchBUp() {
 
     var frp = new recoil.frp.Frp();
