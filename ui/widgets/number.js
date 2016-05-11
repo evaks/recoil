@@ -49,7 +49,7 @@ recoil.ui.widgets.NumberWidget.NumberInput = function () {
     this.keyFilter_ = function (e) {
 
         // Allow: backspace, delete, tab, escape, enter and .
-        if (goog.array.contains([46, 40, 8, 9, 27, 13, 110, 190],e.keyCode) ||
+        if (goog.array.contains([116, 46, 40, 8, 9, 27, 13, 110, 190],e.keyCode) ||
             // Allow: Ctrl+A
             (e.keyCode == 65 && e.ctrlKey === true) ||
             // Allow: Ctrl+C
@@ -95,7 +95,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.setMin = function(min) {
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.setMax = function(max) {
     this.max_ = max;
     if (this.element_) {
-        this.element_.mac = max;
+        this.element_.max = "";
     }
 };
 
@@ -186,11 +186,9 @@ recoil.ui.widgets.NumberWidget.prototype.getLabel = function() {
  * @param {recoil.frp.Behaviour<number>} value
  * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplaination>} enabled
  */
-recoil.ui.widgets.NumberWidget.prototype.attach = function(name, value, min, max,step, enabled) {
-};
-
 recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(name, value, options) {
     var frp = this.valueHelper_.getFrp();
+    
     this.attachStruct(recoil.frp.struct.extend(frp,options, {'name' : name, value : value}));
 };
 
@@ -200,6 +198,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(name, value, opti
  * @param data
  */
 
+recoil.ui.widgets.NumberWidget.count = 0;
 recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var frp = this.valueHelper_.getFrp();
     var util = new recoil.frp.Util(frp);
@@ -228,8 +227,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-        console.log("INPUT SET");
-        me.valueB_.set(inputEl.value);
+        me.valueB_.set(parseFloat(inputEl.value));
     }, this.valueB_));
 
     this.enabledHelper_.attach(this.enabledB_, this.valueHelper_, this.configHelper_);
@@ -242,9 +240,11 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
  */
 recoil.ui.widgets.NumberWidget.prototype.updateValue_ = function(helper) {
     if (helper.isGood()) {
+        
         this.number_.setValue(this.valueB_.get());
-        console.log("update value",this.valueB_.get());
+        console.log("update value",this.number_.getElement().id, this.valueB_.get() );
     }
+    
 };
 
 recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {

@@ -31,11 +31,14 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
     }
     var me = this;
     this.listenFunc_ = function(visible) {
+        console.log("attaching behaviour", me.attachedBehaviour_, visible);
         if (visible != me.isAttached_) {
             me.isAttached_ = visible;
             if (visible) {
+                console.log("attaching behaviour", me.attachedBehaviour_);
                 me.frp_.attach(me.attachedBehaviour_);
             } else {
+                console.log("detaching behaviour", me.attachedBehaviour_);
                 me.frp_.detach(me.attachedBehaviour_);
             }
         }
@@ -199,8 +202,9 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
     this.capt_ = opt_capt;
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, comp, null, function() {});
 
-    comp.createDom();
-
+    if (!comp.getElement()) {
+        comp.createDom();
+    }
     switch (type) {
     case goog.events.InputHandler.EventType.INPUT:
         this.handler_ = new goog.events.InputHandler(comp.getElement());
@@ -292,7 +296,6 @@ recoil.ui.TooltipHelper.prototype.attach = function (enabledB, var_helpers) {
 recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
     var tooltip = null;
     if (helper.isGood()) {
-        console.log("enabled", this.enabledB_.get());
         var reason = this.enabledB_.get().reason();
         tooltip = reason === null ? null : reason.toString();
     
@@ -303,7 +306,9 @@ recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
             tooltip = recoil.ui.messages.join(errors).toString();
         }
     }
-    this.component_.createDom();
+    if (!this.component_.getElement()) {
+        this.component_.createDom();
+    }
     if (this.tooltip_) {
         this.tooltip_.detach(this.component_);
     }

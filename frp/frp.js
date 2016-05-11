@@ -340,11 +340,10 @@ recoil.frp.Frp.compareSeq_ = function(a, b) {
     var len = a.length > b.length ? b.length : a.length;
 
     for (var i = 0; i < len; i++) {
-        if (a[i] < b[i]) {
-            return -1;
-        }
-        if (a[i] > b[i]) {
-            return 1;
+        var res = a[i].compare(b[i])
+
+        if (res !== 0) {
+            return res;
         }
     }
 
@@ -502,7 +501,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     if (providers) {
         providers.forEach(function(p) {
             if (! (p instanceof recoil.frp.Behaviour)) {
-                throw 'provider not a behaviour';
+                throw Error('provider not a behaviour');
             }
         });
     }
@@ -742,7 +741,7 @@ recoil.frp.Behaviour.prototype.set = function(value) {
  */
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
-    return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
+    return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
 };
 /**
  * @template T
@@ -751,7 +750,7 @@ recoil.frp.Frp.prototype.createB = function(initial) {
  */
 recoil.frp.Frp.prototype.createE = function() {
     var metaInitial = recoil.frp.EStatus.notReady(true);
-    return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
+    return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
 };
 /**
  * @template T
@@ -759,7 +758,7 @@ recoil.frp.Frp.prototype.createE = function() {
  * @return {recoil.frp.Behaviour<T>}
  */
 recoil.frp.Frp.prototype.createMetaB = function(initial) {
-    return new recoil.frp.Behaviour(this, initial, undefined, undefined, [this.transactionManager_.nextIndex()], []);
+    return new recoil.frp.Behaviour(this, initial, undefined, undefined, this.transactionManager_.nextIndex(), []);
 };
 
 /**
@@ -772,7 +771,7 @@ recoil.frp.Frp.prototype.createConstB = function(initial) {
     return new recoil.frp.Behaviour(this, metaInitial, function() {
         return metaInitial;
     }, function(dummy) {
-    }, [this.transactionManager_.nextIndex()], []);
+    }, this.transactionManager_.nextIndex(), []);
 };
 
 /**
@@ -906,7 +905,7 @@ recoil.frp.Frp.prototype.metaLiftBI = function(func, invFunc, var_args) {
     for (var i = 2; i < arguments.length; i++) {
         providers.push(arguments[i]);
     }
-    return new recoil.frp.Behaviour(this, recoil.frp.BStatus.notReady(), func, invFunc, [this.transactionManager_.nextIndex()], providers);
+    return new recoil.frp.Behaviour(this, recoil.frp.BStatus.notReady(), func, invFunc, this.transactionManager_.nextIndex(), providers);
 };
 
 /**
@@ -923,7 +922,7 @@ recoil.frp.Frp.prototype.metaLiftEI = function(func, invFunc, var_args) {
     for (var i = 2; i < arguments.length; i++) {
         providers.push(arguments[i]);
     }
-    return new recoil.frp.Behaviour(this, recoil.frp.EStatus.notReady(false), func, invFunc, [this.transactionManager_.nextIndex()], providers);
+    return new recoil.frp.Behaviour(this, recoil.frp.EStatus.notReady(false), func, invFunc, this.transactionManager_.nextIndex(), providers);
 };
 
 /**
@@ -1435,7 +1434,6 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
             me.watching_++;
         }
     });
-    console.log("Attach Watching = ", this.watching_);
 
 };
 

@@ -7,6 +7,7 @@
 <script>
   goog.require('recoil.frp.Frp');
   goog.require('recoil.ui.widgets.table.TableWidget');
+  goog.require('recoil.ui.widgets.TableMetaData');
   goog.require('recoil.ui.widgets.ButtonWidget');
   goog.require('recoil.ui.BoolWithExplaination');
   goog.require('recoil.ui.WidgetScope');
@@ -66,8 +67,14 @@
     columns.add(tblKeys.name, "Name");
     columns.add(tblKeys.count, "Count");
     columns.add(tblKeys.check, "Check");
+
+    //this is wrong we can't simply go create b because tableMetaData contain
+    //behaviours
+
+    //var columnsB = columns.createB(frp);
+
+    var  columnsB = frp.createB(columns);
     
-    var columnsB = frp.createB(columns);
 
 
     var typeFactories = {"int": function(meta) {
@@ -78,8 +85,8 @@
         return new recoil.ui.widgets.table.BooleanColumn(meta);
     }};
 
-    var table = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
-    
+    var table = recoil.frp.debug.debug("TABLE",frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable)));
+    frp.tm().attach(table);
     var tableWidget = new recoil.ui.widgets.table.TableWidget(scope);
 
     console.log('table', $('tablediv'), tableWidget.getComponent().getElement());
@@ -112,7 +119,8 @@
     mtable.addRow(row);
     table.set(mtable.freeze());
     }, table));
-    tableWidget.attach(table,columnsB);
+			tableWidget.attach(table,recoil.frp.debug.debug("COLUMS", columnsB));
+			
     var hideWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var hideHeadersWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var showWidget = new recoil.ui.widgets.ButtonWidget(scope);

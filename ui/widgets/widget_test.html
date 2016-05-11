@@ -6,10 +6,12 @@
 
 <script>
   goog.require('recoil.frp.Frp');
+  goog.require('recoil.frp.debug');
   goog.require('recoil.ui.widgets.table.TableWidget');
   goog.require('recoil.ui.widgets.NumberWidget');
   goog.require('recoil.ui.BoolWithExplaination');
   goog.require('recoil.ui.WidgetScope');
+  
 </script>
 <style>
   .recoil_table_selected {background-color:green;}
@@ -29,10 +31,10 @@
     numberWidget.getComponent().render($('numberW'));
     numberWidget1.getComponent().render($('number1W'));
 
-    var value = frp.createB(7);
-    numberWidget.attach("",value, undefined, undefined, 1);
-    numberWidget1.attach("",value, undefined, undefined, 1);
-
+    var value = recoil.frp.debug.debug("Number Val",frp.createB(7));
+    numberWidget.attachMeta("",value,{});
+    numberWidget1.attachMeta("",value,{});
+    
   </script>
 </body>
 </html>

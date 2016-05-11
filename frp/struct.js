@@ -47,7 +47,7 @@ recoil.frp.struct.extend = function (frp, structB, var_extensionsB) {
 
     args.push(function(val) {
         var done = {};
-        for (var i = arguments.length - 1; i >= 1 && !done; i--) {
+        for (var i = arguments.length - 1; i >= 1; i--) {
             var argB = arguments[i];
             var oldVal = goog.object.clone(argB.get());
             for (var key in val) {
@@ -83,7 +83,7 @@ recoil.frp.struct.getBehavioursRec_ = function (struct, path, res) {
     }
     if (struct instanceof Array) {
         for (var i = 0; i < struct.length; i++) {
-            res.push(recoil.frp.struct.getBehavioursRec_(struct[i],newPath, res));
+            recoil.frp.struct.getBehavioursRec_(struct[i],newPath, res);
         }
     }
     else if (struct instanceof Object) {
@@ -174,16 +174,17 @@ recoil.frp.struct.flatternRec_ = function(struct, path) {
     };
     return struct;
 };
-    
+
+
 /**
-   * @desc takes a structure which is either a behaviour, or a 
-   *       structure with behaviours, and non behaviours in it
-   *       and returns a behaviour with a structur in it, note this is inversable
-   *       when possible
-   * @param {recoil.frp.Frp} frp
-   * @param {recoil.frp.Behaviour<Object>|Object} structB
-   * @return {recoil.frp.Behaviour<Object>}
-   */
+ * @desc takes a structure which is either a behaviour, or a 
+ *       structure with behaviours, and non behaviours in it
+ *       and returns a behaviour with a structur in it, note this is inversable
+ *       when possible
+ * @param {recoil.frp.Frp} frp
+ * @param {recoil.frp.Behaviour<Object>|Object} structB
+ * @return {recoil.frp.Behaviour<Object>}
+ */
 recoil.frp.struct.flattern = function (frp, structB) {
     if (structB instanceof recoil.frp.Behaviour) {
         return structB;
@@ -191,11 +192,9 @@ recoil.frp.struct.flattern = function (frp, structB) {
 
     var args = [
         function () {
-            console.log("flattern", recoil.frp.struct.flatternRec_(structB, []));
             return recoil.frp.struct.flatternRec_(structB, []);
         },
         function (val) {
-            console.log("inv flattern", val);
             return recoil.frp.struct.setFlatternRec_(structB, val, []);
 
         }
