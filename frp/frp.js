@@ -1247,7 +1247,6 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
 
             var newPath = goog.object.clone(cur.path);
             newPath[provObj.seqStr_] = provObj;
-	    console.log("seq", provObj.seqStr_, newPath);
             toDo.push({
                 b: provObj,
                 path: newPath

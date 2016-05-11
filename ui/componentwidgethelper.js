@@ -292,9 +292,11 @@ recoil.ui.TooltipHelper.prototype.attach = function (enabledB, var_helpers) {
 
 recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
     var tooltip = null;
+    var enabled;
     if (helper.isGood()) {
         var reason = this.enabledB_.get().reason();
         tooltip = reason === null ? null : reason.toString();
+        enabled = this.enabledB_.get().val();
     
     }
     else {
@@ -302,6 +304,7 @@ recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
         if (errors.length > 0) {
             tooltip = recoil.ui.messages.join(errors).toString();
         }
+        enabled = false;
     }
     if (!this.component_.getElement()) {
         this.component_.createDom();
@@ -314,5 +317,8 @@ recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
     }
     else {
         this.tooltip_ = new goog.ui.Tooltip (this.component_.getElement(), tooltip);
+        console.log("TOOTIP",this.tooltip_);
+//        this.tooltip_.setEnabled(enabled);
     }
+    this.component_.setEnabled(enabled);
 };

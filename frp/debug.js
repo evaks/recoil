@@ -4,11 +4,11 @@ goog.provide('recoil.frp.debug');
 recoil.frp.debug.debug =  function (name, behaviour) {
     return behaviour.frp().liftBI(
         function() {
-            console.log("calc", name, behaviour.get());
+            console.log(name, "calc", behaviour.get());
             return behaviour.get();
         },
         function (val) {
-            console.log("inv", name, behaviour.get());
+            console.log(name, "inv", val);
             
             behaviour.set(val);
         }, behaviour);

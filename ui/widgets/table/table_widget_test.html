@@ -65,7 +65,12 @@
 
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
-    columns.add(tblKeys.count, "Count");
+//    columns.add(tblKeys.count, "Count");
+    columns.addColumn(new recoil.ui.widgets.table.NumberColumn(tblKeys.count,"Count", {enabled: new recoil.ui.BoolWithExplaination(
+    false,
+    new recoil.ui.message.Message("It is good"), 
+    new recoil.ui.message.Message("It is bad") )
+    }));
     columns.add(tblKeys.check, "Check");
 
     //this is wrong we can't simply go create b because tableMetaData contain
