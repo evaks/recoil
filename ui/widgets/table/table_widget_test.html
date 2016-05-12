@@ -99,8 +99,7 @@
     }};
 
     var table = recoil.frp.debug.debug("TABLE",frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable)));
-    frp.tm().attach(table);
-    var tableWidget = new recoil.ui.widgets.table.TableWidget(scope);
+     var tableWidget = new recoil.ui.widgets.table.TableWidget(scope);
 
     console.log('table', $('tablediv'), tableWidget.getComponent().getElement());
 
