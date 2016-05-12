@@ -42,7 +42,6 @@ recoil.ui.widgets.table.NumberColumn.defaultWidgetFactory_ = function (scope, ce
  *   cellDecorator
  * and anything else specific to this column such as options for a combo box
  *
- * @nosideeffects
  * @param {Object} curMeta
  * @return {Object}
  */

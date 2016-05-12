@@ -32,7 +32,6 @@ recoil.ui.widgets.table.StringColumn = function(key, name, opt_maxChars, opt_edi
  *   cellDecorator
  * and anything else specific to this column such as options for a combo box
  *
- * @nosideeffects
  * @param {Object} curMeta
  * @return {Object}
  */

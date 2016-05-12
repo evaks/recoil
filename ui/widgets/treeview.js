@@ -22,7 +22,7 @@ recoil.ui.widgets.Tree = function() {
 };
 
 /**
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @param {Element} container the container that the tree will go into
  *
  * @constructor

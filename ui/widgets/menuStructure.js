@@ -94,7 +94,7 @@ recoil.ui.widgets.MenuStructure.prototype.create = function() {
       var me = this;
       for (var i in this.menuArr_) {
           if (this.menuArr_.hasOwnProperty(i)) {
-              var menu = new recoil.ui.widgets.MenuButtonWidget(scope);
+              var menu = new recoil.ui.widgets.MenuButtonWidget(this.scope_);
               var items = [];
 
               goog.array.forEach(this.menuArr_[i].children, function(item) {

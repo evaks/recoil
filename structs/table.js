@@ -116,7 +116,6 @@ recoil.structs.table.ColumnKey.ROW_META = new recoil.structs.table. ColumnKey('m
 
 /**
  * compares to values for column
- * @nosideeffects
  * @param {T} a
  * @param {T} b
  * @return {!number}
@@ -559,7 +558,6 @@ recoil.structs.table.MutableTable.prototype.freeze = function() {
 
 /**
  * gets the value of a cell in the table, without the meta information
- * @nosideeffects
  * @template CT
  * @param {Array<*>} keys primary key of the row
  * @param {recoil.structs.table.ColumnKey<CT>} columnKey
@@ -804,7 +802,6 @@ recoil.structs.table.TableRow = function(opt_tableRow) {
 /**
  * Get the value and meta data from the cell
  * @template CT
- * @nosideeffects
  * @param {recoil.structs.table.ColumnKey<CT>} column
  * @return {recoil.structs.table.TableCell<CT>}
  */
@@ -817,7 +814,6 @@ recoil.structs.table.TableRow.prototype.getCell = function(column) {
 /**
  * Get the value and meta data from the cell
  * @template CT
- * @nosideeffects
  * @return {Object}
  */
 recoil.structs.table.TableRow.prototype.getMeta = function() {
@@ -831,7 +827,6 @@ recoil.structs.table.TableRow.prototype.getMeta = function() {
 /**
  * Gets only the value from the cell
  * @template CT
- * @nosideeffects
  * @param {recoil.structs.table.ColumnKey<CT>} column
  * @return {CT}
  */
@@ -844,7 +839,6 @@ recoil.structs.table.TableRow.prototype.get = function(column) {
 /**
  * sets the cell and returns a new row, this row is unmodified
  * @template CT
- * @nosideeffects
  * @param {recoil.structs.table.ColumnKey<CT>} column
  * @param {CT} value
  * @return {recoil.structs.table.TableRow}
@@ -860,7 +854,6 @@ recoil.structs.table.TableRow.prototype.set = function(column, value) {
 /**
  * sets the cell and returns a new row, this row is unmodified
  * @template CT
- * @nosideeffects
  * @param {recoil.structs.table.ColumnKey<CT>} column
  * @param {recoil.structs.table.TableCell<CT>} value
  * @return {recoil.structs.table.TableRow}
@@ -895,7 +888,6 @@ recoil.structs.table.TableRow.prototype.getRowMeta = function() {
 
 /**
  * removes all columsn not in the columns parameter
- * @nosideeffects
  * @param {Array<recoil.structs.table.ColumnKey>} columns
  * @return {!recoil.structs.table.TableRow}
  */
@@ -916,7 +908,6 @@ recoil.structs.table.TableRow.prototype.keepColumns = function(columns) {
 
 /**
  * @template CT
- * @nosideeffects
  * @param {recoil.structs.table.ColumnKey<CT>} column
  * @return {CT}
  */
@@ -939,7 +930,6 @@ recoil.structs.table.MutableTableRow = function(opt_immutable) {
 
 /**
  * @template CT
- * @nosideeffects
  * @param {!recoil.structs.table.ColumnKey<CT>} column
  * @return {recoil.structs.table.TableCell<CT>}
  */
@@ -974,7 +964,6 @@ recoil.structs.table.MutableTableRow.prototype.getRowMeta = function() {
 
 /**
  * converts a mutable table row to immutable table row
- * @nosideeffects
  * @return {recoil.structs.table.TableRow}
  */
 
@@ -1030,7 +1019,6 @@ recoil.structs.table.TableCell = function(value, opt_meta) {
 };
 
 /**
- * @nosideeffects
  * @return {Object}
  */
 
@@ -1039,7 +1027,6 @@ recoil.structs.table.TableCell.prototype.getMeta = function() {
 };
 
 /**
- * @nosideeffects
  * @return {T}
  */
 recoil.structs.table.TableCell.prototype.getValue = function() {
@@ -1048,7 +1035,6 @@ recoil.structs.table.TableCell.prototype.getValue = function() {
 
 /**
  * returns a new cell with the meta data set
- * @nosideeffects
  * @param {*} meta
  * @return {recoil.structs.table.TableCell<T>}
  */
@@ -1058,7 +1044,6 @@ recoil.structs.table.TableCell.prototype.setMeta = function(meta) {
 
 /**
  * returns a new cell with the data set, keeps the metadata
- * @nosideeffects
  * @param {T} value
  * @return {recoil.structs.table.TableCell<T>}
  */

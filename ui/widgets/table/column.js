@@ -15,7 +15,6 @@ recoil.ui.widgets.table.Column = function() {
  *   cellDecorator
  * and anything else specific to this column such as options for a combo box
  *
- * @nosideeffects
  * @param {Object} curMeta
  * @return {Object}
  */

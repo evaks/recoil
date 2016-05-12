@@ -31,7 +31,6 @@ recoil.ui.widgets.TableMetaData.prototype.add = function(key, name) {
     this.addColumn(new recoil.ui.widgets.table.DefaultColumn(key, name));
 };
 /**
- * @nosideeffects
  * @param {recoil.structs.table.Table} table
  * @return {recoil.structs.table.Table}
  */
@@ -78,7 +77,6 @@ recoil.ui.widgets.table.DefaultColumn = function(key, name) {
 /**
  * @param {Object} curMeta
  * @return {Object}
- * @nosideeffects
  */
 recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function(curMeta) {
     /**

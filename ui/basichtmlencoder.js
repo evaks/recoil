@@ -15,8 +15,8 @@ goog.require('recoil.ui.HtmlEncoder');
 
 recoil.ui.BasicHtmlEncoder = function() {
 
-};';
+};
 
 recoil.ui.BasicHtmlEncoder.prototype.encode = function (data) {
 
-}
+};

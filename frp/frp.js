@@ -1348,7 +1348,7 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
         }
         recoil.frp.Frp.access.apply(this, args);
         var d;
-        for (d = 0; d < deps.length; d++) {
+        for (d = 0; deps && d < deps.length; d++) {
             pendingHeap.push(deps[d]);
         }
 
