@@ -6,17 +6,18 @@
  *
  */
 goog.provide('recoil.ui.ComponentWidgetHelper');
+goog.provide('recoil.ui.TooltipHelper');
 
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.messages');
 goog.require('goog.events.FocusHandler');
-
+goog.require('recoil.ui.BoolWithExplaination');
 /**
  * @template T
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
- * @param {!Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
+ * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer callback will be called with
  * @param {function(recoil.ui.WidgetHelper,...)} callback
  * @constructor
@@ -34,9 +35,9 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
         if (visible != me.isAttached_) {
             me.isAttached_ = visible;
             if (visible) {
-                me.frp_.attach(me.attachedBehaviour_);
+                me.frp_.attach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
             } else {
-                me.frp_.detach(me.attachedBehaviour_);
+                me.frp_.detach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
             }
         }
     };
@@ -55,6 +56,9 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
      * @private
      */
     this.behaviours_ = [];
+    /**
+     * @type {recoil.frp.Behaviour}
+     */
     this.attachedBehaviour_ = null;
     /**
      * @private
@@ -71,14 +75,14 @@ recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
 };
 
 recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function() {
-   goog.dom.removeChildren(this.component_);
+   this.component_.removeChildren( true);
 };
 
 /**
  * @return {!boolean} is the value good
  */
 recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
-    for (var key in this.behaviours_) {
+    for (var key =0; key < this.behaviours_.length; key++) {
         var b = this.behaviours_[key];
         if (!b.hasRefs()) {
             return false;
@@ -98,7 +102,7 @@ recoil.ui.ComponentWidgetHelper.prototype.errors = function() {
     var result = [];
     
     
-    for (var key in this.behaviours_) {
+    for (var key =0; key < this.behaviours_.length; key++) {
         var b = this.behaviours_[key];
 
         
@@ -160,7 +164,7 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
     var hadBehaviour = this.behaviours_.length !== 0;
     if (hadBehaviour) {
         if (this.isAttached_) {
-            this.frp_.detach(this.attachedBehaviour_);
+            this.frp_.detach(/** @type {!recoil.frp.Behaviour} */(this.attachedBehaviour_));
         }
     }
 
@@ -170,7 +174,7 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
 
     if (hadBehaviour) {
         if (this.isAttached_) {
-            this.frp_.attach(this.attachedBehaviour_);
+            this.frp_.attach(/** @type {!recoil.frp.Behaviour} */ (this.attachedBehaviour_));
         }
     } else {
         this.isAttached_ = false;
@@ -183,9 +187,9 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
- * @param {goog.ui.Component} comp
- * @param {!goog.events.EventId<EVENTOBJ>|!Array<!goog.events.EventId<EVENTOBJ>>} type
+ * @param {!recoil.ui.WidgetScope} scope
+ * @param {!goog.ui.Component} comp
+ * @param {string|Array<string>|!goog.events.EventId<EVENTOBJ>|!Array<!goog.events.EventId<EVENTOBJ>>} type
  *     Event type or array of event types.
  * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
@@ -257,10 +261,9 @@ recoil.ui.EventHelper.prototype.listen = function(callback) {
 /**
  * This class will but the correct tooltip on the component
  * including not ready, and error messaged
+ * @constructor
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
- * @param {!Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
- * @param {Object} obj the this pointer callback will be called with
- * @param {function(recoil.ui.WidgetHelper,...)} callback
+ * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  */
 
 recoil.ui.TooltipHelper = function(widgetScope, component) {
@@ -273,7 +276,7 @@ recoil.ui.TooltipHelper = function(widgetScope, component) {
 
 
 /**
- * @param {recoil.frp.Behaviour<goog.ui.BoolWithExplaination>} enabledB
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} enabledB
  * @param {...recoil.ui.ComponentWidgetHelper} var_helpers
  */
 recoil.ui.TooltipHelper.prototype.attach = function (enabledB, var_helpers) {

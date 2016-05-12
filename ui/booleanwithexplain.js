@@ -8,6 +8,8 @@ goog.provide('recoil.ui.BoolWithExplaination');
 
 goog.require('recoil.ui.messages');
 goog.require('recoil.ui.message.Message');
+goog.require('recoil.frp.Util');
+
 /**
  * @param {!boolean} val
  * @param {recoil.ui.message.Message=} opt_true
@@ -20,6 +22,10 @@ recoil.ui.BoolWithExplaination = function(val, opt_true, opt_false) {
     this.false_ = opt_false ? opt_false : null;
 };
 
+/**
+ * @final
+ * @type {!recoil.ui.BoolWithExplaination}
+ */
 recoil.ui.BoolWithExplaination.TRUE = new recoil.ui.BoolWithExplaination(true);
 recoil.ui.BoolWithExplaination.FALSE = new recoil.ui.BoolWithExplaination(false);
 
@@ -39,7 +45,7 @@ recoil.ui.BoolWithExplaination.prototype.reason = function () {
 /**
  *
  * @param var_values
- * @return {recoil.ui.BoolWithExplaination}
+ * @return {!recoil.ui.BoolWithExplaination}
  */
 recoil.ui.BoolWithExplaination.prototype.and = function(var_values) {
 
@@ -68,9 +74,9 @@ recoil.ui.BoolWithExplaination.prototype.and = function(var_values) {
 
 /**
  *
- * @param frp
- * @param var_behaviours
- * @return {null}
+ * @param {recoil.frp.Frp} frp
+ * @param {...(!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination> | !recoil.ui.BoolWithExplaination)} var_behaviours
+ * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>}
  */
 recoil.ui.BoolWithExplaination.and = function(frp, var_behaviours) {
     var behaviours = new recoil.frp.Util(frp).arrayToBehaviours(1, arguments);
@@ -80,7 +86,19 @@ recoil.ui.BoolWithExplaination.and = function(frp, var_behaviours) {
             return recoil.util.invokeParamsAndArray(arg1.and, arg1, goog.array.slice(arguments, 1));
         }, behaviours);
     }
-    return null;
+    return frp.createConstB(recoil.ui.BoolWithExplaination.TRUE);
+};
+
+/**
+ *
+ * @param {recoil.frp.Frp} frp
+ * @param {recoil.frp.Behaviour<!boolean>|!boolean} val
+ * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>}
+ */
+recoil.ui.BoolWithExplaination.fromBool = function (frp, val) {
+    return frp.liftB(function(b) {
+        return new recoil.ui.BoolWithExplaination(b);
+    },new recoil.frp.Util(frp).toBehaviour(val));
 };
 /**
  * does an or on all the values and explains why it is true of false
@@ -106,10 +124,10 @@ recoil.ui.BoolWithExplaination.prototype.or = function(var_values) {
     }
 
     if (res) {
-        return new recoil.ui.BoolWithExplaination(true, recoil.ui.Message.join(trueExplain), null);
+        return new recoil.ui.BoolWithExplaination(true, recoil.ui.messages.join(trueExplain), null);
     }
     else {
-        return new recoil.ui.BoolWithExplaination(false, null, recoil.ui.Message.join(falseExplain));
+        return new recoil.ui.BoolWithExplaination(false, null, recoil.ui.messages.join(falseExplain));
     }
 };
 
@@ -124,9 +142,9 @@ recoil.ui.BoolWithExplaination.prototype.not = function(var_values) {
 
 /**
  *
- * @param {Array<!recoil.ui.Message>} all
+ * @param {Array<!recoil.ui.message.Message>} all
  * @param {!boolean} shouldAdd
- * @param {recoil.ui.Message} explain
+ * @param {recoil.ui.message.Message} explain
  */
 recoil.ui.BoolWithExplaination.prototype.addExplain_ = function(all, shouldAdd, explain) {
     if (shouldAdd && explain) {

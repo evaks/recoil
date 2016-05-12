@@ -27,8 +27,8 @@ recoil.ui.messages.join = function (messages) {
 
     for (var i = 1; i <messages.length; i++) {
         var second = messages[i];
-        first = recoil.messages.AND.resolve({first: first, second : second});
+        first = recoil.ui.messages.AND.resolve({first: first, second : second});
     }
-    return first;
+    return /** @type {!recoil.ui.message.Message} */ (first);
 };
 

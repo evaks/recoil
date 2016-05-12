@@ -1,5 +1,6 @@
 goog.provide('recoil.ui.widgets.NumberWidget');
 
+
 goog.require('goog.events');
 goog.require('goog.events.InputHandler');
 goog.require('goog.events.PasteHandler');
@@ -7,14 +8,17 @@ goog.require('goog.ui.Component');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.ui.widgets.LabelWidget');
+goog.require('recoil.ui.TooltipHelper');
 goog.require('goog.ui.Tooltip');
 goog.require('goog.events.KeyCodes');
+goog.require('recoil.ui.Widget');
+goog.require('recoil.ui.LabeledWidget');
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
- * @extends recoil.ui.LabeledWidget
+ * @implements {recoil.ui.LabeledWidget}
  */
 recoil.ui.widgets.NumberWidget = function(scope) {
     this.scope_ = scope;
@@ -91,22 +95,22 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.exitDocument = function() {
 
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.setMin = function(min) {
     this.min_ = min;
-    if (this.element_) {
-        this.element_.min = min;
+    if (this.getElement()) {
+        this.getElement().min = min;
     }
 };
 
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.setMax = function(max) {
     this.max_ = max;
-    if (this.element_) {
-        this.element_.max = "";
+    if (this.getElement()) {
+        this.getElement().max = "";
     }
 };
 
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.setStep = function(step) {
     this.step_ = step;
-    if (this.element_) {
-        this.element_.step = step;
+    if (this.getElement()) {
+        this.getElement().step = step;
     }
 };
 
@@ -116,10 +120,10 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.setStep = function(step) {
  * @override
  */
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
-    this.element_ =  this.getDomHelper().createDom(
+    this.getDomHelper().createDom(
         goog.dom.TagName.INPUT, 
         {'type': goog.dom.InputType.NUMBER, step: this.step_, min: this.min_, max: this.max_});
-    var element = this.element_;
+    var element = this.getElement();
     var lastValid = 88;
 
     goog.events.listen(element
@@ -141,7 +145,6 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
 
                            var clip = e.getBrowserEvent().clipboardData;
 
-                           console.log("innerHtml", inputEl.innerHtml);
                            var txt = clip.getData('text/plain');
                            
                            txt = txt.replace(/[^0-9.+]/g, "F"); 
@@ -152,7 +155,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
                        });        
 
     goog.events.listen(new goog.events.InputHandler(element)
-                       ,goog.events.PasteHandler.EventType.INPUT, 
+                       ,goog.events.PasteHandler.EventType.PASTE, 
                        function (e) {
                            var inputEl = e.target;
                            var origText = inputEl;
@@ -169,7 +172,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
 
 /**
  *
- * @return {goog.ui.Component}
+ * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.NumberWidget.prototype.getComponent = function() {
     return this.number_;
@@ -177,7 +180,7 @@ recoil.ui.widgets.NumberWidget.prototype.getComponent = function() {
 
 /**
  *
- * @return {recoil.ui.widgets.Widget}
+ * @return {!recoil.ui.Widget}
  */
 recoil.ui.widgets.NumberWidget.prototype.getLabel = function() {
     return this.labelWidget_;
@@ -186,9 +189,9 @@ recoil.ui.widgets.NumberWidget.prototype.getLabel = function() {
 
 /**
  *
- * @param {recoil.frp.Behaviour<T>} name
+ * @param {recoil.frp.Behaviour<string>} name
  * @param {recoil.frp.Behaviour<number>} value
- * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplaination>} enabled
+ * @param {!recoil.frp.Behaviour<!Object>} options
  */
 recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(name, value, options) {
     var frp = this.valueHelper_.getFrp();
@@ -199,10 +202,9 @@ recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(name, value, opti
 
 /**
  *
- * @param data
+ * @param {Object|recoil.frp.Behaviour<Object>} options
  */
 
-recoil.ui.widgets.NumberWidget.count = 0;
 recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var frp = this.valueHelper_.getFrp();
     var util = new recoil.frp.Util(frp);
@@ -210,7 +212,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var optionsB = structs.flattern(frp, options);
     
     this.nameB_ = structs.get('name',optionsB, "");
-    this.valueB_ = structs.get('value',options);
+    this.valueB_ = structs.get('value',optionsB);
     this.minB_ = structs.get('min', optionsB,NaN);
     this.maxB_ = structs.get('max', optionsB,NaN);
     this.stepB_ = structs.get('step', optionsB,1);
@@ -223,7 +225,9 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 
     this.labelWidget_.attach(
         this.nameB_, 
-        recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
+        recoil.ui.BoolWithExplaination.and(
+            frp,     /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} */ (this.enabledB_),
+            recoil.ui.BoolWithExplaination.fromBool(frp, readyB)));
 
     this.valueHelper_.attach(this.valueB_);
     this.configHelper_.attach(this.minB_, this.maxB_, this.stepB_, this.enabledB_);
@@ -234,7 +238,9 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
         me.valueB_.set(parseFloat(inputEl.value));
     }, this.valueB_));
 
-    this.enabledHelper_.attach(this.enabledB_, this.valueHelper_, this.configHelper_);
+    this.enabledHelper_.attach(
+        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} */ (this.enabledB_),
+        this.valueHelper_, this.configHelper_);
 };
 
 /**

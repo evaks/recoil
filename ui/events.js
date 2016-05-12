@@ -37,7 +37,7 @@ recoil.ui.events.listen = function(src, type, callback, opt_capt, opt_data) {
  * @param {string|Array<string>|
  *     !goog.events.EventId<EVENTOBJ>|!Array<!goog.events.EventId<EVENTOBJ>>}
  *     type Event type or array of event types.
- * @param {Handle<recoil.frp.Behaviour>} callback the behaviour to set with the event
+ * @param {recoil.util.Handle<recoil.frp.Behaviour>} callback the behaviour to set with the event
  * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
  * @template EVENTOBJ

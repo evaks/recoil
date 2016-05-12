@@ -14,7 +14,7 @@ goog.require('goog.structs.AvlTree');
  * @constructor
  */
 recoil.util.Sequence = function() {
-    this.val_ = goog.math.Long.ZERO;
+    this.val_ = goog.math.Long.getOne();
 };
 /**
  * get the next value and increment the counter
@@ -22,7 +22,7 @@ recoil.util.Sequence = function() {
  */
 recoil.util.Sequence.prototype.next = function() {
     var res = new String(this.val_);
-    this.val_ = this.val_.add(goog.math.Long.ONE);
+    this.val_ = this.val_.add(goog.math.Long.getOne());
     return res.toString();
 };
 
@@ -32,7 +32,7 @@ recoil.util.Sequence.prototype.next = function() {
  */
 recoil.util.Sequence.prototype.nextLong = function() {
     var res = this.val_;
-    this.val_ = this.val_.add(goog.math.Long.ONE);
+    this.val_ = this.val_.add(goog.math.Long.getOne());
     return res;
 };
 
@@ -59,8 +59,9 @@ recoil.util.safeFreeze = function(value) {
  * invokes function with arg1 and converts the rest array the rest of the paramters
  *
  * @template T
+ * @template F
  * @param {Object} me
- * @param {function(*,...*) : T} func
+ * @param {F} func
  * @param {*} arg1
  * @param {Array<*>} rest
  * @return {T}
@@ -175,8 +176,8 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
 
     if (goog.isArrayLike(a)) {
 
-        return goog.array.compare3(/** @type {!goog.array.ArrayLike} */
-            (a), /** @type {!goog.array.ArrayLike} */
+        return goog.array.compare3(/** @type {!IArrayLike} */
+            (a), /** @type {!IArrayLike} */
             (b), function(a, b) {
                 return recoil.util.compare_(a, b, newAPath, newBPath);
             });
@@ -301,8 +302,8 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
     if (goog.isArrayLike(a)) {
         var idx = 0;
 
-        return goog.array.equals(/** @type {goog.array.ArrayLike} */
-            (a), /** @type {goog.array.ArrayLike} */
+        return goog.array.equals(/** @type {IArrayLike} */
+            (a), /** @type {IArrayLike} */
             (b), function(a, b) {
                 var newDebugPath = goog.array.concat(debugPath, '[' + idx + ']');
 

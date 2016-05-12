@@ -16,7 +16,7 @@ recoil.frp.Util = function(frp) {
  * does nothing
  * @template T
  * @param {recoil.frp.Behaviour<T> | T} value
- * @param {T} opt_default
+ * @param {T=} opt_default
  * @return {recoil.frp.Behaviour<T>}
  *
  */
@@ -57,9 +57,9 @@ recoil.frp.Util.prototype.getDefault = function(value, def) {
 /**
  * converts each item into a behaviour if it is not already one
  *
- * @param {Number} start only convert items >= this index
- * @param {Array<recoil.ui.frp.Behaviour|*>} items
- * @return {Array<recoil.ui.frp.Behaviour>} items made into behaviours
+ * @param {!number} start only convert items >= this index
+ * @param {Array<recoil.frp.Behaviour|*>|Arguments} items
+ * @return {Array<recoil.frp.Behaviour>} items made into behaviours
  */
 recoil.frp.Util.prototype.arrayToBehaviours = function(start, items) {
     var res = [];
@@ -71,8 +71,8 @@ recoil.frp.Util.prototype.arrayToBehaviours = function(start, items) {
 
 /**
  *
- * @param {Number} start only convert items >= this index
- * @param {Array<recoil.ui.frp.Behaviour>} items
+ * @param {!number} start only convert items >= this index
+ * @param {Array<recoil.frp.Behaviour>} items
  * @return {Array} an array of values stored in the behaviours
  */
 recoil.frp.Util.arrayToValues = function(start, items) {
@@ -86,7 +86,7 @@ recoil.frp.Util.arrayToValues = function(start, items) {
 /**
  *
  * @param {...recoil.frp.Behaviour} var_values
- * @return {!recoil.frp.BStatus}
+ * @return {!recoil.frp.Behaviour<!boolean>}
  */
 recoil.frp.Util.prototype.isAllGood = function(var_values) {
 

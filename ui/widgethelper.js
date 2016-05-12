@@ -8,12 +8,13 @@
 goog.provide('recoil.ui.WidgetHelper');
 
 goog.require('recoil.frp.Frp');
+goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.VisibleObserver');
 goog.require('recoil.ui.WidgetScope');
 
 /**
  * @template T
- * @param {recoil.ui.WidgetScope} widgetScope gui scope
+ * @param {!recoil.ui.WidgetScope} widgetScope gui scope
  * @param {Node} container when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer callback will be called with
  * @param {function(recoil.ui.WidgetHelper,...)} callback
@@ -29,9 +30,9 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
         if (visible != me.isAttached_) {
             me.isAttached_ = visible;
             if (visible) {
-                me.frp_.attach(me.attachedBehaviour_);
+                me.frp_.attach(/** @type {!recoil.frp.Behaviour} */ (me.attachedBehaviour_));
             } else {
-                me.frp_.detach(me.attachedBehaviour_);
+                me.frp_.detach(/** @type {!recoil.frp.Behaviour} */ (me.attachedBehaviour_));
             }
         }
     };
@@ -50,6 +51,9 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
      * @private
      */
     this.behaviours_ = [];
+    /**
+     * @type {recoil.frp.Behaviour}
+     */
     this.attachedBehaviour_ = null;
     /**
      * @private
@@ -87,7 +91,7 @@ recoil.ui.WidgetHelper.prototype.clearContainer = function() {
  * @return {!boolean} is the value good
  */
 recoil.ui.WidgetHelper.prototype.isGood = function() {
-    for (var key in this.behaviours_) {
+    for (var key  = 0; key < this.behaviours_.length; key++) {
         if (!this.behaviours_[key].metaGet().good()) {
             return false;
         }
@@ -130,7 +134,7 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
     var hadBehaviour = this.behaviours_.length !== 0;
     if (hadBehaviour) {
         if (this.isAttached_) {
-            this.frp_.detach(this.attachedBehaviour_);
+            this.frp_.detach(/** @type {!recoil.frp.Behaviour} */(this.attachedBehaviour_));
         }
     }
 
@@ -140,7 +144,7 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
 
     if (hadBehaviour) {
         if (this.isAttached_) {
-            this.frp_.attach(this.attachedBehaviour_);
+            this.frp_.attach(/** @type {!recoil.frp.Behaviour} */(this.attachedBehaviour_));
         }
     } else {
         this.isAttached_ = false;

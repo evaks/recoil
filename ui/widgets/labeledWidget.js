@@ -8,9 +8,9 @@ recoil.ui.LabeledWidget = function() {
 };
 
 /**
- * returns a widget
+ * @return {recoil.ui.Widget}
  *
  */
-recoil.ui.Widget.prototype.getLabel = function() {
+recoil.ui.LabeledWidget.prototype.getLabel = function() {
 
 };

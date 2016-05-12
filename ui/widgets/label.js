@@ -11,11 +11,13 @@ goog.require('recoil.frp.struct');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
-
+goog.require('goog.ui.Control');
+goog.require('goog.ui.Container');
 
 /**
  * @constructor
- * @param {recoil.ui.WidgetScope} scope
+ * @implements {recoil.ui.Widget}
+ * @param {!recoil.ui.WidgetScope} scope
  */
 recoil.ui.widgets.LabelWidget = function(scope) {
     /**
@@ -48,11 +50,10 @@ recoil.ui.widgets.LabelWidget = function(scope) {
 };
 
 /**
- * @param {recoil.frp.Behaviour<T>} name
- * @param {recoil.frp.Behaviour<T>} value
- * @param {recoil.frp.Behaviour<BoolWithExplaination>} enabled
+ * @param {!recoil.frp.Behaviour<string>|!string} name
+ * @param {!recoil.ui.BoolWithExplaination|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} enabled
  */
-recoil.ui.widgets.LabelWidget.prototype.attach = function(name, value, enabled) {
+recoil.ui.widgets.LabelWidget.prototype.attach = function(name, enabled) {
     var util = new recoil.frp.Util(this.helper_.getFrp());
 
     this.nameB_ = util.toBehaviour(name);
@@ -70,31 +71,10 @@ recoil.ui.widgets.LabelWidget.prototype.attach = function(name, value, enabled) 
  * {Object} value
  */
 recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
-      var nameB = recoil.structs.get('name', value);
-      var enabledB = recoil.structs.get('enabled', value);
+      var nameB = recoil.frp.struct.get('name', value);
+      var enabledB = recoil.frp.struct.get('enabled', value);
 
       this.attach(nameB, enabledB);
-};
-
-/**
- * @private
- * @param {recoil.ui.WidgetHelper} helper
- * @param {recoil.frp.Behaviour} configB
- */
-recoil.ui.widgets.LabelWidget.prototype.updateConfig_ = function(helper, configB) {
-    var me = this;
-
-    if (helper.isGood()) {
-        if (me.button_ !== null) {
-            goog.dom.removeChildren(this.component_);
-        }
-        var config = configB.get();
-        this.label_ = new goog.ui.Container(config.content, config.renderer, config.domHelper);
-        this.label_.render(me.component_);
-
-        // and created a new one
-        me.state_.forceUpdate();
-    }
 };
 
 
@@ -127,7 +107,7 @@ recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
  */
 recoil.ui.widgets.LabelWidgetHelper = function(scope) {
@@ -137,13 +117,12 @@ recoil.ui.widgets.LabelWidgetHelper = function(scope) {
 
 /**
  *
- * @param {String} name
- * @param {String} value
- * @param {Boolean} enabled
+ * @param {!string|!recoil.frp.Behaviour<!string>} name
+ * @param {!recoil.ui.BoolWithExplaination|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} enabled
  * @return {recoil.ui.widgets.LabelWidget}
  */
-recoil.ui.widgets.LabelWidgetHelper.prototype.createAndAttach = function(name, value, enabled) {
+recoil.ui.widgets.LabelWidgetHelper.prototype.createAndAttach = function(name,enabled) {
     var label = new recoil.ui.widgets.LabelWidget(this.scope_);
-    label.attach(name, value, enabled);
+    label.attach(name, enabled);
     return label;
 };

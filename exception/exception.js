@@ -79,7 +79,7 @@ recoil.exception.NotInTransaction = function() {
 };
 
 
-recoil.exception.NotInTransaction.toString = function() {
+recoil.exception.NotInTransaction.prototype.toString = function() {
     return this.name_;
 };
 
