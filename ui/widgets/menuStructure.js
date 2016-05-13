@@ -1,5 +1,7 @@
 goog.provide('recoil.ui.widgets.MenuStructure');
 
+goog.require('recoil.ui.widgets.MenuButtonWidget');
+
 /**
  *
  * @param {recoil.ui.WidgetScope} scope
@@ -54,7 +56,7 @@ recoil.ui.widgets.MenuStructure.prototype.addSeparator = function(menus) {
 /**
  *
  * @param {recoil.ui.widgets.MenuButtonWidget} menu
- * @param {object} item
+ * @param {Object} item
  * @return {recoil.ui.widgets.MenuItemWidget}
  * @private
  */
@@ -86,7 +88,7 @@ recoil.ui.widgets.MenuStructure.prototype.create_ = function(menu, item) {
 
 /**
  *
- * @return {recoil.frp.Behaviour<Array<recoil.ui.MenuButtonWidget>> | Array<recoil.ui.MenuButtonWidget>}
+ * @return {recoil.frp.Behaviour<Array<recoil.ui.widgets.MenuButtonWidget>> | Array<recoil.ui.widgets.MenuButtonWidget>}
  */
 recoil.ui.widgets.MenuStructure.prototype.create = function() {
       var menuArr = [];

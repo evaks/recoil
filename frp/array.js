@@ -39,8 +39,8 @@ recoil.frp.Array.prototype.isNotEmpty = function (array) {
 /**
  * @template T
  * @param {Array<T>|recoil.frp.Behaviour<Array<T>>} array
- * @param {function(T) : boolean|recoil.frp.Behaviour<function(T) : boolean)} filter
- * @return {recoil.frp.Behaviour<Array<T>}
+ * @param {(!function(T) : boolean|!recoil.frp.Behaviour<!function(T) : boolean>)} filter
+ * @return {recoil.frp.Behaviour<Array<T>>}
  */
 recoil.frp.Array.prototype.filter = function (array, filter) {
     this.frp_.liftB(function(arr, filter) {
@@ -59,8 +59,8 @@ recoil.frp.Array.prototype.filter = function (array, filter) {
  * @template FROM
  * @template TO
  * @param {Array<FROM>|recoil.frp.Behaviour<Array<FROM>>} array
- * @param {function(FROM) : TO|recoil.frp.Behaviour<function(FROM) : TO)} map
- * @return {recoil.frp.Behaviour<Array<TO>}
+ * @param {(!function(FROM) : TO|!recoil.frp.Behaviour<!function(FROM) : TO>)} map
+ * @return {recoil.frp.Behaviour<!Array<TO>>}
  */
 recoil.frp.Array.prototype.map = function (array, map) {
     this.frp_.liftB(function(arr, map) {

@@ -3,28 +3,30 @@ goog.provide('recoil.Pair');
 /**
  *
  * @constructor
- * @param {T} x
- * @param {T} y
+ * @template TX
+ * @template TY
+ * @param {TX} x
+ * @param {TY} y
  */
 recoil.Pair = function(x, y) {
-    this.label_ = x;
-    this.inputField_ = y;
+    this.x_ = x;
+    this.y_ = y;
 };
 
 /**
  *
- * @return {T|*}
+ * @return {TX}
  */
 
 recoil.Pair.prototype.getX = function() {
-    return this.label_;
+    return this.x_;
 };
 
 
 /**
  *
- * @return {T|*}
+ * @return {TY}
  */
 recoil.Pair.prototype.getY = function() {
-    return this.inputField_;
+    return this.y_;
 };

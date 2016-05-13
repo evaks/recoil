@@ -12,8 +12,8 @@ goog.require('goog.object');
 
 /**
  * @param {recoil.frp.Frp} frp the frp engine
- * @param {recoil.struct.table.Table|recoil.frp.Behaviour<recoil.struct.table.Table>}  table
- * @param {Array<*>|recoil.frp.Behaviour<recoil.struct.table.Table>}  keys
+ * @param {recoil.structs.table.Table|recoil.frp.Behaviour<recoil.structs.table.Table>}  table
+ * @param {Array<*>|recoil.frp.Behaviour<recoil.structs.table.Table>}  keys
  * @return {recoil.frp.Behaviour<recoil.structs.table.TableRow>}
  */
 recoil.frp.table.TableRow.create = function(frp, table, keys) {
@@ -117,7 +117,7 @@ recoil.frp.table.TableCell.createHeader = function(frp, tableB, columnB) {
 /**
  * gets just the meta information out of a cell
  * @template CT
- * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>} cell
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cell
  * @return {recoil.frp.Behaviour<CT>} 
  */
 recoil.frp.table.TableCell.getValue = function(frp, cellB) {
@@ -135,7 +135,7 @@ recoil.frp.table.TableCell.getValue = function(frp, cellB) {
 /**
  * gets just the meta information out of a cell
  * @template CT
- * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>} cell
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cell
  * @return {recoil.frp.Behaviour<*>} 
  */
 

@@ -110,7 +110,7 @@ recoil.ui.WidgetHelper.prototype.forceUpdate = function() {
 };
 
 /**
- * @param {...recoil.frp.Behaviour<T>} var_behaviour
+ * @param {...recoil.frp.Behaviour} var_behaviour
  *
  * note the node we are watch must be in the dom by now, the reason for this is if it isn't and is never added we will
  * have a leak observer maintains a list that can never be cleared also once it item is removed form the DOM and node

@@ -51,7 +51,7 @@ recoil.ui.widgets.MenuBarWidget.defaultConfig = {
 /**
  *
  * @param config
- * @param {recoil.frp.Behaviour<Array<recoil.ui.MenuButtonWidget>> | Array<recoil.ui.MenuButtonWidget>} menus
+ * @param {recoil.frp.Behaviour<Array<recoil.ui.widgets.MenuButtonWidget>> | Array<recoil.ui.widgets.MenuButtonWidget>} menus
  * @param {recoil.frp.Behaviour<Boolean> | boolean} enabled
  */
 recoil.ui.widgets.MenuBarWidget.prototype.attach = function(config, menus, enabled) {

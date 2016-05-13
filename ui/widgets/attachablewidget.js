@@ -4,7 +4,7 @@ goog.require('recoil.ui.Widget');
 
 /**
  * @interface
- * @implements {recoil.ui.Widget}
+ * @extends {recoil.ui.Widget}
  */
 recoil.ui.AttachableWidget = function() {
 };

@@ -1,14 +1,13 @@
 goog.provide('recoil.ui.widgets.table.NumberColumn');
 
+goog.require('recoil.frp.Behaviour');
 goog.require('recoil.ui.widgets.table.Column');
 goog.require('recoil.ui.widgets.NumberWidget');
 /**
  *
  * @param {recoil.structs.table.ColumnKey} key
  * @param {string} name
- * @param {number} min
- * @param {number} max
- * @param {number} max
+ * @param {(recoil.frp.Behaviour<Object>|Object)=} min
  * @constructor
  */
 recoil.ui.widgets.table.NumberColumn = function(key, name, opt_options) {
@@ -20,7 +19,7 @@ recoil.ui.widgets.table.NumberColumn = function(key, name, opt_options) {
 /**
  * @private
  * @param {recoil.ui.WidgetScope} scope
- * @param {recoil.frp.Behavour<recoil.structs.table.TableCell>} cellB
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
  */
 recoil.ui.widgets.table.NumberColumn.defaultWidgetFactory_ = function (scope, cellB) {

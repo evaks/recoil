@@ -3,7 +3,7 @@ goog.provide('recoil.ui.actions.ScreenAction');
 /**
  *
  * @param {string} name
- * @param {recoil.frp.Behavior} selectorB
+ * @param {recoil.frp.Behaviour} selectorB
  * @param {function(recoil.ui.WidgetScope)} factory
  * @constructor
  * @extends {recoil.ui.actions.Action}

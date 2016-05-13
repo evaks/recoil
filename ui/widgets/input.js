@@ -33,7 +33,7 @@ recoil.ui.widgets.InputWidget.prototype.getComponent = function() {
 
 /**
  *
- * @return {recoil.ui.widgets.Widget}
+ * @return {recoil.ui.Widget}
  */
 recoil.ui.widgets.InputWidget.prototype.getLabel = function() {
     return this.labelWidget_;
@@ -42,9 +42,9 @@ recoil.ui.widgets.InputWidget.prototype.getLabel = function() {
 
 /**
  *
- * @param {recoil.frp.Behaviour<T>} name
- * @param {recoil.frp.Behaviour<T>} value
- * @param {recoil.frp.Behaviour<BoolWithExplaination>} enabled
+ * @param {recoil.frp.Behaviour<string>} name
+ * @param {recoil.frp.Behaviour<string>} value
+ * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplaination>} enabled
  */
 recoil.ui.widgets.InputWidget.prototype.attach = function(name, value, enabled) {
 
@@ -107,8 +107,8 @@ recoil.ui.widgets.InputWidgetHelper = function(scope) {
 /**
  *
  * @param {String} name
- * @param {recoil.frp.Behaviour<T>} value
- * @param {recoil.frp.Behaviour<T>} enabled
+ * @param {recoil.frp.Behaviour<string>} value
+ * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplaination>} enabled
  * @return {recoil.ui.widgets.InputWidget}
  */
 recoil.ui.widgets.InputWidgetHelper.prototype.createAndAttach = function(name, value, enabled) {

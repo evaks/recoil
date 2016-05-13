@@ -1,6 +1,7 @@
 goog.provide('recoil.ui.widgets.table.StringColumn');
 
 goog.require('recoil.frp.struct');
+goog.require('recoil.frp.Behaviour');
 goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.ui.widgets.InputWidget');
 goog.require('recoil.ui.widgets.table.Column');
@@ -46,7 +47,7 @@ recoil.ui.widgets.table.StringColumn.prototype.getMeta = function(curMeta) {
 /**
  * @private
  * @param {recoil.ui.WidgetScope} scope
- * @param {recoil.frp.Behavour<recoil.structs.table.TableCell>} cellB
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
  */
 recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ =

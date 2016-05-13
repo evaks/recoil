@@ -7,6 +7,11 @@ goog.require('goog.structs.AvlTree');
 /**
  * @interface
  */
+recoil.db.Database = function () {
+};
+/**
+ * @interface
+ */
 recoil.db.DatabaseComms = function() {
 };
 

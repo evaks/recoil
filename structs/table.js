@@ -218,8 +218,8 @@ recoil.structs.table.Table.prototype.unfreeze = function() {
 };
 /**
  *
- * @param {Array<ColumnKey>} primaryKeys
- * @param {Array<ColumnKey>} otherColumns
+ * @param {!Array<!recoil.structs.table.ColumnKey>} primaryKeys
+ * @param {!Array<!recoil.structs.table.ColumnKey>} otherColumns
  * @constructor
  * @template T
  *
@@ -561,7 +561,7 @@ recoil.structs.table.MutableTable.prototype.freeze = function() {
  * @template CT
  * @param {Array<*>} keys primary key of the row
  * @param {recoil.structs.table.ColumnKey<CT>} columnKey
- * @return {T}
+ * @return {CT}
  */
 recoil.structs.table.Table.prototype.get = function(keys, columnKey) {
     var r = this.getRow(keys);
@@ -628,14 +628,14 @@ recoil.structs.table.Table.prototype.forEach = function(func) {
 
 
 /**
- * @return {Array<recoil.structs.table.ColumnKey<*>}
+ * @return {!Array<!recoil.structs.table.ColumnKey<*>>}
  */
 recoil.structs.table.Table.prototype.getKeyColumns = function() {
     return this.primaryColumns_;
 };
 
 /**
- * @return {Array<recoil.structs.table.ColumnKey<*>}
+ * @return {!Array<!recoil.structs.table.ColumnKey<*>>}
  */
 recoil.structs.table.Table.prototype.getColumns = function() {
     return goog.array.concat(this.primaryColumns_, this.otherColumns_);
@@ -771,7 +771,7 @@ recoil.structs.table.Table.extractKeys_ = function(tableMeta) {
 /**
  * @private
  * @param {Array<Object>} array
- * @return {Array<recoil.structs.table.ColumnKey}
+ * @return {!Array<!recoil.structs.table.ColumnKey>}
  */
 recoil.structs.table.Table.getColumnKeys_ = function(array) {
     var res = [];
@@ -1009,7 +1009,7 @@ recoil.structs.table.MutableTableRow.prototype.set = function(columnKey, val) {
  *
  * @template T
  * @param {T} value
- * @param {object=} opt_meta
+ * @param {Object=} opt_meta
  * @constructor
  */
 

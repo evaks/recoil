@@ -4,6 +4,7 @@ goog.provide('recoil.ui.widgets.table.TableWidget');
 goog.require('goog.string');
 goog.require('goog.dom.classes');
 goog.require('goog.ui.Container');
+goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
 goog.require('recoil.frp.table.TableCell');
 goog.require('recoil.structs.table.Table');
@@ -91,7 +92,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
  *
  * note this is a bidirectional behaviour, so setting it will change the selection
  *
- * @return {recoil.frp.Behaviour<Array<Array<Object>>}
+ * @return {recoil.frp.Behaviour<Array<Array<Object>>>}
  */
 recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
 
@@ -860,7 +861,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getNewRows_ = function(rowMeta) {
  * unless the useful parts have changed
  * @private
  * @param {recoil.ui.ComponentWidgetHelper} helper
- * @param {recoil.frp.Behavlour<Object>} tableB meta data associated with table
+ * @param {recoil.frp.Behaviour<Object>} tableB meta data associated with table
  */
 recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, tableB) {
     var me = this;

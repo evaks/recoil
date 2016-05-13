@@ -86,7 +86,7 @@ recoil.ui.widgets.TreeView.prototype.updateTree_ = function(helper, newValue) {
 };
 
 /**
- * @param {recoil.frp.Behaviour<recoil.ui.widgets.Tree>} value
+ * @param {!recoil.frp.Behaviour<!recoil.ui.widgets.Tree>} value
  */
 recoil.ui.widgets.TreeView.prototype.attach = function(value) {
 
