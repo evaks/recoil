@@ -45,6 +45,13 @@ recoil.db.DatabaseComms.prototype.set = function(data, oldData, successFunction,
 };
 
 /**
+ * @desc instruct the databse that we are no longer interested
+ * @param {string} id identifier of the object that to be retrieve from the database
+ * @param {...*} var_parameters any extra parameters that maybe passed to the database
+ */
+recoil.db.DatabaseComms.prototype.stop = function(id, var_parameters) {
+};
+/**
  * @constructor
  * @implements {recoil.db.Database}
  * @param {recoil.frp.Frp} frp the associated FRP engine

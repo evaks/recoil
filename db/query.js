@@ -242,8 +242,10 @@ recoil.db.Query.prototype.eval = function(scope) {
 /**
  * applies variable number operators together to the function
  * @private
- * @param {function(*,*)} constructor
- * @param {Array<recoil.db.Query|recoil.db.QueryExp>} args
+ * @template T
+ * @param {function(new:T,...(!recoil.db.Query|!recoil.db.QueryExp)):recoil.db.Query|
+          function (new:T,!recoil.db.QueryExp,!recoil.db.QueryExp)} constructor
+ * @param {IArrayLike<recoil.db.Query|recoil.db.QueryExp>} args
  * @return {recoil.db.Query}
  */
 
@@ -279,7 +281,7 @@ recoil.db.Query.prototype.set_ = function(query) {
  * utilty to function to set this expression to the query
  * @private
  * @param {recoil.db.QueryExp} query
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.query_ = function(query) {
 
@@ -327,7 +329,7 @@ recoil.db.Query.prototype.not = function(opt_x) {
     if (opt_x === undefined) {
         x = this.expr_;
     }
-    return new recoil.db.expr.Not(this.toExpr(x));
+    return this.query_(new recoil.db.expr.Not(this.toExpr(x)));
 };
 
 recoil.db.Query.prototype.not$ = function(opt_x) {
@@ -370,7 +372,7 @@ recoil.db.Query.prototype.exists$ = function(field) {
  * this is not called equals because that should compare to queries
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.eq = function(left, right) {
     return this.query_(new recoil.db.expr.Equals(this.toExpr(left), this.toExpr(right)));
@@ -587,15 +589,19 @@ recoil.db.Query.prototype.notIn$ = function(field, values) {
 /**
  * convert a query or an expression to an expression
  * @param {recoil.db.Query|recoil.db.QueryExp|*} exp
- * @return {recoil.db.QueryExp}
+ * @return {!recoil.db.QueryExp}
  */
 recoil.db.Query.prototype.toExpr = function(exp) {
     if (exp instanceof recoil.db.Query) {
         return exp.expr_;
     }
-    if (exp instanceof String || typeof(exp) === 'string') {
-        return new recoil.db.expr.Field(exp);
+    if (exp instanceof String) {
+        return new recoil.db.expr.Field(exp.toString());
     }
+    if (typeof(exp) === 'string') {
+        return new recoil.db.expr.Field(exp.toString());
+    }
+
     if (exp instanceof Object) {
         return exp;
     }
