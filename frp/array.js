@@ -1,6 +1,5 @@
 goog.provide('recoil.frp.Array');
 
-
 goog.require('recoil.frp.Util');
 
 
