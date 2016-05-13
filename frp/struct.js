@@ -7,14 +7,16 @@ goog.require('recoil.util.object');
 
 /**
  * @param {string} name the attribute name of the element to get out of the struct
- * @template T
- * @param {recoil.frp.Behaviour<Object>} value the structure to get it out of
+ * @template T,O
+ * @param {string} name the name of the field to get
+ * @param {recoil.frp.Behaviour<O>} value the structure to get it out of
  * @param {T=} opt_default
  * @return {!recoil.frp.Behaviour<!T>}
  */
 recoil.frp.struct.get = function(name, value, opt_default) {
     return value.frp().liftBI(function() {
-        var res = value.get()[name];
+        var val = value.get();
+        var res = val === null ? undefined : val[name];
         if (res === undefined) {
             res = opt_default;
         }

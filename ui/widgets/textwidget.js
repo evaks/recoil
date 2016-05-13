@@ -10,7 +10,7 @@ goog.require('recoil.frp.Util');
  *
  * @param {recoil.ui.WidgetScope} scope
  * @constructor
- * @extends recoil.ui.Widget
+ * @implements recoil.ui.Widget
  */
 recoil.ui.widgets.TextWidget = function(scope) {
 
