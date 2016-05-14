@@ -30,6 +30,7 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
 recoil.ui.widgets.TableMetaData.prototype.add = function(key, name) {
     this.addColumn(new recoil.ui.widgets.table.DefaultColumn(key, name));
 };
+
 /**
  * @param {recoil.structs.table.Table} table
  * @return {recoil.structs.table.Table}

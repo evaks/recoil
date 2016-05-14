@@ -1,8 +1,8 @@
 goog.provide('recoil.ui.widgets.table.TableMetaData');
 goog.provide('recoil.ui.widgets.table.TableWidget');
 
-goog.require('goog.string');
 goog.require('goog.dom.classes');
+goog.require('goog.string');
 goog.require('goog.ui.Container');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
@@ -28,12 +28,12 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     this.container_.createDom();
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
     var me = this;
-    this.rowClickHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, function(){});
+    this.rowClickHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, function() {});
 
-    var applyClass = function (node, cls ){
-        goog.dom.setProperties(node, {class : cls});
+    var applyClass = function(node, cls) {
+        goog.dom.setProperties(node, {class: cls});
         var children = goog.dom.getChildren(node);
-        for (var i = 0; i <children.length; i++) {
+        for (var i = 0; i < children.length; i++) {
             console.log(children.item(i));
 //            applyClass(children.item(i), cls);
         }
@@ -45,25 +45,25 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
         if (helper.isGood()) {
             var selected = selectedB.get();
             var selectMeta = selectMetaB.get();
-            
+
             for (i = 0; i < me.curSelected_.length; i++) {
-                var rowMeta = selectMeta.rowMeta.findFirst({key : me.curSelected_[i]});
+                var rowMeta = selectMeta.rowMeta.findFirst({key: me.curSelected_[i]});
                 selector = me.getMetaValue('rowSelector', selectMetaB.table, rowMeta ? rowMeta.meta : undefined);
-                row = me.renderState_.rows.findFirst({key : me.curSelected_[i]});
+                row = me.renderState_.rows.findFirst({key: me.curSelected_[i]});
                 if (row) {
-                    selector(row.outer,false);
+                    selector(row.outer, false);
                 }
             }
 
             for (i = 0; i < selected.length; i++) {
-                selector = me.getMetaValue('rowSelector', selectMeta.table, selectMeta.rowMeta.findFirst({key : selected[i]}));
-                row = me.renderState_.rows.findFirst({key : selected[i]});
+                selector = me.getMetaValue('rowSelector', selectMeta.table, selectMeta.rowMeta.findFirst({key: selected[i]}));
+                row = me.renderState_.rows.findFirst({key: selected[i]});
                 if (row) {
-                    selector(row.outer,true);
+                    selector(row.outer, true);
                 }
             }
         }
-        
+
         me.curSelected_ = selected;
     });
 
@@ -76,12 +76,12 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     this.selected_ = this.scope_.getFrp().createB([]);
     this.rowClickEvent_ = scope.getFrp().createCallback(function(e, selectedB) {
         var oldSelected = selectedB.get();
-        if (!goog.array.find(oldSelected, function (x) {
-            return recoil.util.isEqual(x,e.data);
+        if (!goog.array.find(oldSelected, function(x) {
+            return recoil.util.isEqual(x, e.data);
         })) {
-            selectedB.set([e.data] );
+            selectedB.set([e.data]);
         }
-        
+
     }, this.selected_);
     this.rowClickHelper_.attach(this.rowClickEvent_);
 };
@@ -115,8 +115,8 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
  * @private
  * @constructor
  */
-    
-recoil.ui.widgets.table.TableWidget.LayoutState_ = function () {
+
+recoil.ui.widgets.table.TableWidget.LayoutState_ = function() {
     this.rowMeta = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_);
     this.columnMeta = [];
     this.tableMeta = {};
@@ -152,7 +152,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var
     for (var i = arguments.length - 1; i > 0; i--) {
         var arg = arguments[i];
         if (arg === null) {
-            console.log("arg is null");
+            console.log('arg is null');
         }
         else if (arg === undefined) {
 
@@ -189,7 +189,7 @@ recoil.ui.widgets.table.TableWidget.defaultTableDecorator_ = function() {
  * @param {Element} row
  * @param {boolean} selected
  */
-recoil.ui.widgets.table.TableWidget.defaultRowSelector_ = function (row, selected) {
+recoil.ui.widgets.table.TableWidget.defaultRowSelector_ = function(row, selected) {
     if (selected) {
         goog.dom.classlist.add(row, 'recoil_table_selected');
     }
@@ -597,8 +597,8 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
     var state = this.state_;
     var rowRemoves = this.getRowRemoves_(table.rowMeta);
     rowRemoves.inOrderTraverse(function(key) {
-        
-        var renderRow = renderState.rows.remove( key);
+
+        var renderRow = renderState.rows.remove(key);
         if (renderRow) {
             renderState.table.inner.removeChild(renderRow.outer);
         }
@@ -671,14 +671,14 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
  * @param {Element} from
  * @param {Element} to
  */
-recoil.ui.widgets.table.TableWidget.prototype.moveChildren = function (from, to) {
+recoil.ui.widgets.table.TableWidget.prototype.moveChildren = function(from, to) {
     var children = from.childNodes;
     var toMove = [];
 
     for (var i = 0; children && i < children.length; i++) {
         toMove.push(children[i]);
     }
-    
+
     for (i = 0; i < toMove.length; i++) {
         from.removeChild(toMove[i]);
         to.appendChild(toMove[i]);
@@ -691,7 +691,7 @@ recoil.ui.widgets.table.TableWidget.prototype.moveChildren = function (from, to)
  * @param {Element} oldChild
  * @param {Element} newChild
  */
-recoil.ui.widgets.table.TableWidget.prototype.replaceChild = function (parent, oldChild, newChild) {
+recoil.ui.widgets.table.TableWidget.prototype.replaceChild = function(parent, oldChild, newChild) {
 
     parent.insertBefore(newChild, oldChild);
     parent.removeChild(oldChild);
@@ -905,7 +905,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         var tableMeta = table.tableMeta;
         /**
          * @type {function () : recoil.ui.RenderedDecorator}
-         */ 
+         */
         var tableDecorator = this.getMetaValue('tableDecorator', tableMeta);
         var tableComponent = tableDecorator();
 
@@ -964,7 +964,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 };
 
 /**
- * @return {goog.ui.Component}
+ * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.table.TableWidget.prototype.getComponent = function() {
     return this.container_;

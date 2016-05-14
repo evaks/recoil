@@ -17,7 +17,7 @@ recoil.ui.widgets.TextWidget = function(scope) {
 };
 
 /**
- * @return {goog.ui.Component}
+ * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.TextWidget.prototype.getComponent = function () {
     return this.component_;

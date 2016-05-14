@@ -11,15 +11,23 @@ goog.require('recoil.ui.message.Message');
 goog.require('recoil.frp.Util');
 
 /**
+ * 
  * @param {!boolean} val
- * @param {recoil.ui.message.Message=} opt_true
+ * @param {recoil.ui.message.Message=} opt_true if opt_false is undefined this is used to define why it true of false depending on the value
  * @param {recoil.ui.message.Message=} opt_false
  * @constructor
  */
 recoil.ui.BoolWithExplaination = function(val, opt_true, opt_false) {
     this.val_ = val;
-    this.true_ = opt_true ? opt_true : null;
-    this.false_ = opt_false ? opt_false : null;
+    if (opt_false === undefined && opt_true !== undefined) {
+        this.true_ = val ? opt_true : null;
+        this.false_ = !val ? opt_true : null;
+        
+    }
+    else {
+        this.true_ = opt_true ? opt_true : null;
+        this.false_ = opt_false ? opt_false : null;
+    }
 };
 
 /**

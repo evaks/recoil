@@ -6,6 +6,7 @@ goog.require('goog.ui.Component');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.ui.widgets.LabelWidget');
+goog.require('recoil.frp.struct');
 /**
  *
  * @param {recoil.ui.WidgetScope} scope
@@ -55,7 +56,7 @@ recoil.ui.widgets.InputWidget.prototype.attach = function(name, value, enabled) 
     this.valueB_ = util.toBehaviour(value);
     this.enabledB_ = util.toBehaviour(enabled);
 
-    var readyB = util.isAllGood(this.nameB_, this.valueB_, this.enabledB_);
+    var readyB = util.isAllGoodExplain(this.nameB_, this.valueB_, this.enabledB_);
 
     this.labelWidget_.attach(this.nameB_, this.valueB_, recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
     var reallyEnabledB = recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB);
@@ -75,9 +76,9 @@ recoil.ui.widgets.InputWidget.prototype.attach = function(name, value, enabled) 
  */
 recoil.ui.widgets.InputWidget.prototype.attachStruct = function(data) {
 
-    var nameB = recoil.struct.get('name', data);
-    var enabledB = recoil.struct.get('enabled', data);
-    var valueB = recoil.struct.get('value', data);
+    var nameB = recoil.frp.struct.get('name', data);
+    var enabledB = recoil.frp.struct.get('enabled', data);
+    var valueB = recoil.frp.struct.get('value', data);
 
     this.attach(nameB.get(), valueB.get(), enabledB.get());
 };
@@ -106,9 +107,9 @@ recoil.ui.widgets.InputWidgetHelper = function(scope) {
 
 /**
  *
- * @param {String} name
- * @param {recoil.frp.Behaviour<string>} value
- * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplaination>} enabled
+ * @param {string} name
+ * @param {recoil.frp.Behaviour<!string>|!string} value
+ * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
  * @return {recoil.ui.widgets.InputWidget}
  */
 recoil.ui.widgets.InputWidgetHelper.prototype.createAndAttach = function(name, value, enabled) {

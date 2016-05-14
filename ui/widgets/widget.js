@@ -8,7 +8,7 @@ recoil.ui.Widget = function() {
 };
 
 /**
- * @return {goog.ui.Component}
+ * @return {!goog.ui.Component}
  */
 recoil.ui.Widget.prototype.getComponent = function() {
 

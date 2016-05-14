@@ -8,12 +8,19 @@ goog.require('recoil.frp.Util');
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
- * @extends recoil.ui.Widget
+ * @implements recoil.ui.Widget
  */
 recoil.ui.widgets.PasswordWidget = function(scope) {
     this.scope_ = scope;
+    this.password_ = new goog.ui.Component();
 
+};
 
+/**
+ * @return {!goog.ui.Component}
+ */
+recoil.ui.widgets.PasswordWidget.prototype.getComponent = function() {
+    return this.password_;
 };

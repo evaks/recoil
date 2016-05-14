@@ -4,7 +4,7 @@ goog.require('recoil.ui.widgets.MenuButtonWidget');
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
  */
 recoil.ui.widgets.MenuStructure = function(scope) {
@@ -94,7 +94,7 @@ recoil.ui.widgets.MenuStructure.prototype.create = function() {
       var menuArr = [];
 
       var me = this;
-      for (var i in this.menuArr_) {
+      for (var i  = 0; i < this.menuArr_.length; i++) {
           if (this.menuArr_.hasOwnProperty(i)) {
               var menu = new recoil.ui.widgets.MenuButtonWidget(this.scope_);
               var items = [];

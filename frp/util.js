@@ -2,6 +2,7 @@ goog.provide('recoil.frp.Util');
 
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.util');
+goog.require('recoil.ui.messages');
 
 /**
  * @constructor
@@ -100,6 +101,39 @@ recoil.frp.Util.prototype.isAllGood = function(var_values) {
         return new recoil.frp.BStatus(true);
     }, arguments);
 };
+
+/**
+ *
+ * @param {...recoil.frp.Behaviour} var_values
+ * @return {!recoil.frp.Behaviour<!BoolWithExplaination>}
+ */
+recoil.frp.Util.prototype.isAllGoodExplain = function(var_values) {
+
+    var outerArg = arguments;
+    return recoil.util.invokeParamsAndArray(this.frp_.metaLiftB, this.frp_, function() {
+        var result = new recoil.frp.BStatus(false);
+        var errors = [];
+        var ready = true;
+
+        for (var i = 0; i < outerArg.length; i++) {
+            var meta =outerArg[i].metaGet(); 
+            if (!meta.good()) {
+                goog.array.extend(errors, meta.errors());
+                if (ready && meta.notReady()) {
+                    errors.push(recoil.ui.messages.NOT_READY);
+                    ready = false;
+                }
+            }
+        }
+        if (errors.length == 0) {
+            return new recoil.frp.BStatus(recoil.ui.BoolWithExplaination.TRUE);
+        }
+
+        return new recoil.ui.BoolWithExplaination(false, recoil.ui.messages.join(errors));
+
+    }, arguments);
+};
+
 /*
 var x = createB(1);
 var y = createB(2);

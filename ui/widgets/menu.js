@@ -19,7 +19,7 @@ goog.require('recoil.ui.events');
 
 /**
  * @constructor
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  */
 recoil.ui.widgets.MenuBarWidget = function(scope, component) {
     this.scope_ = scope;
@@ -56,7 +56,7 @@ recoil.ui.widgets.MenuBarWidget.defaultConfig = {
  */
 recoil.ui.widgets.MenuBarWidget.prototype.attach = function(config, menus, enabled) {
     var util = new recoil.frp.Util(this.scope_.getFrp());
-    this.menus_ = menus;
+    this.menus_ = util.toBehaviour(menus);
     this.config_.attach(util.getDefault(this.config, recoil.ui.widgets.MenuButtonWidget.defaultConfig));
     this.state_.attach(this.menus_, util.getDefault(enabled, true));
 };
@@ -104,7 +104,7 @@ recoil.ui.widgets.MenuBarWidget.prototype.updateState_ = function(helper, menusB
 
 /**
  * @constructor
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  */
 recoil.ui.widgets.MenuButtonWidget = function(scope) {
     /**
@@ -123,8 +123,10 @@ recoil.ui.widgets.MenuButtonWidget = function(scope) {
  * @param {Array<recoil.ui.widgets.MenuItemActionWidget>|recoil.frp.Behaviour<Array<recoil.ui.widgets.MenuItemWidget>>} menuItems
  */
 recoil.ui.widgets.MenuButtonWidget.prototype.attach = function(name, menuItems) {
-    this.nameB_ = this.state_.getFrp().makeBehaviour(name);
-    this.itemsB_ = this.state_.getFrp().makeBehaviour(menuItems);
+    var util = new recoil.frp.Util(this.state_.getFrp());
+
+    this.nameB_ = util.toBehaviour(name);
+    this.itemsB_ = util.toBehaviour(menuItems);
     this.state_.attach(this.itemsB_, this.nameB_);
 };
 
@@ -163,9 +165,9 @@ recoil.ui.widgets.MenuButtonWidget.prototype.getComponent = function() {
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
  * @constructor
- * @extends {recoil.ui.widgets.MenuItemWidget}
+ * @param {!recoil.ui.WidgetScope} scope
+ * @implements {recoil.ui.widgets.MenuItemWidget}
  */
 recoil.ui.widgets.MenuItemActionWidget = function(scope) {
     /**
@@ -200,14 +202,14 @@ recoil.ui.widgets.MenuItemActionWidget.prototype.getComponent = function() {
 /**
  *
  * @param {recoil.frp.Behaviour<String>} name
- * @param {recoil.frp.Behaviour<Boolean>} enabledB
+ * @param {recoil.frp.Behaviour<!boolean>|!boolean} enabledB
  * @param {!recoil.frp.Behaviour<?>} actionB
  */
 recoil.ui.widgets.MenuItemActionWidget.prototype.attach = function(name, enabledB, actionB) {
     this.actionB_.set(actionB);
     var util = new recoil.frp.Util(this.state_.getFrp());
 
-    this.nameB_ = this.state_.getFrp().makeBehaviour(name);
+    this.nameB_ = util.toBehaviour(name);
     this.state_.attach(this.nameB_, util.toBehaviour(enabledB), actionB);
 };
 
@@ -233,9 +235,9 @@ recoil.ui.widgets.MenuItemActionWidget.prototype.updateState_ = function(helper,
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
- * @extends {recoil.ui.widgets.MenuItemWidget}
+ * @implements {recoil.ui.widgets.MenuItemWidget}
  */
 recoil.ui.widgets.SubMenuWidget = function(scope) {
     this.scope_ = scope;
@@ -265,13 +267,13 @@ recoil.ui.widgets.SubMenuWidget.prototype.getComponent = function() {
 
 /**
  *
- * @param {recoil.frp.Behaviour<String>} name
- * @param {recoil.frp.Behaviour<Boolean>} enabledB
+ * @param {recoil.frp.Behaviour<string>|string} name
+ * @param {recoil.frp.Behaviour<!boolean>|boolean} enabledB
  */
 recoil.ui.widgets.SubMenuWidget.prototype.attach = function(name, enabledB) {
     var util = new recoil.frp.Util(this.state_.getFrp());
 
-    this.nameB_ = this.state_.getFrp().makeBehaviour(name);
+    this.nameB_ = util.toBehaviour(name);
     this.state_.attach(this.nameB_, util.toBehaviour(enabledB));
 };
 
@@ -313,11 +315,6 @@ recoil.ui.widgets.MenuSeparatorWidget.prototype.getComponent = function() {
  */
 recoil.ui.widgets.MenuItemWidget = function() {
 };
-
-
-
-
-
 
 
 

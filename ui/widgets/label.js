@@ -29,7 +29,7 @@ recoil.ui.widgets.LabelWidget = function(scope) {
 
     /**
      *
-     * @type {goog.ui.Control}
+     * @type {!goog.ui.Control}
      * @private
      */
     this.label_ = new goog.ui.Control();
@@ -81,7 +81,7 @@ recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
 /**
  * gets the component of the widget that should be placed in the
  * dom
- * @return {goog.ui.Component}
+ * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.LabelWidget.prototype.getComponent = function() {
       return this.label_;

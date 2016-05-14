@@ -63,26 +63,6 @@ recoil.frp.Frp = function() {
 };
 
 /**
- * make a value if it is not a behaviour into a behaviour
- * @template T
- * @param  {recoil.frp.Behaviour<T>|T} behaviourOrValue
- * @param {T=} opt_default value to set if the behaviour or value is null or undefined
- * @return {recoil.frp.Behaviour<T>}
- */
-
-recoil.frp.Frp.prototype.makeBehaviour = function(behaviourOrValue, opt_default) {
-    if (behaviourOrValue instanceof recoil.frp.Behaviour) {
-        return behaviourOrValue;
-    }
-    if (opt_default !== undefined) {
-        if (behaviourOrValue === undefined || behaviourOrValue === null) {
-            return this.createConstB(opt_default);
-        }
-    }
-    return this.createConstB(behaviourOrValue);
-};
-
-/**
  *
  * @return {recoil.frp.TransactionManager}
  */

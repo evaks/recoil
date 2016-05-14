@@ -4,7 +4,7 @@ goog.require('recoil.ui.message');
 
 
 recoil.ui.messages.AND = recoil.ui.message.getParamMsg(['first'],' and ', ['second']);
-
+recoil.ui.messages.NOT_READY = recoil.ui.message.getParamMsg('Not ready');
 
 
 

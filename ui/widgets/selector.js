@@ -6,7 +6,7 @@ goog.require('recoil.frp.Behaviour');
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
  */
 recoil.ui.widgets.SelectorWidget = function(scope) {

@@ -273,7 +273,7 @@ recoil.structs.table.MutableTable.prototype.setMeta = function(meta) {
 
 /**
  * get table meta data
- * @return {*}
+ * @return {Object}
  */
 recoil.structs.table.MutableTable.prototype.getMeta = function() {
     return this.meta_;
@@ -282,11 +282,11 @@ recoil.structs.table.MutableTable.prototype.getMeta = function() {
 /**
  * add meta data to already existing meta data, this may override existing meta
  * data
- * @param {*} meta
+ * @param {Object} meta
  */
 
 recoil.structs.table.MutableTable.prototype.addMeta = function(meta) {
-    var newMeta = {};goog.object.clone(this.meta_);
+    var newMeta = goog.object.clone(this.meta_);
     recoil.util.object.addProps(newMeta, this.meta_, meta);
     this.meta_ = goog.object.clone(newMeta);
 };
@@ -295,7 +295,7 @@ recoil.structs.table.MutableTable.prototype.addMeta = function(meta) {
 /**
  * get column meta data
  * @param {recoil.structs.table.ColumnKey} key
- * @return {*}
+ * @return {!Object}
  */
 
 recoil.structs.table.MutableTable.prototype.getColumnMeta = function(key) {
@@ -572,7 +572,7 @@ recoil.structs.table.Table.prototype.get = function(keys, columnKey) {
 };
 
 /**
- * @return {*}
+ * @return {!Object}
  */
 recoil.structs.table.Table.prototype.getMeta = function() {
     return this.meta_;
