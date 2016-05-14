@@ -10,7 +10,7 @@ goog.require('recoil.ui.widgets.LabelWidget');
  *
  * @param {recoil.ui.WidgetScope} scope
  * @constructor
- * @extends recoil.ui.LabeledWidget
+ * @implements {recoil.ui.LabeledWidget}
  */
 recoil.ui.widgets.InputWidget = function(scope) {
     this.scope_ = scope;
@@ -42,9 +42,9 @@ recoil.ui.widgets.InputWidget.prototype.getLabel = function() {
 
 /**
  *
- * @param {recoil.frp.Behaviour<string>} name
- * @param {recoil.frp.Behaviour<string>} value
- * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplaination>} enabled
+ * @param {recoil.frp.Behaviour<!string>|!string} name
+ * @param {recoil.frp.Behaviour<!string>|!string} value
+ * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
  */
 recoil.ui.widgets.InputWidget.prototype.attach = function(name, value, enabled) {
 

@@ -392,7 +392,7 @@ recoil.util.object.removeUndefined = function(obj) {
 
 /**
  * @param {Object} obj
- * @param {...Object} var_parts
+ * @param {...string} var_parts
  * return {*}
  */
 

@@ -752,7 +752,7 @@ recoil.frp.Behaviour.prototype.set = function(value) {
 /**
  * @template T
  * @param {T} initial
- * @return {recoil.frp.Behaviour<T>}
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
@@ -978,7 +978,7 @@ recoil.frp.Frp.prototype.liftE = function(func, var_args) {
  * Creates callback, this is basically a behaviour with only an inverse
  * the calculate function always returns true
  * @param {function(...*)} func
- * @param {...recoil.frp.Behaviour<*>} var_dependants
+ * @param {...!recoil.frp.Behaviour<?>} var_dependants
  * @return {!recoil.frp.Behaviour<?>}
  */
 recoil.frp.Frp.prototype.createCallback = function(func, var_dependants) {

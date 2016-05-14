@@ -19,7 +19,7 @@ goog.require('recoil.ui.BoolWithExplaination');
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
  * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer callback will be called with
- * @param {function(recoil.ui.WidgetHelper,...)} callback
+ * @param {function(...?)} callback
  * @constructor
  */
 
@@ -68,11 +68,12 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
 };
 
 /**
- *
+ * @return {recoil.frp.Frp}
  */
 recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
     return this.frp_;
 };
+
 
 recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function() {
    this.component_.removeChildren( true);

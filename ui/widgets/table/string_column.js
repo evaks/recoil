@@ -61,7 +61,7 @@ recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ =
 
 
     widget.attach('', value,
-                  recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplaination));
+                  recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplaination.TRUE));
     return widget;
 };
 

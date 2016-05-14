@@ -19,7 +19,7 @@ goog.require('recoil.ui.widgets.table.StringColumn');
 
 /**
  * @constructor
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @implements recoil.ui.AttachableWidget
  */
 recoil.ui.widgets.table.TableWidget = function(scope) {
@@ -141,10 +141,10 @@ recoil.ui.widgets.table.TableWidget.emptyState_ = function() {
  * if it does not find it there it then will check the scope for that value with the name
  * recoil.ui.widgets.table.TableWidget.'value' if it is not there it will then return
  * recoil.ui.widgets.table.TableWidget.default'Value'_ (note the first letter is capitalised)
-
+ * @template T
  * @param {string} value the key of value to get
  * @param {...Object} var_meta all the meta information
- * @return {Object}
+ * @return {T}
  */
 recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var_meta) {
     var val;
@@ -191,10 +191,10 @@ recoil.ui.widgets.table.TableWidget.defaultTableDecorator_ = function() {
  */
 recoil.ui.widgets.table.TableWidget.defaultRowSelector_ = function (row, selected) {
     if (selected) {
-        goog.dom.classes.add(row, 'recoil_table_selected');
+        goog.dom.classlist.add(row, 'recoil_table_selected');
     }
     else {
-        goog.dom.classes.remove(row, 'recoil_table_selected');
+        goog.dom.classlist.remove(row, 'recoil_table_selected');
     }
 };
 
@@ -257,7 +257,7 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator_ = function() {
  * the default factory form for making header widgets for header cells
  * @final
  * @private
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
  */
@@ -450,7 +450,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves_ = function(newCo
  *
  * @private
  * @param {Array<Object>} newColumnInfo the column meta data of the new table
- * @return {Array<Object>}
+ * @return {Array<number>}
  */
 recoil.ui.widgets.table.TableWidget.prototype.getColumnMoves_ = function(newColumnInfo) {
     var delColumns = [];
@@ -667,6 +667,37 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
     return res;
 };
 /**
+ * moves all the children from one element to another
+ * @param {Element} from
+ * @param {Element} to
+ */
+recoil.ui.widgets.table.TableWidget.prototype.moveChildren = function (from, to) {
+    var children = from.childNodes;
+    var toMove = [];
+
+    for (var i = 0; children && i < children.length; i++) {
+        toMove.push(children[i]);
+    }
+    
+    for (i = 0; i < toMove.length; i++) {
+        from.removeChild(toMove[i]);
+        to.appendChild(toMove[i]);
+    }
+};
+
+
+/**
+ * @param {!Element} parent
+ * @param {Element} oldChild
+ * @param {Element} newChild
+ */
+recoil.ui.widgets.table.TableWidget.prototype.replaceChild = function (parent, oldChild, newChild) {
+
+    parent.insertBefore(newChild, oldChild);
+    parent.removeChild(oldChild);
+};
+
+/**
  * updates existing headers and cells if the widget, or decorator has changed
  *
  * @private
@@ -872,12 +903,15 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         // not just build table
         var table = tableB.get();
         var tableMeta = table.tableMeta;
+        /**
+         * @type {function () : recoil.ui.RenderedDecorator}
+         */ 
         var tableDecorator = this.getMetaValue('tableDecorator', tableMeta);
         var tableComponent = tableDecorator();
 
         if (this.renderState_.table) {
             if (this.renderState_.table.decorator !== tableDecorator) {
-                this.container_.getElement().removeChild(this.renderState_.outer);
+                this.container_.getElement().removeChild(this.renderState_.table.outer);
                 this.moveChildren(this.renderState_.table.inner, tableComponent.inner);
                 goog.dom.insertChildAt(this.container_.getElement(), tableComponent.outer, 0);
                 this.renderState_.table = tableComponent;

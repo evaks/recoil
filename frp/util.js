@@ -14,10 +14,10 @@ recoil.frp.Util = function(frp) {
 /**
  * converts a value to a behaviour, if the value is already a behaviour
  * does nothing
- * @template T
+ * @template T,O
  * @param {recoil.frp.Behaviour<T> | T} value
  * @param {T=} opt_default
- * @return {recoil.frp.Behaviour<T>}
+ * @return {recoil.frp.Behaviour<O>}
  *
  */
 recoil.frp.Util.prototype.toBehaviour = function(value, opt_default) {

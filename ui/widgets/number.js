@@ -189,9 +189,9 @@ recoil.ui.widgets.NumberWidget.prototype.getLabel = function() {
 
 /**
  *
- * @param {recoil.frp.Behaviour<string>} name
- * @param {recoil.frp.Behaviour<number>} value
- * @param {!recoil.frp.Behaviour<!Object>} options
+ * @param {recoil.frp.Behaviour<!string>|!string} name
+ * @param {recoil.frp.Behaviour<number>|number} value
+ * @param {!recoil.frp.Behaviour<?>} options
  */
 recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(name, value, options) {
     var frp = this.valueHelper_.getFrp();

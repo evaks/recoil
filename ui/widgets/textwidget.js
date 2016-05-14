@@ -4,14 +4,21 @@ goog.require('goog.events');
 goog.require('goog.events.InputHandler');
 goog.require('goog.ui.Component');
 goog.require('recoil.frp.Util');
-
+goog.require('goog.ui.Textarea');
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
  * @implements recoil.ui.Widget
  */
 recoil.ui.widgets.TextWidget = function(scope) {
-
+    this.component_ = new goog.ui.Textarea("");
 };
+
+/**
+ * @return {goog.ui.Component}
+ */
+recoil.ui.widgets.TextWidget.prototype.getComponent = function () {
+    return this.component_;
+}
