@@ -14,8 +14,8 @@ goog.require('recoil.ui.events');
 
 /**
  * @constructor
- * @param {recoil.ui.WidgetScope} scope
- * @extends recoil.ui.Widget
+ * @param {!recoil.ui.WidgetScope} scope
+ * @implements recoil.ui.Widget
  */
 recoil.ui.widgets.ButtonWidget = function(scope) {
     this.scope_ = scope;
@@ -27,14 +27,10 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
     this.component_ = null;
     /**
      * @private
-     * @type goog.ui.Button
-     *
      */
     this.button_ = new goog.ui.Button();
     this.button_.setEnabled(false);
     this.button_.setContent("??");
-    this.config_ = new recoil.ui.WidgetHelper(scope, null, this, this.updateConfig_);
-    this.state_ = new recoil.ui.WidgetHelper(scope, null, this, this.updateState_);
 
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_);
 
@@ -43,20 +39,10 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
 
 /**
  *
- * @return {goog.ui.Component}
+ * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.ButtonWidget.prototype.getComponent = function() {
     return this.button_;
-};
-
-/**
- * sets the associated container for the widget
- *
- * @param {Element} container
- */
-recoil.ui.widgets.ButtonWidget.prototype.setComponent = function(container) {
-    this.config_.setComponent(container);
-    this.state_.setComponent(container);
 };
 
 //recoil.ui.widgets.ButtonWidget.prototype.attach = function(value) {
@@ -86,30 +72,6 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbac
 
     var me = this;
     this.changeHelper_.listen(callbackB);
-};
-
-
-/**
- * @private
- * @param {recoil.ui.WidgetHelper} helper
- * @param {recoil.frp.Behaviour} configB
- */
-recoil.ui.widgets.ButtonWidget.prototype.updateConfig_ = function(helper, configB) {
-    var me = this;
-    var good = helper.isGood();
-
-    if (good) {
-        if (me.button_ !== null) {
-            goog.dom.removeChildren(this.component_);
-        }
-        var config = configB.get();
-        this.button_ = new goog.ui.Button(config.content, config.renderer, config.domHelper);
-        this.button_.render(me.component_);
-        recoil.ui.events.listen(this.button_, goog.ui.Component.EventType.ACTION, this.callback_);
-
-        // and created a new one
-        me.state_.forceUpdate();
-    }
 };
 
 /**

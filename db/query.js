@@ -179,7 +179,7 @@ recoil.db.QueryScope.prototype.eval = function(exp) {
 
 /**
  * @param {string} exp  expressoin to eval
- * @return {*}
+ * @return {function():boolean}
  */
 recoil.db.QueryScope.mkWhere = function(exp) {
     // this might not work for things with keys like strings
@@ -200,7 +200,7 @@ recoil.db.QueryScope.mkWhere = function(exp) {
 
 /**
  * @param {function(Object):boolean} func precompiled function
- * @return {*}
+ * @return {boolean}
  */
 recoil.db.QueryScope.prototype.evalWhere = function(func) {
     // this might not work for things with keys like strings
@@ -228,6 +228,9 @@ recoil.db.QueryOptions = function(pollRate, extra) {
  * @param {?recoil.db.QueryExp} opt_expr
  */
 recoil.db.Query = function(opt_expr) {
+    /**
+     * @type recoil.db.QueryExp
+     */
     this.expr_ = opt_expr || null;
 };
 
@@ -273,7 +276,7 @@ recoil.db.Query.prototype.chain_ = function(constructor, args) {
  * @return {recoil.db.Query}
  */
 recoil.db.Query.prototype.set_ = function(query) {
-    this.expr_ = query;
+    this.expr_ = query.expr_;
     return this;
 };
 
@@ -593,6 +596,9 @@ recoil.db.Query.prototype.notIn$ = function(field, values) {
  */
 recoil.db.Query.prototype.toExpr = function(exp) {
     if (exp instanceof recoil.db.Query) {
+        if (exp.expr_ === null) {
+            throw "unexpected null in expression";
+        }
         return exp.expr_;
     }
     if (exp instanceof String) {
@@ -602,8 +608,11 @@ recoil.db.Query.prototype.toExpr = function(exp) {
         return new recoil.db.expr.Field(exp.toString());
     }
 
-    if (exp instanceof Object) {
+    if (exp instanceof recoil.db.QueryExp) {
         return exp;
+    }
+    if (exp instanceof Object) {
+        return /** @type !recoil.db.QueryExp */ (exp);
     }
 
     return new recoil.db.expr.Value(exp);
@@ -932,7 +941,7 @@ recoil.db.expr.Where = function(expr) {
 
 /**
  * @param {recoil.db.QueryScope} scope
- * @return {*}
+ * @return {boolean}
  */
 recoil.db.expr.Where.prototype.eval = function(scope) {
     return scope.evalWhere(this.expr_);
@@ -946,4 +955,12 @@ recoil.db.expr.Where.prototype.eval = function(scope) {
  */
 recoil.db.expr.Search = function(expr) {
     this.expr_ = expr;
+};
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Search.prototype.eval = function(scope) {
+    throw "not implemented yet";
 };

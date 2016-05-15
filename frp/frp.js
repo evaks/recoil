@@ -958,10 +958,11 @@ recoil.frp.Frp.prototype.liftE = function(func, var_args) {
  * Creates callback, this is basically a behaviour with only an inverse
  * the calculate function always returns true
  * @param {function(...*)} func
- * @param {...!recoil.frp.Behaviour<?>} var_dependants
+ * @param {...recoil.frp.Behaviour<?>} var_dependants
  * @return {!recoil.frp.Behaviour<?>}
  */
 recoil.frp.Frp.prototype.createCallback = function(func, var_dependants) {
+    recoil.util.notNull(arguments);
     var params = [function() {return null;}, function(value) {return func.apply(this, arguments)}];
     for (var i = 1; i < arguments.length; i++) {
         params.push(arguments[i]);
@@ -989,6 +990,10 @@ recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
 /**
  * like liftBI except returns a Status, this is useful for calculation
  * errors, inputs are still guaranteed to be good
+ * @template RT
+ * @param {function(...) : recoil.frp.Status<RT>} func
+ * @param {function(RT, ...)} invFunc
+ * @param {...!recoil.frp.Behaviour} var_args
  */
 recoil.frp.Frp.prototype.statusLiftBI = function(func, invFunc, var_args) {
     return recoil.util.invokeParamsAndArray(this.liftBI_, this, this.metaLiftBI, null, arguments);

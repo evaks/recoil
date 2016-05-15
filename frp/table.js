@@ -11,20 +11,20 @@ goog.provide('recoil.frp.table.TableRow');
 goog.require('goog.object');
 
 /**
- * @param {recoil.frp.Frp} frp the frp engine
- * @param {recoil.structs.table.Table|recoil.frp.Behaviour<recoil.structs.table.Table>}  table
- * @param {Array<*>|recoil.frp.Behaviour<recoil.structs.table.Table>}  keys
+ * @param {!recoil.frp.Frp} frp the frp engine
+ * @param {recoil.structs.table.Table|recoil.frp.Behaviour<recoil.structs.table.Table>}  tableV
+ * @param {!Array<?>|recoil.frp.Behaviour<!Array<?>>}  keysV
  * @return {recoil.frp.Behaviour<recoil.structs.table.TableRow>}
  */
-recoil.frp.table.TableRow.create = function(frp, table, keys) {
+recoil.frp.table.TableRow.create = function(frp, tableV, keysV) {
     var util = new recoil.frp.Util(frp);
 
-    keys = util.toBehaviour(keys);
-    table = util.toBehaviour(table);
+    var keys = util.toBehaviour(keysV);
+    var table = util.toBehaviour(tableV);
 
     return frp.statusLiftBI(
         function() {
-            var row = table.get(keys.get());
+            var row = table.get().getRow(keys.get());
             if (row === null) {
                 return recoil.frp.BStatus.notReady();
             }
@@ -32,9 +32,8 @@ recoil.frp.table.TableRow.create = function(frp, table, keys) {
             return new recoil.frp.BStatus(row);
         },
         function(row) {
-            var mTable = new recoil.struct.MutableTable.createFromTable(
-                table.get());
-            mTable.setRow(row);
+            var mTable = table.get().unfreeze();
+            mTable.setRow(keys.get(), row);
             table.set(mTable.freeze());
         }, table, keys);
 };
@@ -43,19 +42,19 @@ recoil.frp.table.TableRow.create = function(frp, table, keys) {
  * this wil return an bidirectional table cell it will contain the meta data from the
  * cell, column, row, and table. Setting the meta data will have no effect
  *
- * @param {recoil.frp.Frp} frp the frp engine
- * @param {recoil.struct.table.Table|recoil.frp.Behaviour<recoil.struct.table.Table>}  table
- * @param {Array<*>|recoil.frp.Behaviour<recoil.struct.table.Table>}  keys
- * @param {recoil.structs.table.ColumnKey|recoil.frp.Behaviur<recoil.structs.table.ColumnKey>} column
- * @return {recoil.frp.Behaviour<recoil.structs.table.TableCell>}
+ * @param {!recoil.frp.Frp} frp the frp engine
+ * @param {!recoil.structs.table.Table|recoil.frp.Behaviour<!recoil.structs.table.Table>}  tableV
+ * @param {!Array<?>|!recoil.frp.Behaviour<!Array<?>>}  keysV
+ * @param {!recoil.structs.table.ColumnKey|recoil.frp.Behaviour<!recoil.structs.table.ColumnKey>} columnV
+ * @return {!recoil.frp.Behaviour<!recoil.structs.table.TableCell>}
  **/
 
-recoil.frp.table.TableCell.create = function(frp, tableB, keysB, columnB) {
+recoil.frp.table.TableCell.create = function(frp, tableV, keysV, columnV) {
     var util = new recoil.frp.Util(frp);
-    tableB = util.toBehaviour(tableB);
-    keysB = util.toBehaviour(keysB);
+    var tableB = util.toBehaviour(tableV);
+    var keysB = util.toBehaviour(keysV);
 
-    columnB = util.toBehaviour(columnB);
+    var columnB = util.toBehaviour(columnV);
 
     return frp.liftBI(
         function(table, keys, column) {
@@ -85,19 +84,18 @@ recoil.frp.table.TableCell.create = function(frp, tableB, keysB, columnB) {
  * this wil return an bidirectional table cell it will contain the meta data from the
  * cell, column, row, and table. Setting the meta data will have no effect
  *
- * @param {recoil.frp.Frp} frp the frp engine
- * @param {recoil.struct.table.Table|recoil.frp.Behaviour<recoil.struct.table.Table>}  table
- * @param {recoil.structs.table.ColumnKey|recoil.frp.Behaviur<recoil.structs.table.ColumnKey>} column
- * @return {recoil.frp.Behaviour<recoil.structs.table.TableCell>}
+ * @param {!recoil.frp.Frp} frp the frp engine
+ * @param {!recoil.structs.table.Table|!recoil.frp.Behaviour<recoil.structs.table.Table>}  tableV
+ * @param {!recoil.structs.table.ColumnKey|!recoil.frp.Behaviour<!recoil.structs.table.ColumnKey>} columnV
+ * @return {!recoil.frp.Behaviour<!recoil.structs.table.TableCell>}
  **/
 
 
-recoil.frp.table.TableCell.createHeader = function(frp, tableB, columnB) {
+recoil.frp.table.TableCell.createHeader = function(frp, tableV, columnV) {
     var util = new recoil.frp.Util(frp);
 
-    console.log("tableB",tableB);
-    tableB = util.toBehaviour(tableB);
-    columnB = util.toBehaviour(columnB);
+    var tableB = util.toBehaviour(tableV);
+    var columnB = util.toBehaviour(columnV);
 
     return frp.liftB(
         function(table, column) {
@@ -117,8 +115,9 @@ recoil.frp.table.TableCell.createHeader = function(frp, tableB, columnB) {
 /**
  * gets just the meta information out of a cell
  * @template CT
- * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cell
- * @return {recoil.frp.Behaviour<CT>} 
+ * @param {!recoil.frp.Frp} frp
+ * @param {!recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cellB
+ * @return {!recoil.frp.Behaviour<CT>} 
  */
 recoil.frp.table.TableCell.getValue = function(frp, cellB) {
     return frp.liftBI (
@@ -135,7 +134,8 @@ recoil.frp.table.TableCell.getValue = function(frp, cellB) {
 /**
  * gets just the meta information out of a cell
  * @template CT
- * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cell
+ * @param {!recoil.frp.Frp} frp
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cellB
  * @return {!recoil.frp.Behaviour<*>} 
  */
 

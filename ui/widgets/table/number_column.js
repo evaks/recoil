@@ -19,7 +19,7 @@ recoil.ui.widgets.table.NumberColumn = function(key, name, opt_options) {
 /**
  * @private
  * @param {recoil.ui.WidgetScope} scope
- * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
+ * @param {!recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
  */
 recoil.ui.widgets.table.NumberColumn.defaultWidgetFactory_ = function (scope, cellB) {

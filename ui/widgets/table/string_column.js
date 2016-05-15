@@ -46,9 +46,9 @@ recoil.ui.widgets.table.StringColumn.prototype.getMeta = function(curMeta) {
 
 /**
  * @private
- * @param {recoil.ui.WidgetScope} scope
- * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
- * @return {recoil.ui.Widget}
+ * @param {!recoil.ui.WidgetScope} scope
+ * @param {!recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
+ * @return {!recoil.ui.Widget}
  */
 recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ =
     function(scope, cellB) 

@@ -6,9 +6,8 @@ goog.require('recoil.frp.Frp');
 goog.require('recoil.util.object');
 
 /**
- * @param {string} name the attribute name of the element to get out of the struct
  * @template T,O
- * @param {string} name the name of the field to get
+ * @param {string} name the attribute name of the element to get out of the struct
  * @param {recoil.frp.Behaviour<O>} value the structure to get it out of
  * @param {T=} opt_default
  * @return {!recoil.frp.Behaviour<!T>}

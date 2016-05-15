@@ -57,7 +57,7 @@ recoil.ui.widgets.MenuBarWidget.defaultConfig = {
 recoil.ui.widgets.MenuBarWidget.prototype.attach = function(config, menus, enabled) {
     var util = new recoil.frp.Util(this.scope_.getFrp());
     this.menus_ = util.toBehaviour(menus);
-    this.config_.attach(util.getDefault(this.config, recoil.ui.widgets.MenuButtonWidget.defaultConfig));
+    this.config_.attach(util.getDefault(this.config_, recoil.ui.widgets.MenuButtonWidget.defaultConfig));
     this.state_.attach(this.menus_, util.getDefault(enabled, true));
 };
 
@@ -114,6 +114,11 @@ recoil.ui.widgets.MenuButtonWidget = function(scope) {
      */
     this.menuBtn_ = new goog.ui.MenuButton();
     this.state_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuBtn_, this, this.updateState_);
+};
+
+recoil.ui.widgets.MenuButtonWidget.defaultConfig = {
+    renderer: null,
+    domHelper: null
 };
 
 /**
@@ -178,7 +183,7 @@ recoil.ui.widgets.MenuItemActionWidget = function(scope) {
 
     this.menuItem_ = new goog.ui.MenuItem('');
     this.scope_ = scope;
-    this.config_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateConfig_);
+//    this.config_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateConfig_);
     this.state_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateState_);
     /**
      *

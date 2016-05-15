@@ -6,7 +6,7 @@ goog.provide('recoil.ui.actions.ScreenAction');
  * @param {recoil.frp.Behaviour} selectorB
  * @param {function(recoil.ui.WidgetScope)} factory
  * @constructor
- * @extends {recoil.ui.actions.Action}
+ * @implements {recoil.ui.actions.Action}
  */
 recoil.ui.actions.ScreenAction = function(name, selectorB, factory) {
       this.name_ = name;

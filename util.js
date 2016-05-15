@@ -365,6 +365,10 @@ recoil.util.Handle.prototype.get = function() {
 };
 
 
+/**
+ * @param {!Object} source
+ * @param {...!Object} var_args
+ */
 recoil.util.object.addProps = function(source, var_args) {
     var src = arguments[0];
 
@@ -405,4 +409,26 @@ recoil.util.object.getByParts = function(obj, var_parts) {
         cur = cur[arguments[i]];
     }
     return cur;
+};
+
+/**
+ * @desc checks to see if any of the items are null, if so throws an exception
+ * this is needed because the closure compiler does type check for nulls however
+ * code such as:
+ * constructor
+ *    x = null;
+ * latter:
+ *    x = new X();
+ *    foo(x)
+ * gives an error since x can be null
+ *
+ * @param {!IArrayLike} args
+ */
+recoil.util.notNull = function (args)  {
+    var i;
+    for (i = 0; i < args.length; i++) {
+        if (args[i] === null) {
+            throw "parameter "  + i + " cannot be null";
+        }
+    }
 };

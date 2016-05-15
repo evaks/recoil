@@ -9,7 +9,7 @@ goog.require('recoil.ui.widgets.LabelWidget');
 goog.require('recoil.frp.struct');
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
  * @implements {recoil.ui.LabeledWidget}
  */
@@ -26,7 +26,7 @@ recoil.ui.widgets.InputWidget = function(scope) {
 
 /**
  *
- * @return {goog.ui.Component}
+ * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.InputWidget.prototype.getComponent = function() {
     return this.input_;
@@ -58,8 +58,12 @@ recoil.ui.widgets.InputWidget.prototype.attach = function(name, value, enabled) 
 
     var readyB = util.isAllGoodExplain(this.nameB_, this.valueB_, this.enabledB_);
 
-    this.labelWidget_.attach(this.nameB_, this.valueB_, recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
-    var reallyEnabledB = recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB);
+    this.labelWidget_.attach(
+        /** @type !recoil.frp.Behaviour */ (this.nameB_),
+        recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
+    var reallyEnabledB = recoil.ui.BoolWithExplaination.and(
+        frp,
+        /** @type !recoil.frp.Behaviour */ (this.enabledB_), readyB);
     this.helper_.attach(this.valueB_, reallyEnabledB, util.toBehaviour(this.labelWidget_));
 
     var me = this;
@@ -98,7 +102,7 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
  * @constructor
  */
 recoil.ui.widgets.InputWidgetHelper = function(scope) {

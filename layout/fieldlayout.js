@@ -7,7 +7,8 @@ goog.require('recoil.ui.widgets.InputWidget');
 
 /**
  *
- * @param {recoil.ui.WidgetScope} scope
+ * @param {!recoil.ui.WidgetScope} scope
+ * @implements recoil.ui.Widget
  * @constructor
  */
 recoil.layout.FieldLayoutWidget = function(scope) {
@@ -56,7 +57,7 @@ recoil.layout.FieldLayoutWidget.prototype.updateState_ = function(helper) {
 
 /**
  *
- * @return {goog.ui.Container}
+ * @return {!goog.ui.Component}
  */
 recoil.layout.FieldLayoutWidget.prototype.getComponent = function() {
     return this.container_;

@@ -18,7 +18,7 @@ recoil.frp.Util = function(frp) {
  * @template T,O
  * @param {recoil.frp.Behaviour<T> | T} value
  * @param {T=} opt_default
- * @return {recoil.frp.Behaviour<O>}
+ * @return {!recoil.frp.Behaviour<O>}
  *
  */
 recoil.frp.Util.prototype.toBehaviour = function(value, opt_default) {
@@ -105,7 +105,7 @@ recoil.frp.Util.prototype.isAllGood = function(var_values) {
 /**
  *
  * @param {...recoil.frp.Behaviour} var_values
- * @return {!recoil.frp.Behaviour<!BoolWithExplaination>}
+ * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>}
  */
 recoil.frp.Util.prototype.isAllGoodExplain = function(var_values) {
 

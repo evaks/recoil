@@ -83,10 +83,11 @@ recoil.ui.BoolWithExplaination.prototype.and = function(var_values) {
 /**
  *
  * @param {recoil.frp.Frp} frp
- * @param {...(!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination> | !recoil.ui.BoolWithExplaination)} var_behaviours
+ * @param {...(recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination> | !recoil.ui.BoolWithExplaination)} var_behaviours
  * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>}
  */
 recoil.ui.BoolWithExplaination.and = function(frp, var_behaviours) {
+    recoil.util.notNull(arguments);
     var behaviours = new recoil.frp.Util(frp).arrayToBehaviours(1, arguments);
 
     if (behaviours.length > 0) {

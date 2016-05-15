@@ -120,10 +120,9 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.setStep = function(step) {
  * @override
  */
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
-    this.getDomHelper().createDom(
+    var element = this.getDomHelper().createDom(
         goog.dom.TagName.INPUT, 
         {'type': goog.dom.InputType.NUMBER, step: this.step_, min: this.min_, max: this.max_});
-    var element = this.getElement();
     var lastValid = 88;
 
     goog.events.listen(element

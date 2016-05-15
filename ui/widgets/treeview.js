@@ -68,6 +68,7 @@ recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
         me.state_.forceUpdate();
     } else if (me.tree_ !== null) {
         // TODO implement disable tree
+        throw "not implemented yet";
     }
 
 };
