@@ -30,7 +30,7 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
      */
     this.button_ = new goog.ui.Button();
     this.button_.setEnabled(false);
-    this.button_.setContent("??");
+    this.button_.setContent('??');
 
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_);
 

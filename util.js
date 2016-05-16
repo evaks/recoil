@@ -234,6 +234,10 @@ recoil.util.isEqual = function(a, b) {
     return recoil.util.isEqual.isEqualRec_(a, b, [], [], []);
 };
 
+/**
+ * @param {?} other
+ * @return {!boolean}
+ */
 goog.structs.AvlTree.prototype.equals = function(other) {
     if (other instanceof goog.structs.AvlTree) {
         var count = other.getCount();
@@ -260,8 +264,9 @@ goog.structs.AvlTree.prototype.equals = function(other) {
  * @private
  * @param {Object|number|undefined} a
  * @param {Object|number|undefined} b
- * @param {Array<Object>} aPath
- * @param {Array<Object>} bPath
+ * @param {!Array<Object>} aPath
+ * @param {!Array<Object>} bPath
+ * @param {!Array<!string>} debugPath
  * @return {!boolean}
  */
 recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
@@ -335,6 +340,13 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
     return false;
 };
 
+/**
+ * turn this on to debug equal failing
+ * @private
+ * @param {!boolean} val
+ * @param {!Array<string>} path
+ * @return {!boolean}
+ */
 recoil.util.isEqualDebug_ = function(val, path) {
 //    if (!val) {
 //        console.log('Not Equal', path);
@@ -382,14 +394,14 @@ recoil.util.object.addProps = function(source, var_args) {
 };
 /**
  * @param {Object} obj
- * return {Object}
+ * @return {Object}
  */
 
 recoil.util.object.removeUndefined = function(obj) {
     for (var k in obj) {
         if (obj[k] === undefined) {
             delete obj[k];
-	}
+        }
     }
     return obj;
 };
@@ -397,7 +409,7 @@ recoil.util.object.removeUndefined = function(obj) {
 /**
  * @param {Object} obj
  * @param {...string} var_parts
- * return {*}
+ * @return {*}
  */
 
 recoil.util.object.getByParts = function(obj, var_parts) {
@@ -412,7 +424,7 @@ recoil.util.object.getByParts = function(obj, var_parts) {
 };
 
 /**
- * @desc checks to see if any of the items are null, if so throws an exception
+ * checks to see if any of the items are null, if so throws an exception
  * this is needed because the closure compiler does type check for nulls however
  * code such as:
  * constructor
@@ -424,11 +436,11 @@ recoil.util.object.getByParts = function(obj, var_parts) {
  *
  * @param {!IArrayLike} args
  */
-recoil.util.notNull = function (args)  {
+recoil.util.notNull = function(args)  {
     var i;
     for (i = 0; i < args.length; i++) {
         if (args[i] === null) {
-            throw "parameter "  + i + " cannot be null";
+            throw 'parameter ' + i + ' cannot be null';
         }
     }
 };

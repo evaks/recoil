@@ -1,8 +1,8 @@
 goog.provide('recoil.frp.Util');
 
 goog.require('recoil.frp.Behaviour');
-goog.require('recoil.util');
 goog.require('recoil.ui.messages');
+goog.require('recoil.util');
 
 /**
  * @constructor
@@ -116,7 +116,7 @@ recoil.frp.Util.prototype.isAllGoodExplain = function(var_values) {
         var ready = true;
 
         for (var i = 0; i < outerArg.length; i++) {
-            var meta =outerArg[i].metaGet(); 
+            var meta = outerArg[i].metaGet();
             if (!meta.good()) {
                 goog.array.extend(errors, meta.errors());
                 if (ready && meta.notReady()) {

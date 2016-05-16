@@ -20,7 +20,7 @@ recoil.exception.NotInDom = function(node) {
  * @this {recoil.exception.LoopDetected}
  */
 recoil.exception.LoopDetected = function() {
-    var e = new Error(); 
+    var e = new Error();
     this.message = 'Loop Detected';
     this.stack = e.stack;
     this.fileName = e.fileName;
@@ -35,7 +35,7 @@ recoil.exception.LoopDetected = function() {
  * @this {recoil.exception.NotAttached}
  */
 recoil.exception.NotAttached = function() {
-    var e = new Error(); 
+    var e = new Error();
     this.message = 'Not Attached';
     this.stack = e.stack;
     this.fileName = e.fileName;
@@ -56,7 +56,7 @@ recoil.exception.NoAccessors = function() {
     this.name = this.constructor.name
     this.message = 'No Accessors';
     console.log("error", Error);*/
-    var e = new Error(); 
+    var e = new Error();
     this.message = 'No Accessors';
     this.stack = e.stack;
     this.fileName = e.fileName;
@@ -78,7 +78,9 @@ recoil.exception.NotInTransaction = function() {
   this.name_ = 'Not In Transaction';
 };
 
-
+/**
+ * @return {string}
+ */
 recoil.exception.NotInTransaction.prototype.toString = function() {
     return this.name_;
 };
@@ -91,6 +93,10 @@ recoil.exception.InvalidState = function() {
 
 };
 
-recoil.exception.InvalidState.toString = function() {
-    return "Invalid State";
+/**
+ * @return {string}
+ */
+
+recoil.exception.InvalidState.prototype.toString = function() {
+    return 'Invalid State';
 };

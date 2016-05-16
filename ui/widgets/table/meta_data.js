@@ -40,7 +40,7 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
     var pos = 0;
     this.columns_.forEach(function(col) {
         var inMeta = {};
-        goog.object.extend(inMeta, table.getMeta(),mtable.getColumnMeta(col.getKey())); 
+        goog.object.extend(inMeta, table.getMeta(), mtable.getColumnMeta(col.getKey()));
         var meta = col.getMeta(inMeta);
         if (meta.position === undefined) {
             meta.position = pos;
@@ -51,15 +51,18 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
     return mtable.freeze();
 };
 /**
- * @desc return all the haviours containted in this meta data structure
+ * return all the haviours containted in this meta data structure
+ * @return {!Array<!recoil.frp.Behaviour>}
  */
-recoil.ui.widgets.TableMetaData.prototype.getBehaviours = function () {
+recoil.ui.widgets.TableMetaData.prototype.getBehaviours = function() {
     return recoil.frp.struct.getBehaviours(this);
 };
 /**
- * @desc creates a behaviour that contains TableMetaData
+ * creates a behaviour that contains TableMetaData
+ * @param {!recoil.frp.Frp} frp
+ * @return {!recoil.frp.Behaviour<!Object>}
  */
-recoil.ui.widgets.TableMetaData.prototype.createB = function (frp) {
+recoil.ui.widgets.TableMetaData.prototype.createB = function(frp) {
     return recoil.frp.struct.flattern(frp, this);
 };
 

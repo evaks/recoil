@@ -7,7 +7,7 @@ goog.require('goog.structs.AvlTree');
 /**
  * @interface
  */
-recoil.db.Database = function () {
+recoil.db.Database = function() {
 };
 /**
  * @interface
@@ -45,7 +45,7 @@ recoil.db.DatabaseComms.prototype.set = function(data, oldData, successFunction,
 };
 
 /**
- * @desc instruct the databse that we are no longer interested
+ * instruct the databse that we are no longer interested
  * @param {string} id identifier of the object that to be retrieve from the database
  * @param {...*} var_parameters any extra parameters that maybe passed to the database
  */

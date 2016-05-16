@@ -89,8 +89,6 @@ recoil.frp.table.TableCell.create = function(frp, tableV, keysV, columnV) {
  * @param {!recoil.structs.table.ColumnKey|!recoil.frp.Behaviour<!recoil.structs.table.ColumnKey>} columnV
  * @return {!recoil.frp.Behaviour<!recoil.structs.table.TableCell>}
  **/
-
-
 recoil.frp.table.TableCell.createHeader = function(frp, tableV, columnV) {
     var util = new recoil.frp.Util(frp);
 
@@ -108,8 +106,8 @@ recoil.frp.table.TableCell.createHeader = function(frp, tableV, columnV) {
             return new recoil.structs.table.TableCell(undefined, meta);
 
         }, tableB, columnB);
-    
-}
+
+};
 
 
 /**
@@ -117,14 +115,14 @@ recoil.frp.table.TableCell.createHeader = function(frp, tableV, columnV) {
  * @template CT
  * @param {!recoil.frp.Frp} frp
  * @param {!recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cellB
- * @return {!recoil.frp.Behaviour<CT>} 
+ * @return {!recoil.frp.Behaviour<CT>}
  */
 recoil.frp.table.TableCell.getValue = function(frp, cellB) {
-    return frp.liftBI (
-        function (cell) {
+    return frp.liftBI(
+        function(cell) {
             return cell.getValue();
         },
-        function (val) {
+        function(val) {
             cellB.set(cellB.get().setValue(val));
         }, cellB);
 };
@@ -136,12 +134,12 @@ recoil.frp.table.TableCell.getValue = function(frp, cellB) {
  * @template CT
  * @param {!recoil.frp.Frp} frp
  * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cellB
- * @return {!recoil.frp.Behaviour<*>} 
+ * @return {!recoil.frp.Behaviour<*>}
  */
 
 recoil.frp.table.TableCell.getMeta = function(frp, cellB) {
-    return frp.liftB (
-        function (cell) {
+    return frp.liftB(
+        function(cell) {
             return cell.getMeta();
         }, cellB);
 };

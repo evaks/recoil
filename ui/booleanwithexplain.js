@@ -6,12 +6,12 @@
 
 goog.provide('recoil.ui.BoolWithExplaination');
 
-goog.require('recoil.ui.messages');
-goog.require('recoil.ui.message.Message');
 goog.require('recoil.frp.Util');
+goog.require('recoil.ui.message.Message');
+goog.require('recoil.ui.messages');
 
 /**
- * 
+ *
  * @param {!boolean} val
  * @param {recoil.ui.message.Message=} opt_true if opt_false is undefined this is used to define why it true of false depending on the value
  * @param {recoil.ui.message.Message=} opt_false
@@ -22,7 +22,7 @@ recoil.ui.BoolWithExplaination = function(val, opt_true, opt_false) {
     if (opt_false === undefined && opt_true !== undefined) {
         this.true_ = val ? opt_true : null;
         this.false_ = !val ? opt_true : null;
-        
+
     }
     else {
         this.true_ = opt_true ? opt_true : null;
@@ -35,24 +35,31 @@ recoil.ui.BoolWithExplaination = function(val, opt_true, opt_false) {
  * @type {!recoil.ui.BoolWithExplaination}
  */
 recoil.ui.BoolWithExplaination.TRUE = new recoil.ui.BoolWithExplaination(true);
+/**
+ * @final
+ * @type {!recoil.ui.BoolWithExplaination}
+ */
 recoil.ui.BoolWithExplaination.FALSE = new recoil.ui.BoolWithExplaination(false);
 
 
-recoil.ui.BoolWithExplaination.prototype.val = function () {
+/**
+ * @return {boolean}
+ */
+recoil.ui.BoolWithExplaination.prototype.val = function() {
     return this.val_;
 };
 
 /**
  * @return {?recoil.ui.message.Message}
  */
-recoil.ui.BoolWithExplaination.prototype.reason = function () {
+recoil.ui.BoolWithExplaination.prototype.reason = function() {
     return this.val_ ? this.true_ : this.false_;
 };
 
 
 /**
  *
- * @param var_values
+ * @param {...!recoil.ui.BoolWithExplaination} var_values
  * @return {!recoil.ui.BoolWithExplaination}
  */
 recoil.ui.BoolWithExplaination.prototype.and = function(var_values) {
@@ -104,7 +111,7 @@ recoil.ui.BoolWithExplaination.and = function(frp, var_behaviours) {
  * @param {recoil.frp.Behaviour<!boolean>|!boolean} val
  * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>}
  */
-recoil.ui.BoolWithExplaination.fromBool = function (frp, val) {
+recoil.ui.BoolWithExplaination.fromBool = function(frp, val) {
     return frp.liftB(function(b) {
         return new recoil.ui.BoolWithExplaination(b);
     },new recoil.frp.Util(frp).toBehaviour(val));
@@ -142,15 +149,14 @@ recoil.ui.BoolWithExplaination.prototype.or = function(var_values) {
 
 /**
  *
- * @param var_values
- * @return recoil.ui.BoolWithExplaination
+ * @return {!recoil.ui.BoolWithExplaination}
  */
-recoil.ui.BoolWithExplaination.prototype.not = function(var_values) {
+recoil.ui.BoolWithExplaination.prototype.not = function() {
     return new recoil.ui.BoolWithExplaination(!this.val_, this.false_, this.true_);
 };
 
 /**
- *
+ * @private
  * @param {Array<!recoil.ui.message.Message>} all
  * @param {!boolean} shouldAdd
  * @param {recoil.ui.message.Message} explain
