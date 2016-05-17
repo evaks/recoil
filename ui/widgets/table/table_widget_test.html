@@ -42,13 +42,13 @@
     
     recoil.ui.events.listen($('clickTest'), goog.events.EventType.CLICK,
     toSet);
-
+    
     frp.tm().attach(toSet);
     var rawTable = [
     {id: 1, name: "row 1", count:2, check: true},
     {id: 2, name: "row 2", count:4, check: true},
     {id: 3, name: "row 3", count:6, check: true}];
-
+    
     var tblKeys = {
     id : new recoil.structs.table.ColumnKey("id_"),
     name : new recoil.structs.table.ColumnKey("name_"),
@@ -164,14 +164,14 @@
     var selectedB = tableWidget.createSelected();
     
     deleteButton.attach("", "Delete", frp.createCallback(function() {
-    console.log(selectedB.get());
-    var selected = selectedB.get();
-    var mtable = table.get().unfreeze();
+                    console.log(selectedB.get());
+                    var selected = selectedB.get();
+                    var mtable = table.get().unfreeze();
     
-    for (var i = 0; i < selected.length; i++) {
-	mtable.removeRow(selected[i]);
-    }
-	table.set(mtable.freeze());
+                    for (var i = 0; i < selected.length; i++) {
+	                  mtable.removeRow(selected[i]);
+                    }
+	            table.set(mtable.freeze());
     }, selectedB, table));
 
 
