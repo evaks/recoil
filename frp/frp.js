@@ -320,7 +320,7 @@ recoil.frp.Frp.compareSeq_ = function(a, b) {
     var len = a.length > b.length ? b.length : a.length;
 
     for (var i = 0; i < len; i++) {
-        var res = a[i].compare(b[i])
+        var res = a[i].compare(b[i]);
 
         if (res !== 0) {
             return res;
@@ -450,18 +450,18 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
         return myValue;
     };
     if (!(this.calc_ instanceof Function)) {
-	throw "calc not function";
+        throw 'calc not function';
     }
-	
+
     this.inv_ = inverse || function(newVal) {
         myValue = newVal;
     };
 
     if (!(this.inv_ instanceof Function)) {
-	throw "inverse not function";
+        throw 'inverse not function';
     }
 
-    
+
     this.dirtyUp_ = false;
     this.dirtyUpOldValue_ = null;
     this.dirtyDown_ = false;
@@ -492,18 +492,21 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.loopCheck({});
 };
 
+/**
+ * @param {Object<string,recoil.frp.Behaviour>} path
+ */
 recoil.frp.Behaviour.prototype.loopCheck = function(path) {
     if (path[this.seqStr_] !== undefined) {
         throw new recoil.exception.LoopDetected();
     }
     path = goog.object.clone(path);
     path[this.seqStr_] = this;
-    
+
     for (var i = 0; i < this.providers_.length; i++) {
-	this.providers_[i].loopCheck(path);
+        this.providers_[i].loopCheck(path);
     }
-	
-}
+
+};
 /**
  * @return {recoil.frp.Frp} the associated frp engine
  */
@@ -568,7 +571,7 @@ recoil.frp.Behaviour.prototype.removeRef = function(manager) {
     } else if (curRefs.count === 1) {
         delete this.refs_[manager.id_];
         if (!this.hasRefs()) {
-            for (var l = 0; l <this.refListeners_.length; l++) {
+            for (var l = 0; l < this.refListeners_.length; l++) {
                 this.refListeners_[l](false);
             }
         }
@@ -657,7 +660,7 @@ recoil.frp.Behaviour.prototype.metaGet = function() {
     if (hasProviders && this.accessors_ === 0) {
         // if providers are feeding into me then it is NOT ok just to set the value
         var acc = new recoil.exception.NoAccessors();
-        
+
         throw acc;
     }
 
@@ -994,6 +997,7 @@ recoil.frp.Frp.prototype.liftBI = function(func, invFunc, var_args) {
  * @param {function(...) : recoil.frp.Status<RT>} func
  * @param {function(RT, ...)} invFunc
  * @param {...!recoil.frp.Behaviour} var_args
+ * @return {!recoil.frp.Behaviour<RT>}
  */
 recoil.frp.Frp.prototype.statusLiftBI = function(func, invFunc, var_args) {
     return recoil.util.invokeParamsAndArray(this.liftBI_, this, this.metaLiftBI, null, arguments);
@@ -1070,7 +1074,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
                 }
             }
             catch (error) {
-		console.log(error);
+                console.log(error);
                 metaResult.addError(error);
             }
         }
@@ -1530,5 +1534,5 @@ recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
             me.watching_--;
         }
     });
-    console.log("Detach Watching = ", this.watching_);
+    console.log('Detach Watching = ', this.watching_);
 };

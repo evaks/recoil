@@ -106,7 +106,7 @@ recoil.structs.table.ColumnKey.INDEX =
             if (x instanceof goog.math.Long) {
                 return x;
             }
-            return goog.math.Long.fromNumber(parseInt(x,10));
+            return goog.math.Long.fromNumber(parseInt(x, 10));
         });
 
 /**
@@ -240,7 +240,7 @@ recoil.structs.table.MutableTable = function(primaryKeys, otherColumns) {
     var me = this;
 
     var comparator = function(rowA, rowB) {
-        for (var key = 0; key < me.primaryColumns_.length; key ++) {
+        for (var key = 0; key < me.primaryColumns_.length; key++) {
             var col = me.primaryColumns_[key];
             var res = col.compare(rowA.get(col), rowB.get(col));
             if (res !== 0) {
@@ -712,7 +712,7 @@ recoil.structs.table.Table.prototype.getRow = function(keys) {
  * get cell value with its associated meta information
  *
  * @template CT
- * @param {!Array<?>} keys 
+ * @param {!Array<?>} keys
  * @param {!recoil.structs.table.ColumnKey<CT>} columnKey
  * @return {recoil.structs.table.TableCell<CT>} an object containing the meta data and a value
  */
@@ -743,9 +743,9 @@ recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable)
 
     for (var tMeta in tableMeta) {
         var colKey = tableMeta[tMeta].key;
-        tbl.setColumnMeta(colKey,tableMeta[tMeta]);
+        tbl.setColumnMeta(colKey, tableMeta[tMeta]);
     }
-    
+
     rawTable.forEach(function(item) {
         var row = new recoil.structs.table.MutableTableRow();
 
@@ -785,8 +785,9 @@ recoil.structs.table.Table.extractKeys_ = function(tableMeta) {
      * @suppress {missingProperties}
      * @param {?} a
      * @param {?} b
+     * @return {number}
      */
-    var comp =  function(a, b) {
+    var comp = function(a, b) {
         return a.primary - b.primary;
     };
 

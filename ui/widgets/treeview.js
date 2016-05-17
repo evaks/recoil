@@ -50,7 +50,8 @@ recoil.ui.widgets.TreeView = function(scope, container) {
  * callback handler that gets called when the configuration for the widget
  * gets changed
  *
- * @param helper
+ * @private
+ * @param {!recoil.ui.WidgetHelper} helper
  */
 recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
     var me = this;
@@ -68,18 +69,23 @@ recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
         me.state_.forceUpdate();
     } else if (me.tree_ !== null) {
         // TODO implement disable tree
-        throw "not implemented yet";
+        throw 'not implemented yet';
     }
 
 };
 
+/**
+ * @private
+ * @param {recoil.ui.WidgetHelper} helper
+ * @param {!recoil.frp.Behaviour<recoil.structs.Tree>} newValue
+ */
 recoil.ui.widgets.TreeView.prototype.updateTree_ = function(helper, newValue) {
     var good = helper.isGood();
 
     if (this.tree_ !== null) {
         if (good) {
-            this.populateTreeRec_(null, this.tree_, this.oldValue_, newValue);
-            this.oldValue_ = newValue;
+            this.populateTreeRec_(null, this.tree_, this.oldValue_, newValue.get());
+            this.oldValue_ = newValue.get();
         } else {
             // TODO disable tree
         }
@@ -108,6 +114,7 @@ recoil.ui.widgets.TreeView.same_ = function(a, b) {
     return recoil.util.isEqual(a.value(), b.value());
 };
 /**
+ * @private
  * @param {goog.ui.tree.BaseNode} parent
  * @param {goog.ui.tree.BaseNode} node
  * @param {recoil.structs.Tree} oldValue
@@ -149,7 +156,7 @@ recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(parent, node, o
     var differences = recoil.ui.widgets.TreeView.minDifference(oldValue.children(), newValue.children(), recoil.ui.widgets.TreeView.same_);
 
     var childIndex = 0;
-    for (var idx in differences) {
+    for (var idx = 0; idx < differences.length; idx++) {
         var diff = differences[idx];
         var childNode = node.getChildAt(childIndex);
         if (diff.oldVal !== undefined && diff.newVal !== undefined) {
@@ -215,6 +222,10 @@ recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(parent, node, o
  * an insert
  *
  * isEqual is a function that takes 2 items and return if 2 items in the input list are equal.
+ * @param {!Array<?>} origList
+ * @param {!Array<?>} newList
+ * @param {function (?,?) : !boolean} isEqual
+ * @return {!Array<Object>}
  */
 
 recoil.ui.widgets.TreeView.minDifference = function(origList, newList, isEqual) {

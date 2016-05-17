@@ -8,12 +8,12 @@
 goog.provide('recoil.ui.ComponentWidgetHelper');
 goog.provide('recoil.ui.TooltipHelper');
 
+goog.require('goog.events.FocusHandler');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
+goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.messages');
-goog.require('goog.events.FocusHandler');
-goog.require('recoil.ui.BoolWithExplaination');
 /**
  * @template T
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
@@ -28,7 +28,7 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
     this.frp_ = widgetScope.getFrp();
     this.component_ = component;
     if (!(callback instanceof Function)) {
-        throw new Error("callback not a function");
+        throw new Error('callback not a function');
     }
     var me = this;
     this.listenFunc_ = function(visible) {
@@ -57,6 +57,7 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
      */
     this.behaviours_ = [];
     /**
+     * @private
      * @type {recoil.frp.Behaviour}
      */
     this.attachedBehaviour_ = null;
@@ -68,22 +69,24 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
 };
 
 /**
- * @return {recoil.frp.Frp}
+ * @return {!recoil.frp.Frp}
  */
 recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
     return this.frp_;
 };
 
-
+/**
+ * removes all children
+ */
 recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function() {
-   this.component_.removeChildren( true);
+   this.component_.removeChildren(true);
 };
 
 /**
  * @return {!boolean} is the value good
  */
 recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
-    for (var key =0; key < this.behaviours_.length; key++) {
+    for (var key = 0; key < this.behaviours_.length; key++) {
         var b = this.behaviours_[key];
         if (!b.hasRefs()) {
             return false;
@@ -101,12 +104,12 @@ recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
  */
 recoil.ui.ComponentWidgetHelper.prototype.errors = function() {
     var result = [];
-    
-    
-    for (var key =0; key < this.behaviours_.length; key++) {
+
+
+    for (var key = 0; key < this.behaviours_.length; key++) {
         var b = this.behaviours_[key];
 
-        
+
         if (!b.hasRefs()) {
             continue;
         }
@@ -115,10 +118,10 @@ recoil.ui.ComponentWidgetHelper.prototype.errors = function() {
 
         if (meta !== null) {
             var errors = meta.errors();
-            
+
             for (var i = 0; i < errors.length; i++) {
                 var error = errors[i];
-                if (result.indexOf(error) === -1 ) {
+                if (result.indexOf(error) === -1) {
                     result.push(error);
                 }
             }
@@ -227,7 +230,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
 
     var me = this;
     this.func_ = function(e) {
-        console.log("evt", e);
+        console.log('evt', e);
         if (me.listener_) {
             me.listener_.frp().accessTrans(function() {
                 me.listener_.set(e);
@@ -268,7 +271,7 @@ recoil.ui.EventHelper.prototype.listen = function(callback) {
  */
 
 recoil.ui.TooltipHelper = function(widgetScope, component) {
-    this.behaviours_ =[];
+    this.behaviours_ = [];
     this.enabledB_ = null;
     this.tooltip_ = null;
     this.component_ = component;
@@ -280,8 +283,8 @@ recoil.ui.TooltipHelper = function(widgetScope, component) {
  * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} enabledB
  * @param {...recoil.ui.ComponentWidgetHelper} var_helpers
  */
-recoil.ui.TooltipHelper.prototype.attach = function (enabledB, var_helpers) {
-    
+recoil.ui.TooltipHelper.prototype.attach = function(enabledB, var_helpers) {
+
     this.enabledB_ = enabledB;
     this.behaviours_ = [enabledB];
     for (var i = 1; i < arguments.length; i++) {
@@ -291,20 +294,24 @@ recoil.ui.TooltipHelper.prototype.attach = function (enabledB, var_helpers) {
         }
     }
     this.helper_.attach.apply(this.helper_, this.behaviours_);
-    
+
 };
 
-recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
+/**
+ * @private
+ * @param {!recoil.ui.ComponentWidgetHelper} helper
+ */
+recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     var tooltip = null;
     var enabled;
     if (helper.isGood()) {
         var reason = this.enabledB_.get().reason();
         tooltip = reason === null ? null : reason.toString();
         enabled = this.enabledB_.get().val();
-    
+
     }
     else {
-        var errors = this.helper_.errors();;
+        var errors = this.helper_.errors();
         if (errors.length > 0) {
             tooltip = recoil.ui.messages.join(errors).toString();
         }
@@ -320,8 +327,8 @@ recoil.ui.TooltipHelper.prototype.update_ = function (helper) {
         this.tooltip_ = null;
     }
     else {
-        this.tooltip_ = new goog.ui.Tooltip (this.component_.getElement(), tooltip);
-        console.log("TOOTIP",this.tooltip_);
+        this.tooltip_ = new goog.ui.Tooltip(this.component_.getElement(), tooltip);
+        console.log('TOOTIP', this.tooltip_);
 //        this.tooltip_.setEnabled(enabled);
     }
     this.component_.setEnabled(enabled);

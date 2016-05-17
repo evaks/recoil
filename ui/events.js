@@ -26,7 +26,7 @@ recoil.ui.events.listen = function(src, type, callback, opt_capt, opt_data) {
                     callback.set(e);
                 }
                 else {
-                    callback.set({event : e, data : opt_data});
+                    callback.set({event: e, data: opt_data});
                 }
             }, callback);
         }, opt_capt);

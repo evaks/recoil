@@ -7,8 +7,8 @@
  */
 goog.provide('recoil.ui.WidgetHelper');
 
-goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
 goog.require('recoil.ui.WidgetScope');
 
@@ -16,8 +16,8 @@ goog.require('recoil.ui.WidgetScope');
  * @template T
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
  * @param {Node} container when this is no longer visible updates will longer fire and memory will be cleaned up
- * @param {Object} obj the this pointer callback will be called with
- * @param {function(recoil.ui.WidgetHelper,...)} callback
+ * @param {T} obj the this pointer callback will be called with
+ * @param {function(this:T, !recoil.ui.WidgetHelper,...)} callback
  * @constructor
  */
 
@@ -53,6 +53,7 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
     this.behaviours_ = [];
     /**
      * @type {recoil.frp.Behaviour}
+     * @private
      */
     this.attachedBehaviour_ = null;
     /**
@@ -81,6 +82,9 @@ recoil.ui.WidgetHelper.prototype.setComponent = function(container) {
 
 };
 
+/**
+ * remove all the cheldren
+ */
 recoil.ui.WidgetHelper.prototype.clearContainer = function() {
     if (this.component_ !== null) {
         goog.dom.removeChildren(this.component_);
@@ -91,7 +95,7 @@ recoil.ui.WidgetHelper.prototype.clearContainer = function() {
  * @return {!boolean} is the value good
  */
 recoil.ui.WidgetHelper.prototype.isGood = function() {
-    for (var key  = 0; key < this.behaviours_.length; key++) {
+    for (var key = 0; key < this.behaviours_.length; key++) {
         if (!this.behaviours_[key].metaGet().good()) {
             return false;
         }
@@ -152,4 +156,15 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
             this.observer_.listen(this.component_, this.listenFunc_);
         }
     }
+};
+
+/**
+ * gets the value of the first attached behaviour
+ * @return {?}
+ */
+recoil.ui.WidgetHelper.prototype.value = function() {
+    if (this.behaviours_.length > 0) {
+        return this.behaviours_[0].get();
+    }
+    return null;
 };

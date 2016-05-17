@@ -7,7 +7,7 @@ goog.provide('recoil.ui.layout.Card');
  * @param {!recoil.ui.WidgetScope} scope
  * @implements {recoil.ui.Widget}
  */
-recoil.ui.layout.Card = function (scope) {
+recoil.ui.layout.Card = function(scope) {
     this.container_ = new goog.ui.Container();
     this.curControl_ = null;
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
@@ -19,7 +19,7 @@ recoil.ui.layout.Card = function (scope) {
  * dom
  * @return {!goog.ui.Component}
  */
-recoil.ui.layout.Card.prototype.getComponent = function () {
+recoil.ui.layout.Card.prototype.getComponent = function() {
     return this.container_;
 };
 
@@ -27,17 +27,18 @@ recoil.ui.layout.Card.prototype.getComponent = function () {
  * @param {!recoil.frp.Behaviour<!recoil.ui.Widget>} subComponent
  */
 
-recoil.ui.layout.Card.prototype.attach= function (subComponent) {
+recoil.ui.layout.Card.prototype.attach = function(subComponent) {
     this.helper_.attach(subComponent);
 };
 
 /**
+ * @private
  * @param {recoil.ui.ComponentWidgetHelper} helper
  * @param {recoil.frp.Behaviour<recoil.ui.Widget>} widgetB
  */
-recoil.ui.layout.Card.prototype.updateState_ = function (helper, widgetB) {
+recoil.ui.layout.Card.prototype.updateState_ = function(helper, widgetB) {
     if (helper.isGood()) {
-        var  newControl = widgetB.get().getComponent();
+        var newControl = widgetB.get().getComponent();
         if (newControl !== this.curControl_) {
             if (this.curControl_) {
                 this.container_.removeChild(this.curControl_, true);

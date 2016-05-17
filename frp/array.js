@@ -6,18 +6,18 @@ goog.require('recoil.frp.Util');
 
 /**
  * @constructor
- * 
+ * @param {!recoil.frp.Frp} frp
  */
-recoil.frp.Array = function (frp) {
+recoil.frp.Array = function(frp) {
     this.frp_ = frp;
-    this.util_ = new recoil.frp.Util(frp); 
+    this.util_ = new recoil.frp.Util(frp);
 };
 
 /**
  * @param {!Array<?>|recoil.frp.Behaviour<!Array<?>>} array
  * @return {recoil.frp.Behaviour<boolean>}
  */
-recoil.frp.Array.prototype.isEmpty = function (array) {
+recoil.frp.Array.prototype.isEmpty = function(array) {
     return this.frp_.liftB(function(arr) {
         return arr.length === 0;
     }, this.util_.toBehaviour(array));
@@ -28,7 +28,7 @@ recoil.frp.Array.prototype.isEmpty = function (array) {
  * @param {Array<*>|recoil.frp.Behaviour<Array<*>>} array
  * @return {!recoil.frp.Behaviour<!boolean>}
  */
-recoil.frp.Array.prototype.isNotEmpty = function (array) {
+recoil.frp.Array.prototype.isNotEmpty = function(array) {
     return this.frp_.liftB(function(arr) {
         return arr.length > 0;
     }, this.util_.toBehaviour(array));
@@ -41,7 +41,7 @@ recoil.frp.Array.prototype.isNotEmpty = function (array) {
  * @param {(!function(T) : boolean|!recoil.frp.Behaviour<!function(T) : boolean>)} filter
  * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
-recoil.frp.Array.prototype.filter = function (array, filter) {
+recoil.frp.Array.prototype.filter = function(array, filter) {
     return this.frp_.liftB(function(arr, filter) {
         var res = [];
         for (var i = 0; i < arr.length; i++) {
@@ -61,7 +61,7 @@ recoil.frp.Array.prototype.filter = function (array, filter) {
  * @param {(!function(FROM) : TO|!recoil.frp.Behaviour<!function(FROM) : TO>)} map
  * @return {!recoil.frp.Behaviour<!IArrayLike<TO>>}
  */
-recoil.frp.Array.prototype.map = function (array, map) {
+recoil.frp.Array.prototype.map = function(array, map) {
     return this.frp_.liftB(function(arr, map) {
         var res = [];
         for (var i = 0; i < arr.length; i++) {

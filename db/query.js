@@ -230,6 +230,7 @@ recoil.db.QueryOptions = function(pollRate, extra) {
 recoil.db.Query = function(opt_expr) {
     /**
      * @type recoil.db.QueryExp
+     * @private
      */
     this.expr_ = opt_expr || null;
 };
@@ -249,7 +250,7 @@ recoil.db.Query.prototype.eval = function(scope) {
  * @param {function(new:T,...(!recoil.db.Query|!recoil.db.QueryExp)):recoil.db.Query|
           function (new:T,!recoil.db.QueryExp,!recoil.db.QueryExp)} constructor
  * @param {IArrayLike<recoil.db.Query|recoil.db.QueryExp>} args
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.chain_ = function(constructor, args) {
@@ -272,8 +273,8 @@ recoil.db.Query.prototype.chain_ = function(constructor, args) {
 /**
  * utilty to function to set this expression to the query
  * @private
- * @param {recoil.db.Query} query
- * @return {recoil.db.Query}
+ * @param {!recoil.db.Query} query
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.set_ = function(query) {
     this.expr_ = query.expr_;
@@ -292,8 +293,8 @@ recoil.db.Query.prototype.query_ = function(query) {
 };
 
 /**
- * @param {...(recoil.db.Query|recoil.db.QueryExp)} var_others
- * @return {recoil.db.Query}
+ * @param {...(!recoil.db.Query|!recoil.db.QueryExp)} var_others
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.and$ = function(var_others) {
     return this.set_(this.chain_(recoil.db.expr.And, arguments));
@@ -302,8 +303,8 @@ recoil.db.Query.prototype.and$ = function(var_others) {
 /**
  * ands together all the arguments, and the current query
  * if the curernt query is not null also includes that query
- * @param {...(recoil.db.Query|recoil.db.QueryExp)} var_others
- * @return {recoil.db.Query}
+ * @param {...(!recoil.db.Query|!recoil.db.QueryExp)} var_others
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.and = function(var_others) {
     return this.chain_(recoil.db.expr.And, arguments);
@@ -319,13 +320,20 @@ recoil.db.Query.prototype.or = function(var_others) {
     return this.chain_(recoil.db.expr.Or, arguments);
 };
 
+/**
+ * ors together all the arguments, and the current query
+ * if the curernt query is not null also includes that query
+ * @param {...(!recoil.db.Query|!recoil.db.QueryExp)} var_others
+ * @return {!recoil.db.Query}
+ */
+
 recoil.db.Query.prototype.or$ = function(var_others) {
     return this.set_(this.chain_(recoil.db.expr.Or, arguments));
 };
 
 /**
  * @param {recoil.db.Query|recoil.db.QueryExp} opt_x
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.not = function(opt_x) {
     var x = opt_x;
@@ -335,17 +343,37 @@ recoil.db.Query.prototype.not = function(opt_x) {
     return this.query_(new recoil.db.expr.Not(this.toExpr(x)));
 };
 
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp} opt_x
+ * @return {!recoil.db.Query}
+ */
+
 recoil.db.Query.prototype.not$ = function(opt_x) {
     return this.set_(this.not(opt_x));
 };
+
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp} val
+ * @return {!recoil.db.Query}
+ */
 
 recoil.db.Query.prototype.val = function(val) {
     return this.query_(new recoil.db.expr.Value(val));
 };
 
+/**
+ * @param {!string} field
+ * @return {!recoil.db.Query}
+ */
+
 recoil.db.Query.prototype.field = function(field) {
     return this.query_(new recoil.db.expr.Field(field));
 };
+
+/**
+ * @param {!string} field
+ * @return {!recoil.db.Query}
+ */
 
 recoil.db.Query.prototype.field$ = function(field) {
     return this.set_(this.field(field));
@@ -353,8 +381,8 @@ recoil.db.Query.prototype.field$ = function(field) {
 /**
  * checks if a field exists in the object
  * nulls and undefined exist
- * @param {string} field
- * @return {recoil.db.Query}
+ * @param {!string} field
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.exists = function(field) {
     return this.query_(new recoil.db.expr.Exists(field, true));
@@ -362,8 +390,8 @@ recoil.db.Query.prototype.exists = function(field) {
 /**
  * checks if a field exists in the object, also sets the result to this query
  * nulls and undefined exist
- * @param {string} field
- * @return {recoil.db.Query}
+ * @param {!string} field
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.exists$ = function(field) {
@@ -395,7 +423,7 @@ recoil.db.Query.prototype.eq$ = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.neq = function(left, right) {
     return this.query_(new recoil.db.expr.NotEquals(this.toExpr(left), this.toExpr(right)));
@@ -404,7 +432,7 @@ recoil.db.Query.prototype.neq = function(left, right) {
  * nulls and undefined exist
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.neq$ = function(left, right) {
@@ -416,7 +444,7 @@ recoil.db.Query.prototype.neq$ = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.lt = function(left, right) {
     return this.query_(new recoil.db.expr.LessThan(this.toExpr(left), this.toExpr(right)));
@@ -424,7 +452,7 @@ recoil.db.Query.prototype.lt = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.lt$ = function(left, right) {
@@ -436,7 +464,7 @@ recoil.db.Query.prototype.lt$ = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.lte = function(left, right) {
     return this.query_(new recoil.db.expr.LessThanEquals(this.toExpr(left), this.toExpr(right)));
@@ -444,7 +472,7 @@ recoil.db.Query.prototype.lte = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.lte$ = function(left, right) {
@@ -456,7 +484,7 @@ recoil.db.Query.prototype.lte$ = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.gt = function(left, right) {
     return this.query_(new recoil.db.expr.GreaterThan(this.toExpr(left), this.toExpr(right)));
@@ -464,7 +492,7 @@ recoil.db.Query.prototype.gt = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.gt$ = function(left, right) {
@@ -475,7 +503,7 @@ recoil.db.Query.prototype.gt$ = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.gte = function(left, right) {
     return this.query_(new recoil.db.expr.GreaterThanEquals(this.toExpr(left), this.toExpr(right)));
@@ -483,7 +511,7 @@ recoil.db.Query.prototype.gte = function(left, right) {
 /**
  * @param {*} left
  * @param {*} right
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.gte$ = function(left, right) {
@@ -494,7 +522,7 @@ recoil.db.Query.prototype.gte$ = function(left, right) {
  * checks if a field does not exists in the object
  * nulls and undefined exist
  * @param {string} field
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.notExists = function(field) {
     return this.query_(new recoil.db.expr.Exists(field, false));
@@ -503,8 +531,8 @@ recoil.db.Query.prototype.notExists = function(field) {
  * checks if a field does not exist in the object, also sets the result to this query
  * nulls and undefined exist
  *
- * @param {string} field
- * @return {recoil.db.Query}
+ * @param {!string} field
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.notExists$ = function(field) {
@@ -514,8 +542,8 @@ recoil.db.Query.prototype.notExists$ = function(field) {
 /**
  * runs a boolean javascript expression on each object
  * the current object can be referenced via this, or obj
- * @param {string} expr
- * @return {recoil.db.Query}
+ * @param {!string} expr
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.where = function(expr) {
     return this.query_(new recoil.db.expr.Where(expr));
@@ -524,7 +552,7 @@ recoil.db.Query.prototype.where = function(expr) {
  * runs a boolean javascript expression on each object
  * the current object can be referenced via this, or obj
  * @param {string} expr
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.where$ = function(expr) {
@@ -537,7 +565,7 @@ recoil.db.Query.prototype.where$ = function(expr) {
  * @param {string} field
  * @param {string|RegExp} pattern
  * @param {?string} opt_options
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.regex = function(field, pattern, opt_options) {
     return this.query_(new recoil.db.expr.RegExp(field, pattern, opt_options));
@@ -546,7 +574,7 @@ recoil.db.Query.prototype.regex = function(field, pattern, opt_options) {
  * @param {string} field
  * @param {string|RegExp} pattern
  * @param {?string} opt_options
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.regex$ = function(field, pattern, opt_options) {
@@ -556,7 +584,7 @@ recoil.db.Query.prototype.regex$ = function(field, pattern, opt_options) {
 /**
  * @param {string} field
  * @param {Array<*>} values
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.isIn = function(field, values) {
     return this.query_(new recoil.db.expr.In(field, values));
@@ -564,7 +592,7 @@ recoil.db.Query.prototype.isIn = function(field, values) {
 /**
  * @param {string} field
  * @param {Array<*>} values
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.isIn$ = function(field, values) {
@@ -574,7 +602,7 @@ recoil.db.Query.prototype.isIn$ = function(field, values) {
 /**
  * @param {string} field
  * @param {Array<*>} values
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.notIn = function(field, values) {
     return this.query_(new recoil.db.expr.NotIn(field, values));
@@ -582,7 +610,7 @@ recoil.db.Query.prototype.notIn = function(field, values) {
 /**
  * @param {string} field
  * @param {Array<*>} values
- * @return {recoil.db.Query}
+ * @return {!recoil.db.Query}
  */
 
 recoil.db.Query.prototype.notIn$ = function(field, values) {
@@ -597,7 +625,7 @@ recoil.db.Query.prototype.notIn$ = function(field, values) {
 recoil.db.Query.prototype.toExpr = function(exp) {
     if (exp instanceof recoil.db.Query) {
         if (exp.expr_ === null) {
-            throw "unexpected null in expression";
+            throw 'unexpected null in expression';
         }
         return exp.expr_;
     }
@@ -962,5 +990,5 @@ recoil.db.expr.Search = function(expr) {
  * @return {*}
  */
 recoil.db.expr.Search.prototype.eval = function(scope) {
-    throw "not implemented yet";
+    throw 'not implemented yet';
 };

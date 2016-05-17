@@ -4,6 +4,8 @@
  */
 goog.provide('recoil.ui.widgets.LabelWidget');
 
+goog.require('goog.ui.Container');
+goog.require('goog.ui.Control');
 goog.require('goog.ui.LabelInput');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
@@ -11,8 +13,6 @@ goog.require('recoil.frp.struct');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
-goog.require('goog.ui.Control');
-goog.require('goog.ui.Container');
 
 /**
  * @constructor
@@ -68,13 +68,15 @@ recoil.ui.widgets.LabelWidget.prototype.attach = function(name, enabled) {
 };
 
 /**
- * {Object} value
+ * @param {!Object| !recoil.frp.Behaviour<Object>} value
  */
 recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
-      var nameB = recoil.frp.struct.get('name', value);
-      var enabledB = recoil.frp.struct.get('enabled', value);
+    var util = new recoil.frp.Util(this.helper_.getFrp());
+    var valueB = util.toBehaviour(value);
+    var nameB = recoil.frp.struct.get('name', valueB);
+    var enabledB = recoil.frp.struct.get('enabled', valueB);
 
-      this.attach(nameB, enabledB);
+    this.attach(nameB, enabledB);
 };
 
 
@@ -121,7 +123,7 @@ recoil.ui.widgets.LabelWidgetHelper = function(scope) {
  * @param {!recoil.ui.BoolWithExplaination|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} enabled
  * @return {recoil.ui.widgets.LabelWidget}
  */
-recoil.ui.widgets.LabelWidgetHelper.prototype.createAndAttach = function(name,enabled) {
+recoil.ui.widgets.LabelWidgetHelper.prototype.createAndAttach = function(name, enabled) {
     var label = new recoil.ui.widgets.LabelWidget(this.scope_);
     label.attach(name, enabled);
     return label;

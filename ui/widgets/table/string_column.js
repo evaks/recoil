@@ -1,7 +1,7 @@
 goog.provide('recoil.ui.widgets.table.StringColumn');
 
-goog.require('recoil.frp.struct');
 goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.struct');
 goog.require('recoil.ui.BoolWithExplaination');
 goog.require('recoil.ui.widgets.InputWidget');
 goog.require('recoil.ui.widgets.table.Column');

@@ -16,6 +16,7 @@ recoil.ui.widgets.MenuStructure = function(scope) {
  *
  * @param {Array<string>} menus
  * @param {recoil.ui.actions.ScreenAction} screenAction
+ * @param {function () : !recoil.ui.Widget} opt_create
  */
 recoil.ui.widgets.MenuStructure.prototype.add = function(menus, screenAction, opt_create) {
 
@@ -46,6 +47,9 @@ recoil.ui.widgets.MenuStructure.prototype.add = function(menus, screenAction, op
       }
 };
 
+/**
+ * @param {!Array<string>} menus
+ */
 recoil.ui.widgets.MenuStructure.prototype.addSeparator = function(menus) {
       var menus1 = goog.array.clone(menus);
       menus1.push('');
@@ -94,7 +98,7 @@ recoil.ui.widgets.MenuStructure.prototype.create = function() {
       var menuArr = [];
 
       var me = this;
-      for (var i  = 0; i < this.menuArr_.length; i++) {
+      for (var i = 0; i < this.menuArr_.length; i++) {
           if (this.menuArr_.hasOwnProperty(i)) {
               var menu = new recoil.ui.widgets.MenuButtonWidget(this.scope_);
               var items = [];

@@ -29,19 +29,20 @@ recoil.frp.struct.get = function(name, value, opt_default) {
 };
 
 /**
- * @desc takes a structure and adds all overrides all the fields with extenstions
- * @param {recoil.frp.Frp} frp the frp engine
+ * takes a structure and adds all overrides all the fields with extenstions
+ * @param {!recoil.frp.Frp} frp the frp engine
  * @param {Object| recoil.frp.Behaviour<Object>} structB
  * @param {...(Object| recoil.frp.Behaviour<Object>)} var_extensionsB
+ * @return {!recoil.frp.Behaviour<Object>}
  */
-recoil.frp.struct.extend = function (frp, structB, var_extensionsB) {
+recoil.frp.struct.extend = function(frp, structB, var_extensionsB) {
     var args = [];
     var util = new recoil.frp.Util(frp);
     var outerArgs = arguments;
     args.push(function() {
         var res = {};
         for (var i = 0; i < arguments.length; i++) {
-            recoil.util.object.addProps(res,arguments[i]);
+            recoil.util.object.addProps(res, arguments[i]);
         }
         return res;
     });
@@ -54,12 +55,12 @@ recoil.frp.struct.extend = function (frp, structB, var_extensionsB) {
             for (var key in val) {
 
                 if (!done[key] && oldVal.hasOwnProperty(key)) {
-                    done[key] =true;
+                    done[key] = true;
                     oldVal[key] = val[key];
                 }
             }
             argB.set(oldVal);
-            
+
         }
     });
     for (var i = 1; i < arguments.length; i++) {
@@ -67,10 +68,17 @@ recoil.frp.struct.extend = function (frp, structB, var_extensionsB) {
     }
 
     return frp.liftBI.apply(frp, args);
-    
+
 };
 
-recoil.frp.struct.getBehavioursRec_ = function (struct, path, res) {
+/**
+ * get all the behaviours in a struct
+ * @private
+ * @param {!recoil.frp.Behaviour<!Object>|!Object} struct
+ * @param {!Array<?>} path
+ * @param {!Array<recoil.frp.Behaviour>} res
+ */
+recoil.frp.struct.getBehavioursRec_ = function(struct, path, res) {
     if (path.indexOf(struct) !== -1) {
         return; // loop detected;
     }
@@ -84,25 +92,36 @@ recoil.frp.struct.getBehavioursRec_ = function (struct, path, res) {
     }
     if (struct instanceof Array) {
         for (var i = 0; i < struct.length; i++) {
-            recoil.frp.struct.getBehavioursRec_(struct[i],newPath, res);
+            recoil.frp.struct.getBehavioursRec_(struct[i], newPath, res);
         }
     }
     else if (struct instanceof Object) {
         for (var prop in struct) {
             if (struct.hasOwnProperty(prop)) {
-                recoil.frp.struct.getBehavioursRec_(struct[prop],newPath, res);
+                recoil.frp.struct.getBehavioursRec_(struct[prop], newPath, res);
             }
         }
     }
 };
 
-recoil.frp.struct.getBehaviours = function (struct) {
+/**
+ * get all the behaviours in a struct
+ * @param {!recoil.frp.Behaviour<!Object>|!Object} struct
+ * @return {!Array<recoil.frp.Behaviour>}
+ */
+recoil.frp.struct.getBehaviours = function(struct) {
     var res = [];
-    recoil.frp.struct.getBehavioursRec_(struct,[], res);
+    recoil.frp.struct.getBehavioursRec_(struct, [], res);
     return res;
 };
 
-
+/**
+ * the inverse of flattern rec which sets the behaviours in the struct
+ * @private
+ * @param {!recoil.frp.Behaviour<!Object>|!Object} struct
+ * @param {!Object}  newVal
+ * @param {!Array<?>} path
+ */
 recoil.frp.struct.setFlatternRec_ = function(struct, newVal, path) {
     if (newVal === undefined) {
         return;
@@ -125,33 +144,36 @@ recoil.frp.struct.setFlatternRec_ = function(struct, newVal, path) {
     var res;
     if (struct instanceof Array) {
         for (var i = 0; i < struct.length; i++) {
-            recoil.frp.struct.setFlatternRec_(struct[i],newVal[i], newPath);
+            recoil.frp.struct.setFlatternRec_(struct[i], newVal[i], newPath);
         }
         return;
     }
     if (struct instanceof Object) {
         for (var prop in struct) {
             if (struct.hasOwnProperty(prop)) {
-                recoil.frp.struct.setFlatternRec_(struct[prop],newVal[prop],newPath);
+                recoil.frp.struct.setFlatternRec_(struct[prop], newVal[prop], newPath);
             }
         }
         return;
-    };
+    }
 };
 
 
-
+/**
+ * @private
+ * @param {!recoil.frp.Behaviour<!Object>|!Object} struct
+ * @param {!Array<?>} path
+ * @return {!Object}
+ */
 recoil.frp.struct.flatternRec_ = function(struct, path) {
+    if (struct instanceof recoil.frp.Behaviour) {
+        return struct.get();
+    }
     if (path.indexOf(struct) !== -1) {
         return struct; // loop detected;
     }
     var newPath = goog.array.clone(path);
     newPath.push(struct);
-
-
-    if (struct instanceof recoil.frp.Behaviour) {
-        return struct.get();
-    }
 
     if (recoil.frp.struct.getBehaviours(struct).length === 0) {
         return struct;
@@ -160,7 +182,7 @@ recoil.frp.struct.flatternRec_ = function(struct, path) {
     if (struct instanceof Array) {
         res = [];
         for (var i = 0; i < struct.length; i++) {
-            res.push(recoil.frp.struct.flatternRec_(struct[i],newPath));
+            res.push(recoil.frp.struct.flatternRec_(struct[i], newPath));
         }
         return res;
     }
@@ -168,46 +190,46 @@ recoil.frp.struct.flatternRec_ = function(struct, path) {
         res = {};
         for (var prop in struct) {
             if (struct.hasOwnProperty(prop)) {
-                res[prop] = recoil.frp.struct.flatternRec_(struct[prop],newPath);
+                res[prop] = recoil.frp.struct.flatternRec_(struct[prop], newPath);
             }
         }
         return res;
-    };
+    }
     return struct;
 };
 
 
 /**
- * @desc takes a structure which is either a behaviour, or a 
+ * takes a structure which is either a behaviour, or a
  *       structure with behaviours, and non behaviours in it
  *       and returns a behaviour with a structur in it, note this is inversable
  *       when possible
- * @param {recoil.frp.Frp} frp
- * @param {recoil.frp.Behaviour<Object>|Object} structB
- * @return {recoil.frp.Behaviour<Object>}
+ * @param {!recoil.frp.Frp} frp
+ * @param {!recoil.frp.Behaviour<!Object>|!Object} structB
+ * @return {!recoil.frp.Behaviour<!Object>}
  */
-recoil.frp.struct.flattern = function (frp, structB) {
+recoil.frp.struct.flattern = function(frp, structB) {
     if (structB instanceof recoil.frp.Behaviour) {
         return structB;
     }
 
     var args = [
-        function () {
+        function() {
             return recoil.frp.struct.flatternRec_(structB, []);
         },
-        function (val) {
+        function(val) {
             return recoil.frp.struct.setFlatternRec_(structB, val, []);
 
         }
     ];
 
-    recoil.frp.struct.getBehavioursRec_(structB, [],args);
+    recoil.frp.struct.getBehavioursRec_(structB, [], args);
 
     if (args.length === 2) {
         return frp.createConstB(structB);
     }
     return frp.liftBI.apply(frp, args);
-    
+
 };
 /**
  * takes object with the fields being behaviours and converts them into an behaviour with objects in them note: fields

@@ -1,8 +1,8 @@
 goog.provide('recoil.ui.widgets.table.NumberColumn');
 
 goog.require('recoil.frp.Behaviour');
-goog.require('recoil.ui.widgets.table.Column');
 goog.require('recoil.ui.widgets.NumberWidget');
+goog.require('recoil.ui.widgets.table.Column');
 /**
  *
  * @param {recoil.structs.table.ColumnKey} key
@@ -22,14 +22,14 @@ recoil.ui.widgets.table.NumberColumn = function(key, name, opt_options) {
  * @param {!recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
  */
-recoil.ui.widgets.table.NumberColumn.defaultWidgetFactory_ = function (scope, cellB) {
+recoil.ui.widgets.table.NumberColumn.defaultWidgetFactory_ = function(scope, cellB) {
 
     var frp = scope.getFrp();
     var widget = new recoil.ui.widgets.NumberWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
     var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
 
-    widget.attachMeta('', value,  meta);
+    widget.attachMeta('', value, meta);
     return widget;
 };
 
