@@ -6,12 +6,43 @@
 
 <script>
   goog.require('recoil.frp.Frp');
-  goog.require('recoil.frp.debug');
   goog.require('recoil.ui.widgets.table.TableWidget');
   goog.require('recoil.ui.widgets.NumberWidget');
   goog.require('recoil.ui.BoolWithExplaination');
   goog.require('recoil.ui.WidgetScope');
   
+  function doRedirect() {
+  var loc = window.location;
+  var form = document.createElement("form");
+  form.setAttribute("method", "POST");
+  form.setAttribute("action", loc.protocol + "//" + "newhost" + loc.port + "/ipchange");
+
+  var url = loc.pathname;
+  console.log(loc.protocol + "//newhost" + loc.port + "/ipchange", document.cookie);
+
+  var hiddenField = document.createElement("input");
+  hiddenField.setAttribute("type", "hidden");
+  hiddenField.setAttribute("name", "cookie");
+  hiddenField.setAttribute("value", document.cookie);
+  form.appendChild(hiddenField);
+
+  hiddenField.setAttribute("type", "hidden");
+  hiddenField.setAttribute("name", "url");
+  hiddenField.setAttribute("value", url);
+
+  hiddenField.setAttribute("type", "hidden");
+  hiddenField.setAttribute("name", "commiting");
+  hiddenField.setAttribute("value", url);
+
+  console.log(window.location.protocol, window.hostname, window.location.port, url);
+  form.appendChild(hiddenField);
+  
+
+
+    document.body.appendChild(form);
+//    form.submit();
+
+  }
 </script>
 <style>
   .recoil_table_selected {background-color:green;}
@@ -20,6 +51,7 @@
 <body>
   <div id="numberW"/>
   <div id="number1W"/>
+  <input type="button" onclick="doRedirect()">Redirect</input>
   <input type="number"/>
   <script>
     var scope = new recoil.ui.WidgetScope();
@@ -31,7 +63,7 @@
     numberWidget.getComponent().render($('numberW'));
     numberWidget1.getComponent().render($('number1W'));
 
-    var value = recoil.frp.debug.debug("Number Val",frp.createB(7));
+    var value = frp.createB(7);
     numberWidget.attachMeta("",value,{});
     numberWidget1.attachMeta("",value,{});
     
