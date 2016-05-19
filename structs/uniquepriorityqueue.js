@@ -36,10 +36,11 @@ recoil.structs.UniquePriorityQueue.prototype.push = function push(value) {
  * remove an item from the queue, specified item
  *
  * @param {T} val
+ * @return T the node removed null if does not exist
  */
 
 recoil.structs.UniquePriorityQueue.prototype.remove = function(val) {
-    this._tree.remove(val);
+    return this._tree.remove(val);
 };
 
 /**

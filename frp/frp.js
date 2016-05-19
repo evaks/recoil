@@ -496,15 +496,13 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     /**
      * @type Array<goog.math.Long>
      * @private
-     * @final
      */
     this.seq_ = sequence;
     /**
      * @type string
      * @private
-     * @final
      */
-    this.seqStr_ = String(sequence);
+    this.seqStr_ = String(sequence).toString();
     this.accessors_ = 0;
     if (providers) {
         providers.forEach(function(p) {
@@ -1392,20 +1390,29 @@ recoil.frp.TransactionManager.prototype.clearEvents_ = function(dir, visited) {
  *
  * @template T
  * @private
- * @param {recoil.frp.Behaviour<T>} b
+ * @param {!recoil.frp.Behaviour<T>} b
+ * @param {!recoil.frp.Behaviour<T>=} opt_provider
  */
-recoil.frp.TransactionManager.prototype.addProvidersToDependancyMap_ = function(b) {
+recoil.frp.TransactionManager.prototype.addProvidersToDependancyMap_ = function(b, opt_provider) {
     var me = this;
-    b.providers_.forEach(function(prov) {
+    var doAdd = function(prov) {
         var deps = me.dependancyMap_[prov.seqStr_];
         if (deps === undefined) {
             deps = [b];
             me.dependancyMap_[prov.seqStr_] = deps;
         } else {
-            deps.push(b);
+            if (goog.array.indexOf(deps, b) === -1) {
+                deps.push(b);
+            }
         }
-    });
-
+    };
+    
+    if (opt_provider) {
+        doAdd(opt_provider);
+    }
+    else {
+        b.providers_.forEach(doAdd);
+    }
 };
 
 /**
@@ -1424,10 +1431,11 @@ recoil.frp.Frp._ptrEqual = function(other) {
  * @template T
  * @private
  * @param {recoil.frp.Behaviour<T>} b
+ * @param {!recoil.frp.Behaviour<T>=} opt_provider
  */
-recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = function(b) {
+recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = function(b, opt_provider) {
     var me = this;
-    b.providers_.forEach(function(prov) {
+    var doRemove = function(prov) {
         var deps = me.dependancyMap_[prov.seqStr_];
         if (deps !== undefined) {
             // TODO what about the same provider twice? i think it ok
@@ -1438,7 +1446,13 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
                 delete me.dependancyMap_[String(prov.seq_)];
             }
         }
-    });
+    };
+    if (opt_provider) {
+        doRemove(opt_provider);
+    }
+    else {
+        b.providers_.forEach(doRemove);
+    }
 
 };
 
@@ -1488,6 +1502,31 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     var b;
 
     var me = this;
+    var oldProvMap = {};
+    var newProvMap = {};
+
+    if (dependant.hasRefs()) {
+        for (var i = 0; i < oldProviders.length; i++) {
+            oldProvMap[oldProviders[i].seqStr_] = oldProviders[i];
+        }
+        
+        for (i = 0; i < dependant.providers_.length; i++) {
+            newProvMap[dependant.providers_[i].seqStr_] = dependant.providers_[i];
+        }
+
+        for (var seq in oldProvMap) {
+            if (!newProvMap[seq]) {
+                me.removeProvidersFromDependancyMap_(dependant, oldProvMap[seq]);
+            }
+        }
+        for (seq in newProvMap) {
+            if (!oldProvMap[seq]) {
+                me.addProvidersToDependancyMap_(dependant, newProvMap[seq]);
+            }
+        }
+    }
+
+    
     for (var idx in oldVisited) {
         b = oldVisited[idx];
         var newIdx = newVisited[b.seqStr_];
@@ -1525,7 +1564,71 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
             }
         }
     }
+         
+    this.ensureProvidersBefore_(dependant,[]);
+};
 
+recoil.frp.TransactionManager.prototype.ensureProvidersBefore_ = function (b, visited) {
+    var curSeq = b.seq_;
+    if (visited[b.seqStr_]) {
+        return;
+    }
+
+    visited[b.seqStr_] = true;
+    
+    for (var i = 0; i < b.providers_.length; i++) {
+        var p = b.providers_[i];
+
+        if (recoil.frp.Frp.compareSeq_(b.seq_, p.seq_)< 0) {
+            // not consistent renumber the provider
+            visited[p.seqStr_] = true;
+            this.changeSequence_(b, p);
+            this.ensureProvidersBefore_(p, visited);
+        }
+    }
+};
+
+/**
+ * changes the sequence number provider to be less than the sequence number of b
+ * @param {recoil.frp.Behaviour} b
+ * @param {recoil.frp.Behaviour} provider
+ */
+recoil.frp.TransactionManager.prototype.changeSequence_ = function (b, provider) {
+    var newSeq;
+    var me = this;
+    this.nestIds(b, function () {
+        newSeq = me.nextIndex();
+    });
+
+    var oldSeqStr = provider.seqStr_;
+    var oldSeq = provider.seq_;
+    
+    var up = this.getPending_(recoil.frp.Frp.Direction_.UP);
+    var down = this.getPending_(recoil.frp.Frp.Direction_.DOWN);
+
+    // remove this provider if it has pending changes because they will be out of order
+
+    var hadUp = up.remove(provider);
+    var hadDown = down.remove(provider);
+    
+    // change the provider
+    provider.seq_ = newSeq;
+    provider.seqStr_ = String(newSeq).toString();
+
+    // update the dependancy map
+    var oldEntry = this.dependancyMap_[oldSeqStr];
+    if (oldEntry) {
+        delete this.dependancyMap_[oldSeqStr];
+        this.dependancyMap_[provider.seqStr_] = oldEntry;
+    }
+
+    // put pending changes back with new sequence number
+    if (hadUp) {
+        up.push(provider);
+    }
+    if (hadDown) {
+        down.push(provider);
+    }
 };
 /**
  * @template T

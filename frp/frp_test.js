@@ -480,4 +480,52 @@ function testDependancyRemoved() {
     }, one);
     
 }
+
+/**
+ * this tests if the behaviours returned in a switch b
+ * are created after the switchb and not inside the actual 
+ * liftB of the behaviour in the switch b
+ */
+function testOutOfOrderSwitchB() {
+
+
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+    var map  = {0: frp.createB("a")};
+    var chooserB =  frp.createB(0);
+    var selectorB = frp.liftB(function (v) {
+        console.log("V", v, map[v]);
+        return map[v];
+    },chooserB);
+
     
+    var swB = frp.switchB(selectorB);
+
+    tm.attach(swB);
+
+
+    assertEquals("a", swB.unsafeMetaGet().get());
+    
+    map[1]= frp.createB("b");
+    frp.accessTrans(function() {
+        chooserB.set(1);
+    }, chooserB);
+        
+
+    assertEquals("b", swB.unsafeMetaGet().get());
+
+
+    
+    frp.accessTrans(function() {
+        map[1].set("bb");
+    }, chooserB);
+
+    assertEquals("bb", swB.unsafeMetaGet().get());
+
+
+     
+}
+
+function testSameBehaviour() {
+    assertTrue("not implemented yet", false);
+}
