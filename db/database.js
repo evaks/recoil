@@ -177,3 +177,70 @@ recoil.db.ReadWriteDatabase.prototype.get = function(id, var_parameters)  {
     }, readB, changeB);
 };
 
+
+/**
+ * A database that will not send data to the server until an event is sent to 
+ *
+ */
+ 
+recoil.db.DelayedDatabase = function (source) {
+    this.source_ = source;
+    this.changed_ = goog.structs.AvlTree();
+};
+
+
+
+/**
+ * Returns a behaviour, with a value that we can get, set etc
+ * @template T
+ * @param {string} id the id of the object to get
+ * @param {...*} var_parameters the parameters to the get function, this can be useful if you want to get something like
+ *            a particular id
+ * @return {recoil.frp.Behaviour<T>}
+ */
+recoil.db.ReadWriteDatabase.prototype.get = function(id, var_parameters)  {
+    var changed = this.changed.findFirst(this.source_.makeKey(arguments));
+
+    var key = this.source_.makeKey(arguments);
+    var changedB = map.exists(key);
+    var me = this;
+
+    if (changed) {
+        return changed;
+    }
+    var databaseB = this.source_.get.apply(this.source_.get, arguments);
+
+
+    var changedB = this.frp_.createB(false);
+
+    var setB = this.frp_.liftB(
+        function (changed)  {
+            if (changed) {
+                var existing = me.changed_.findFirst(key);
+                if (existing) {
+                    return existing;
+                }
+             
+            }
+            return databaseB;
+        }, changedB);
+    var valueB = this.frp_.switchB(setB);
+    
+    var res = this.frp_.liftBI(
+        function (value) {
+            return changed;
+        },
+        function (val, valueB, databaseB) {
+            if (recoil.util.isEqual(val, databaseB.get())) {
+                changedB.set(false);
+                me.changed_.remove(key);
+            }
+            else {
+                changedB.set(val);
+            }
+        },
+        unchangedB, changedB);
+    
+    return res;
+}
+
