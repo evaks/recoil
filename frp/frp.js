@@ -119,6 +119,12 @@ recoil.frp.Status.prototype.set = function(value) {};
 
 
 /**
+ * @param {?} value
+ * @private
+ */
+recoil.frp.Status.prototype.set_ = function(value) {};
+
+/**
  * @param {*} error
  */
 recoil.frp.Status.prototype.addError = function(error) {};
@@ -199,6 +205,18 @@ recoil.frp.EStatus.prototype.set = function(value) {
 
     this.values_.push(value);
 };
+
+/**
+ * @param {?} value
+ * @private
+ */
+recoil.frp.EStatus.prototype.set_ = function(value) {
+    for (var i = 0; i < value.length; i++) {
+        this.values_.push(value[i]);
+    }
+    this.ready_ = value.length > 0;
+};
+
 /**
  * combine this error and another to get a result
  *
@@ -272,6 +290,15 @@ recoil.frp.BStatus.prototype.merge = function(other) {
  * @param {T} val
  */
 recoil.frp.BStatus.prototype.set = function(val) {
+    this.value_ = val;
+};
+
+/**
+ * set the of the status
+ * @private
+ * @param {?} val
+ */
+recoil.frp.BStatus.prototype.set_ = function(val) {
     this.value_ = val;
 };
 
@@ -1070,7 +1097,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
                     metaResultB = result;
                 }
                 else {
-                    metaResult.set(result);
+                    metaResult.set_(result);
                 }
             }
             catch (error) {

@@ -15,9 +15,9 @@ recoil.ui.widgets.CheckboxWidget = function(scope) {
 /**
  * @return {!goog.ui.Component}
  */
-recoil.ui.widgets.CheckboxWidget.prototype.getComponent = function () {
+recoil.ui.widgets.CheckboxWidget.prototype.getComponent = function() {
     return this.component_;
-}
+};
 
 
 

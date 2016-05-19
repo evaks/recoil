@@ -52,20 +52,112 @@ function testBehaviourUp() {
     assertEquals(4, d.unsafeMetaGet().get());
 }
 
+function testEventDown() {
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    function add1(opts) {
+        return function (val) {
+            console.log("add", val);
+            opts.val = val;
+            opts.count++;
+            var res = [];
+            for (var i = 0; i < val.length; i++) {
+                res.push(val[i] + 1);
+            }
+            return res;
+        };
+        
+    }
+
+    function sub1(opts) {
+        return function (evt, x) {
+            console.log("sub", evt);
+            opts.ival = evt;
+            opts.icount++;
+            for (var i = 0; i < evt.length; i++) {
+                x.set(evt[i] - 1);
+            }
+        };
+    }
+
+    var e = frp.createE();
+    var e0Opts = {count: 0, icount : 0};
+    var e1Opts = {count: 0, icount : 0};
+    var e2Opts = {count : 0, icount : 0};
+
+    var e0 = frp.liftE(add1(e0Opts),  e);
+    var e1 = frp.liftEI(add1(e1Opts), sub1(e1Opts), e0);
+    var e2 = frp.liftEI(add1(e2Opts), sub1(e2Opts), e1);
+    tm.attach(e2);
+
+    assertEquals(null, e1.unsafeMetaGet().get());
+    assertEquals(null, e2.unsafeMetaGet().get());
+    assertEquals(0, e1Opts.count);
+    assertEquals(0, e1Opts.icount);
+    assertEquals(0, e2Opts.count);
+    assertEquals(0, e2Opts.icount);
+
+
+    frp.accessTrans(function() {
+	e.set(3);
+	e.set(4);
+    }, e);
+
+    assertEquals(null, e1.unsafeMetaGet().get());
+    assertEquals(null, e2.unsafeMetaGet().get());
+    assertEquals(1, e1Opts.count);
+    assertEquals(0, e1Opts.icount);
+    assertEquals(1, e2Opts.count);
+    assertEquals(0, e2Opts.icount);
+    assertArrayEquals([4,5], e1Opts.val);
+    assertArrayEquals([5,6], e2Opts.val);
+
+
+    frp.accessTrans(function() {
+	e2.set(7);
+	e2.set(8);
+    }, e2);
+
+    assertEquals(null, e1.unsafeMetaGet().get());
+    assertEquals(null, e2.unsafeMetaGet().get());
+    assertEquals(1, e1Opts.count);
+    assertEquals(1, e1Opts.icount);
+    assertEquals(1, e2Opts.count);
+    assertEquals(1, e2Opts.icount);
+    assertArrayEquals([6,7], e1Opts.ival);
+    assertArrayEquals([7,8], e2Opts.ival);
+    
+}
+
 function testEventUp() {
     var count1 = 0;
     var count2 = 0;
+    var count3 = 0;
     var val1 = 0;
     var val2 = 0;
     function add1(a) {
 	console.log('add 1', a);
 	val1 = a;
         count1++;
-        return a + 1;
+        var res = [];
+        for (var i = 0; i < a.length; i++) {
+            res.push(a[i] + 1);
+        }
+        return res;
     }
     function add2(a) {
+        val2 = a;
         count2++;
-        return a + 1;
+        var res = [];
+        for (var i = 0; i < a.length; i++) {
+            res.push(a[i] + 1);
+        }
+        return res;
+    }
+
+    function filterAll(a) {
+        return [];
     }
 
 
@@ -77,7 +169,11 @@ function testEventUp() {
 	b.set(2);
     }, b);
     var c = frp.liftE(add1, b);
-
+    var d = frp.liftE(add2, c);
+    var filtered = frp.liftE(function () {
+        count3++;
+    }, frp.liftE(filterAll, c));
+    
     // get should always be null outside of the transaction
     assertFalse(c.unsafeMetaGet().ready());
     assertEquals(0, val1);
@@ -98,21 +194,30 @@ function testEventUp() {
     assertArrayEquals([2], val1);
 
     frp.accessTrans(function() {
-	b.set(2);
+	b.set(3);
+	b.set(4);
     });
+
     assertEquals(null, c.unsafeMetaGet().get());
-    assertEquals(1, count1);
-    assertEquals([2], val1);
-
-    //TODO don't fire an event , or fire 2 events from ourselves
-    assertEquals(3, c.unsafeMetaGet().get());
     assertEquals(2, count1);
+    assertEquals(0, count2);
+    assertArrayEquals([3,4], val1);
 
+    tm.attach(d);
+    tm.attach(filtered);
 
-    b.set(3);
-    assertEquals(4, c.unsafeMetaGet().get());
-    assertEquals(1, count1);
-    assertEquals(4, d.unsafeMetaGet().get());
+    frp.accessTrans(function() {
+	b.set(5);
+	b.set(6);
+    });
+
+    assertEquals(null, c.unsafeMetaGet().get());
+    assertEquals(3, count1);
+    assertEquals(1, count2);
+    assertEquals(0, count3);
+    assertArrayEquals([5,6], val1);
+    assertArrayEquals([6,7], val2);
+
 }
 
 
