@@ -58,7 +58,6 @@ function testEventDown() {
 
     function add1(opts) {
         return function (val) {
-            console.log("add", val);
             opts.val = val;
             opts.count++;
             var res = [];
@@ -72,7 +71,6 @@ function testEventDown() {
 
     function sub1(opts) {
         return function (evt, x) {
-            console.log("sub", evt);
             opts.ival = evt;
             opts.icount++;
             for (var i = 0; i < evt.length; i++) {
@@ -91,8 +89,8 @@ function testEventDown() {
     var e2 = frp.liftEI(add1(e2Opts), sub1(e2Opts), e1);
     tm.attach(e2);
 
-    assertEquals(null, e1.unsafeMetaGet().get());
-    assertEquals(null, e2.unsafeMetaGet().get());
+    assertArrayEquals([], e1.unsafeMetaGet().get());
+    assertArrayEquals([], e2.unsafeMetaGet().get());
     assertEquals(0, e1Opts.count);
     assertEquals(0, e1Opts.icount);
     assertEquals(0, e2Opts.count);
@@ -104,8 +102,8 @@ function testEventDown() {
 	e.set(4);
     }, e);
 
-    assertEquals(null, e1.unsafeMetaGet().get());
-    assertEquals(null, e2.unsafeMetaGet().get());
+    assertArrayEquals([], e1.unsafeMetaGet().get());
+    assertArrayEquals([], e2.unsafeMetaGet().get());
     assertEquals(1, e1Opts.count);
     assertEquals(0, e1Opts.icount);
     assertEquals(1, e2Opts.count);
@@ -119,8 +117,8 @@ function testEventDown() {
 	e2.set(8);
     }, e2);
 
-    assertEquals(null, e1.unsafeMetaGet().get());
-    assertEquals(null, e2.unsafeMetaGet().get());
+    assertArrayEquals([], e1.unsafeMetaGet().get());
+    assertArrayEquals([], e2.unsafeMetaGet().get());
     assertEquals(1, e1Opts.count);
     assertEquals(1, e1Opts.icount);
     assertEquals(1, e2Opts.count);
@@ -181,7 +179,7 @@ function testEventUp() {
 
     tm.attach(c);
 
-    assertEquals(null, c.unsafeMetaGet().get());
+    assertArrayEquals([], c.unsafeMetaGet().get());
     assertEquals(0, val1);
     assertEquals(0, count1);
 
@@ -189,7 +187,7 @@ function testEventUp() {
     frp.accessTrans(function() {
 	b.set(2);
     });
-    assertEquals(null, c.unsafeMetaGet().get());
+    assertArrayEquals([], c.unsafeMetaGet().get());
     assertEquals(1, count1);
     assertArrayEquals([2], val1);
 
@@ -198,7 +196,7 @@ function testEventUp() {
 	b.set(4);
     });
 
-    assertEquals(null, c.unsafeMetaGet().get());
+    assertArrayEquals([], c.unsafeMetaGet().get());
     assertEquals(2, count1);
     assertEquals(0, count2);
     assertArrayEquals([3,4], val1);
@@ -211,7 +209,7 @@ function testEventUp() {
 	b.set(6);
     });
 
-    assertEquals(null, c.unsafeMetaGet().get());
+    assertArrayEquals([], c.unsafeMetaGet().get());
     assertEquals(3, count1);
     assertEquals(1, count2);
     assertEquals(0, count3);
@@ -526,6 +524,22 @@ function testOutOfOrderSwitchB() {
      
 }
 
+function testSetDownOnUp () {
+
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var oneB = frp.createB(1);
+    var twoB = frp.createB(2);
+
+    
+    var threeB = frp.liftB(function() {twoB.set(oneB.get()); return oneB.get();},oneB, twoB);
+
+    tm.attach(threeB);
+
+    assertEquals(1, twoB.unsafeMetaGet().get());
+
+}
 function testSameBehaviour() {
-    assertTrue("not implemented yet", false);
+//    assertTrue("not implemented yet", false);
 }

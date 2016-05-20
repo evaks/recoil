@@ -36,10 +36,11 @@ recoil.frp.TraverseDirection = function(name, calc, comparator) {
  * @param {recoil.frp.Behaviour} behaviour
  * @param {Array <recoil.frp.Behaviour>} providers
  * @param {Array <recoil.frp.Behaviour>} dependents
+ * @param {Array <recoil.frp.Behaviour>} nextItr
  * @return {Array <recoil.frp.Behaviour>}
  */
-recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers, dependents) {
-    return this.calc_(behaviour, providers, dependents);
+recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers, dependents, nextItr) {
+    return this.calc_(behaviour, providers, dependents, nextItr);
 };
 
 /**
@@ -181,9 +182,6 @@ recoil.frp.EStatus.prototype.ready = function() {
  * @return {?Array<T>}
  */
 recoil.frp.EStatus.prototype.get = function() {
-    if (this.values_.length === 0) {
-        return null;
-    }
     return this.values_;
 };
 
@@ -383,22 +381,32 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
      * @param {recoil.frp.Behaviour} behaviour
      * @param {Array <recoil.frp.Behaviour>} providers
      * @param {Array <recoil.frp.Behaviour>} dependents
+     * @param {Array <recoil.frp.Behaviour>} nextItr things to be queue no the next iteration not this one
      * @return {Array <recoil.frp.Behaviour>}
      */
-    function(behaviour, providers, dependents) {
+    function(behaviour, providers, dependents, nextItr) {
         var oldVal = behaviour.val_;
-
+        var getDirty = recoil.frp.Frp.Direction_.getDirty;
+        
         var params = [];
         // TODO put a loop around this so we get all events, take care if we clear the events
         // other behaviours may not get the events so we have to probably queue them unless
         // we consider an event as always a seqenence of events, then the lift just has to deal
         // with them this may allow more power to the function, alternatively events could just have
         // a sequence associated with them you only get one at a time, but this could be delt with
-        // outside the engine
+        // outside the engine xxx
         providers.forEach(function(b) {
             params.push(b.metaGet());
         });
+        var oldDirty = getDirty(behaviour.providers_);
         var newVal = behaviour.calc_.apply(behaviour, params);
+        var newDirty = getDirty(behaviour.providers_);
+        for (var p in newDirty) {
+            if (oldDirty[p] === undefined) {
+                var prov = newDirty[p];
+                nextItr.push(prov);
+            }
+        }
         var res = [];
         if (behaviour.dirtyUp_ && recoil.util.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
             behaviour.val_ = behaviour.dirtyUpOldValue_;
@@ -411,51 +419,62 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         return res;
     }, function(a, b) {
         return recoil.frp.Frp.compareSeq_(a.seq_, b.seq_);
-    }),
+    });
+
+recoil.frp.Frp.Direction_.getDirty = function (dependants) {
+    var res = {};
+    for (var i = 0; i < dependants.length; i++) {
+        if (dependants[i].dirtyDown_) {
+            res[dependants[i].seqStr_] = dependants[i];
+        }
+    }
+    return res;
+};
 
 /**
  * Down is from behaviour to providers
  *
  * @final
  */
-recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection('down', function(behaviour, providers, dependants) {
-    function getDirty(dependants) {
-        var res = {};
-        for (var i = 0; i < dependants.length; i++) {
-            if (dependants[i].dirtyDown_) {
-                res[String(dependants[i].seq_)] = dependants[i];
+recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
+    'down',
+    /**
+     * @param {recoil.frp.Behaviour} behaviour
+     * @param {Array <recoil.frp.Behaviour>} providers
+     * @param {Array <recoil.frp.Behaviour>} dependents
+     * @param {Array <recoil.frp.Behaviour>} nextItr things to be queue no the next iteration not this one
+     * @return {Array <recoil.frp.Behaviour>}
+     */
+    function(behaviour, providers, dependants, nextItr) {
+
+        var getDirty = recoil.frp.Frp.Direction_.getDirty;
+        var changedDirty = [];
+        if (behaviour.dirtyDown_) {
+            var oldDirty = getDirty(behaviour.providers_);
+            var args = [behaviour.val_];
+            for (var i = 0; i < behaviour.providers_.length; i++) {
+                args.push(behaviour.providers_[i]);
             }
-        }
-        return res;
-    }
-
-    var changedDirty = [];
-    if (behaviour.dirtyDown_) {
-        var oldDirty = getDirty(behaviour.providers_);
-        var args = [behaviour.val_];
-        for (var i = 0; i < behaviour.providers_.length; i++) {
-            args.push(behaviour.providers_[i]);
-        }
-
-        behaviour.inv_.apply(behaviour, args);
-        var newDirty = getDirty(behaviour.providers_);
-
-        var id;
-        for (id in newDirty) {
-            if (oldDirty[id] !== undefined) {
-
-                changedDirty.push(newDirty[id]);
+            
+            behaviour.inv_.apply(behaviour, args);
+            var newDirty = getDirty(behaviour.providers_);
+            
+            var id;
+            for (id in newDirty) {
+                if (oldDirty[id] !== undefined) {
+                    
+                    changedDirty.push(newDirty[id]);
+                }
+                
             }
-
+            behaviour.dirtyDown_ = false;
         }
-        behaviour.dirtyDown_ = false;
-    }
-
-    return changedDirty;
-}, function(a, b) {
-    return recoil.frp.Frp.compareSeq_(b.seq_, a.seq_);
-
-});
+        
+        return changedDirty;
+    }, function(a, b) {
+        return recoil.frp.Frp.compareSeq_(b.seq_, a.seq_);
+        
+    });
 
 /**
  *
@@ -765,6 +784,22 @@ recoil.frp.Behaviour.prototype.set = function(value) {
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
     return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
+};
+
+/**
+ * creates a behaviour that will always have the same value as other
+ * behaviours with the same key it also assumes behaviour can be interchangable
+ * 
+ * this really is only needed because javas script has no weak references, 
+ * @param {Object} key
+ * @param {recoil.frp.Frp}
+ * @return {reocil.frp.Behaviour}
+ */
+recoil.frp.Frp.prototype.createSameB = function (key, behaviour) {
+    var res = this.liftBI(
+        function (val) { return val;},
+        function (val, b) {b.set(val);}, behaviour);
+    res.key_ = key;
 };
 /**
  * @template T
@@ -1139,7 +1174,7 @@ recoil.frp.TransactionManager = function(frp) {
     this.level_ = 0;
     this.watching_ = 0;
     this.pending_ = [new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator()),
-                     new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator())];
+                     new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.DOWN.heapComparator())];
     this.dependancyMap_ = {};
     /**
      * @private
@@ -1335,22 +1370,26 @@ recoil.frp.TransactionManager.prototype.propagateAll_ = function() {
  */
 recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
     var pendingHeap = this.getPending_(dir);
+    var nextPending = new recoil.structs.UniquePriorityQueue(dir.heapComparator());
     var visited = {};
 
     var cur = pendingHeap.pop();
+    var prev = null;
     var me = this;
+    var heapComparator = dir.heapComparator();
     while (cur !== undefined) {
         // calculate changed something
         var deps;
         visited[cur.seqStr_] = cur;
+        var nextItr = [];
         var accessFunc = function() {
             if (dir === recoil.frp.Frp.Direction_.UP) {
                 me.nestIds(cur, function() {
-                    deps = dir.calculate(cur, cur.providers_, me.dependancyMap_[cur.seqStr_]);
+                    deps = dir.calculate(cur, cur.providers_, me.dependancyMap_[cur.seqStr_], nextItr);
                 });
             } else {
                 me.lockIds_(function() {
-                    deps = dir.calculate(cur, cur.providers_, me.dependancyMap_[cur.seqStr_]);
+                    deps = dir.calculate(cur, cur.providers_, me.dependancyMap_[cur.seqStr_], nextItr);
                 });
 
             }
@@ -1366,7 +1405,20 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
             pendingHeap.push(deps[d]);
         }
 
+        for (d = 0; d < nextItr.length; d++) {
+            var next = pendingHeap.remove(nextItr[d]);
+            if (next) {
+                nextPending.push(next);
+            }
+        }
+        prev = cur;
         cur = pendingHeap.pop();
+    }
+    // put this on for later
+    cur = nextPending.pop();
+    while (cur !== undefined) {
+        pendingHeap.push(cur);
+        cur = nextPending.pop();
     }
     this.clearEvents_(dir, visited);
 };
@@ -1455,6 +1507,15 @@ recoil.frp.TransactionManager.prototype.removeProvidersFromDependancyMap_ = func
     }
 
 };
+recoil.frp.TransactionManager.prototype.replaceKeyed_ = function (behaviour) {
+    if (behaviour.key_ && !behaviour.hasRefs()) {
+        var existing  = this.keyedBehaviours_.findFirst(behaviour.key_);
+        if (existing) {
+            behaviour.replaceKeyed_(existing);
+        }
+    }
+
+};
 
 /**
  * mark the behaviour that it is being used it will now recieve update notifications
@@ -1466,6 +1527,10 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
     if (! (behaviour instanceof recoil.frp.Behaviour)) {
         throw 'you can only attach to a behaviour';
     }
+    // if this is a keyed behaviour that is not already in the attached
+    // behaviours and there already exists a behaviour TODO what if we attached
+    // but not at the top level
+    
     var visited = this.visit(behaviour);
     var newStuff = this.getPending_(recoil.frp.Frp.Direction_.UP);
     var me = this;

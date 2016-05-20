@@ -3,6 +3,7 @@ goog.provide('recoil.db.DatabaseComms');
 goog.provide('recoil.db.ReadOnlyDatabase');
 
 goog.require('goog.structs.AvlTree');
+goog.require('recoil.frp.ChangeManager');
 
 /**
  * @interface
@@ -183,8 +184,9 @@ recoil.db.ReadWriteDatabase.prototype.get = function(id, var_parameters)  {
  *
  */
  
-recoil.db.DelayedDatabase = function (source) {
+recoil.db.DelayedDatabase = function (frp, source) {
     this.source_ = source;
+    this.frp_ = frp;
     this.changed_ = goog.structs.AvlTree();
 };
 
@@ -198,49 +200,40 @@ recoil.db.DelayedDatabase = function (source) {
  *            a particular id
  * @return {recoil.frp.Behaviour<T>}
  */
-recoil.db.ReadWriteDatabase.prototype.get = function(id, var_parameters)  {
-    var changed = this.changed.findFirst(this.source_.makeKey(arguments));
-
-    var key = this.source_.makeKey(arguments);
-    var changedB = map.exists(key);
-    var me = this;
-
-    if (changed) {
-        return changed;
-    }
-    var databaseB = this.source_.get.apply(this.source_.get, arguments);
-
-
-    var changedB = this.frp_.createB(false);
-
-    var setB = this.frp_.liftB(
-        function (changed)  {
-            if (changed) {
-                var existing = me.changed_.findFirst(key);
-                if (existing) {
-                    return existing;
-                }
-             
-            }
-            return databaseB;
-        }, changedB);
-    var valueB = this.frp_.switchB(setB);
+recoil.db.DelayDatabase.prototype.get = function(id, var_parameters)  {
     
-    var res = this.frp_.liftBI(
-        function (value) {
-            return changed;
-        },
-        function (val, valueB, databaseB) {
-            if (recoil.util.isEqual(val, databaseB.get())) {
-                changedB.set(false);
-                me.changed_.remove(key);
+    var key = this.source_.makeKey(arguments);
+    var frp = this.frp_;
+    var changedIn = frp.createB(frp.createMetaB(recoil.frp.BStatus.notReady()));
+    var changedOut = frp.switchB(changedIn);
+    (function (frp, changed, key) {
+        changedOut.refListen(function (hasRef) {
+            var changedVal = changed.findFirst({key : key});
+            if (hasRef) {
+                if (changedVal) {
+                    if (changedIn.get() !== changedVal.value) {
+                        changedVal.refs++;
+                        changedIn.set(changedVal.value);
+                    }
+                }
+                else {
+                    changed.put({key : key, refs: 1, value : changedIn.get()});
+                }
             }
             else {
-                changedB.set(val);
+                if (changedVal) {
+                    changedVal.refs--;
+                    // would really like to remove from the changed map only if there are not changes
+                    if (changedVal.refs === 0 && !changedVal.value.ready()) {
+                        changed.remove(changedVal);
+                    }
+                }
             }
-        },
-        unchangedB, changedB);
+        });
+    })(this.frp_, this.changed_, key);
     
-    return res;
-}
+    var databaseB = this.source_.get.apply(this.source_.get, arguments);
+
+    return recoil.frp.ChangeManager.create(frp, databaseB, changedOut, this.changeEvent);
+};
 
