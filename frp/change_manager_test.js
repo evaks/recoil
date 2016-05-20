@@ -63,7 +63,7 @@ function testChangeManager() {
 
 
     frp.accessTrans(function () {
-        applyE.set(recoil.frp.ChangeManager.FLUSH);
+        applyE.set(recoil.frp.ChangeManager.Action.FLUSH);
     }, applyE);
 
     console.log("testee", testeeB.seqStr_);

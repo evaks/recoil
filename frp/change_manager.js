@@ -1,20 +1,39 @@
 goog.provide('recoil.frp.ChangeManager');
 
-goog.require ('recoil.frp.Frp');
+goog.require('recoil.frp.Frp');
 
-recoil.frp.ChangeManager.FLUSH = new Object();
-recoil.frp.ChangeManager.CLEAR = new Object();
+/**
+ * a change manager action
+ * @enum {Object}
+ */
 
-recoil.frp.ChangeManager.create = function (frp, valueB, changeB, flushE) {
+recoil.frp.ChangeManager.Action = {
+    FLUSH: new Object(),
+    CLEAR: new Object()
+};
+
+
+/**
+ * creates a behaviour whos changes are stored in changeB until a flushB is sent, at which
+ * point valueB gets set and changeB gets put to not Ready
+ *
+ * @template T
+ * @param {!recoil.frp.Frp} frp
+ * @param {!recoil.frp.Behaviour<T>} valueB
+ * @param {!recoil.frp.Behaviour<T>} changeB
+ * @param {!recoil.frp.Behaviour<recoil.frp.ChangeManager.Action>} flushE
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.ChangeManager.create = function(frp, valueB, changeB, flushE) {
     return frp.metaLiftBI(
-        function (value, change, flush) {
+        function(value, change, flush) {
             for (var i = 0; i < flush.get().length; i++) {
                 if (changeB.metaGet().ready()) {
-                    if (flush.get()[i] === recoil.frp.ChangeManager.FLUSH) {
+                    if (flush.get()[i] === recoil.frp.ChangeManager.Action.FLUSH) {
                         valueB.set(changeB.get());
                         changeB.metaSet(recoil.frp.BStatus.notReady());
                     }
-                    else if (flush.get()[i] === recoil.frp.ChangeManager.CLEAR) {
+                    else if (flush.get()[i] === recoil.frp.ChangeManager.Action.CLEAR) {
                         changeB.metaSet(recoil.frp.BStatus.notReady());
                     }
                 }
@@ -24,7 +43,7 @@ recoil.frp.ChangeManager.create = function (frp, valueB, changeB, flushE) {
             }
             return valueB.metaGet();
         },
-        function (newValue, valueB, changeB) {
+        function(newValue, valueB, changeB) {
             if (recoil.util.isEqual(newValue, valueB.metaGet())) {
                 changeB.metaSet(recoil.frp.BStatus.notReady());
             }

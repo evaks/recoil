@@ -12,7 +12,7 @@ goog.require('goog.structs.AvlTree');
  */
 
 recoil.structs.UniquePriorityQueue = function(comparator) {
-    this._tree = new goog.structs.AvlTree(comparator);
+    this.tree_ = new goog.structs.AvlTree(comparator);
 };
 
 /**
@@ -24,11 +24,11 @@ recoil.structs.UniquePriorityQueue = function(comparator) {
  */
 
 recoil.structs.UniquePriorityQueue.prototype.push = function push(value) {
-    if (this._tree.contains(value)) {
+    if (this.tree_.contains(value)) {
         return false;
     }
 
-    return this._tree.add(value);
+    return this.tree_.add(value);
 };
 
 
@@ -36,11 +36,11 @@ recoil.structs.UniquePriorityQueue.prototype.push = function push(value) {
  * remove an item from the queue, specified item
  *
  * @param {T} val
- * @return T the node removed null if does not exist
+ * @return {T} the node removed null if does not exist
  */
 
 recoil.structs.UniquePriorityQueue.prototype.remove = function(val) {
-    return this._tree.remove(val);
+    return this.tree_.remove(val);
 };
 
 /**
@@ -50,12 +50,12 @@ recoil.structs.UniquePriorityQueue.prototype.remove = function(val) {
  */
 
 recoil.structs.UniquePriorityQueue.prototype.pop = function() {
-    if (this._tree.getCount() === 0) {
+    if (this.tree_.getCount() === 0) {
         return undefined;
     }
-    var val = this._tree.getMinimum();
+    var val = this.tree_.getMinimum();
 
-    this._tree.remove(val);
+    this.tree_.remove(val);
     return val;
 };
 
@@ -66,5 +66,5 @@ recoil.structs.UniquePriorityQueue.prototype.pop = function() {
  */
 
 recoil.structs.UniquePriorityQueue.prototype.isEmpty = function() {
-    return this._tree.getCount() === 0;
+    return this.tree_.getCount() === 0;
 };

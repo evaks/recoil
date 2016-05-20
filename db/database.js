@@ -4,12 +4,21 @@ goog.provide('recoil.db.ReadOnlyDatabase');
 
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.frp.ChangeManager');
+goog.require('recoil.util');
 
 /**
  * @interface
  */
 recoil.db.Database = function() {
 };
+
+/**
+ * @param {!IArrayLike} values
+ * @return {!Object}
+ */
+recoil.db.Database.prototype.makeKey = function(values) {
+};
+
 /**
  * @interface
  */
@@ -46,6 +55,12 @@ recoil.db.DatabaseComms.prototype.set = function(data, oldData, successFunction,
 };
 
 /**
+ * @param {!IArrayLike} values
+ * @return {!Object}
+ */
+recoil.db.DatabaseComms.prototype.makeKey = function(values) {
+};
+/**
  * instruct the databse that we are no longer interested
  * @param {string} id identifier of the object that to be retrieve from the database
  * @param {...*} var_parameters any extra parameters that maybe passed to the database
@@ -65,6 +80,14 @@ recoil.db.ReadOnlyDatabase = function(frp, dbComs) {
     this.objects_ = new goog.structs.AvlTree(function(a, b) {
         return recoil.util.compare(a.key, b.key);
     });
+};
+
+/**
+ * @param {!IArrayLike} values
+ * @return {!Object}
+ */
+recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
+    return this.dbComs_.makeKey(values);
 };
 
 
@@ -141,6 +164,15 @@ recoil.db.ReadWriteDatabase = function(frp, dbComs, opt_readDb) {
   this.readDb_ = opt_readDb || new recoil.db.ReadOnlyDatabase(frp, dbComs);
 };
 
+
+/**
+ * @param {!IArrayLike} values
+ * @return {!Object}
+ */
+recoil.db.ReadWriteDatabase.prototype.makeKey = function(values) {
+    return this.comms_.makeKey(values);
+};
+
 /**
  * Returns a behaviour, with a value that we can get, set etc
  * @template T
@@ -180,14 +212,22 @@ recoil.db.ReadWriteDatabase.prototype.get = function(id, var_parameters)  {
 
 
 /**
- * A database that will not send data to the server until an event is sent to 
- *
+ * A database that will not send data to the server until an event is sent to
+ * @constructor
+ * @param {recoil.frp.Frp}   frp
+ * @param {recoil.db.Database} source
+ * @implements {recoil.db.Database}
  */
- 
-recoil.db.DelayedDatabase = function (frp, source) {
+
+recoil.db.DelayedDatabase = function(frp, source) {
     this.source_ = source;
     this.frp_ = frp;
-    this.changed_ = goog.structs.AvlTree();
+    this.changed_ = new goog.structs.AvlTree(function (x, y) {return recoil.util.compare(x.key, y.key);});
+    /**
+     * @private 
+     * @type !recoil.frp.Behaviour<recoil.frp.ChangeManager.Action>
+     */
+    this.changeEvent_ = frp.createE();
 };
 
 
@@ -200,15 +240,15 @@ recoil.db.DelayedDatabase = function (frp, source) {
  *            a particular id
  * @return {recoil.frp.Behaviour<T>}
  */
-recoil.db.DelayDatabase.prototype.get = function(id, var_parameters)  {
-    
+recoil.db.DelayedDatabase.prototype.get = function(id, var_parameters)  {
+
     var key = this.source_.makeKey(arguments);
     var frp = this.frp_;
     var changedIn = frp.createB(frp.createMetaB(recoil.frp.BStatus.notReady()));
     var changedOut = frp.switchB(changedIn);
-    (function (frp, changed, key) {
-        changedOut.refListen(function (hasRef) {
-            var changedVal = changed.findFirst({key : key});
+    (function(frp, changed, key) {
+        changedOut.refListen(function(hasRef) {
+            var changedVal = changed.findFirst({key: key});
             if (hasRef) {
                 if (changedVal) {
                     if (changedIn.get() !== changedVal.value) {
@@ -217,7 +257,7 @@ recoil.db.DelayDatabase.prototype.get = function(id, var_parameters)  {
                     }
                 }
                 else {
-                    changed.put({key : key, refs: 1, value : changedIn.get()});
+                    changed.add({key: key, refs: 1, value: changedIn.get()});
                 }
             }
             else {
@@ -231,9 +271,16 @@ recoil.db.DelayDatabase.prototype.get = function(id, var_parameters)  {
             }
         });
     })(this.frp_, this.changed_, key);
-    
+
     var databaseB = this.source_.get.apply(this.source_.get, arguments);
 
-    return recoil.frp.ChangeManager.create(frp, databaseB, changedOut, this.changeEvent);
+    return recoil.frp.ChangeManager.create(frp, databaseB, changedOut, this.changeEvent_);
 };
 
+/**
+ * @param {!IArrayLike} values
+ * @return {!Object}
+ */
+recoil.db.DelayedDatabase.prototype.makeKey = function(values) {
+    return this.source_.makeKey(values);
+};
