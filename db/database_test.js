@@ -16,6 +16,10 @@ var MyDb = function() {
 
 };
 
+MyDb.prototype.makeKey = function (args) {
+    return args;
+};
+    
 /**
  *
  * @param data
@@ -38,6 +42,8 @@ MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, var_para
  * @param var_params
  */
 MyDb.prototype.get = function(success, failure, id, var_params) {
+
+    console.log("getting ",id);
     if (var_params !== undefined) {
         var value = id;
 
@@ -157,5 +163,57 @@ function testParameterGet() {
     //var b = {v:"stuff"};
     //var key =  {name : "hello", loop : b};
     //b.back = key;
+
+}
+
+
+function testDelayed () {
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+    var coms = new MyDb();
+
+    var readDb = new recoil.db.ReadOnlyDatabase(frp, coms);
+    var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
+    var delayedDb = new recoil.db.DelayedDatabase(frp, readwriteDb);
+    
+    var val1 =  delayedDb.get("val");
+    var val2 =  delayedDb.get("val");
+
+    tm.attach(val1);
+    tm.attach(val2);
+
+    assertEquals("xxxval", val2.unsafeMetaGet().get());
+
+
+    frp.accessTrans(function () {
+        val1.set(0);
+    }, val1);
+
+
+    assertEquals(0, val2.unsafeMetaGet().get());
+
+    var val3 =  delayedDb.get("val");
+    tm.attach(val3);
+
+    assertEquals(0, val3.unsafeMetaGet().get());
+    
+    assertEquals("xxxval",coms.getValue("val"));
+
+    delayedDb.flush();
+
+    assertEquals(0,coms.getValue("val"));
+
+
+    frp.accessTrans(function () {
+        val1.set(1);
+    }, val1);
+
+    assertEquals(0,coms.getValue("val"));
+    assertEquals(1, val3.unsafeMetaGet().get());
+
+    delayedDb.clear();
+
+    assertEquals(0,coms.getValue("val"));
+    assertEquals(0, val3.unsafeMetaGet().get());
 
 }

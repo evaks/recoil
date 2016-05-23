@@ -255,6 +255,21 @@ function testBehaviourDown() {
     tm.detach(c);
 
 }
+
+function testSwitchBNotReady() {
+
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+    var src1 = frp.createMetaB(recoil.frp.BStatus.notReady());
+    
+    var src2 = frp.createB(src1);
+
+    var sw = frp.switchB(src2);
+
+    tm.attach(sw);
+    assertFalse(sw.unsafeMetaGet().ready());
+
+}
 function testSwitchBDown() {
 
     var frp = new recoil.frp.Frp();
@@ -543,3 +558,5 @@ function testSetDownOnUp () {
 function testSameBehaviour() {
 //    assertTrue("not implemented yet", false);
 }
+
+

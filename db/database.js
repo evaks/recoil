@@ -272,9 +272,30 @@ recoil.db.DelayedDatabase.prototype.get = function(id, var_parameters)  {
         });
     })(this.frp_, this.changed_, key);
 
-    var databaseB = this.source_.get.apply(this.source_.get, arguments);
+    var databaseB = this.source_.get.apply(this.source_, arguments);
 
     return recoil.frp.ChangeManager.create(frp, databaseB, changedOut, this.changeEvent_);
+};
+
+/**
+ * writes all the data out to the database
+ */
+recoil.db.DelayedDatabase.prototype.flush = function () {
+    var me = this;
+    this.frp_.accessTrans(function () {
+        me.changeEvent_.set(recoil.frp.ChangeManager.Action.FLUSH);
+    }, this.changeEvent_);
+};
+
+
+/**
+ * loose all the changes
+ */
+recoil.db.DelayedDatabase.prototype.clear = function () {
+    var me = this;
+    this.frp_.accessTrans(function () {
+        me.changeEvent_.set(recoil.frp.ChangeManager.Action.CLEAR);
+    }, this.changeEvent_);
 };
 
 /**

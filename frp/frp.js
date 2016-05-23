@@ -906,6 +906,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
 
         if (b !== null || b !== undefined) {
             recoil.frp.Frp.access(function() {
+                res.merge(b.metaGet());
                 res.set(b.get());
             }, b);
             return res;
