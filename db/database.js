@@ -5,6 +5,7 @@ goog.provide('recoil.db.ReadOnlyDatabase');
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.frp.ChangeManager');
 goog.require('recoil.util');
+goog.require('recoil.db.Type');
 
 /**
  * @interface
@@ -19,6 +20,31 @@ recoil.db.Database = function() {
 recoil.db.Database.prototype.makeKey = function(values) {
 };
 
+
+/**
+ * gets an individual object from the database
+ * @template T
+ * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
+ * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<T>} the corisponding object 
+ */
+recoil.db.Database.prototype.get = function(id, primaryKeys, opt_options) {
+};
+
+
+/**
+ * gets a list of options from the database, this should ensure that the same object
+ * gets returned even if the query options is different
+ *
+ * @template T
+ * @param {!recoil.db.Type<T>} id the id to identify the type of objects to retrieve
+ * @param {!recoil.db.Query} query a filter to apply to the query
+ * @param {!recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<!Array<T>>}
+ */
+recoil.db.Database.prototype.getList = function (id, query, opt_options) {
+};
 /**
  * @interface
  */
@@ -92,14 +118,30 @@ recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
 
 
 /**
+ * gets an individual object from the database
  * @template T
- * @param {string} id the id of the object to get
- * @param {...*} var_parameters the parameters to the get function, this can be usesful if you want to get something
- * like a particular id
- * @return {recoil.frp.Behaviour<T>}
+ * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
+ * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<T>} the corisponding object 
  */
-recoil.db.ReadOnlyDatabase.prototype.get = function(id, var_parameters) {
-    return this.getInternal_.apply(this, arguments).value;
+recoil.db.ReadOnlyDatabase.prototype.get = function(id, primaryKeys, opt_options) {
+    return this.getInternal_(id, primaryKeys, opt_options).value;
+};
+
+/**
+ * gets a list of options from the database, this should ensure that the same object
+ * gets returned even if the query options is different
+ *
+ * @template T
+ * @param {!recoil.db.Type<T>} id the id to identify the type of objects to retrieve
+ * @param {!recoil.db.Query} query a filter to apply to the query
+ * @param {!recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<!Array<T>>}
+ */
+recoil.db.ReadOnlyDatabase.prototype.getList = function (id, query, opt_options) {
+
+    
 };
 
 
