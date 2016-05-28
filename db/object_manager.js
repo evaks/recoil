@@ -31,7 +31,7 @@ recoil.db.ObjectManager.XXX = function () {
  * @param {!recoil.frp.Behaviour<T>} value
  * @return {!recoil.frp.Behaviour<T>} 
  */
-recoil.db.ObjectManager.prototype.register = function (typeKey, key) {
+recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options, coms) {
     
     var behaviours = this.objectTypes_[typeKey];
     var entity = new recoil.db.Enitity(key, undefined);
@@ -48,15 +48,15 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key) {
     return null;
 };
 
-recoil.db.ObjectManager.prototype.deregister = function (typeKey, key) {
+recoil.db.ObjectManager.prototype.unregister = function (typeKey, key, opt_options, coms) {
 
 };
 
-recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query) {
+recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_options, coms) {
     
 };
 
-recoil.db.ObjectManager.prototype.deregisterQuery = function (typeKey, query) {
+recoil.db.ObjectManager.prototype.unregisterQuery = function (typeKey, query) {
     
 };
 

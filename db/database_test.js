@@ -87,6 +87,12 @@ MyDb.prototype.getValue = function(key) {
     return this.values_[key];
 };
 
+function testReadOnly () {
+    assertFalse(true);
+    //check that even if we set the read write database, the change
+    //is not reflected in the read only database until the change is sent back from the server
+};
+    
 function testGet() {
     var frp = new recoil.frp.Frp();
 

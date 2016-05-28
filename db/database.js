@@ -126,7 +126,7 @@ recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
  * @return {!recoil.frp.Behaviour<T>} the corisponding object 
  */
 recoil.db.ReadOnlyDatabase.prototype.get = function(id, primaryKeys, opt_options) {
-    return this.getInternal_(id, primaryKeys, opt_options).value;
+    return this.frp_.liftB(function (v) {return v;}, this.db_.get(id, primaryKeys, opt_options));
 };
 
 /**
@@ -140,8 +140,7 @@ recoil.db.ReadOnlyDatabase.prototype.get = function(id, primaryKeys, opt_options
  * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
 recoil.db.ReadOnlyDatabase.prototype.getList = function (id, query, opt_options) {
-
-    
+    return this.frp_.liftB(function (v) {return v;}, this.db_.getList(id, query, opt_options));
 };
 
 
@@ -216,40 +215,93 @@ recoil.db.ReadWriteDatabase.prototype.makeKey = function(values) {
 };
 
 /**
- * Returns a behaviour, with a value that we can get, set etc
- * @template T
- * @param {string} id the id of the object to get
- * @param {...*} var_parameters the parameters to the get function, this can be useful if you want to get something like
- *            a particular id
- * @return {recoil.frp.Behaviour<T>}
+ * @private
+ * @param {recoil.frp.Frp} frp
+ * @param {!recoil.frp.Behaviour<recoil.db.SendInfo} uniq
  */
-recoil.db.ReadWriteDatabase.prototype.get = function(id, var_parameters)  {
-    var readB = this.readDb_.getInternal_.apply(this.readDb_, arguments).internal;
-    var changeB = this.frp_.createMetaB(recoil.frp.BStatus.notReady());
-    var comms = this.comms_;
-    return this.frp_.metaLiftBI(function(read, change) {
-        if (change.ready()) {
-            return change;
-        }
-        return read;
-    }, function(val) {
-        //console.log(val.get() + ' - ' + changeB.get() + ' - ' + readB.get() + ' - ' + id);
+recoil.db.ReadOnlyDatabase.filterSending_ = function (frp, uniq) {
+    return frp.liftB(
+        function (val) {
+            return val.stored;
+        },
+        function (val) {
+            var old = goog.object.clone(uniq.get());
+            old.sending = val;
+        }, uniq);
+};
 
-        if (!recoil.util.isEqual(readB.get(), changeB.get())) {
-            changeB.metaSet(val);
+/**
+ * @private
+ * @param {recoil.frp.Frp} frp
+ * @param {!recoil.frp.Behaviour<recoil.db.SendInfo} uniq
+ */
+recoil.db.ReadWriteDatabase.showSending_ = function (frp, uniq) {
+    return frp.liftBI(
+        function (val) {
+            return val.sending ? val.sending : val.stored;
+        },
+        function (val) {
+            var old = goog.object.clone(uniq.get());
+            old.sending = val;
+        }, uniq);
+};
+/**
+ * gets an individual object from the database
+ * @template T
+ * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
+ * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<T>} the corisponding object 
+ */
+recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_options)  {
+    var valueB = this.frp_.createNotReadyB();
+    var dbComs = this.dbComs_;
+    var objectManager = this.objectManager_;
+    var frp = this.frp_;
+    
+    valueB.refListen(
+        function (used) {
+            if (used) {
+                var uniq = objectManager.register(id, primaryKeys, opt_options, dbComs);
+                valueB.set(recoil.db.ReadWriteDatabase.showSending_(frp, uniq));
+            }
+            else {
+                objectManager.unregister(id, primaryKeys, dbComs);
+                valueB.metaSet(recoil.frp.notReady());
+            }
+        });
+    return frp.switchB(valueB);
+};
 
-            comms.set(val.get(), readB.get(), function(value) {
-                //console.log(value.get() + ' - ' + id);
-                readB.set(value);
-                changeB.metaSet(recoil.frp.BStatus.notReady());
-            }, function(status) {
-                console.log('Failed: ' + status.errors());
-            }, id, var_parameters);
-        } else {
-            changeB.metaSet(recoil.frp.BStatus.notReady());
-        }
-
-    }, readB, changeB);
+/**
+ * gets a list of options from the database, this should ensure that the same object
+ * gets returned even if the query options is different
+ *
+ * @template T
+ * @param {!recoil.db.Type<T>} id the id to identify the type of objects to retrieve
+ * @param {!recoil.db.Query} query a filter to apply to the query
+ * @param {!recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<!Array<T>>}
+ */
+recoil.db.ReadWriteDatabase.prototype.getList = function (id, query, opt_options) {
+    
+    var valueB = this.frp_.createNotReadyB();
+    var dbComs = this.dbComs_;
+    var objectManager = this.objectManager_;
+    var frp = this.frp_;
+    
+    valueB.refListen(
+        function (used) {
+            if (used) {
+                var uniq = objectManager.registerQuery(id, query, opt_options, dbComs);
+                valueB.set(recoil.db.ReadWriteDatabase.showSending_(frp, uniq));
+            }
+            else {
+                objectManager.unregisterQuery(id, query, dbComs);
+                valueB.metaSet(recoil.frp.notReady());
+            }
+        });
+    return frp.switchB(valueB);
 };
 
 
