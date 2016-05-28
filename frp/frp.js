@@ -790,6 +790,17 @@ recoil.frp.Behaviour.prototype.set = function(value) {
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
     return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
+}
+/**
+ * helper function to create a behaviour that is not ready
+ * @template T
+ * @param {T} initial
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+
+recoil.frp.Frp.prototype.createNotReadyB = function ()  {
+    var metaInitial = new recoil.frp.BStatus.notReady();
+    return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
 };
 
 /**

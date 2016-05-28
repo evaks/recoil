@@ -1,11 +1,14 @@
 goog.provide('recoil.db.Database');
-goog.provide('recoil.db.DatabaseComms');
 goog.provide('recoil.db.ReadOnlyDatabase');
+goog.provide('recoil.db.ReadWriteDatabase');
 
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.frp.ChangeManager');
 goog.require('recoil.util');
 goog.require('recoil.db.Type');
+goog.require('recoil.db.DatabaseComms');
+goog.require('recoil.db.ObjectManager');
+
 
 /**
  * @interface
@@ -45,67 +48,16 @@ recoil.db.Database.prototype.get = function(id, primaryKeys, opt_options) {
  */
 recoil.db.Database.prototype.getList = function (id, query, opt_options) {
 };
-/**
- * @interface
- */
-recoil.db.DatabaseComms = function() {
-};
 
-/**
- * gets data from the database
- *
- * @template T
- * @param {function(T)} successFunction called when the data is retrieve from the database, maybe called multiple times
- * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database, maybe called multiple times
- * @param {string} id identifier of the object that to be retrieve from the database
- * @param {...*} var_parameters any extra parameters that maybe passed to the database
- *
- */
-recoil.db.DatabaseComms.prototype.get = function(successFunction, failFunction, id, var_parameters) {
-};
-
-/**
- * sets data to the database
- * @template T
- * @param {T} data to set
- * @param {T} oldData old data that we already been received this can be used to only send changes
- * @param {function(T)} successFunction called when the data is retrieve from the database, the parameter is the set data
- * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database
- * @param {string} id identifier of the object that to be retrieve from the database
- * @param {...*} var_parameters any extra parameters that maybe passed to the database
- *
- */
-
-recoil.db.DatabaseComms.prototype.set = function(data, oldData, successFunction, failFunction, id, var_parameters) {
-
-};
-
-/**
- * @param {!IArrayLike} values
- * @return {!Object}
- */
-recoil.db.DatabaseComms.prototype.makeKey = function(values) {
-};
-/**
- * instruct the databse that we are no longer interested
- * @param {string} id identifier of the object that to be retrieve from the database
- * @param {...*} var_parameters any extra parameters that maybe passed to the database
- */
-recoil.db.DatabaseComms.prototype.stop = function(id, var_parameters) {
-};
 /**
  * @constructor
  * @implements {recoil.db.Database}
  * @param {recoil.frp.Frp} frp the associated FRP engine
- * @param {recoil.db.DatabaseComms} dbComs the interface to get and set data to the backend
+ * @param {recoil.db.ReadWriteDatabase} db
  */
-recoil.db.ReadOnlyDatabase = function(frp, dbComs) {
+recoil.db.ReadOnlyDatabase = function(frp, db) {
     this.frp_ = frp;
-    this.dbComs_ = dbComs;
-
-    this.objects_ = new goog.structs.AvlTree(function(a, b) {
-        return recoil.util.compare(a.key, b.key);
-    });
+    this.db_ = db;
 };
 
 /**
@@ -199,10 +151,10 @@ recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters)
  * @param {recoil.db.Database} opt_readDb
  */
 
-recoil.db.ReadWriteDatabase = function(frp, dbComs, opt_readDb) {
-  this.frp_ = frp;
-  this.comms_ = dbComs;
-  this.readDb_ = opt_readDb || new recoil.db.ReadOnlyDatabase(frp, dbComs);
+recoil.db.ReadWriteDatabase = function(frp, dbComs) {
+    this.frp_ = frp;
+    this.comms_ = dbComs;
+    this.objectManager_ = new recoil.db.ObjectManager();
 };
 
 
@@ -222,12 +174,9 @@ recoil.db.ReadWriteDatabase.prototype.makeKey = function(values) {
 recoil.db.ReadOnlyDatabase.filterSending_ = function (frp, uniq) {
     return frp.liftB(
         function (val) {
-            return val.stored;
-        },
-        function (val) {
-            var old = goog.object.clone(uniq.get());
-            old.sending = val;
-        }, uniq);
+            return val.getStored();
+        },uniq);
+
 };
 
 /**
@@ -238,13 +187,42 @@ recoil.db.ReadOnlyDatabase.filterSending_ = function (frp, uniq) {
 recoil.db.ReadWriteDatabase.showSending_ = function (frp, uniq) {
     return frp.liftBI(
         function (val) {
-            return val.sending ? val.sending : val.stored;
+            return val.getSending() ? val.getSending() : val.getStored();
         },
         function (val) {
-            var old = goog.object.clone(uniq.get());
-            old.sending = val;
+            uniq.set(uniq.get().setSending(val));
         }, uniq);
 };
+/**
+ * gets an individual object from the database, this is really for internal use only
+ * it seperates 
+ * @template T
+ * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
+ * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<!recoil.db.SendInfo<T>>} the corisponding object 
+ */
+recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, opt_options)  {
+    var valueB = this.frp_.createNotReadyB();
+    var dbComs = this.comms_;
+    var objectManager = this.objectManager_;
+    var frp = this.frp_;
+    
+    valueB.refListen(
+        function (used) {
+            if (used) {
+                var uniq = objectManager.register(id, primaryKeys, opt_options, dbComs);
+                valueB.set(uniq);
+            }
+            else {
+                objectManager.unregister(id, primaryKeys, dbComs);
+                valueB.metaSet(recoil.frp.notReady());
+            }
+        });
+    return frp.switchB(valueB);
+};
+
+
 /**
  * gets an individual object from the database
  * @template T
@@ -254,6 +232,21 @@ recoil.db.ReadWriteDatabase.showSending_ = function (frp, uniq) {
  * @return {!recoil.frp.Behaviour<T>} the corisponding object 
  */
 recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_options)  {
+    return recoil.db.ReadWriteDatabase.showSending_(this.frp_, this.getSendInfo(id, primaryKeys, opt_options));
+};
+
+/**
+ * gets a list of options from the database, this should ensure that the same object
+ * gets returned even if the query options is different
+ *
+ * @template T
+ * @param {!recoil.db.Type<T>} id the id to identify the type of objects to retrieve
+ * @param {!recoil.db.Query} query a filter to apply to the query
+ * @param {!recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<!recoil.db.SendInfo<!Array<T>>>}
+ */
+recoil.db.ReadWriteDatabase.prototype.getSendInfoList = function (id, query, opt_options) {
+    
     var valueB = this.frp_.createNotReadyB();
     var dbComs = this.dbComs_;
     var objectManager = this.objectManager_;
@@ -262,11 +255,11 @@ recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_option
     valueB.refListen(
         function (used) {
             if (used) {
-                var uniq = objectManager.register(id, primaryKeys, opt_options, dbComs);
-                valueB.set(recoil.db.ReadWriteDatabase.showSending_(frp, uniq));
+                var uniq = objectManager.registerQuery(id, query, opt_options, dbComs);
+                valueB.set(uniq);
             }
             else {
-                objectManager.unregister(id, primaryKeys, dbComs);
+                objectManager.unregisterQuery(id, query, dbComs);
                 valueB.metaSet(recoil.frp.notReady());
             }
         });
@@ -284,24 +277,7 @@ recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_option
  * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
 recoil.db.ReadWriteDatabase.prototype.getList = function (id, query, opt_options) {
-    
-    var valueB = this.frp_.createNotReadyB();
-    var dbComs = this.dbComs_;
-    var objectManager = this.objectManager_;
-    var frp = this.frp_;
-    
-    valueB.refListen(
-        function (used) {
-            if (used) {
-                var uniq = objectManager.registerQuery(id, query, opt_options, dbComs);
-                valueB.set(recoil.db.ReadWriteDatabase.showSending_(frp, uniq));
-            }
-            else {
-                objectManager.unregisterQuery(id, query, dbComs);
-                valueB.metaSet(recoil.frp.notReady());
-            }
-        });
-    return frp.switchB(valueB);
+    return recoil.db.ReadWriteDatabase.showSending_(this.frp_, this.getSendInfoList(id, query, opt_options));
 };
 
 

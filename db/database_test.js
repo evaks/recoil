@@ -2,6 +2,8 @@ goog.provide('recoil.db.DatabaseTest');
 
 goog.require('goog.testing.jsunit');
 goog.require('recoil.db.DatabaseComms');
+goog.require('recoil.db.ReadOnlyDatabase');
+goog.require('recoil.db.ReadWriteDatabase');
 
 goog.require('recoil.frp.Frp');
 
@@ -116,8 +118,8 @@ function testGet() {
 function testSet() {
     var frp = new recoil.frp.Frp();
     var coms = new MyDb();
-    var readDb = new recoil.db.ReadOnlyDatabase(frp, new MyDb());
-    var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
+    var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms);
+    var readDb = new recoil.db.ReadOnlyDatabase(frp, readwriteDb);
     var readwriteB = readwriteDb.get('hello');
     var readB = readDb.get('hello');
 
