@@ -8,7 +8,7 @@ goog.require('recoil.util');
 goog.require('recoil.db.Type');
 goog.require('recoil.db.DatabaseComms');
 goog.require('recoil.db.ObjectManager');
-
+goog.require('recoil.frp.Debug');
 
 /**
  * @interface
@@ -148,13 +148,12 @@ recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters)
  * @implements {recoil.db.Database}
  * @param {recoil.frp.Frp} frp the associated FRP engine
  * @param {recoil.db.DatabaseComms} dbComs the interface to get and set data to the backend
- * @param {recoil.db.Database} opt_readDb
  */
 
 recoil.db.ReadWriteDatabase = function(frp, dbComs) {
     this.frp_ = frp;
     this.comms_ = dbComs;
-    this.objectManager_ = new recoil.db.ObjectManager();
+    this.objectManager_ = new recoil.db.ObjectManager(frp);
 };
 
 
@@ -210,16 +209,18 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
     
     valueB.refListen(
         function (used) {
-            if (used) {
-                var uniq = objectManager.register(id, primaryKeys, opt_options, dbComs);
-                valueB.set(uniq);
-            }
-            else {
-                objectManager.unregister(id, primaryKeys, dbComs);
-                valueB.metaSet(recoil.frp.notReady());
-            }
+            frp.accessTrans(function () {
+                if (used) {
+                    var uniq = objectManager.register(id, primaryKeys, opt_options, dbComs);
+                    valueB.set(uniq);
+                }
+                else {
+                    objectManager.unregister(id, primaryKeys, dbComs);
+                    valueB.metaSet(recoil.frp.notReady());
+                }
+            }, valueB);
         });
-    return frp.switchB(valueB);
+    return recoil.frp.Debug("SWITCH", frp.switchB(valueB));
 };
 
 
@@ -247,23 +248,23 @@ recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_option
  */
 recoil.db.ReadWriteDatabase.prototype.getSendInfoList = function (id, query, opt_options) {
     
-    var valueB = this.frp_.createNotReadyB();
+    var valueBB = this.frp_.createNotReadyB();
     var dbComs = this.dbComs_;
     var objectManager = this.objectManager_;
     var frp = this.frp_;
     
-    valueB.refListen(
+    valueBB.refListen(
         function (used) {
             if (used) {
                 var uniq = objectManager.registerQuery(id, query, opt_options, dbComs);
-                valueB.set(uniq);
+                valueBB.set(uniq);
             }
             else {
                 objectManager.unregisterQuery(id, query, dbComs);
-                valueB.metaSet(recoil.frp.notReady());
+                valueBB.metaSet(recoil.frp.notReady());
             }
         });
-    return frp.switchB(valueB);
+    return frp.switchB(valueBB);
 };
 
 /**

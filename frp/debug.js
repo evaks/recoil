@@ -8,14 +8,14 @@ goog.provide('recoil.frp.Debug');
  * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.Debug = function(name, behaviour) {
-    return behaviour.frp().liftBI(
+    return behaviour.frp().metaLiftBI(
         function() {
-            console.log(name, 'calc', behaviour.get());
-            return behaviour.get();
+            console.log(name, 'calc', behaviour.metaGet());
+            return behaviour.metaGet();
         },
         function(val) {
             console.log(name, 'inv', val);
 
-            behaviour.set(val);
+            behaviour.metaSet(val);
         }, behaviour);
 };

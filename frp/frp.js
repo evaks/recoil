@@ -399,6 +399,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
             params.push(b.metaGet());
         });
         var oldDirty = getDirty(behaviour.providers_);
+
         var newVal = behaviour.calc_.apply(behaviour, params);
         var newDirty = getDirty(behaviour.providers_);
         for (var p in newDirty) {
@@ -528,6 +529,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
      * @private
      */
     this.seqStr_ = String(sequence).toString();
+    this.origSeq_ = this.seqStr_;
     this.accessors_ = 0;
     if (providers) {
         providers.forEach(function(p) {
@@ -753,17 +755,30 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
     var me = this;
 
     if (!recoil.util.isEqual(value, me.val_)) {
-        if (!me.dirtyUp_) {
-            me.dirtyUp_ = true;
-            me.dirtyUpOldValue_ = me.val_;
+        if (hasTm) {
+            if (!me.dirtyUp_) {
+                me.dirtyUp_ = true;
+                me.dirtyUpOldValue_ = me.val_;
+            }
+            me.dirtyDown_ = true;
+            me.val_ = value;
+            me.forEachManager_(function(manager) {
+                manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
+                manager.addPending_(recoil.frp.Frp.Direction_.DOWN, me);
+            });
         }
-        me.dirtyDown_ = true;
-        me.val_ = value;
+        else {
+            // we don't have a transaction we are simple
+            // and nobody is listening so just set my value
+            // and calculate down
+            me.val_ = value;
+            if (value instanceof recoil.frp.BStatus) {
+                // events don't do this they get cleared anyway
+                // so if you are not in a transaction leave it
+                me.inv_(value);
+            }
+        }
 
-        me.forEachManager_(function(manager) {
-            manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
-            manager.addPending_(recoil.frp.Frp.Direction_.DOWN, me);
-        });
     }
 
 };
@@ -790,7 +805,7 @@ recoil.frp.Behaviour.prototype.set = function(value) {
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
     return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
-}
+};
 /**
  * helper function to create a behaviour that is not ready
  * @template T
@@ -849,7 +864,7 @@ recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
         }
         this.transactionManager_.doTrans(callback);
     } finally {
-        for (var i = 1; i < arguments.length; i++) {
+        for (i = 1; i < arguments.length; i++) {
             arguments[i].accessors_--;
         }
     }
@@ -889,6 +904,7 @@ recoil.frp.Frp.accessList = function(callback, behaviours) {
     }
 };
 
+var xxxx = null;
 /**
  *
  * @template T
@@ -897,14 +913,13 @@ recoil.frp.Frp.accessList = function(callback, behaviours) {
  */
 recoil.frp.Frp.prototype.switchB = function(Bb) {
     var me = this;
-    var res = this.metaLiftBI(function() {
+    var res1 = this.metaLiftBI(function() {
         var switchB = this;
         /** @type recoil.frp.Status<recoil.frp.Behaviour<recoil.frp.Behaviour>> */
         var metaBb = Bb.metaGet();
         var res = new recoil.frp.BStatus(null);
         res.merge(metaBb);
         var b = null;
-
         me.transactionManager_.nestIds(Bb, function() {
             if (metaBb.value_ === null) {
                 me.transactionManager_.updateProviders_(switchB, Bb);
@@ -916,6 +931,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
         });
 
         if (b !== null || b !== undefined) {
+
             recoil.frp.Frp.access(function() {
                 res.merge(b.metaGet());
                 res.set(b.get());
@@ -931,8 +947,8 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
         }
 
     }, Bb);
-    res.isSwitch = true;
-    return res;
+    res1.isSwitch = true;
+    return res1;
 };
 
 /**
@@ -1351,17 +1367,25 @@ recoil.frp.TransactionManager.prototype.addPending_ = function(direction, behavi
 recoil.frp.TransactionManager.prototype.propagateAll_ = function() {
     var pendingDown = this.getPending_(recoil.frp.Frp.Direction_.DOWN);
     var pendingUp = this.getPending_(recoil.frp.Frp.Direction_.UP);
+    var wasUp = false;
+    var wasDown = false;
 
     while (!pendingUp.isEmpty() || !pendingDown.isEmpty()) {
-        if (!pendingDown.isEmpty()) {
+        if (!pendingDown.isEmpty() && !wasDown) {
             this.propagate_(recoil.frp.Frp.Direction_.DOWN);
+            wasUp = false;
+            wasDown = true;
             continue;
         }
 
-        if (!pendingUp.isEmpty()) {
+        if (!pendingUp.isEmpty() && !wasUp) {
             this.propagate_(recoil.frp.Frp.Direction_.UP);
+            wasUp = true;
+            wasDown = false;
             continue;
         }
+            wasUp = false;
+            wasDown = false;
     }
 };
 

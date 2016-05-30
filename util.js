@@ -2,7 +2,7 @@ goog.provide('recoil.util');
 goog.provide('recoil.util.Handle');
 goog.provide('recoil.util.Sequence');
 goog.provide('recoil.util.object');
-
+goog.provide('recoil.util.map');
 
 goog.require('goog.array');
 goog.require('goog.math.Long');
@@ -423,6 +423,25 @@ recoil.util.object.getByParts = function(obj, var_parts) {
     return cur;
 };
 
+/**
+ * gets an item out of a map, if the item
+ * does not exist it will insert the default into the map
+ * and return that
+ * @template T
+ * @param {Object} map
+ * @param {?} key
+ * @param {T} def
+ * @return {T}
+ */
+
+recoil.util.map.safeGet = function (map, key, def) {
+    var res = map[key];
+    if (!res) {
+        res = def;
+        map[key] = def;
+    }
+    return res;
+};
 /**
  * checks to see if any of the items are null, if so throws an exception
  * this is needed because the closure compiler does type check for nulls however

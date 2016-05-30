@@ -126,11 +126,14 @@ function testSet() {
     assertFalse(readB.unsafeMetaGet().ready());
     frp.attach(readB);
     assertTrue(readB.unsafeMetaGet().ready());
+    assertEquals('xxxhello', readB.unsafeMetaGet().get());
 
     assertFalse(readwriteB.unsafeMetaGet().ready());
     frp.attach(readwriteB);
     assertTrue(readwriteB.unsafeMetaGet().ready());
 
+    //need to put compare in entity in object_manager
+    
     assertEquals('xxxhello', readwriteB.unsafeMetaGet().get());
 
     frp.accessTrans(function() {

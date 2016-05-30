@@ -11,10 +11,79 @@ goog.require('recoil.frp.Behaviour');
  * @template T
  * @constructor
  * @param {?} key
- * @param {T} value
+ * @param {recoil.frp.Behaviour<T>} value
  */
 recoil.db.Entity = function (key, value) {
+    
+    this.key_ = key;
+    this.value_ = value;
+    this.refs_ = 0;
 };
+
+
+/**
+ * @return {recoil.frp.Behaviour<T>}
+ */
+recoil.db.Entity.prototype.behaviour = function () {
+    return this.value_;
+};
+
+/**
+ * @return {boolean} true if the ref count was 0
+ */
+recoil.db.Entity.prototype.addRef = function () {
+    this.refs_++;
+    return this.refs_ === 0;
+};
+
+/**
+ * @return {boolean} true if the ref count became 0
+ */
+recoil.db.Entity.prototype.removeRef = function () {
+    this.refs_--;
+    return this.refs_ === 0;
+};
+
+/**
+ * data that represents the current value read from
+ * the database and any information that was sent
+ * @constructor
+ * @template T
+ * @param {T} value the value read from the database
+ */
+recoil.db.SendInfo = function (value) {
+    this.value_ = value;
+    /**
+     * @type {T}
+     */
+    this.sending_ = null;
+};
+
+/**
+ * @return {T} maybe null if not sending anything
+ */
+recoil.db.SendInfo.prototype.getSending = function () {
+    return this.sending_;
+};
+
+
+/**
+ * @param {T} value
+ * @return {!recoil.db.SendInfo<T>} 
+ */
+recoil.db.SendInfo.prototype.setSending = function (value) {
+    var res = new recoil.db.SendInfo(this.value_);
+    res.sending_ = value;
+    return res;
+};
+
+/**
+ * @return {T}
+ */
+recoil.db.SendInfo.prototype.getStored = function () {
+    return this.value_;
+};
+
 /**
  * This helps keep track of all the objects in the system, and ensures that they are the same
  * each object is actually an entity with a unique id that does not change
@@ -44,9 +113,21 @@ recoil.db.ObjectManager.XXX = function () {
  * @return {!recoil.frp.Behaviour<T>} 
  */
 recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options, coms) {
-    
-    var behaviours = recoil.util.safeGet(this.objectTypes_,typeKey, new goog.structs.AvlTree());
-    var entity = new recoil.db.Entity(key, undefined);
+    var frp = this.frp_;    
+    var behaviours = recoil.util.map.safeGet(this.objectTypes_,typeKey, new goog.structs.AvlTree());
+    var behaviour = this.frp_.createNotReadyB();
+
+
+    var inversableB = frp.liftBI(
+        function (v) {return v;},
+        function (v, b) {
+            b.set(v);
+            coms.set(v.getSending(), v.getStored(),
+                     function (v) {behaviour.set(new recoil.db.SendInfo(v));},
+                     function (status) {behaviour.metaSet(v);},
+                     typeKey,key, opt_options); 
+        },behaviour);
+    var entity = new recoil.db.Entity(key, inversableB);
 
     var oldEntity = behaviours.findFirst(entity);
 
@@ -55,16 +136,16 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
         oldEntity.addRef();
         return oldEntity.behaviour();
     }
+    entity.addRef();
     behaviours.add(entity);
-    var behaviour = entity.behaviour();
-    var frp = this.frp_;
+
 
     coms.get(
         function (val) {
             frp.accessTrans(function () {
                 var oldVal = behaviour.metaGet();
  
-                if (oldVal.isGood()) {
+                if (oldVal.good()) {
                     behaviour.set(oldVal.setRead(val));
                 }
                 else {
@@ -78,7 +159,7 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
             
         }, typeKey, opt_options);
 
-    return behaviour;
+    return inversableB;
 };
 
 recoil.db.ObjectManager.prototype.unregister = function (typeKey, key, opt_options, coms) {
