@@ -13,9 +13,9 @@ goog.setTestOnly('recoil.db.DatabaseTest');
  * @implements recoil.db.DatabaseComms
  * @constructor
  */
-var MyDb = function() {
+var MyDb = function(opt_delay) {
     this.values_ = {};
-
+    this.delay_ = opt_delay ? [] :false ;
 };
 
 MyDb.prototype.makeKey = function (args) {
@@ -32,8 +32,19 @@ MyDb.prototype.makeKey = function (args) {
  * @param var_parameters
  */
 MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, var_parameters) {
-    this.values_[id] = data;
-    successFunc(data);
+    var me = this;
+    if (this.delay_) {
+        this.delay_.push (function() {
+            me.values_[id] = data;
+            successFunc(data);
+        });
+    }
+    else {
+        this.values_[id] = data;
+        successFunc(data);
+        
+    }
+
 };
 
 /**
@@ -61,9 +72,25 @@ MyDb.prototype.get = function(success, failure, id, var_params) {
         this.values_[id] = 'xxx' + id;
     }
 
-    success(this.values_[id]);
+    var me = this;
+    if (this.delay_) {
+        this.delay_.push (function() {
+            
+            success(me.values_[id]);
+        });
+    }
+    else {
+        success(this.values_[id]);
+    }
 };
 
+MyDb.prototype.process = function () {
+    this.delay_.pop()();
+};
+
+MyDb.prototype.processQueueSize = function () {
+    return this.delay_.length;
+};
 function getVals(vals) {
     var res = [];
     var i = 0;
@@ -89,35 +116,41 @@ MyDb.prototype.getValue = function(key) {
     return this.values_[key];
 };
 
-function testReadOnly () {
-    assertFalse(true);
-    //check that even if we set the read write database, the change
-    //is not reflected in the read only database until the change is sent back from the server
-};
-    
-function testGet() {
-    var frp = new recoil.frp.Frp();
-
-    var db = new recoil.db.ReadOnlyDatabase(frp, new MyDb());
-    var b = db.get('hello');
-    assertTrue(b === db.get('hello'));
-
-    assertFalse(b.unsafeMetaGet().ready());
-    frp.attach(b);
-    assertTrue(b.unsafeMetaGet().ready());
-    assertEquals('xxxhello', b.unsafeMetaGet().get());
-
-    frp.accessTrans(function() {
-        b.set('fred');
-    }, b);
-
-    assertEquals('xxxhello', b.unsafeMetaGet().get());
-}
-
-
-function testSet() {
+function testGetSame() {
     var frp = new recoil.frp.Frp();
     var coms = new MyDb();
+    var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms);
+
+    var a1 = readwriteDb.get('hello');
+    var a2 = readwriteDb.get('hello');
+    var b1 = readwriteDb.get('world');
+
+    frp.attach(a1);
+    frp.attach(a2);
+    frp.attach(b1);
+
+    assertEquals('xxxhello', a1.unsafeMetaGet().get());
+    assertEquals('xxxhello', a2.unsafeMetaGet().get());
+    assertEquals('xxxworld', b1.unsafeMetaGet().get());
+
+
+    frp.accessTrans(function() {
+        a1.set('goodbye');
+    }, a1);
+
+    assertEquals('goodbye', a1.unsafeMetaGet().get());
+    assertEquals('goodbye', a2.unsafeMetaGet().get());
+    assertEquals('xxxworld', b1.unsafeMetaGet().get());
+    
+
+}
+
+function testGetList () {
+    assertTrue("not implemented yet",false);
+}
+function testSet() {
+    var frp = new recoil.frp.Frp();
+    var coms = new MyDb(true);
     var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms);
     var readDb = new recoil.db.ReadOnlyDatabase(frp, readwriteDb);
     var readwriteB = readwriteDb.get('hello');
@@ -125,6 +158,8 @@ function testSet() {
 
     assertFalse(readB.unsafeMetaGet().ready());
     frp.attach(readB);
+    assertFalse(readB.unsafeMetaGet().ready());
+    coms.process();
     assertTrue(readB.unsafeMetaGet().ready());
     assertEquals('xxxhello', readB.unsafeMetaGet().get());
 
@@ -141,6 +176,10 @@ function testSet() {
     }, readwriteB);
 
     assertEquals('goodbye', readwriteB.unsafeMetaGet().get());
+    assertEquals('xxxhello', readB.unsafeMetaGet().get());
+    coms.process();
+    assertEquals('goodbye', readwriteB.unsafeMetaGet().get());
+    assertEquals('goodbye', readB.unsafeMetaGet().get());
     assertEquals('goodbye', coms.getValue('hello'));
 
     // Writing to the readwritedb the change should be reflected on the readdb and
@@ -150,33 +189,12 @@ function testSet() {
         readB.set('smokey');
     }, readwriteB, readB);
 
+    coms.process();
+    assertEquals(0, coms.processQueueSize());
     assertEquals('boo', readB.unsafeMetaGet().get());
     assertEquals('boo', readwriteB.unsafeMetaGet().get());
 
 }
-
-function testParameterGet() {
-    var frp = new recoil.frp.Frp();
-    var coms = new MyDb();
-    var readDb = new recoil.db.ReadOnlyDatabase(frp, new MyDb());
-    var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
-    //var readwriteB = readwriteDb.get("hello");
-    var user1B = readDb.get('user', {name: 'bob'});
-    var user2B = readDb.get('user', {name: 'jimbo', age: 9}, {x: 'ss'});
-
-
-    frp.attach(user1B);
-    frp.attach(user2B);
-
-    assertEquals('user-bob', user1B.unsafeMetaGet().get());
-    assertEquals('user-jimbo-9-ss', user2B.unsafeMetaGet().get());
-
-    //var b = {v:"stuff"};
-    //var key =  {name : "hello", loop : b};
-    //b.back = key;
-
-}
-
 
 function testDelayed () {
     var frp = new recoil.frp.Frp();

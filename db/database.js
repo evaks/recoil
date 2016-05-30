@@ -78,7 +78,7 @@ recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
  * @return {!recoil.frp.Behaviour<T>} the corisponding object 
  */
 recoil.db.ReadOnlyDatabase.prototype.get = function(id, primaryKeys, opt_options) {
-    return this.frp_.liftB(function (v) {return v;}, this.db_.get(id, primaryKeys, opt_options));
+    return this.frp_.liftB(function (v) {return v.getStored();}, this.db_.getSendInfo(id, primaryKeys, opt_options));
 };
 
 /**
@@ -135,7 +135,7 @@ recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters)
 
     });
 
-    var readOnly = this.frp_.metaLiftB(function(v) {return v}, b);
+    var readOnly = this.frp_.metaLiftB(function(v) {return v;}, b);
     var res = {key: key, value: readOnly, internal: b};
     this.objects_.add(res);
     return res;

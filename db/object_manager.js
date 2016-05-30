@@ -123,8 +123,17 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
         function (v, b) {
             b.set(v);
             coms.set(v.getSending(), v.getStored(),
-                     function (v) {behaviour.set(new recoil.db.SendInfo(v));},
-                     function (status) {behaviour.metaSet(v);},
+                     function (v) {
+                         frp.accessTrans( function () {
+                             behaviour.set(new recoil.db.SendInfo(v));
+                         }, behaviour);
+                     },
+                     function (status) {
+                         frp.accessTrans( function () {
+
+                             behaviour.metaSet(v);
+                         }, behaviour);
+                     },
                      typeKey,key, opt_options); 
         },behaviour);
     var entity = new recoil.db.Entity(key, inversableB);
