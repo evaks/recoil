@@ -146,7 +146,51 @@ function testGetSame() {
 }
 
 function testGetList () {
-    assertTrue("not implemented yet",false);
+    var frp = new recoil.frp.Frp();
+    var coms = new MyDb(true);
+    var db = new recoil.db.ReadWriteDatabase(frp, coms);
+
+    var a = db.get('a',[1]);
+    var b = db.get('a',[3]);
+    frp.attach(a);
+    var list = db.getList('a', queryTrue);
+    frp.attach(list);
+
+    assertEquals('xxxa', a.unsafeMetaGet().get());
+    assertEquals('xxxa', list.unsafeMetaGet().get()[0]);
+    assertEquals('xxxa', list.unsafeMetaGet().get()[1]);
+    assertEquals('xxxa', list.unsafeMetaGet().get()[2]);
+
+
+    frp.accessTrans(function () {
+        a.set('a1');
+    },a);
+    
+
+    assertEquals('a1', a.unsafeMetaGet().get());
+    assertEquals('xxxa', list.unsafeMetaGet().get()[0]);
+    assertEquals('a1', list.unsafeMetaGet().get()[1]);
+    assertEquals('xxxa', list.unsafeMetaGet().get()[2]);
+
+
+    var newList = goog.array.clone(list.unsafeMetaGet().get());
+    newList.push('b');
+    
+    frp.accessTrans(function () {
+        list.set(newList);
+    },list);
+
+    frp.attach(b);
+    
+    assertEquals('a1', a.unsafeMetaGet().get());
+    assertEquals('b', b.unsafeMetaGet().get());
+    assertEquals('xxxa', list.unsafeMetaGet().get()[0]);
+    assertEquals('a1', list.unsafeMetaGet().get()[1]);
+    assertEquals('xxxa', list.unsafeMetaGet().get()[2]);
+    assertEquals('b', list.unsafeMetaGet().get()[3]);
+
+    //check it has been sent to the database
+    assertTrue("not implemented yet, insert, delete",false);
 }
 function testSet() {
     var frp = new recoil.frp.Frp();
