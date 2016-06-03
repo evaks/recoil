@@ -16,6 +16,7 @@ goog.provide('recoil.db.expr.NotEquals');
 goog.provide('recoil.db.expr.NotIn');
 goog.provide('recoil.db.expr.Or');
 goog.provide('recoil.db.expr.RexExp');
+goog.provide('recoil.db.expr.True');
 goog.provide('recoil.db.expr.Value');
 goog.provide('recoil.db.expr.Where');
 
@@ -351,6 +352,24 @@ recoil.db.Query.prototype.not = function(opt_x) {
 recoil.db.Query.prototype.not$ = function(opt_x) {
     return this.set_(this.not(opt_x));
 };
+
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp} opt_x
+ * @return {!recoil.db.Query}
+ */
+recoil.db.Query.prototype.True = function() {
+    return this.query_(new recoil.db.expr.True());
+};
+
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp} opt_x
+ * @return {!recoil.db.Query}
+ */
+
+recoil.db.Query.prototype.True$ = function(opt_x) {
+    return this.set_(this.True());
+};
+
 
 /**
  * @param {recoil.db.Query|recoil.db.QueryExp} val
@@ -975,6 +994,23 @@ recoil.db.expr.Where.prototype.eval = function(scope) {
     return scope.evalWhere(this.expr_);
 };
 
+/**
+ * @constructor
+ * @param {string} expr
+ * @implements recoil.db.QueryExp
+ */
+recoil.db.expr.True = function() {
+};
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {boolean}
+ */
+recoil.db.expr.True.prototype.eval = function(scope) {
+    return true;
+};
+
+
 
 /**
  * @constructor
@@ -992,3 +1028,5 @@ recoil.db.expr.Search = function(expr) {
 recoil.db.expr.Search.prototype.eval = function(scope) {
     throw 'not implemented yet';
 };
+
+recoil.db.Query.True = new recoil.db.Query().True();

@@ -1,6 +1,7 @@
 goog.provide('recoil.db.DatabaseTest');
 
 goog.require('goog.testing.jsunit');
+goog.require('recoil.db.Query');
 goog.require('recoil.db.DatabaseComms');
 goog.require('recoil.db.ReadOnlyDatabase');
 goog.require('recoil.db.ReadWriteDatabase');
@@ -54,21 +55,10 @@ MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, var_para
  * @param id
  * @param var_params
  */
-MyDb.prototype.get = function(success, failure, id, var_params) {
+MyDb.prototype.get = function(success, failure, id, key, options) {
 
     console.log("getting ",id);
-    if (var_params !== undefined) {
-        var value = id;
-
-        for (var i = 3; i < arguments.length; i++) {
-            var vals = getVals(arguments[i]);
-            for (var j = 0; j < vals.length; j++) {
-                value += '-' + vals[j];
-            }
-        }
-        this.values_[id] = value;
-    }
-    else if (this.values_[id] === undefined) {
+    if (this.values_[id] === undefined) {
         this.values_[id] = 'xxx' + id;
     }
 
@@ -153,7 +143,7 @@ function testGetList () {
     var a = db.get('a',[1]);
     var b = db.get('a',[3]);
     frp.attach(a);
-    var list = db.getList('a', queryTrue);
+    var list = db.getList('a', recoil.db.Query.True);
     frp.attach(list);
 
     assertEquals('xxxa', a.unsafeMetaGet().get());
