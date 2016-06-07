@@ -251,7 +251,7 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
 
         // add the nodes we need to watched
         toAdd.inOrderTraverse(function(travNode) {
-            if (travNode.effected.length !== 0) {
+            if (travNode.effected.getCount() !== 0) {
                 me.watched_.add(travNode);
             }
             return false;
@@ -272,7 +272,7 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
         } else {
             // else add new watched items
             toAdd.inOrderTraverse(function(travNode) {
-                if (travNode.effected.length !== 0) {
+                if (travNode.effected.getCount() !== 0) {
                     me.observe_(travNode.node);
                 }
                 return false;
