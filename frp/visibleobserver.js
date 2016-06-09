@@ -1,6 +1,7 @@
 goog.provide('recoil.frp.VisibleObserver');
 
 goog.require('goog.dom');
+goog.require('goog.style');
 goog.require('goog.events');
 goog.require('goog.math');
 goog.require('goog.math.Long');
@@ -557,15 +558,21 @@ recoil.frp.VisibleObserver.exists = function(node) {
  * @return {boolean} true if node and all its ancestors are visible
  */
 recoil.frp.VisibleObserver.visible = function(node) {
-    var cur = node;
+   var cur = node;
     var visible = true;
+    //reliableHiddenOffsets from jQuery
+    if (node.offsetWidth <= 0 && node.offsetHeight <= 0) {
+        return false;
+    }
+    
     while (cur != null && visible) {
 
-        visible = !cur.hidden;
+        if (cur.style) {
+            visible = cur.style.display !== 'none';
+        }
         cur = goog.dom.getParentElement(/** @type Element */
         (cur));
     }
-
     return visible;
 };
 

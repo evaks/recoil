@@ -63,7 +63,7 @@ function test01VisibleOnAttach() {
     assertEquals(true, visible);
     assertEquals(true, visible_e2);
     asyncTestCase.waitForAsync('testing hide');
-    div1.hidden = true;
+    goog.style.setElementShown(div1, false) ;
 
     // observer.forceObserve();
     // assertEquals(false, visible);
@@ -76,7 +76,7 @@ function test01VisibleOnAttach() {
 function test02Hide() {
     assertEquals(false, visible);
     asyncTestCase.waitForAsync('test showing');
-    div1.hidden = false;
+    goog.style.setElementShown(div1, true) ;
 
 }
 
@@ -90,14 +90,16 @@ function test03Show() {
     body.appendChild(div2);
     body.removeChild(div1);
     div2.appendChild(div1);
-    div2.hidden = true;
+    goog.style.setElementShown(div1, false) ;
+
 }
 
 function test04Moving() {
     assertEquals(false, visible);
     asyncTestCase.waitForAsync('test moving show');
     var div2 = goog.dom.getElement('id_div2');
-    div2.hidden = false;
+    goog.style.setElementShown(div1, true) ;
+
 
 }
 
@@ -118,7 +120,7 @@ function test06RemovingParent() {
     var div2 = goog.dom.getElement('id_div2');
     var e2 = goog.dom.getElement('e2');
     div2.appendChild(div1);
-    e2.hidden = true;
+    goog.style.setElementShown(e2, false) ;
     asyncTestCase.waitForAsync('test removing parent');
 
 }
@@ -159,7 +161,8 @@ function test09MultipleListens() {
     });
     assertEquals(false, visible);
     asyncTestCase.waitForAsync('multiple');
-    e2.hidden = false;
+    goog.style.setElementShown(e2, true) ;
+
 }
 
 function test10MultipleListensDone() {
@@ -181,7 +184,7 @@ function test11UnListenNotInTree() {
     var body = goog.dom.getElement('body');
     body.appendChild(d);
     asyncTestCase.waitForAsync('unlisten not in tree');
-    e2.hidden = true;
+    goog.style.setElementShown(e2, false) ;
 }
 
 function test12Done() {
