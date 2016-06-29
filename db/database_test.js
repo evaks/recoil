@@ -32,16 +32,16 @@ MyDb.prototype.makeKey = function (args) {
  * @param id
  * @param var_parameters
  */
-MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, var_parameters) {
+MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, key, var_parameters) {
     var me = this;
     if (this.delay_) {
         this.delay_.push (function() {
-            me.values_[id] = data;
+            me.values_[id][key] = data;
             successFunc(data);
         });
     }
     else {
-        this.values_[id] = data;
+        this.values_[id][key] = data;
         successFunc(data);
         
     }
@@ -57,22 +57,33 @@ MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, var_para
  */
 MyDb.prototype.get = function(success, failure, id, key, options) {
 
-    console.log("getting ",id);
+    console.log("getting ",id, key);
     if (this.values_[id] === undefined) {
-        this.values_[id] = 'xxx' + id;
+        this.values_[id] = {};
     }
 
+    if (this.values_[id][key] === undefined) {
+        this.values_[id][key] = 'xxx' + id + "-" + key;
+    }
     var me = this;
     if (this.delay_) {
         this.delay_.push (function() {
             
-            success(me.values_[id]);
+            success(me.values_[id][key]);
         });
     }
     else {
-        success(this.values_[id]);
+        success(this.values_[id][key]);
     }
 };
+
+
+MyDb.prototype.getList = function (successFunction, failFunction, id, query, options) {
+    
+
+
+};
+
 
 MyDb.prototype.process = function () {
     this.delay_.pop()();
@@ -102,8 +113,8 @@ function getVals(vals) {
  * @param key
  * @return {*}
  */
-MyDb.prototype.getValue = function(key) {
-    return this.values_[key];
+MyDb.prototype.getValue = function(key, subKey) {
+    return this.values_[key][subKey];
 };
 
 function testGetSame() {
@@ -111,17 +122,20 @@ function testGetSame() {
     var coms = new MyDb();
     var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms);
 
-    var a1 = readwriteDb.get('hello');
-    var a2 = readwriteDb.get('hello');
-    var b1 = readwriteDb.get('world');
+    var a1 = readwriteDb.get('hello','a');
+    var a2 = readwriteDb.get('hello','a');
+    var c1 = readwriteDb.get('hello','c');
+    var b1 = readwriteDb.get('world','a');
 
     frp.attach(a1);
     frp.attach(a2);
+    frp.attach(c1);
     frp.attach(b1);
 
-    assertEquals('xxxhello', a1.unsafeMetaGet().get());
-    assertEquals('xxxhello', a2.unsafeMetaGet().get());
-    assertEquals('xxxworld', b1.unsafeMetaGet().get());
+    assertEquals('xxxhello-a', a1.unsafeMetaGet().get());
+    assertEquals('xxxhello-a', a2.unsafeMetaGet().get());
+    assertEquals('xxxhello-c', c1.unsafeMetaGet().get());
+    assertEquals('xxxworld-a', b1.unsafeMetaGet().get());
 
 
     frp.accessTrans(function() {
@@ -130,7 +144,8 @@ function testGetSame() {
 
     assertEquals('goodbye', a1.unsafeMetaGet().get());
     assertEquals('goodbye', a2.unsafeMetaGet().get());
-    assertEquals('xxxworld', b1.unsafeMetaGet().get());
+    assertEquals('xxxhello-c', c1.unsafeMetaGet().get());
+    assertEquals('xxxworld-a', b1.unsafeMetaGet().get());
     
 
 }
@@ -187,15 +202,15 @@ function testSet() {
     var coms = new MyDb(true);
     var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms);
     var readDb = new recoil.db.ReadOnlyDatabase(frp, readwriteDb);
-    var readwriteB = readwriteDb.get('hello');
-    var readB = readDb.get('hello');
+    var readwriteB = readwriteDb.get('hello','a');
+    var readB = readDb.get('hello','a');
 
     assertFalse(readB.unsafeMetaGet().ready());
     frp.attach(readB);
     assertFalse(readB.unsafeMetaGet().ready());
     coms.process();
     assertTrue(readB.unsafeMetaGet().ready());
-    assertEquals('xxxhello', readB.unsafeMetaGet().get());
+    assertEquals('xxxhello-a', readB.unsafeMetaGet().get());
 
     assertFalse(readwriteB.unsafeMetaGet().ready());
     frp.attach(readwriteB);
@@ -203,18 +218,18 @@ function testSet() {
 
     //need to put compare in entity in object_manager
     
-    assertEquals('xxxhello', readwriteB.unsafeMetaGet().get());
+    assertEquals('xxxhello-a', readwriteB.unsafeMetaGet().get());
 
     frp.accessTrans(function() {
         readwriteB.set('goodbye');
     }, readwriteB);
 
     assertEquals('goodbye', readwriteB.unsafeMetaGet().get());
-    assertEquals('xxxhello', readB.unsafeMetaGet().get());
+    assertEquals('xxxhello-a', readB.unsafeMetaGet().get());
     coms.process();
     assertEquals('goodbye', readwriteB.unsafeMetaGet().get());
     assertEquals('goodbye', readB.unsafeMetaGet().get());
-    assertEquals('goodbye', coms.getValue('hello'));
+    assertEquals('goodbye', coms.getValue('hello','a'));
 
     // Writing to the readwritedb the change should be reflected on the readdb and
     // write to the readdb and the change should not be on the readwritedb
@@ -239,13 +254,13 @@ function testDelayed () {
     var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
     var delayedDb = new recoil.db.DelayedDatabase(frp, readwriteDb);
     
-    var val1 =  delayedDb.get("val");
-    var val2 =  delayedDb.get("val");
+    var val1 =  delayedDb.get("val","key1");
+    var val2 =  delayedDb.get("val","key1");
 
     tm.attach(val1);
     tm.attach(val2);
 
-    assertEquals("xxxval", val2.unsafeMetaGet().get());
+    assertEquals("xxxval-key1", val2.unsafeMetaGet().get());
 
 
     frp.accessTrans(function () {
@@ -255,28 +270,28 @@ function testDelayed () {
 
     assertEquals(0, val2.unsafeMetaGet().get());
 
-    var val3 =  delayedDb.get("val");
+    var val3 =  delayedDb.get("val","key1");
     tm.attach(val3);
 
     assertEquals(0, val3.unsafeMetaGet().get());
     
-    assertEquals("xxxval",coms.getValue("val"));
+    assertEquals("xxxval-key1",coms.getValue("val","key1"));
 
     delayedDb.flush();
 
-    assertEquals(0,coms.getValue("val"));
+    assertEquals(0,coms.getValue("val","key1"));
 
 
     frp.accessTrans(function () {
         val1.set(1);
     }, val1);
 
-    assertEquals(0,coms.getValue("val"));
+    assertEquals(0,coms.getValue("val","key1"));
     assertEquals(1, val3.unsafeMetaGet().get());
 
     delayedDb.clear();
 
-    assertEquals(0,coms.getValue("val"));
+    assertEquals(0,coms.getValue("val","key1"));
     assertEquals(0, val3.unsafeMetaGet().get());
 
 }

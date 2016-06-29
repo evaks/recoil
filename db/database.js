@@ -249,7 +249,7 @@ recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_option
 recoil.db.ReadWriteDatabase.prototype.getSendInfoList = function (id, query, opt_options) {
     
     var valueBB = this.frp_.createNotReadyB();
-    var dbComs = this.dbComs_;
+    var dbComs = this.comms_;
     var objectManager = this.objectManager_;
     var frp = this.frp_;
     
@@ -322,8 +322,8 @@ recoil.db.DelayedDatabase.prototype.get = function(id, var_parameters)  {
             var changedVal = changed.findFirst({key: key});
             if (hasRef) {
                 if (changedVal) {
+                    changedVal.refs++;
                     if (changedIn.get() !== changedVal.value) {
-                        changedVal.refs++;
                         changedIn.set(changedVal.value);
                     }
                 }
@@ -334,7 +334,7 @@ recoil.db.DelayedDatabase.prototype.get = function(id, var_parameters)  {
             else {
                 if (changedVal) {
                     changedVal.refs--;
-                    // would really like to remove from the changed map only if there are not changes
+                    // TODO would really like to remove from the changed map only if there are not changes
                     if (changedVal.refs === 0 && !changedVal.value.ready()) {
                         changed.remove(changedVal);
                     }

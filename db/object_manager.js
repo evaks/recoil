@@ -207,7 +207,7 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
                 behaviour.metaSet(val);
             }, behaviour);
             
-        }, typeKey, opt_options);
+        }, typeKey, key, opt_options);
 
     return inversableB;
 };
@@ -258,6 +258,7 @@ recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_
                 var oldVal = behaviour.metaGet();
  
                 if (oldVal.good()) {
+                    // we are trying to construct a list of entities
                     for (var i = 0; i < values.length; i++) {
                         // if the new value exist old value set the value
                         // if the new value doesn't exist create it and add the reference
@@ -283,11 +284,48 @@ recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_
             
         }, typeKey, opt_options);
 
-    return inversableB;
+    return behaviour;
 
-    throw 'not implemented yet';
 };
+ /**
+  * create a behaviour given a list of behaviours 
+  * @param {!Array<recoil.frp.Behaviour>} list
+  * @param {!recoil.frp.Behaviour<goog.structs.AvlTree>} addedB
+  */
+createListB = function (frp, list, addedB, removeB, orderB) {
+    var orderB = frp.createB([]);
+    var addedB = frp.createB();
+    var removedB = frp.createB();
+    // just use added and removed to deal with this the implementation 
+    // of these will have to go outside the frp engine
+    var calc = function() {
+            var res = [];
+            var seen = new goog.structs.AvlTree(xxx);
+            
+            for (var i = 0; i < orderB.get().length; i++) {
+                var orderInfo = orderB.get()[i];
+                if (orderInfo.src !== undefined) {
+                    res.push(list[orderInfo.src].get());
+                }
+                else {
+                    res.push(list[orderInfo.src].get());
+                }
+            }
 
+            for (var i = 0; i < list.length; i++) {
+                res.push(list[i].get());
+            }
+            return res;
+    };
+    
+    var inv = function (val) {
+    };
+    var args = [calc, inv, addedB, removedB].concat(list);
+
+    return frp.liftBI.apply (frp, args);
+
+};
+                
 recoil.db.ObjectManager.prototype.unregisterQuery = function (typeKey, query) {
     throw 'not implemented yet';
     
