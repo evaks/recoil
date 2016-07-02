@@ -139,8 +139,8 @@ function testMetaData () {
     assertObjectEquals({}, mTable.getRowMeta([1]));
     assertObjectEquals({}, table.getRowMeta([1]));
 
-    assertNull(mTable.getRowMeta([2]));
-    assertNull(table.getRowMeta([2]));
+    assertObjectEquals({},mTable.getRowMeta([2]));
+    assertObjectEquals({},table.getRowMeta([2]));
     assertThrows(function () {
         mTable.setRowMeta([2], {a:10});
     });

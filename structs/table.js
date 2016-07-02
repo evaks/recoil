@@ -44,10 +44,11 @@ recoil.structs.table.ColumnKey.nextId_ = new recoil.util.Sequence();
  * 1 primary key this requires keys to be an array
  * @param {!Array<!recoil.structs.table.ColumnKey>} primaryKeys
  * @param {!Array<?>} keys
+ * @param {number=} opt_order
  * @return {recoil.structs.table.TableRow}
  */
-recoil.structs.table.ColumnKey.normalizeColumns = function(primaryKeys, keys) {
-    var res = new recoil.structs.table.MutableTableRow();
+recoil.structs.table.ColumnKey.normalizeColumns = function(primaryKeys, keys, opt_order) {
+    var res = new recoil.structs.table.MutableTableRow(opt_order);
 
     if (primaryKeys.length !== keys.length) {
         throw 'incorrect number of primary keys';
@@ -183,6 +184,7 @@ recoil.structs.table.ColumnKey.comparator = function(a , b) {
  */
 recoil.structs.table.Table = function(table) {
     this.meta_ = {};
+
     goog.object.extend(this.meta_, table.meta_);
     this.columnMeta_ = {};
     goog.object.extend(this.columnMeta_, table.columnMeta_);
@@ -190,12 +192,14 @@ recoil.structs.table.Table = function(table) {
     this.primaryColumns_ = table.primaryColumns_;
     this.otherColumns_ = table.otherColumns_;
     this.rows_ = new goog.structs.AvlTree(table.rows_.comparator_);
+    this.ordered_ = new goog.structs.AvlTree(recoil.structs.table.TableRow.positionComparator_(table.rows_.comparator_));
     var me = this;
     table.rows_.inOrderTraverse(function(x) {
         me.rows_.add(x);
+        me.ordered_.add(x);
     });
-};
-
+}
+;
 /**
  * @return {Array<recoil.structs.table.ColumnKey>}
  */
@@ -251,6 +255,8 @@ recoil.structs.table.MutableTable = function(primaryKeys, otherColumns) {
     };
 
     this.rows_ = new goog.structs.AvlTree(comparator);
+                                           //recoil.structs.table.TableRow.positionComparator_ = function (comparator) {
+    this.ordered_ = new goog.structs.AvlTree(recoil.structs.table.TableRow.positionComparator_(comparator));
 
 };
 /**
@@ -383,13 +389,10 @@ recoil.structs.table.MutableTable.prototype.addRowMeta = function(keys, meta) {
 };
 
 
-
-
 /**
  * this uses the primary key of the row to insert the table
  *
  * @param {recoil.structs.table.TableRow<T> | recoil.structs.table.MutableTableRow<T>} row
- *
  */
 recoil.structs.table.MutableTable.prototype.addRow = function(row) {
     var missingKeys = [];
@@ -428,6 +431,7 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
         throw 'row already exists ';
     }
     this.rows_.add(tblRow);
+    this.ordered_.add(tblRow);
 };
 /**
  * @private
@@ -453,7 +457,7 @@ recoil.structs.table.MutableTable.prototype.makeKeys_ = function(keys) {
  */
 recoil.structs.table.MutableTable.prototype.forEach = function(func) {
     var me = this;
-    this.rows_.inOrderTraverse(function(row) {
+    this.ordered_.inOrderTraverse(function(row) {
         var keys = [];
         for (var i = 0; i < me.primaryColumns_.length; i++) {
             keys.push(row.get(me.primaryColumns_[i]));
@@ -471,8 +475,12 @@ recoil.structs.table.MutableTable.prototype.forEach = function(func) {
  *
  */
 recoil.structs.table.MutableTable.prototype.removeRow = function(keys) {
-    if (this.rows_.remove(this.makeKeys_(keys)) === null) {
+    var oldRow = this.rows_.remove(this.makeKeys_(keys));
+    if (oldRow === null) {
         throw 'Row does not exist';
+    }
+    else {
+        this.ordered_.remove(oldRow);
     }
 };
 
@@ -640,7 +648,7 @@ recoil.structs.table.Table.prototype.getRowMeta = function(keys, column) {
 
 recoil.structs.table.Table.prototype.forEach = function(func) {
     var me = this;
-    this.rows_.inOrderTraverse(function(row) {
+    this.ordered_.inOrderTraverse(function(row) {
         var keys = [];
         for (var i = 0; i < me.primaryColumns_.length; i++) {
             keys.push(row.get(me.primaryColumns_[i]));
@@ -731,9 +739,10 @@ recoil.structs.table.Table.prototype.getCell = function(keys, columnKey) {
  * @param {Object} typeFactories
  * @param {Object} tableMeta
  * @param {Array<Object>} rawTable
+ * @param {number} opt_ordered if true then it will enforce the order it rawtable came in
  * @return {recoil.structs.table.Table}
  */
-recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable) {
+recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable, opt_ordered) {
 
     var keys = recoil.structs.table.Table.extractKeys_(tableMeta);
     console.log(keys);
@@ -746,14 +755,16 @@ recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable)
         tbl.setColumnMeta(colKey, tableMeta[tMeta]);
     }
 
+    var i = 0;
     rawTable.forEach(function(item) {
-        var row = new recoil.structs.table.MutableTableRow();
+        var row = new recoil.structs.table.MutableTableRow(opt_ordered === true ? i : undefined);
 
         for (var tMeta in tableMeta) {
             var colKey = tableMeta[tMeta].key;
             row.set(colKey, item[tMeta]);
         }
         tbl.addRow(row);
+        i++;
 
     });
     console.log(tbl.freeze());
@@ -818,6 +829,7 @@ recoil.structs.table.Table.getColumnKeys_ = function(array) {
  */
 recoil.structs.table.TableRow = function(opt_tableRow) {
     this.cells_ = {};
+    this.pos_ = undefined;
     if (opt_tableRow !== undefined) {
         for (var key in opt_tableRow.orig_) {
             this.cells_[key] = opt_tableRow.orig_[key];
@@ -826,9 +838,38 @@ recoil.structs.table.TableRow = function(opt_tableRow) {
         for (var key in opt_tableRow.changed_) {
             this.cells_[key] = opt_tableRow.changed_[key];
         }
+        this.pos_ = opt_tableRow.pos();
     }
 };
+    
 
+/**
+ * @param {function (!TableRow, !TableRow) number}  comparator
+ * @return {function (!TableRow, !TableRow) number} 
+ */
+recoil.structs.table.TableRow.positionComparator_ = function (comparator) {
+    return function (x, y) {
+        if (x.pos() === undefined  && y.pos() === undefined) {
+            return comparator(x, y);
+        }
+        if (x.pos() === undefined  || y.pos() === undefined) {
+            return x.pos() === undefined  ? -1 : 1;
+        }
+        
+        var res = x.pos() - y.pos();
+        if (res === 0) {
+            return comparator(x,y);
+        }
+        return 0;
+    };
+};
+
+/**
+ * @return {number}
+ */
+recoil.structs.table.TableRow.prototype.pos = function () {
+    return this.pos_;
+};
 /**
  * Get the value and meta data from the cell
  * @template CT
@@ -875,7 +916,7 @@ recoil.structs.table.TableRow.prototype.get = function(column) {
  */
 
 recoil.structs.table.TableRow.prototype.set = function(column, value) {
-    var mutable = new recoil.structs.table.MutableTableRow(this);
+    var mutable = new recoil.structs.table.MutableTableRow(this.pos(), this);
     mutable.set(column, value);
     return mutable.freeze();
 };
@@ -890,7 +931,7 @@ recoil.structs.table.TableRow.prototype.set = function(column, value) {
  */
 
 recoil.structs.table.TableRow.prototype.setCell = function(column, value) {
-    var mutable = new recoil.structs.table.MutableTableRow(this);
+    var mutable = new recoil.structs.table.MutableTableRow(this.pos(), this);
     mutable.setCell(column, value);
     return mutable.freeze();
 };
@@ -901,6 +942,21 @@ recoil.structs.table.TableRow.prototype.setCell = function(column, value) {
  */
 recoil.structs.table.TableRow.create = function(var_args) {
     var mutableRow = new recoil.structs.table.MutableTableRow();
+    for (var i = 0; i < arguments.length; i += 2) {
+        mutableRow.set(arguments[i], arguments[i + 1]);
+    }
+
+    return mutableRow;
+};
+
+
+/**
+ * @param {number} pos the position of the row
+ * @param {...*} var_args
+ * @return {recoil.structs.table.MutableTableRow}
+ */
+recoil.structs.table.TableRow.createOrdered = function(pos, var_args) {
+    var mutableRow = new recoil.structs.table.MutableTableRow(pos);
     for (var i = 0; i < arguments.length; i += 2) {
         mutableRow.set(arguments[i], arguments[i + 1]);
     }
@@ -923,7 +979,7 @@ recoil.structs.table.TableRow.prototype.getRowMeta = function() {
  */
 
 recoil.structs.table.TableRow.prototype.keepColumns = function(columns) {
-    var mutable = new recoil.structs.table.MutableTableRow();
+    var mutable = new recoil.structs.table.MutableTableRow(this.pos_);
     var me = this;
     columns.forEach(function(col) {
         if (me.hasColumn(col)) {
@@ -953,12 +1009,27 @@ recoil.structs.table.TableRow.prototype.hasColumn = function(column) {
  * A table row that can be changed. Use this to make a row then
  * change it to a normal row
  * @constructor
+ * @param {number=} opt_position if the row is order specify this
  * @param {recoil.structs.table.TableRow=} opt_immutable
  */
 
-recoil.structs.table.MutableTableRow = function(opt_immutable) {
-    this.orig_ = opt_immutable ? opt_immutable.cells_ : {};
+recoil.structs.table.MutableTableRow = function(opt_position, opt_immutable) {
+    if (opt_immutable) {
+        this.orig_ = opt_immutable.cells_;
+        this.pos_ = opt_position === undefined ? opt_immutable.pos() : opt_position;
+    }
+    else {
+        this.orig_ = {};
+        this.pos_ = opt_position === undefined ? undefined : opt_position;
+    }
     this.changed_ = {};
+};
+
+/**
+ * @return {number}
+ */
+recoil.structs.table.MutableTableRow.prototype.pos = function () {
+    return this.pos_;
 };
 
 /**
