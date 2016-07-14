@@ -38,24 +38,14 @@ recoil.ui.widgets.CheckboxWidget.prototype.getComponent = function() {
 
 /**
  * @param {recoil.frp.Behaviour<!string>|!string} name
- * @param {recoil.frp.Behaviour<boolean>|boolean} checked
+ * @param {recoil.frp.Behaviour<boolean>|boolean} value
  * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|boolean} enabled
  */
-recoil.ui.widgets.CheckboxWidget.prototype.attach = function (name, checked, enabled) {
+recoil.ui.widgets.CheckboxWidget.prototype.attach = function (name, value, enabled) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
 
-    this.attachStruct(recoil.frp.struct.extend(frp, enabled, {'name': name, 'checked': checked}));
-    //
-    // this.nameB = util.toBehaviour(name);
-    // this.checkedB = util.toBehaviour(checked);
-    // this.enabledB = util.toBehaviour(enabled);
-    //
-    // //var readyB = util.isAllGoodExplain(this.nameB, this.checkedB, this.enabledB);
-    //
-    // this.helper_.attach(this.nameB, this.checkedB, this.enabledB);
-
-
+    this.attachStruct(recoil.frp.struct.extend(frp, enabled, {'name': name, 'value': value}));
 };
 
 /**
@@ -67,18 +57,18 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function (options) {
     var structs = recoil.frp.struct;
     var optionsB = structs.flattern(frp, options);
 
-    this.nameB_ = structs.get('name', optionsB, '');
-    this.checkedB_ = structs.get('checked', optionsB, recoil.ui.BoolWithExplaination.FALSE);
+    this.nameB_    = structs.get('name', optionsB, '');
+    this.valueB_   = structs.get('value', optionsB, recoil.ui.BoolWithExplaination.FALSE);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
 
-    var readyB = util.isAllGood(this.nameB_, this.checkedB_, this.enabledB_);
+    var readyB = util.isAllGood(this.nameB_, this.valueB_, this.enabledB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
-        me.checkedB_.set(me.checkBox_.getChecked());
-    }, me.checkedB_));
+        me.valueB_.set(me.checkBox_.getChecked());
+    }, me.valueB_));
 
-    this.helper_.attach(this.nameB_, this.checkedB_, this.enabledB_);
+    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
 
 };
 
@@ -89,7 +79,8 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function (options) {
  */
 recoil.ui.widgets.CheckboxWidget.prototype.updateState_ = function (helper) {
     if(helper.isGood()){
-        this.checkBox_.setChecked(this.checkedB_.get());
+        console.log('valueB', this.valueB_.get());
+        this.checkBox_.setChecked(this.valueB_.get());
     }
 };
 

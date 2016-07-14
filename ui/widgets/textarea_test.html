@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Textarea Test</title>
+    <script src="../../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../../my-deps.js"></script>
+    <script>
+        goog.require('goog.dom');
+        goog.require('recoil.frp.Frp');
+        goog.require('recoil.ui.WidgetScope');
+        goog.require('recoil.frp.Behaviour');
+        goog.require('recoil.frp.Util');
+        goog.require('recoil.frp.struct');
+        goog.require('recoil.ui.WidgetHelper');
+        goog.require('recoil.ui.Widget');
+        goog.require('recoil.ui.widgets.TextAreaWidget');
+    </script>
+    <link rel="stylesheet" href="../css/demo.css">
+    <!--<link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">-->
+</head>
+<body>
+
+<div>
+    <textarea id="textarea1"></textarea>
+</div>
+
+<script>
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+
+    var ta1 = new recoil.ui.widgets.TextAreaWidget(scope);
+    ta1.getComponent().render($('textarea1'));
+    ta1.attach('ta1', 'blahblahblah', true);
+
+</script>
+</body>
+</html>
