@@ -31,7 +31,7 @@ See the COPYING file for details.
 <body>
 
   <div>
-    <span id="checkbox"></div>
+    <span id="checkbox"></span>Enable / disable</div>
   <br>
   <div>
     <span id="checkbox2"></span>Enable / disable 2</div>
@@ -46,9 +46,9 @@ See the COPYING file for details.
     var val = frp.createB(true);
     var checkboxWidget = new recoil.ui.widgets.CheckboxWidget(scope);
     checkboxWidget.getComponent().render($('checkbox'));
-//    checkboxWidget.attach("boo", val, false);
+    checkboxWidget.attach("boo", val, true);
 
-    checkboxWidget.attachStruct({enabled : true, checked : val})
+//    checkboxWidget.attachStruct({enabled : true, checked : val})
 
     var checkboxWidget2 = new recoil.ui.widgets.CheckboxWidget(scope);
     checkboxWidget2.getComponent().render($('checkbox2'));

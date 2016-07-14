@@ -23,15 +23,7 @@ recoil.ui.widgets.CheckboxWidget = function(scope) {
     this.checkBox_ = new goog.ui.Checkbox();
     this.isChecked = false;
 
-    var me = this;
-    // goog.events.listen(this.checkBox_, goog.ui.Component.EventType.CHANGE, function () {
-    //     console.log('checked: ', me.checkBox_.getChecked());
-    //     me.scope_.getFrp().accessTrans(function (x) {
-    //         me.checkedB_.set(me.checkBox_.getChecked());
-    //     }, me.checkedB_);
-    // });
-
-    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.checkBox_, goog.events.EventType.CLICK);
+    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.checkBox_, goog.ui.Component.EventType.CHANGE);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.checkBox_, this, this.updateState_);
 };
 
