@@ -248,6 +248,10 @@ recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_
 
     entry.addRef();
     queries.add(entry);
+
+    // this is a list of all the behaviours
+    var allObjectsB = recoil.util.map.safeGet(this.objectTypes_,typeKey, new goog.structs.AvlTree(recoil.db.Entity.comparator_));
+
     var behaviourBB = this.frp_.createNotReadyB();
     var behaviour = frp.switchB(behaviourBB);
 
@@ -258,9 +262,13 @@ recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_
                 var oldVal = behaviour.metaGet();
  
                 if (oldVal.good()) {
+                    // add all the behaviours that don't exist  to all objects
+
+                    
                     // we are trying to construct a list of entities
                     for (var i = 0; i < values.length; i++) {
                         // if the new value exist old value set the value
+                        
                         // if the new value doesn't exist create it and add the reference
                     }
 
@@ -287,6 +295,8 @@ recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_
     return behaviour;
 
 };
+
+
  /**
   * create a behaviour given a list of behaviours 
   * @param {!Array<recoil.frp.Behaviour>} list
@@ -311,7 +321,7 @@ createListB = function (frp, list, addedB, removeB, orderB) {
                     res.push(list[orderInfo.src].get());
                 }
             }
-
+        
             for (var i = 0; i < list.length; i++) {
                 res.push(list[i].get());
             }
