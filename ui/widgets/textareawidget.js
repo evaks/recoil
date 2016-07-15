@@ -11,6 +11,7 @@ goog.require('goog.ui.Textarea');
 goog.require('goog.ui.TextareaRenderer');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('goog.events.InputHandler');
+goog.require('recoil.ui.widgets.LabelWidget');
 
 /**
  * @implements {recoil.ui.Widget}
@@ -20,7 +21,8 @@ goog.require('goog.events.InputHandler');
 recoil.ui.widgets.TextAreaWidget = function (scope) {
     this.scope_ = scope;
     this.textarea_ = new goog.ui.Textarea();
-
+    this.label_ = new recoil.ui.widgets.LabelWidget(scope);
+    
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.textarea_, goog.events.InputHandler.EventType.INPUT);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.textarea_, this, this.updateState_);
 };
@@ -40,7 +42,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.getComponent = function () {
 recoil.ui.widgets.TextAreaWidget.prototype.attach = function (nameB, valueB, enabledB) {
     var frp = this.helper_.getFrp();
 
-    this.attachStruct(recoil.frp.struct.extend(frp, enabledB, {'name': nameB, 'value': valueB}));
+    this.attachStruct({'enabled': enabledB, 'name': nameB, 'value': valueB});
 };
 
 /**
@@ -51,9 +53,9 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function (options) {
     var structs = recoil.frp.struct;
     var optionsB = structs.flattern(frp, options);
     
-    this.nameB_    = structs.get('name', optionsB, '');
-    this.valueB_   = structs.get('value', optionsB, '');
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    this.nameB_    = structs.get('name', optionsB);
+    this.valueB_   = structs.get('value', optionsB);
+    this.enabledB_ = structs.get('enabled', optionsB);
 
     this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
 
@@ -73,6 +75,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.updateState_ = function (helper) {
 
     if(helper.isGood()){
         this.textarea_.setContent(this.valueB_.get());
+        this.textarea_.setEnabled(this.enabledB_.get());
     }
 };
 
