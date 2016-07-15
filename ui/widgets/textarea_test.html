@@ -21,18 +21,23 @@
 </head>
 <body>
 
-<div>
-    <textarea id="textarea1"></textarea>
-</div>
+<div id="textarea1"></div>
+<div id="textarea2"></div>
 
 <script>
     var scope = new recoil.ui.WidgetScope();
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
 
+    var val = frp.createB("test");
+
     var ta1 = new recoil.ui.widgets.TextAreaWidget(scope);
     ta1.getComponent().render($('textarea1'));
-    ta1.attach('ta1', 'blahblahblah', true);
+    ta1.attach('ta1', val, true);
+
+    var ta2 = new recoil.ui.widgets.TextAreaWidget(scope);
+    ta2.getComponent().render($('textarea2'));
+    ta2.attach('ta2', val, true);
 
 </script>
 </body>

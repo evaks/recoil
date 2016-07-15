@@ -10,6 +10,7 @@ goog.require('recoil.frp.struct');
 goog.require('goog.ui.Textarea');
 goog.require('goog.ui.TextareaRenderer');
 goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('goog.events.InputHandler');
 
 /**
  * @implements {recoil.ui.Widget}
@@ -20,6 +21,7 @@ recoil.ui.widgets.TextAreaWidget = function (scope) {
     this.scope_ = scope;
     this.textarea_ = new goog.ui.Textarea();
 
+    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.textarea_, goog.events.InputHandler.EventType.INPUT);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.textarea_, this, this.updateState_);
 };
 
@@ -31,21 +33,21 @@ recoil.ui.widgets.TextAreaWidget.prototype.getComponent = function () {
 };
 
 /**
- * @param {recoil.frp.Behaviour<!string>|!string} name
- * @param {recoil.frp.Behaviour<!string>|!string} value
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
+ * @param {recoil.frp.Behaviour<!string>|!string} nameB
+ * @param {recoil.frp.Behaviour<!string>|!string} valueB
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|boolean} enabledB
  */
-recoil.ui.widgets.TextAreaWidget.prototype.attach = function (name, value, enabled) {
+recoil.ui.widgets.TextAreaWidget.prototype.attach = function (nameB, valueB, enabledB) {
     var frp = this.helper_.getFrp();
-    this.attachStruct(recoil.frp.struct.extend(frp, enabled, {'name': name, 'value': value}));
+
+    this.attachStruct(recoil.frp.struct.extend(frp, enabledB, {'name': nameB, 'value': valueB}));
 };
 
 /**
  * @param {!Object| !recoil.frp.Behaviour<Object>} options
  */
 recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function (options) {
-    var frp = this.helper_.getFrp();
-    var util = new recoil.frp.Util(frp);
+    var frp = this.helper_.getFrp();     
     var structs = recoil.frp.struct;
     var optionsB = structs.flattern(frp, options);
     
@@ -54,7 +56,11 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function (options) {
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
 
     this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
-    
+
+    var me = this;
+    this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
+        me.valueB_.set(v.target.value);
+    }, this.valueB_));
 };
 
 
@@ -64,9 +70,8 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function (options) {
  * @private
  */
 recoil.ui.widgets.TextAreaWidget.prototype.updateState_ = function (helper) {
-    console.log('here');
+
     if(helper.isGood()){
-        console.log('valueB', this.valueB_.get());
         this.textarea_.setContent(this.valueB_.get());
     }
 };
