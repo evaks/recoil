@@ -14,15 +14,17 @@ goog.require('goog.events.InputHandler');
 goog.require('recoil.ui.widgets.LabelWidget');
 
 /**
- * @implements {recoil.ui.Widget}
+ * @implements {recoil.ui.LabeledWidget}
  * @param {!recoil.ui.WidgetScope} scope
  * @constructor
  */
 recoil.ui.widgets.TextAreaWidget = function (scope) {
     this.scope_ = scope;
     this.textarea_ = new goog.ui.Textarea();
+    this.container_ = new goog.ui.Container();
+
     this.label_ = new recoil.ui.widgets.LabelWidget(scope);
-    
+
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.textarea_, goog.events.InputHandler.EventType.INPUT);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.textarea_, this, this.updateState_);
 };
@@ -35,29 +37,50 @@ recoil.ui.widgets.TextAreaWidget.prototype.getComponent = function () {
 };
 
 /**
+ *
+ * @returns {goog.ui.Container}
+ */
+recoil.ui.widgets.TextAreaWidget.prototype.getContainer = function () {
+    return this.container_;
+};
+
+/**
+ *
+ * @returns {recoil.ui.widgets.LabelWidget}
+ */
+recoil.ui.widgets.TextAreaWidget.prototype.getLabel = function () {
+    return this.label_;
+};
+/**
  * @param {recoil.frp.Behaviour<!string>|!string} nameB
  * @param {recoil.frp.Behaviour<!string>|!string} valueB
- * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|boolean} enabledB
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} opt_enabledB
  */
-recoil.ui.widgets.TextAreaWidget.prototype.attach = function (nameB, valueB, enabledB) {
+recoil.ui.widgets.TextAreaWidget.prototype.attach = function (nameB, valueB, opt_enabledB) {
     var frp = this.helper_.getFrp();
-
-    this.attachStruct({'enabled': enabledB, 'name': nameB, 'value': valueB});
+    
+    this.attachStruct({'name': nameB, 'value': valueB, 'enabled': opt_enabledB });
 };
 
 /**
  * @param {!Object| !recoil.frp.Behaviour<Object>} options
  */
 recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function (options) {
-    var frp = this.helper_.getFrp();     
+    var frp = this.helper_.getFrp();
+    var util = new recoil.frp.Util(frp);
+    
     var structs = recoil.frp.struct;
     var optionsB = structs.flattern(frp, options);
     
-    this.nameB_    = structs.get('name', optionsB);
     this.valueB_   = structs.get('value', optionsB);
-    this.enabledB_ = structs.get('enabled', optionsB);
+    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    var readyB = util.isAllGoodExplain(this.valueB_, this.enabledB_);
 
-    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
+    this.label_.attach(
+          structs.get('name', optionsB),
+          recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
+
+    this.helper_.attach(this.valueB_, this.enabledB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
