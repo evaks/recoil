@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by the Apache License, Version 2.0.
+See the COPYING file for details.
+-->
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Checkbox Test</title>
+  <script src="../../../../closure-library/closure/goog/base.js"></script>
+  <script src="../../../../my-deps.js"></script>
+  <script>
+    goog.require('goog.dom');
+    goog.require('recoil.frp.Frp');
+    goog.require('recoil.ui.WidgetScope');
+    goog.require('recoil.frp.Behaviour');
+    goog.require('recoil.frp.Util');
+    goog.require('recoil.frp.struct');
+    goog.require('recoil.ui.WidgetHelper');
+    goog.require('recoil.ui.Widget');
+    goog.require('recoil.ui.widgets.CheckboxWidget');
+
+  </script>
+
+  <link rel="stylesheet" href="../css/demo.css">
+  <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">
+</head>
+<body>
+
+  <div>
+    <span id="checkbox"></span>Enable / disable</div>
+  <br>
+  <div>
+    <span id="checkbox2"></span>Enable / disable 2</div>
+  <br>
+
+  <script>
+
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+
+    var val = frp.createB(true);
+    var checkboxWidget = new recoil.ui.widgets.CheckboxWidget(scope);
+    checkboxWidget.getComponent().render($('checkbox'));
+    checkboxWidget.attach("boo", val, true);
+
+//    checkboxWidget.attachStruct({enabled : true, checked : val})
+
+    var checkboxWidget2 = new recoil.ui.widgets.CheckboxWidget(scope);
+    checkboxWidget2.getComponent().render($('checkbox2'));
+    checkboxWidget2.attach("boo2", val, true);
+
+
+  </script>
+</body>
+</html>

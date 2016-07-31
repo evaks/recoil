@@ -13,6 +13,7 @@ goog.require('recoil.frp.struct');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
+goog.require('recoil.ui.ComponentWidgetHelper');
 
 /**
  * @constructor

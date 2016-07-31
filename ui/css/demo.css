@@ -73,3 +73,15 @@ label, input {
   font: italic 95% Arial, sans-serif;
   color: #999;
 }
+
+textarea {
+    width: 400px;
+    height: 100px;
+    padding: 2px;
+}
+
+.textarea-label {
+    padding: 2px;
+    margin-right: 20px;
+    float: left;
+}
