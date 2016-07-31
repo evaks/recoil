@@ -14,7 +14,7 @@ goog.require('recoil.frp.Behaviour');
  * @param {recoil.frp.Behaviour<T>} value
  */
 recoil.db.Entity = function (key, value) {
-    
+
     this.key_ = key;
     this.value_ = value;
     this.refs_ = 0;
@@ -44,6 +44,8 @@ recoil.db.Entity.prototype.removeRef = function () {
     return this.refs_ === 0;
 };
 
+
+
 /**
  * @param {!recoil.db.Entity} x
  * @param {!recoil.db.Entity} y
@@ -55,9 +57,13 @@ recoil.db.Entity.comparator_ = function (x, y) {
 
 /**
  * @constructor
- * @param {recoil.db.Query} query
+ * @template T
+ * @param {T?} entity
+ * @param {recoil.db.Query<T>?} query
+ * takes either a query or an entity (really an entity is a query that only ever
+ * returns one item
  */
-recoil.db.QueryEntry = function (query) {
+recoil.db.QueryEntry = function (entity, query) {
     this.query_ = query;
     this.entities_ = new goog.structs.AvlTree(recoil.db.Entity.compare);
     this.refs_ = 0;
@@ -114,7 +120,7 @@ recoil.db.SendInfo.prototype.getSending = function () {
 
 /**
  * @param {T} value
- * @return {!recoil.db.SendInfo<T>} 
+ * @return {!recoil.db.SendInfo<T>}
  */
 recoil.db.SendInfo.prototype.setSending = function (value) {
     var res = new recoil.db.SendInfo(this.value_);
@@ -151,32 +157,40 @@ recoil.db.ObjectManager = function (frp) {
  * @param {!recoil.db.Type<T>} typeKey
  * @param {?} key
  * @param {!recoil.frp.Behaviour<T>} value
- * @return {!recoil.frp.Behaviour<T>} 
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options, coms) {
-    var frp = this.frp_;    
-    var behaviours = recoil.util.map.safeGet(this.objectTypes_,typeKey, new goog.structs.AvlTree(recoil.db.Entity.comparator_));
-    var behaviour = this.frp_.createNotReadyB();
+    var frp = this.frp_;
+    var behaviours = recoil.util.map.safeGet(this.queries__,typeKey, new goog.structs.AvlTree(recoil.db.Query.comparator_));
 
+    var behaviour = this.frp_.createNotReadyB();
 
     var inversableB = frp.liftBI(
         function (v) {return v;},
         function (v, b) {
-            b.set(v);
-            coms.set(v.getSending(), v.getStored(),
-                     function (v) {
-                         frp.accessTrans( function () {
-                             behaviour.set(new recoil.db.SendInfo(v));
-                         }, behaviour);
-                     },
-                     function (status) {
-                         frp.accessTrans( function () {
 
-                             behaviour.metaSet(v);
-                         }, behaviour);
-                     },
-                     typeKey,key, opt_options); 
+            var related = getRelatedBehaviours(typeKey, v, b);
+            
+            for (var i = 0 ; i < related.length; i++) {
+                var subV = related[i];
+                sub.b.set(sub.v);
+                coms.set(sub.v.getSending(), sub.v.getStored(),
+                         function (v) {
+                             frp.accessTrans( function () {
+                                 behaviour.set(new recoil.db.SendInfo(v));
+                             }, behaviour);
+                         },
+                         function (status) {
+                             frp.accessTrans( function () {
+                                 
+                                 behaviour.metaSet(v);
+                             }, behaviour);
+                         },
+                         typeKey,key, opt_options);
+            }
         },behaviour);
+
+
     var entity = new recoil.db.Entity(key, inversableB);
 
     var oldEntity = behaviours.findFirst(entity);
@@ -194,7 +208,7 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
         function (val) {
             frp.accessTrans(function () {
                 var oldVal = behaviour.metaGet();
- 
+
                 if (oldVal.good()) {
                     behaviour.set(oldVal.setRead(val));
                 }
@@ -206,7 +220,7 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
             frp.accessTrans(function (val) {
                 behaviour.metaSet(val);
             }, behaviour);
-            
+
         }, typeKey, key, opt_options);
 
     return inversableB;
@@ -217,7 +231,7 @@ recoil.db.ObjectManager.prototype.unregister = function (typeKey, key, opt_optio
     if (behaviours === undefined) {
         return;
     }
-    
+
     var entity = new recoil.db.Entity(key, undefined);
 
     var oldEntity = behaviours.findFirst(entity);
@@ -231,7 +245,7 @@ recoil.db.ObjectManager.prototype.unregister = function (typeKey, key, opt_optio
             delete this.objectTypes_[typeKey];
         }
     }
-    
+
 };
 
 recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_options, coms) {
@@ -258,28 +272,28 @@ recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_
     coms.getList(
         function (values) {
             frp.accessTrans(function () {
-                // get the 
+                // get the
                 var oldVal = behaviour.metaGet();
- 
+
                 if (oldVal.good()) {
                     // add all the behaviours that don't exist  to all objects
 
-                    
+
                     // we are trying to construct a list of entities
                     for (var i = 0; i < values.length; i++) {
                         // if the new value exist old value set the value
-                        
+
                         // if the new value doesn't exist create it and add the reference
                     }
 
                     for (i = 0; i < oldVal.getRead(); i++) {
                         var val = oldVal.getRead()[i];
-                        
+
                         // if the old value does not exist remove the reference
                     }
 
                     behaviourBB.set(createList(allEntities));
-                    // construct a behaviour that references all the entities 
+                    // construct a behaviour that references all the entities
                 }
                 else {
                     behaviour.set(new recoil.db.SendInfo(val));
@@ -289,7 +303,7 @@ recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_
             frp.accessTrans(function (val) {
                 behaviour.metaSet(val);
             }, behaviour);
-            
+
         }, typeKey, opt_options);
 
     return behaviour;
@@ -298,7 +312,7 @@ recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_
 
 
  /**
-  * create a behaviour given a list of behaviours 
+  * create a behaviour given a list of behaviours
   * @param {!Array<recoil.frp.Behaviour>} list
   * @param {!recoil.frp.Behaviour<goog.structs.AvlTree>} addedB
   */
@@ -306,12 +320,12 @@ createListB = function (frp, list, addedB, removeB, orderB) {
     var orderB = frp.createB([]);
     var addedB = frp.createB();
     var removedB = frp.createB();
-    // just use added and removed to deal with this the implementation 
+    // just use added and removed to deal with this the implementation
     // of these will have to go outside the frp engine
     var calc = function() {
             var res = [];
             var seen = new goog.structs.AvlTree(xxx);
-            
+
             for (var i = 0; i < orderB.get().length; i++) {
                 var orderInfo = orderB.get()[i];
                 if (orderInfo.src !== undefined) {
@@ -321,13 +335,13 @@ createListB = function (frp, list, addedB, removeB, orderB) {
                     res.push(list[orderInfo.src].get());
                 }
             }
-        
+
             for (var i = 0; i < list.length; i++) {
                 res.push(list[i].get());
             }
             return res;
     };
-    
+
     var inv = function (val) {
     };
     var args = [calc, inv, addedB, removedB].concat(list);
@@ -335,14 +349,13 @@ createListB = function (frp, list, addedB, removeB, orderB) {
     return frp.liftBI.apply (frp, args);
 
 };
-                
+
 recoil.db.ObjectManager.prototype.unregisterQuery = function (typeKey, query) {
     throw 'not implemented yet';
-    
+
 };
 
 
 recoil.db.ObjectManager.prototype.dataRecieved = function (typeKey, value) {
 
 };
-
