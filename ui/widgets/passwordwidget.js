@@ -15,33 +15,50 @@ goog.require('recoil.ui.widgets.InputWidget');
  */
 recoil.ui.widgets.PasswordWidget = function(scope) {
     this.scope_ = scope;
-    this.password_ = new recoil.ui.widgets.InputWidget(scope);
+    this.passwordInput_ = new recoil.ui.widgets.InputWidget(scope);
+    this.passwordLabel_ = new recoil.ui.widgets.LabelWidget(scope);
 
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.password_, this, this.updateState_);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.passwordInput_, this, this.updateState_);
 };
 
 /**
  * @return {!goog.ui.Component}
  */
-recoil.ui.widgets.PasswordWidget.prototype.getComponent = function() {
-    return this.password_;
+recoil.ui.widgets.PasswordWidget.prototype.getInput = function() {
+    return this.passwordInput_.getComponent();
 };
 
 /**
  *
- * @param {recoil.frp.Behaviour<!string>|!string} name
+ * @returns {!goog.ui.Component}
+ */
+recoil.ui.widgets.PasswordWidget.prototype.getLabel = function () {
+    return this.passwordLabel_.getComponent();
+};
+
+
+/**
+ * @param {recoil.frp.Behaviour<!string>|!string} labelName  ?? this correct
+ * @param {recoil.frp.Behaviour<!string>|!string} inputName
  * @param {recoil.frp.Behaviour<!string>|!string} value
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
  */
-recoil.ui.widgets.PasswordWidget.prototype.attach = function (name, value, enabled) {
+recoil.ui.widgets.PasswordWidget.prototype.attach = function (labelName, inputName, value, enabled) {
+    var util = new recoil.frp.Util(this.helper_.getFrp());
 
+    this.labelNameB_ = util.toBehaviour(labelName);
+    this.inputNameB_ = util.toBehaviour(inputName);
+    this.valueB_ = util.toBehaviour(value);
+    this.enabledB_ = util.toBehaviour(enabled);
+
+    this.helper_.attach(this.labelNameB_, this.inputNameB_, this.valueB_, this.enabledB_);
 };
 
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
  * @private
- * 
+ *
  */
 recoil.ui.widgets.PasswordWidget.prototype.updateState_ = function () {
 
