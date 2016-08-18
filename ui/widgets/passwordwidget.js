@@ -6,24 +6,25 @@ goog.require('goog.ui.Component');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.widgets.InputWidget');
 
-
 /**
  *
  * @param {!recoil.ui.WidgetScope} scope
  * @constructor
  * @implements recoil.ui.Widget
  */
-recoil.ui.widgets.PasswordWidget = function(scope) {
+recoil.ui.widgets.PasswordWidget = function (scope) {
     this.scope_ = scope;
     this.passwordInput_ = new recoil.ui.widgets.InputWidget(scope);
 
+    var el = this.passwordInput_.getComponent().getElement();
+    el.setAttribute('type', 'password');
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.passwordInput_.getComponent(), this, this.updateState_);
 };
 
 /**
  * @return {!goog.ui.Component}
  */
-recoil.ui.widgets.PasswordWidget.prototype.getComponent = function() {
+recoil.ui.widgets.PasswordWidget.prototype.getComponent = function () {
     return this.passwordInput_.getComponent();
 };
 
@@ -37,20 +38,31 @@ recoil.ui.widgets.PasswordWidget.prototype.getLabel = function () {
 
 
 /**
- * @param {recoil.frp.Behaviour<!string>|!string} inputName
+ * @param {recoil.frp.Behaviour<!string>|!string} name
  * @param {recoil.frp.Behaviour<!string>|!string} value
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
  */
-recoil.ui.widgets.PasswordWidget.prototype.attach = function (inputName, value, enabled) {
-    this.passwordInput_.attach(inputName, value, enabled);
-    // var util = new recoil.frp.Util(this.helper_.getFrp());
-    //
-    // this.labelNameB_ = util.toBehaviour(labelName);
-    // this.inputNameB_ = util.toBehaviour(inputName);
-    // this.valueB_ = util.toBehaviour(value);
-    // this.enabledB_ = util.toBehaviour(enabled);
-    //
-    // this.helper_.attach(this.labelNameB_, this.inputNameB_, this.valueB_, this.enabledB_);
+recoil.ui.widgets.PasswordWidget.prototype.attach = function (name, value, enabled) {
+    this.passwordInput_.attachStruct({'name': name, 'value': value, 'enabled': enabled});
+};
+
+/**
+ *
+ * @param {!Object| !recoil.frp.Behaviour<Object>} options
+ */
+recoil.ui.widgets.PasswordWidget.prototype.attachStruct = function (options) {
+    var util = new recoil.frp.Util(this.helper_.getFrp());
+    var frp = this.helper_.getFrp();
+
+    var structs = recoil.frp.struct;
+    var optionsB = structs.flattern(frp, options);
+
+    this.nameB_ = structs.get('name', optionsB);
+    this.valueB_ = structs.get('value', optionsB);
+    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+
+    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
+
 };
 
 /**
@@ -59,6 +71,8 @@ recoil.ui.widgets.PasswordWidget.prototype.attach = function (inputName, value, 
  * @private
  *
  */
-recoil.ui.widgets.PasswordWidget.prototype.updateState_ = function () {
+recoil.ui.widgets.PasswordWidget.prototype.updateState_ = function (helper) {
+    if(helper.isGood()){
 
+    }
 };

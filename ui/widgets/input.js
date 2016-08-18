@@ -83,11 +83,11 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(data) {
     var util = new recoil.frp.Util(this.helper_.getFrp());
     var dataB = util.toBehaviour(data);
 
-    var nameB = recoil.frp.struct.get('name', dataB);
-    var enabledB = recoil.frp.struct.get('enabled', dataB);
-    var valueB = recoil.frp.struct.get('value', dataB);
+    this.nameB_ = recoil.frp.struct.get('name', dataB);
+    this.enabledB_ = recoil.frp.struct.get('enabled', dataB);
+    this.valueB_ = recoil.frp.struct.get('value', dataB);
 
-    this.attach(nameB.get(), valueB.get(), enabledB.get());
+    this.attach(this.nameB_, this.valueB_, this.enabledB_);
 };
 
 /**
