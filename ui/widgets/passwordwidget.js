@@ -18,6 +18,7 @@ recoil.ui.widgets.PasswordWidget = function (scope) {
 
     var el = this.passwordInput_.getComponent().getElement();
     el.setAttribute('type', 'password');
+	console.log("test");
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.passwordInput_.getComponent(), this, this.updateState_);
 };
 
