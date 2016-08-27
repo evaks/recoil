@@ -18,7 +18,6 @@ recoil.ui.widgets.PasswordWidget = function (scope) {
 
     var el = this.passwordInput_.getComponent().getElement();
     el.setAttribute('type', 'password');
-	console.log("test");
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.passwordInput_.getComponent(), this, this.updateState_);
 };
 
@@ -44,7 +43,9 @@ recoil.ui.widgets.PasswordWidget.prototype.getLabel = function () {
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
  */
 recoil.ui.widgets.PasswordWidget.prototype.attach = function (name, value, enabled) {
-    this.passwordInput_.attachStruct({'name': name, 'value': value, 'enabled': enabled});
+    //this.passwordInput_.attachStruct({'name': name, 'value': value, 'enabled': enabled});
+    this.attachStruct({'name': name, 'value': value, 'enabled': enabled});
+
 };
 
 /**
@@ -60,7 +61,7 @@ recoil.ui.widgets.PasswordWidget.prototype.attachStruct = function (options) {
 
     this.nameB_ = structs.get('name', optionsB);
     this.valueB_ = structs.get('value', optionsB);
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    this.enabledB_ = structs.get('enabled', optionsB);
 
     this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
 
@@ -73,7 +74,8 @@ recoil.ui.widgets.PasswordWidget.prototype.attachStruct = function (options) {
  *
  */
 recoil.ui.widgets.PasswordWidget.prototype.updateState_ = function (helper) {
-    if(helper.isGood()){
 
+    if(helper.isGood()){
+        this.passwordInput_.getComponent().setEnabled(this.enabledB_.get());
     }
 };
