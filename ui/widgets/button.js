@@ -10,6 +10,7 @@ goog.require('recoil.frp.struct');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
+goog.require('recoil.ui.ComponentWidgetHelper');
 
 
 /**
@@ -65,6 +66,7 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbac
     var util = new recoil.frp.Util(frp);
     nameB = util.toBehaviour(nameB);
     textB = util.toBehaviour(textB);
+    callbackB = util.toBehaviour(callbackB);
 
     this.enabledB = util.toBehaviour(enabledB);
 

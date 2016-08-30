@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Password Test</title>
+    <title>input Test</title>
     <script src="../../../../closure-library/closure/goog/base.js"></script>
     <script src="../../../../my-deps.js"></script>
     <script>
@@ -14,39 +14,32 @@
         goog.require('recoil.frp.struct');
         goog.require('recoil.ui.WidgetHelper');
         goog.require('recoil.ui.Widget');
-        goog.require('recoil.ui.widgets.PasswordWidget');
+        goog.require('recoil.ui.widgets.InputWidget');
     </script>
     <link rel="stylesheet" href="../css/demo.css">
     <!--<link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">-->
 </head>
 <body>
 
-<div>
-    <div id="label"></div>
-    <div id="password"></div>
-    <div id="input"></div>
-</div>
-
+<div id="label1"></div>
+<div id="input1"></div>
+<div id="input2"></div>
 
 <script>
     var scope = new recoil.ui.WidgetScope();
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
 
-    var val = frp.createB('testss');
+    var val = frp.createB("test");
 
-    var password = new recoil.ui.widgets.PasswordWidget(scope);
-    password.attach('password', val,  recoil.ui.BoolWithExplaination.TRUE);
+    var input1 = new recoil.ui.widgets.InputWidget(scope);
+    input1.attach('input1', val, true);
+    input1.getLabel().getComponent().render($('label1'));
+    input1.getComponent().render($('input1'));
 
-    var label = password.getLabel();
-
-    var inputWidget = new recoil.ui.widgets.InputWidget(scope);
-    inputWidget.attach('input', val,  recoil.ui.BoolWithExplaination.TRUE);
-
-    label.getComponent().render($('label'));
-    password.getComponent().render($('password'));
-    inputWidget.getComponent().render($('input'));
-
+//    var input2 = new recoil.ui.widgets.LabelWidget(scope);
+//    input2.getComponent().render($('input2'));
+//    input2.attach('label1', false);
 
 </script>
 </body>
