@@ -1,5 +1,14 @@
 goog.provide('recoil.ui.widgets.ComboWidget');
 
+goog.require('recoil.ui.WidgetHelper');
+goog.require('recoil.ui.WidgetScope');
+goog.require('recoil.ui.Widget');
+goog.require('goog.ui.Component');
+goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.Util');
+goog.require('recoil.frp.struct');
+goog.require('recoil.ui.ComponentWidgetHelper');
+
 /**
  * @implements {recoil.ui.Widget}
  * @param scope
@@ -9,7 +18,7 @@ recoil.ui.widgets.ComboWidget = function(scope) {
     this.scope_ = scope;
     this.combo_ = new goog.ui.ComboBox();
 
-    this.helper = new recoil.ui.ComponentWidgetHelper(scope, this.combo_, this, this.updateState_);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.combo_, this, this.updateState_);
 };
 
 /**
@@ -46,7 +55,7 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
 
     var readyB = util.isAllGoodExplain(this.valueB_, this.nameB_, this.enabledB_);
 
-    this.helper.attach(this.nameB_, this.valueB_, this.enabledB_);
+    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
 };
 
 /**
