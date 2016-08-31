@@ -10,7 +10,9 @@ goog.require('recoil.frp.struct');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
+goog.require('recoil.ui.ComponentWidgetHelper');
 
+goog.require('recoil.ui.ComponentWidgetHelper');
 
 /**
  * @constructor
@@ -63,15 +65,22 @@ recoil.ui.widgets.ButtonWidget.prototype.getComponent = function() {
 recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbackB, enabledB) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
+<<<<<<< Updated upstream
     nameB = util.toBehaviour(nameB);
     textB = util.toBehaviour(textB);
+    callbackB = util.toBehaviour(callbackB);
+=======
+>>>>>>> Stashed changes
 
+    this.nameB_ = util.toBehaviour(nameB);
+    this.textB_ = util.toBehaviour(textB);
+    this.callbackB_ = util.toBehaviour(callbackB);
     this.enabledB = util.toBehaviour(enabledB);
 
-    this.helper_.attach(nameB, textB, callbackB, this.enabledB);
+    this.helper_.attach(this.nameB_, this.textB_, this.callbackB_, this.enabledB);
 
     var me = this;
-    this.changeHelper_.listen(callbackB);
+    this.changeHelper_.listen(this.callbackB_);
 };
 
 /**

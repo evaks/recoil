@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>input Test</title>
+    <script src="../../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../../my-deps.js"></script>
+    <script>
+        goog.require('goog.dom');
+        goog.require('recoil.frp.Frp');
+        goog.require('recoil.ui.WidgetScope');
+        goog.require('recoil.frp.Behaviour');
+        goog.require('recoil.frp.Util');
+        goog.require('recoil.frp.struct');
+        goog.require('recoil.ui.WidgetHelper');
+        goog.require('recoil.ui.Widget');
+        goog.require('recoil.ui.widgets.InputWidget');
+    </script>
+    <link rel="stylesheet" href="../css/demo.css">
+    <!--<link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">-->
+</head>
+<body>
+
+<div id="label1"></div>
+<div id="input1"></div>
+<div id="input2"></div>
+
+<script>
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+
+    var val = frp.createB("test");
+
+    var input1 = new recoil.ui.widgets.InputWidget(scope);
+    input1.attach('input1', val, true);
+    input1.getLabel().getComponent().render($('label1'));
+    input1.getComponent().render($('input1'));
+
+//    var input2 = new recoil.ui.widgets.LabelWidget(scope);
+//    input2.getComponent().render($('input2'));
+//    input2.attach('label1', false);
+
+</script>
+</body>
+</html>

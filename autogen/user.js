@@ -12,7 +12,7 @@ recoil.db.User = function(name, userName, email, password) {
     this.name_ = name;
     this.userName_ = userName;
     this.email_ = email;
-    this.password_ = password;
+    this.passwordInput_ = password;
 };
 
 /**
@@ -44,5 +44,5 @@ recoil.db.User.prototype.getEmail = function() {
  * @return {String}
  */
 recoil.db.User.prototype.getPassword = function() {
-    return this.password_;
+    return this.passwordInput_;
 };

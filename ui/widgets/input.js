@@ -48,23 +48,29 @@ recoil.ui.widgets.InputWidget.prototype.getLabel = function() {
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
  */
 recoil.ui.widgets.InputWidget.prototype.attach = function(name, value, enabled) {
+    this.attachStruct({'name': name, 'value': value, 'enabled': enabled});
+};
 
+/**
+ *
+ * @param {!Object| !recoil.frp.Behaviour<Object>} options
+ */
+recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
+    var structs = recoil.frp.struct;
+    var optionsB = structs.flattern(frp, options); // util.toBehaviour(options);
 
-    this.nameB_ = util.toBehaviour(name);
-    this.valueB_ = util.toBehaviour(value);
-    this.enabledB_ = util.toBehaviour(enabled);
-
+    this.nameB_ = frp.liftB(function (val) { console.log("NAME"); return val;},structs.get('name', optionsB, ""));
+    this.valueB_ = structs.get('value', optionsB);
+    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
     var readyB = util.isAllGoodExplain(this.nameB_, this.valueB_, this.enabledB_);
 
-    this.labelWidget_.attach(
-        /** @type !recoil.frp.Behaviour */ (this.nameB_),
-        recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
-    var reallyEnabledB = recoil.ui.BoolWithExplaination.and(
-        frp,
-        /** @type !recoil.frp.Behaviour */ (this.enabledB_), readyB);
-    this.helper_.attach(this.valueB_, reallyEnabledB, util.toBehaviour(this.labelWidget_));
+     this.labelWidget_.attach(
+         /** @type !recoil.frp.Behaviour */ (this.nameB_),
+         recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
+
+    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
@@ -72,22 +78,6 @@ recoil.ui.widgets.InputWidget.prototype.attach = function(name, value, enabled) 
         console.log('INPUT SET');
         me.valueB_.set(inputEl.value);
     }, this.valueB_));
-};
-
-/**
- *
- * @param {!Object| !recoil.frp.Behaviour<Object>} data
- */
-recoil.ui.widgets.InputWidget.prototype.attachStruct = function(data) {
-
-    var util = new recoil.frp.Util(this.helper_.getFrp());
-    var dataB = util.toBehaviour(data);
-
-    var nameB = recoil.frp.struct.get('name', dataB);
-    var enabledB = recoil.frp.struct.get('enabled', dataB);
-    var valueB = recoil.frp.struct.get('value', dataB);
-
-    this.attach(nameB.get(), valueB.get(), enabledB.get());
 };
 
 /**
