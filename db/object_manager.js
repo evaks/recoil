@@ -225,7 +225,68 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
 
     return inversableB;
 };
+/**
+ * takes an object and breaks it down into its component objects and returns a behaviour
+ * this is used to get the object, if the object already exists it uses that instead
+ *
+ * @template T
+ * @param {!recoil.db.Type<T>} typeKey 
+ * @param {T} object 
+ * @return {recoil.frp.Behaviour<T>} a list of entities
+ */ 
+recoil.db.ObjectManager.prototype.disassemble = function (typeKey, object) {
+    var subObjects = typeKey.subObjects();
+    var parts = [];
+    var me = this;
+    
+    subObjects.forEach(function (path) {
+        var subs = path.getAll(object);
+        for (var i = 0; i < subs.list.length;  i++) {
+            var subB = me.registerData(path.keyType(), subs.list[i].value);
+            parts.push({path: subs.list[i].path, behaviour: subB});
+        }
+    });
 
+    return this.createFromParts_(object, parts); 
+};
+
+/**
+ * makes a behaviour out a to level objects and sub parts
+ * 
+ * this is an inversable behaviour so setting it will work
+ * @param {T} topLevel 
+ * @param {!Array<recoil.db.ObjectManager.PartInfo} parts
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.db.ObjectManager.prototype.createParts_ = function (topLevel, parts) {
+    var params = [
+        function (main) {
+            main = goog.object.clone(main);
+            for (var i = 0; i < parts.length; i++) {
+                var value = arguments[i+1];
+               
+                parts[i].path.put(main, value);
+            }
+            return main;
+        },
+            function (value) {
+                value = goog.object.clone(value);
+                for (var i = 0; i < parts.length; i++) {
+                    var subValue = parts[i].path.get(value);
+                    parts[i].path.clear(value);
+                    arguments[i+1].set(subValue);
+                }
+            }
+    ];
+    
+    params.push(this.frp_.createB(topLevel));
+    parts.forEach(function (part) {
+        params.push(part.behaviour);
+    });
+
+    this.frp_.liftBI.apply(this.frp_, params);
+
+};
 recoil.db.ObjectManager.prototype.unregister = function (typeKey, key, opt_options, coms) {
     var behaviours = this.objectTypes_[typeKey];
     if (behaviours === undefined) {
