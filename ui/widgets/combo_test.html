@@ -27,6 +27,9 @@ See the COPYING file for details.
 
   <link rel="stylesheet" href="../css/demo.css">
   <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/combobox.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuitem.css">
+
 </head>
 <body>
 
@@ -41,11 +44,26 @@ See the COPYING file for details.
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
 
-    var val = frp.createB('test');
+    var value = frp.createB('test');
+    var opt_renderer = '';
+
+    var list = function () {
+        var res = [];
+        for(var i = 0; i < 5; i++){
+            res.push(frp.createB('' + i));
+        }
+        return res;
+    };
+
+//    console.log(list());
 
     var comboWidget = new recoil.ui.widgets.ComboWidget(scope);
-    comboWidget.getComponent().render($('combo'));
-    comboWidget.attach("boo", val, recoil.ui.BoolWithExplaination.TRUE);
+    comboWidget.attach(name, value, list(), recoil.ui.BoolWithExplaination.TRUE, opt_renderer );
+
+//    var c = comboWidget.getComponent();
+//    c.addItem(new goog.ui.ComboBoxItem('Test'));
+//    c.render($('combo'));
+//    comboWidget.attach("boo", val, recoil.ui.BoolWithExplaination.TRUE);
 
 
 

@@ -33,10 +33,12 @@ recoil.ui.widgets.ComboWidget.prototype.getComponent = function () {
  *
  * @param {recoil.frp.Behaviour<!string>|!string} name
  * @param {recoil.frp.Behaviour<!string>|!string} value
- * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} opt_enabled
+ * @param {Array<recoil.frp.Behaviour<?>>|Array<?>} list
+ * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} opt_enabled
+ * @param {} opt_renderer
  */
-recoil.ui.widgets.ComboWidget.prototype.attach = function (name, value, opt_enabled) {
-    this.attachStruct({'name': name, 'value': value, 'enabled': opt_enabled });
+recoil.ui.widgets.ComboWidget.prototype.attach = function (name, value, list, opt_enabled, opt_renderer) {
+    this.attachStruct({'name': name, 'value': value, 'list': list, 'enabled': opt_enabled, 'renderer': opt_renderer });
 };
 
 /**
@@ -51,11 +53,13 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
 
     this.nameB_ = structs.get('name', optionsB);
     this.valueB_   = structs.get('value', optionsB);
+    this.listB_ = structs.get('list', optionsB);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    this.rendererB_ = structs.get('renderer', optionsB);
 
-    var readyB = util.isAllGoodExplain(this.valueB_, this.nameB_, this.enabledB_);
+    var readyB = util.isAllGoodExplain(this.valueB_, this.nameB_, this.listB_, this.enabledB_, this.rendererB_);
 
-    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
+    this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_);
 };
 
 /**
@@ -65,6 +69,6 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
  */
 recoil.ui.widgets.ComboWidget.prototype.updateState_ = function (helper) {
   if(helper.isGood()){
-      console.log('in updateState_');
+      console.log('in updateState_', this.listB_);
   }
 };
