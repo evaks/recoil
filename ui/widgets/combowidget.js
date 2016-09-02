@@ -69,6 +69,17 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
  */
 recoil.ui.widgets.ComboWidget.prototype.updateState_ = function (helper) {
   if(helper.isGood()){
-      console.log('in updateState_', this.listB_);
+
+      var c = this.combo_;
+      c.setEnabled(this.enabledB_.get());
+      c.setDefaultText(this.listB_.get()[0]);
+
+      var defaultText = new goog.ui.ComboBoxItem(this.listB_.get()[0]);
+      defaultText.setSticky(true);
+      c.addItem(defaultText);
+
+      for(var i = 1; i < this.listB_.get().length; i++){
+          c.addItem(new goog.ui.ComboBoxItem(this.listB_.get()[i]));
+      }
   }
 };

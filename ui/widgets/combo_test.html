@@ -46,19 +46,21 @@ See the COPYING file for details.
 
     var value = frp.createB('test');
     var opt_renderer = '';
+    var list = ['one', 'two', 'three', 'four', 'five'];
 
-    var list = function () {
+    var getList = function () {
         var res = [];
-        for(var i = 0; i < 5; i++){
-            res.push(frp.createB('' + i));
+        for(var i = 0; i < list.length; i++){
+            res.push(frp.createB(list[i]));
         }
         return res;
     };
 
-//    console.log(list());
+    console.log(getList());
 
     var comboWidget = new recoil.ui.widgets.ComboWidget(scope);
-    comboWidget.attach(name, value, list(), recoil.ui.BoolWithExplaination.TRUE, opt_renderer );
+    comboWidget.attach(value, value, getList(), recoil.ui.BoolWithExplaination.FALSE, opt_renderer );
+    comboWidget.getComponent().render($('combo'));
 
 //    var c = comboWidget.getComponent();
 //    c.addItem(new goog.ui.ComboBoxItem('Test'));
