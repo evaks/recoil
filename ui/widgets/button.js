@@ -65,12 +65,6 @@ recoil.ui.widgets.ButtonWidget.prototype.getComponent = function() {
 recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbackB, enabledB) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
-<<<<<<< Updated upstream
-    nameB = util.toBehaviour(nameB);
-    textB = util.toBehaviour(textB);
-    callbackB = util.toBehaviour(callbackB);
-=======
->>>>>>> Stashed changes
 
     this.nameB_ = util.toBehaviour(nameB);
     this.textB_ = util.toBehaviour(textB);

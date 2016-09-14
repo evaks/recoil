@@ -11,14 +11,16 @@ goog.require('recoil.ui.ComponentWidgetHelper');
 
 /**
  * @implements {recoil.ui.Widget}
+ * @template T
  * @param scope
  * @constructor
  */
-recoil.ui.widgets.ComboWidget = function(scope) {
+recoil.ui.widgets.ComboWidget = function (scope) {
     this.scope_ = scope;
     this.combo_ = new goog.ui.ComboBox();
 
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.combo_, this, this.updateState_);
+    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.combo_, goog.ui.Component.EventType.CHANGE);
 };
 
 /**
@@ -32,13 +34,13 @@ recoil.ui.widgets.ComboWidget.prototype.getComponent = function () {
 /**
  *
  * @param {recoil.frp.Behaviour<!string>|!string} name
- * @param {recoil.frp.Behaviour<!string>|!string} value
- * @param {Array<recoil.frp.Behaviour<?>>|Array<?>} list
+ * @param {recoil.frp.Behaviour<!T>|!T} value
+ * @param {recoil.frp.Behaviour<!Array<T>>|Array<T>} list
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} opt_enabled
- * @param {} opt_renderer
+ * @param {recoil.frp.Behaviour<!function(T) : string>| !function(T) : string} opt_renderer
  */
 recoil.ui.widgets.ComboWidget.prototype.attach = function (name, value, list, opt_enabled, opt_renderer) {
-    this.attachStruct({'name': name, 'value': value, 'list': list, 'enabled': opt_enabled, 'renderer': opt_renderer });
+    this.attachStruct({'name': name, 'value': value, 'list': list, 'enabled': opt_enabled, 'renderer': opt_renderer});
 };
 
 /**
@@ -52,14 +54,34 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
     var optionsB = structs.flattern(frp, options);
 
     this.nameB_ = structs.get('name', optionsB);
-    this.valueB_   = structs.get('value', optionsB);
+    this.valueB_ = structs.get('value', optionsB);
     this.listB_ = structs.get('list', optionsB);
+    /**
+     * @type {recoil.frp.Behaviour.<!recoil.ui.BoolWithExplaination>}
+     * @private
+     */
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
-    this.rendererB_ = structs.get('renderer', optionsB);
+    this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.ComboWidget.DEFAULT_RENDERER);
 
     var readyB = util.isAllGoodExplain(this.valueB_, this.nameB_, this.listB_, this.enabledB_, this.rendererB_);
 
     this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_);
+
+    var me = this;
+    this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
+
+        var val = v.target.getValue();
+        var r = me.rendererB_.get();
+        var list = me.listB_.get();
+        for (var i = 0; i < list.length; i++) {
+            if (recoil.util.isEqual(val, r(list[i]))) {
+                me.valueB_.set(list[i]);
+                break;
+            }
+        }
+        // me.listB_.set([{a:'one'}, {a:'two'}, {a: 'three'}, {a: 'four'}]);
+
+    }, this.valueB_, this.listB_, this.rendererB_));
 };
 
 /**
@@ -68,18 +90,38 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
  * @private
  */
 recoil.ui.widgets.ComboWidget.prototype.updateState_ = function (helper) {
-  if(helper.isGood()){
+    if (helper.isGood()) {
 
-      var c = this.combo_;
-      c.setEnabled(this.enabledB_.get());
-      c.setDefaultText(this.listB_.get()[0]);
+        console.log('in updateState_');
+        var c = this.combo_;
+        c.setEnabled(this.enabledB_.get().val());
+        c.removeAllItems();
 
-      var defaultText = new goog.ui.ComboBoxItem(this.listB_.get()[0]);
-      defaultText.setSticky(true);
-      c.addItem(defaultText);
+        var renderer = this.rendererB_.get();
 
-      for(var i = 1; i < this.listB_.get().length; i++){
-          c.addItem(new goog.ui.ComboBoxItem(this.listB_.get()[i]));
-      }
-  }
+        var selected = this.valueB_.get();
+        var found = false;
+
+        for (var i = 0; i < this.listB_.get().length; i++) {
+            var val = this.listB_.get()[i];
+            c.addItem(new goog.ui.ComboBoxItem(renderer(val)));
+            if (recoil.util.isEqual(val, selected)) {
+                found = true;
+            }
+        }
+        if (!found) {
+            c.addItem(new goog.ui.ComboBoxItem(renderer(selected)));
+
+        }
+        c.setValue(renderer(selected));
+
+    }
+};
+
+/**
+ *
+ * @type function (*) : {goog.ui.ControlContent}
+ */
+recoil.ui.widgets.ComboWidget.DEFAULT_RENDERER = function (obj) {
+    return "" + obj;
 };

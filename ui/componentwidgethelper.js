@@ -236,7 +236,10 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         console.log('evt', e);
         if (me.listener_) {
             me.listener_.frp().accessTrans(function() {
-                me.listener_.set(e);
+                // sometimes events fire when before it is on the screen
+                if (me.listener_.hasRefs()) {
+                    me.listener_.set(e);
+                }
             }, me.listener_);
         }
     };

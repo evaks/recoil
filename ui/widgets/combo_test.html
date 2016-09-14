@@ -23,6 +23,7 @@ See the COPYING file for details.
     goog.require('recoil.ui.Widget');
     goog.require('goog.ui.ComboBox');
     goog.require('recoil.ui.widgets.ComboWidget');
+    goog.require('recoil.ui.widgets.ButtonWidget');
   </script>
 
   <link rel="stylesheet" href="../css/demo.css">
@@ -30,10 +31,29 @@ See the COPYING file for details.
     <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css">
     <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuitem.css">
 
+    <style>
+        #combo{
+            background-color: red;
+            width: 300px;
+            padding: 10px;
+            float: left;
+        }
+
+        #addButton {
+            width: 50px;
+            float: left;
+        }
+
+        #removeButton {
+
+        }
+    </style>
 </head>
 <body>
 
   <div id="combo"></div>
+  <div id="addButton"></div>
+  <div id="removeButton"></div>
   <br>
 
   <br>
@@ -44,29 +64,36 @@ See the COPYING file for details.
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
 
-    var value = frp.createB('test');
-    var opt_renderer = '';
-    var list = ['one', 'two', 'three', 'four', 'five'];
-
-    var getList = function () {
-        var res = [];
-        for(var i = 0; i < list.length; i++){
-            res.push(frp.createB(list[i]));
-        }
-        return res;
+    var value = frp.createB({a:'xthree'});
+    var opt_renderer = function (val) {
+        return val.a;
     };
+    var list = [{a:'one'}, {a:'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
 
-    console.log(getList());
+
+    var listB = frp.createB(list);
+      var addButton = new recoil.ui.widgets.ButtonWidget(scope);
+      addButton.attach(frp.createB('Add Item'), frp.createB('Add'), frp.createCallback(function(){
+
+          listB.set([{a:'one'}, {a:'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}, {a: 'seven'}]);
+
+      }, listB), recoil.ui.BoolWithExplaination.TRUE);
+
+    var removeButton = new recoil.ui.widgets.ButtonWidget(scope);
+    removeButton.attach("", frp.createB("Remove"), frp.createCallback(function(){
+        var arr = goog.array.clone(listB.get());
+        goog.array.removeAt(arr, 0);
+        listB.set(arr);
+        console.log("removing", arr)
+
+    }, listB, value), recoil.ui.BoolWithExplaination.TRUE);
 
     var comboWidget = new recoil.ui.widgets.ComboWidget(scope);
-    comboWidget.attach(value, value, getList(), recoil.ui.BoolWithExplaination.FALSE, opt_renderer );
+    comboWidget.attach(value, value, listB, recoil.ui.BoolWithExplaination.TRUE, opt_renderer );
     comboWidget.getComponent().render($('combo'));
 
-//    var c = comboWidget.getComponent();
-//    c.addItem(new goog.ui.ComboBoxItem('Test'));
-//    c.render($('combo'));
-//    comboWidget.attach("boo", val, recoil.ui.BoolWithExplaination.TRUE);
-
+    addButton.getComponent().render($('addButton'));
+    removeButton.getComponent().render($('removeButton'));
 
 
   </script>

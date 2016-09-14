@@ -101,16 +101,3 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 recoil.ui.widgets.InputWidgetHelper = function(scope) {
     this.scope_ = scope;
 };
-
-/**
- *
- * @param {string} name
- * @param {recoil.frp.Behaviour<!string>|!string} value
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
- * @return {recoil.ui.widgets.InputWidget}
- */
-recoil.ui.widgets.InputWidgetHelper.prototype.createAndAttach = function(name, value, enabled) {
-    var label = new recoil.ui.widgets.InputWidget(this.scope_);
-    label.attach(name, value, enabled);
-    return label;
-};
