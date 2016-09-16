@@ -64,11 +64,32 @@ See the COPYING file for details.
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
 
-    var value = frp.createB({a:'xthree'});
-    var opt_renderer = function (val) {
-        return val.a;
+    /**
+     *
+     * @constructor
+     * @extends goog.ui.MenuItemRenderer
+     */
+
+    var MyRender = function () {
+        goog.ui.MenuItemRenderer.call(this);
     };
+    goog.inherits(MyRender, goog.ui.MenuItemRenderer);
+
+    MyRender.prototype.createDom = function (item) {
+       // var i = goog.ui.MenuItemRenderer.prototype.createDom.call(this, item);
+         console.log(item);
+        return goog.dom.createDom("b",undefined,
+                goog.dom.createDom("i", undefined, goog.dom.createDom("i", undefined, "xx")));
+
+    };
+    var value = frp.createB({a:'xthree'});
     var list = [{a:'one'}, {a:'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
+    var opt_renderer = function (val) {
+
+        var item = new goog.ui.ComboBoxItem(val.a, val.a, undefined, new MyRender());
+//        item.addClassName("makeitred");
+        return item;
+    };
 
 
     var listB = frp.createB(list);

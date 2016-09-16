@@ -104,16 +104,16 @@ recoil.ui.widgets.ComboWidget.prototype.updateState_ = function (helper) {
 
         for (var i = 0; i < this.listB_.get().length; i++) {
             var val = this.listB_.get()[i];
-            c.addItem(new goog.ui.ComboBoxItem(renderer(val)));
+            c.addItem(renderer(val));
             if (recoil.util.isEqual(val, selected)) {
                 found = true;
             }
         }
         if (!found) {
-            c.addItem(new goog.ui.ComboBoxItem(renderer(selected)));
+       //     c.addItem(new goog.ui.ComboBoxItem(renderer(selected), selected));
 
         }
-        c.setValue(renderer(selected));
+     //   c.setValue(selected);
 
     }
 };

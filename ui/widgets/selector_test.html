@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by the Apache License, Version 2.0.
+See the COPYING file for details.
+-->
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Combo Test</title>
+    <script src="../../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../../my-deps.js"></script>
+    <script>
+        goog.require('goog.dom');
+        goog.require('recoil.frp.Frp');
+        goog.require('recoil.ui.WidgetScope');
+        goog.require('recoil.frp.Behaviour');
+        goog.require('recoil.frp.Util');
+        goog.require('recoil.frp.struct');
+        goog.require('recoil.ui.WidgetHelper');
+        goog.require('recoil.ui.Widget');
+        goog.require('recoil.ui.widgets.ButtonWidget');
+        goog.require('goog.ui.Option');
+        goog.require('goog.ui.Select');
+        goog.require('goog.ui.Separator');
+
+    </script>
+
+    <link rel="stylesheet" href="../css/demo.css">
+    <style>
+        #combo {
+            background-color: red;
+            width: 300px;
+            padding: 10px;
+            float: left;
+        }
+
+        #addButton {
+            width: 50px;
+            float: left;
+        }
+
+        #removeButton {
+
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="selector"></div>
+<div id="addButton"></div>
+<div id="removeButton"></div>
+<br>
+
+<br>
+
+<script>
+
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+
+    var value = frp.createB({a: 'xthree'});
+    var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
+
+
+    var listB = frp.createB(list);
+    var selector = new recoil.ui.widgets.SelectorWidget(scope);
+    selector.attach('Selector', value, li);
+
+
+    var addButton = new recoil.ui.widgets.ButtonWidget(scope);
+    addButton.attach(frp.createB('Add Item'), frp.createB('Add'), frp.createCallback(function () {
+
+        listB.set([{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}, {a: 'seven'}]);
+
+    }, listB), recoil.ui.BoolWithExplaination.TRUE);
+
+    var removeButton = new recoil.ui.widgets.ButtonWidget(scope);
+    removeButton.attach("", frp.createB("Remove"), frp.createCallback(function () {
+        var arr = goog.array.clone(listB.get());
+        goog.array.removeAt(arr, 0);
+        listB.set(arr);
+        console.log("removing", arr)
+
+    }, listB, value), recoil.ui.BoolWithExplaination.TRUE);
+
+
+
+    addButton.getComponent().render($('addButton'));
+    removeButton.getComponent().render($('removeButton'));
+
+
+</script>
+</body>
+</html>
