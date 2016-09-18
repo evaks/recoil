@@ -89,6 +89,7 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
         this.input_.setValue(this.valueB_.get());
+        this.labelWidget_.getComponent().set
     }
 };
 

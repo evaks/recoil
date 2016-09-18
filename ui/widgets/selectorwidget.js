@@ -13,8 +13,9 @@ recoil.ui.widgets.SelectorWidget = function (scope) {
     this.component_ = new goog.ui.Component();
     this.selector_ = new goog.ui.Select();
 
-    this.state_ = new recoil.ui.ComponentWidgetHelper(scope, this.selector_, this, this.updateState_);
-    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.ACTION);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.selector_, this, this.updateState_);
+    // this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.ACTION);
+    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.CHANGE);
 
 };
 
@@ -56,14 +57,14 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
      * @private
      */
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
-    this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.ComboWidget.DEFAULT_RENDERER);
+    this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.SelectorWidget.DEFAULT);
 
     this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
 
-        console.log('v', v);
+        //console.log('v', v);
     }, this.valueB_, this.listB_));
 
 };
@@ -76,8 +77,29 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
 recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 
     if (helper.isGood()) {
-        console.log('in updateState');
+        console.log('in selectWidget updateState');
 
+        var sel = this.selector_;
+        sel.setEnabled(this.enabledB_.get().val());
+
+        var renderer = this.rendererB_.get();
+
+        for(var i in this.listB_.get()){
+            var val = this.listB_.get()[i];
+            //console.log('list', val);
+            this.selector_.addItem(new goog.ui.MenuItem(val.a));
+        }
     }
+    this.selector_.setDefaultCaption(this.valueB_.get());
 
+};
+
+/**
+ * 
+ * @param obj
+ * @returns {string}
+ * @constructor
+ */
+recoil.ui.widgets.SelectorWidget.DEFAULT = function(obj) {
+    return "" + obj;
 };

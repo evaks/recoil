@@ -8,7 +8,7 @@ See the COPYING file for details.
 -->
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Combo Test</title>
+    <title>Selector Test</title>
     <script src="../../../../closure-library/closure/goog/base.js"></script>
     <script src="../../../../my-deps.js"></script>
     <script>
@@ -24,34 +24,28 @@ See the COPYING file for details.
         goog.require('goog.ui.Option');
         goog.require('goog.ui.Select');
         goog.require('goog.ui.Separator');
+        goog.require('recoil.ui.widgets.SelectorWidget');
+        goog.require('recoil.ui.widgets.LabelWidget');
 
     </script>
 
     <link rel="stylesheet" href="../css/demo.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menubutton.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuitem.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuseparator.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/flatmenubutton.css">
+
     <style>
-        #combo {
-            background-color: red;
-            width: 300px;
-            padding: 10px;
-            float: left;
-        }
 
-        #addButton {
-            width: 50px;
-            float: left;
-        }
-
-        #removeButton {
-
-        }
     </style>
 
 </head>
 <body>
 
 <div id="selector"></div>
-<div id="addButton"></div>
-<div id="removeButton"></div>
+<div id="label"></div>
+<div id="selector2"></div>
 <br>
 
 <br>
@@ -62,36 +56,24 @@ See the COPYING file for details.
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
 
-    var value = frp.createB({a: 'xthree'});
+    var value = frp.createB('test');
     var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
-
+    var label = new recoil.ui.widgets.LabelWidget(scope);
 
     var listB = frp.createB(list);
+
+    label.attach(value, recoil.ui.BoolWithExplaination.TRUE);
+
     var selector = new recoil.ui.widgets.SelectorWidget(scope);
-    selector.attach('Selector', value, li);
+    var selector2 = new recoil.ui.widgets.SelectorWidget(scope);
+
+    selector.attach("", listB.get()[0].a, listB, recoil.ui.BoolWithExplaination.TRUE, null);
+    selector2.attach("", listB.get()[0].a, listB, recoil.ui.BoolWithExplaination.TRUE, null);
 
 
-    var addButton = new recoil.ui.widgets.ButtonWidget(scope);
-    addButton.attach(frp.createB('Add Item'), frp.createB('Add'), frp.createCallback(function () {
-
-        listB.set([{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}, {a: 'seven'}]);
-
-    }, listB), recoil.ui.BoolWithExplaination.TRUE);
-
-    var removeButton = new recoil.ui.widgets.ButtonWidget(scope);
-    removeButton.attach("", frp.createB("Remove"), frp.createCallback(function () {
-        var arr = goog.array.clone(listB.get());
-        goog.array.removeAt(arr, 0);
-        listB.set(arr);
-        console.log("removing", arr)
-
-    }, listB, value), recoil.ui.BoolWithExplaination.TRUE);
-
-
-
-    addButton.getComponent().render($('addButton'));
-    removeButton.getComponent().render($('removeButton'));
-
+    selector.getComponent().render($('selector'));
+    label.getComponent().render($('label'));
+    selector2.getComponent().render($('selector2'));
 
 </script>
 </body>
