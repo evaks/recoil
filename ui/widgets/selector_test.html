@@ -63,18 +63,33 @@ See the COPYING file for details.
     var label = new recoil.ui.widgets.LabelWidget(scope);
 
 
+    function findName(name) {
+        return name.a === 'test';
+    }
 
     var opt_renderer = function (val) {
-        var found = list.find(function findName(name){
-            return name.a === 'test';
-        });
+//        var found = list.find(function findName(name){
+//            return name.a === 'test';
+//        });
 
-        if(found === undefined){
+//        if(found === undefined){
+//            list.push(value.get());
+//        }
+        var found = false;
+        if(list.find(findName)){
+            found = true;
+        }
+
+        if(!found){
             list.push(value.get());
         }
         return new goog.ui.MenuItem(val);
 
     };
+
+    if(list.find(findName)){
+        list.push(value.get());
+    }
 
 
     var listB = frp.createB(list);

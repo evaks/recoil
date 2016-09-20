@@ -66,7 +66,7 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
 
         var val = v.target.getValue();
         me.valueB_.set(val);
-        console.log('in selectWidget attachStruct', val);
+        console.log('in selectWidget attachStruct', val, me);
 
         // var list = me.listB_.get();
 
@@ -85,11 +85,13 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
     if (helper.isGood()) {
         console.log('in selectWidget updateState');
 
+        var list = this.listB_.get();
         var sel = this.selector_;
         sel.setEnabled(this.enabledB_.get().val());
+        sel.setDefaultCaption(list[0].a);
 
-        var list = this.listB_.get();
         var renderer = this.rendererB_.get();
+        var saveSelected = sel.getSelectedIndex();
 
         for(var i = sel.getItemCount() - 1; i >= 0; i--){
             sel.removeItemAt(i);
@@ -99,9 +101,7 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
             var val = list[i];
             sel.addItem(renderer(val.a));
         }
-
-        sel.setDefaultCaption(list[0].a);
-
+        sel.setSelectedIndex(saveSelected);
     }
 
 };
