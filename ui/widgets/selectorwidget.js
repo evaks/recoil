@@ -36,7 +36,7 @@ recoil.ui.widgets.SelectorWidget.prototype.getComponent = function () {
  * @param {recoil.frp.Behaviour<!function(T) : string>| !function(T) : string} opt_rendererB
  */
 recoil.ui.widgets.SelectorWidget.prototype.attach = function (nameB, valueB, listB, opt_enabledB, opt_rendererB) {
-    this.attachStruct({name: nameB, value: valueB, list: listB, opt_enabled: opt_enabledB, opt_renderer: opt_rendererB});
+    this.attachStruct({name: nameB, value: valueB, list: listB, enabled: opt_enabledB, renderer: opt_rendererB});
 };
 
 /**
@@ -64,7 +64,13 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
 
-        //console.log('v', v);
+        var val = v.target.getValue();
+        me.valueB_.set(val);
+        console.log('in selectWidget attachStruct', val);
+
+        // var list = me.listB_.get();
+
+
     }, this.valueB_, this.listB_));
 
 };
@@ -82,15 +88,21 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
         var sel = this.selector_;
         sel.setEnabled(this.enabledB_.get().val());
 
+        var list = this.listB_.get();
         var renderer = this.rendererB_.get();
 
-        for(var i in this.listB_.get()){
-            var val = this.listB_.get()[i];
-            //console.log('list', val);
-            this.selector_.addItem(new goog.ui.MenuItem(val.a));
+        for(var i = sel.getItemCount() - 1; i >= 0; i--){
+            sel.removeItemAt(i);
         }
+
+        for(var i in list){
+            var val = list[i];
+            sel.addItem(renderer(val.a));
+        }
+
+        sel.setDefaultCaption(list[0].a);
+
     }
-    this.selector_.setDefaultCaption(this.valueB_.get());
 
 };
 

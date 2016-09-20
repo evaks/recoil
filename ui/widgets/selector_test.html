@@ -43,9 +43,9 @@ See the COPYING file for details.
 </head>
 <body>
 
-<div id="selector"></div>
 <div id="label"></div>
-<div id="selector2"></div>
+<div id="selector"></div>
+<!--<div id="selector2"></div>-->
 <br>
 
 <br>
@@ -56,24 +56,38 @@ See the COPYING file for details.
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
 
-    var value = frp.createB('test');
+    var value = frp.createB({a: 'test'});
+//    var value = frp.createB('test');
+    var v = frp.createB(value.get().a);
     var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
     var label = new recoil.ui.widgets.LabelWidget(scope);
 
+
+
+    var opt_renderer = function (val) {
+        var found = list.find(function findName(name){
+            return name.a === 'test';
+        });
+
+        if(found === undefined){
+            list.push(value.get());
+        }
+        return new goog.ui.MenuItem(val);
+
+    };
+
+
     var listB = frp.createB(list);
 
-    label.attach(value, recoil.ui.BoolWithExplaination.TRUE);
+    label.attach(v, recoil.ui.BoolWithExplaination.TRUE);
 
     var selector = new recoil.ui.widgets.SelectorWidget(scope);
-    var selector2 = new recoil.ui.widgets.SelectorWidget(scope);
 
-    selector.attach("", listB.get()[0].a, listB, recoil.ui.BoolWithExplaination.TRUE, null);
-    selector2.attach("", listB.get()[0].a, listB, recoil.ui.BoolWithExplaination.TRUE, null);
+    selector.attach("", v, listB, recoil.ui.BoolWithExplaination.TRUE, opt_renderer);
 
 
     selector.getComponent().render($('selector'));
     label.getComponent().render($('label'));
-    selector2.getComponent().render($('selector2'));
 
 </script>
 </body>
