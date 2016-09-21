@@ -709,7 +709,7 @@ recoil.frp.Behaviour.prototype.metaGet = function() {
         throw new recoil.exception.NotAttached();
     }
 
-    if (hasProviders && this.accessors_ === 0) {
+    if (this.accessors_ === 0) {
         // if providers are feeding into me then it is NOT ok just to set the value
         var acc = new recoil.exception.NoAccessors();
 

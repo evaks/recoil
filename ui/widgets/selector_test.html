@@ -57,49 +57,21 @@ See the COPYING file for details.
     var $ = goog.dom.getElement;
 
     var value = frp.createB({a: 'test'});
-//    var value = frp.createB('test');
-    var v = frp.createB(value.get().a);
     var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
     var label = new recoil.ui.widgets.LabelWidget(scope);
 
+    var opt_renderer = function (val, errored, enabled) {
 
-    function findName(name) {
-        return name.a === 'test';
-    }
-
-    var opt_renderer = function (val) {
-//        var found = list.find(function findName(name){
-//            return name.a === 'test';
-//        });
-
-//        if(found === undefined){
-//            list.push(value.get());
-//        }
-        var found = false;
-        if(list.find(findName)){
-            found = true;
-        }
-
-        if(!found){
-            list.push(value.get());
-        }
-        return new goog.ui.MenuItem(val);
-
+        return recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER(val.a, errored, enabled);
     };
-
-    if(list.find(findName)){
-        list.push(value.get());
-    }
-
 
     var listB = frp.createB(list);
 
-    label.attach(v, recoil.ui.BoolWithExplaination.TRUE);
+    label.attach(frp.liftB( function() { return value.get().a}, value), recoil.ui.BoolWithExplaination.TRUE);
 
     var selector = new recoil.ui.widgets.SelectorWidget(scope);
 
-    selector.attach("", v, listB, recoil.ui.BoolWithExplaination.TRUE, opt_renderer);
-
+    selector.attach("", value, listB, recoil.ui.BoolWithExplaination.TRUE, opt_renderer);
 
     selector.getComponent().render($('selector'));
     label.getComponent().render($('label'));

@@ -1,6 +1,7 @@
 goog.provide('recoil.ui.widgets.SelectorWidget');
 goog.require('goog.ui.Container');
 goog.require('goog.ui.Control');
+goog.require('recoil.util');
 goog.require('recoil.frp.Behaviour');
 
 /**
@@ -64,12 +65,11 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
 
-        var val = v.target.getValue();
-        me.valueB_.set(val);
-        console.log('in selectWidget attachStruct', val, me);
-
-        // var list = me.listB_.get();
-
+        var idx = v.target.getSelectedIndex();
+        var list = me.listB_.get();
+        if (idx < list.length) {
+            me.valueB_.set(list[idx]);
+        }
 
     }, this.valueB_, this.listB_));
 
@@ -88,20 +88,29 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
         var list = this.listB_.get();
         var sel = this.selector_;
         sel.setEnabled(this.enabledB_.get().val());
-        sel.setDefaultCaption(list[0].a);
 
         var renderer = this.rendererB_.get();
-        var saveSelected = sel.getSelectedIndex();
 
         for(var i = sel.getItemCount() - 1; i >= 0; i--){
             sel.removeItemAt(i);
         }
 
-        for(var i in list){
+        var found = -1;
+        for(i  = 0; i < list.length; i++){
             var val = list[i];
-            sel.addItem(renderer(val.a));
+            sel.addItem(renderer(val));
+
+            if (recoil.util.isEqual(this.valueB_.get(), val)) {
+                found = i;
+            }
         }
-        sel.setSelectedIndex(saveSelected);
+
+        if (found === -1) {
+            sel.addItem(renderer(this.valueB_.get()));
+            found = list.length;
+        }
+
+        sel.setSelectedIndex(found);
     }
 
 };
@@ -109,9 +118,9 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 /**
  * 
  * @param obj
- * @returns {string}
+ * @returns {!goog.ui.MenuItem}
  * @constructor
  */
-recoil.ui.widgets.SelectorWidget.DEFAULT = function(obj) {
-    return "" + obj;
+recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER = function(obj, errored, enabled) {
+    return new goog.ui.MenuItem(obj);
 };
