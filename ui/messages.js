@@ -13,6 +13,17 @@ recoil.ui.messages.AND = recoil.ui.message.getParamMsg(['first'], ' and ', ['sec
  */
 recoil.ui.messages.NOT_READY = recoil.ui.message.getParamMsg('Not ready');
 
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+
+recoil.ui.messages.VALID = recoil.ui.message.getParamMsg('Valid');
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.INVALID = recoil.ui.message.getParamMsg('Invalid');
 
 
 /**

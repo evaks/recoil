@@ -37,7 +37,9 @@ See the COPYING file for details.
     <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/flatmenubutton.css">
 
     <style>
-
+        .error {
+            color: red;
+        }
     </style>
 
 </head>
@@ -67,12 +69,42 @@ See the COPYING file for details.
 
     var listB = frp.createB(list);
 
-    label.attach(frp.liftB( function() { return value.get().a}, value), recoil.ui.BoolWithExplaination.TRUE);
+    label.attach(frp.liftB(function () {
+        return value.get().a
+    }, value), recoil.ui.BoolWithExplaination.TRUE);
 
     var selector = new recoil.ui.widgets.SelectorWidget(scope);
 
-    selector.attach("", value, listB, recoil.ui.BoolWithExplaination.TRUE, opt_renderer);
+    //    selector.attach("", value, listB, recoil.ui.BoolWithExplaination.TRUE, opt_renderer, [new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.NOT_READY)]);
 
+
+    selector.attachStruct({
+        value: value,
+        list: listB, renderer: opt_renderer,
+        enabledItems: [new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.INVALID)]
+    });
+
+    /*
+
+     selector.attachStruct(
+     recoil.ui.widgets.SelectorWidget.options
+     .value(value)
+     .list(list)
+     .renderer(opt_renderer)
+     .enabledItems([new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.NOT_READY)]).get()
+     );
+     recoil.ui.widgets.SelectorWidget.options
+     .value(value)
+     .list(list)
+     .renderer(opt_renderer)
+     .enabledItems([new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.NOT_READY)])
+     .attach(selector);
+     */
     selector.getComponent().render($('selector'));
     label.getComponent().render($('label'));
 

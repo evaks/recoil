@@ -36,8 +36,8 @@ recoil.ui.widgets.SelectorWidget.prototype.getComponent = function () {
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} opt_enabledB
  * @param {recoil.frp.Behaviour<!function(T) : string>| !function(T) : string} opt_rendererB
  */
-recoil.ui.widgets.SelectorWidget.prototype.attach = function (nameB, valueB, listB, opt_enabledB, opt_rendererB) {
-    this.attachStruct({name: nameB, value: valueB, list: listB, enabled: opt_enabledB, renderer: opt_rendererB});
+recoil.ui.widgets.SelectorWidget.prototype.attach = function (nameB, valueB, listB, opt_enabledB, opt_rendererB, opt_enabledItemsB) {
+    this.attachStruct({name: nameB, value: valueB, list: listB, enabled: opt_enabledB, renderer: opt_rendererB, enabledItems : opt_enabledItemsB});
 };
 
 /**
@@ -52,6 +52,11 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
     this.nameB_ = structs.get('name', optionsB);
     this.valueB_ = structs.get('value', optionsB);
     this.listB_ = structs.get('list', optionsB);
+    /**
+     * @type {recoil.frp.Behaviour.<!Array<recoil.ui.BooleanWithExplaination>}
+     * @private
+     */
+    this.enabledItemsB_ = structs.get('enabledItems', optionsB, []);
 
     /**
      * @type {recoil.frp.Behaviour.<!recoil.ui.BoolWithExplaination>}
@@ -60,7 +65,7 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
     this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.SelectorWidget.DEFAULT);
 
-    this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_);
+    this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_, this.enabledItemsB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
@@ -87,6 +92,7 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 
         var list = this.listB_.get();
         var sel = this.selector_;
+        var enabledItems = this.enabledItemsB_.get();
         sel.setEnabled(this.enabledB_.get().val());
 
         var renderer = this.rendererB_.get();
@@ -98,15 +104,14 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
         var found = -1;
         for(i  = 0; i < list.length; i++){
             var val = list[i];
-            sel.addItem(renderer(val));
-
+            var enabled = enabledItems.length > i ? enabledItems[i] : recoil.ui.BoolWithExplaination.TRUE;
+            sel.addItem(renderer(val, true, enabled));
             if (recoil.util.isEqual(this.valueB_.get(), val)) {
                 found = i;
             }
         }
-
         if (found === -1) {
-            sel.addItem(renderer(this.valueB_.get()));
+            sel.addItem(renderer(this.valueB_.get(), false, recoil.ui.BoolWithExplaination.FALSE));
             found = list.length;
         }
 
@@ -118,9 +123,32 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 /**
  * 
  * @param obj
+ * @param errored
+ * @param {!recoil.ui.BoolWithExplaination} enabled
  * @returns {!goog.ui.MenuItem}
  * @constructor
  */
-recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER = function(obj, errored, enabled) {
-    return new goog.ui.MenuItem(obj);
+recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER = function(obj, valid, enabled) {
+
+    var t = goog.dom.createDom("div", valid ? undefined : "error", obj);
+    console.log(enabled.reason());
+    var item = new goog.ui.MenuItem(t);
+    item.setEnabled(enabled.val());
+
+    return item;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
