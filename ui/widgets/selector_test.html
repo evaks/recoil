@@ -75,36 +75,21 @@ See the COPYING file for details.
 
     var selector = new recoil.ui.widgets.SelectorWidget(scope);
 
-    //    selector.attach("", value, listB, recoil.ui.BoolWithExplaination.TRUE, opt_renderer, [new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.NOT_READY)]);
-
-
-    selector.attachStruct({
-        value: value,
-        list: listB, renderer: opt_renderer,
+    var enabledItems = {
         enabledItems: [new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
             new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
             new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
             new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
             new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
-            new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.INVALID)]
-    });
+            new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.INVALID)]};
 
-    /*
+    recoil.ui.widgets.SelectorWidget.options
+            .value(value)
+            .list(list)
+            .renderer(opt_renderer)
+            .enabledItems(enabledItems)
+            .attach(selector);
 
-     selector.attachStruct(
-     recoil.ui.widgets.SelectorWidget.options
-     .value(value)
-     .list(list)
-     .renderer(opt_renderer)
-     .enabledItems([new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.NOT_READY)]).get()
-     );
-     recoil.ui.widgets.SelectorWidget.options
-     .value(value)
-     .list(list)
-     .renderer(opt_renderer)
-     .enabledItems([new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.NOT_READY)])
-     .attach(selector);
-     */
     selector.getComponent().render($('selector'));
     label.getComponent().render($('label'));
 

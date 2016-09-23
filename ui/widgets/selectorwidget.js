@@ -5,6 +5,11 @@ goog.require('recoil.util');
 goog.require('recoil.frp.Behaviour');
 
 /**
+ * list of functions available when creating a selectorWidget
+ */
+recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value', 'list', 'renderer', 'enabledItems');
+
+/**
  *
  * @param {!recoil.ui.WidgetScope} scope
  * @constructor
@@ -123,7 +128,7 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 /**
  * 
  * @param obj
- * @param errored
+ * @param valid
  * @param {!recoil.ui.BoolWithExplaination} enabled
  * @returns {!goog.ui.MenuItem}
  * @constructor

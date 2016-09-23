@@ -463,3 +463,46 @@ recoil.util.notNull = function(args)  {
         }
     }
 };
+
+recoil.util.Options = function(var_options) {
+    var res = {};
+    var remaining = {};
+    var mkSetFunc =  function (struct, remaining, name) {
+        struct = goog.object.clone(struct);
+        remaining = goog.object.clone(remaining);
+
+      return function (val) {
+          delete remaining[name];
+          struct[name] = val;
+          var res1 = {};
+          for (var name1 in remaining) {
+              res1[name1] = mkSetFunc(struct, remaining, name1);
+          }
+          res1.struct = function () {
+              return struct;
+          };
+          res1.attach = function (widget) {
+              widget.attachStruct(struct);
+          };
+          return res1;
+      }
+     };
+
+    for (var i = 0; i < arguments.length; i++) {
+        var name = arguments[i];
+        remaining[name] = true;
+    }
+
+    for (var i = 0; i < arguments.length; i++) {
+        var name = arguments[i];
+        res[name] = mkSetFunc({},remaining, name);
+    }
+
+    res.struct = function () {
+        return {};
+    };
+    res.attach = function (widget) {
+        widget.attachStruct({});
+    };
+    return res;
+};

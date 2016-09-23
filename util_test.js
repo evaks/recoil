@@ -130,3 +130,20 @@ function testCompare() {
     semetricCompare(recoil.util.compare(loopTestA, loopTestB), -1);
 
 }
+
+function testOptions () {
+    var testee = recoil.util.Options('a', 'b');
+
+    var val = testee.a(1).b(2).struct();
+    assertObjectEquals(val, {a: 1, b: 2});
+
+    assertThrows("unknown value", function () {
+        testee.c(3);
+    });
+
+    assertThrows("dup value",function () {
+        testee.a(3).a(3);
+    });
+    assertObjectEquals(testee.struct(), {});
+
+}
