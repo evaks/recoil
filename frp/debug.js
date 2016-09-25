@@ -10,7 +10,12 @@ goog.provide('recoil.frp.Debug');
 recoil.frp.Debug = function(name, behaviour) {
     return behaviour.frp().metaLiftBI(
         function() {
-            console.log(name, 'calc', behaviour.metaGet());
+            if (behaviour.metaGet().good()) {
+                console.log(name, 'calc', behaviour.get());
+            }
+            else {
+                console.log(name, 'calc (not good)', behaviour.metaGet());
+            }
             return behaviour.metaGet();
         },
         function(val) {
