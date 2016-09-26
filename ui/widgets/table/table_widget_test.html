@@ -66,12 +66,19 @@
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
 //    columns.add(tblKeys.count, "Count");
-    columns.addColumn(new recoil.ui.widgets.table.NumberColumn(tblKeys.count,"Count", {enabled: new recoil.ui.BoolWithExplanation(
-    false,
-    new recoil.ui.message.Message("It is good"), 
-    new recoil.ui.message.Message("It is bad") )
-    }));
-    columns.add(tblKeys.check, "Check");
+    var numCol = new recoil.ui.widgets.table.NumberColumn(tblKeys.count,"Count", {enabled: new recoil.ui.BoolWithExplanation(
+            true,
+            new recoil.ui.message.Message("It is good"),
+            new recoil.ui.message.Message("It is bad") )
+    });
+    console.log('numCol', numCol);
+    columns.addColumn(numCol);
+//    columns.add(tblKeys.check, "Check");
+    var boolCol = new recoil.ui.widgets.table.BooleanColumn(tblKeys.check, "Check",
+            {enabled: new recoil.ui.BoolWithExplanation(true)});
+    console.log('boolCol', boolCol);
+    columns.addColumn(boolCol);
+
 
     //this is wrong we can't simply go create b because tableMetaData contain
     //behaviours

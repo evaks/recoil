@@ -58,7 +58,7 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
     this.valueB_ = structs.get('value', optionsB);
     this.listB_ = structs.get('list', optionsB);
     /**
-     * @type {recoil.frp.Behaviour<!Array<recoil.ui.BoolWithExplanation>}
+     * @type {recoil.frp.Behaviour<!Array<recoil.ui.BoolWithExplanation>>}
      * @private
      */
     this.enabledItemsB_ = structs.get('enabledItems', optionsB, []);
@@ -136,7 +136,6 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER = function(obj, valid, enabled) {
 
     var t = goog.dom.createDom("div", valid ? undefined : "error", obj);
-    console.log(enabled.reason());
     var item = new goog.ui.MenuItem(t);
     item.setEnabled(enabled.val());
 
