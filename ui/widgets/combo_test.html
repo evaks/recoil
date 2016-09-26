@@ -98,7 +98,7 @@ See the COPYING file for details.
 
           listB.set([{a:'one'}, {a:'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}, {a: 'seven'}]);
 
-      }, listB), recoil.ui.BoolWithExplaination.TRUE);
+      }, listB), recoil.ui.BoolWithExplanation.TRUE);
 
     var removeButton = new recoil.ui.widgets.ButtonWidget(scope);
     removeButton.attach("", frp.createB("Remove"), frp.createCallback(function(){
@@ -107,10 +107,10 @@ See the COPYING file for details.
         listB.set(arr);
         console.log("removing", arr)
 
-    }, listB, value), recoil.ui.BoolWithExplaination.TRUE);
+    }, listB, value), recoil.ui.BoolWithExplanation.TRUE);
 
     var comboWidget = new recoil.ui.widgets.ComboWidget(scope);
-    comboWidget.attach(value, value, listB, recoil.ui.BoolWithExplaination.TRUE, opt_renderer );
+    comboWidget.attach(value, value, listB, recoil.ui.BoolWithExplanation.TRUE, opt_renderer );
     comboWidget.getComponent().render($('combo'));
 
     addButton.getComponent().render($('addButton'));

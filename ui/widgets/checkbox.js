@@ -39,7 +39,7 @@ recoil.ui.widgets.CheckboxWidget.prototype.getComponent = function() {
 /**
  * @param {recoil.frp.Behaviour<!string>|!string} name
  * @param {recoil.frp.Behaviour<boolean>|boolean} value
- * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|boolean} enabled
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|boolean} enabled
  */
 recoil.ui.widgets.CheckboxWidget.prototype.attach = function (name, value, enabled) {
     var frp = this.helper_.getFrp();
@@ -58,8 +58,8 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function (options) {
     var optionsB = structs.flattern(frp, options);
 
     this.nameB_    = structs.get('name', optionsB, '');
-    this.valueB_   = structs.get('value', optionsB, recoil.ui.BoolWithExplaination.FALSE);
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    this.valueB_   = structs.get('value', optionsB, recoil.ui.BoolWithExplanation.FALSE);
+    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
 
     var readyB = util.isAllGood(this.nameB_, this.valueB_, this.enabledB_);
 

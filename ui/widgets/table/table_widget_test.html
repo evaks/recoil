@@ -9,7 +9,7 @@
   goog.require('recoil.ui.widgets.table.TableWidget');
   goog.require('recoil.ui.widgets.TableMetaData');
   goog.require('recoil.ui.widgets.ButtonWidget');
-  goog.require('recoil.ui.BoolWithExplaination');
+  goog.require('recoil.ui.BoolWithExplanation');
   goog.require('recoil.ui.WidgetScope');
   goog.require('recoil.ui.widgets.table.StringColumn');
   goog.require('recoil.ui.widgets.table.NumberColumn');
@@ -66,7 +66,7 @@
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
 //    columns.add(tblKeys.count, "Count");
-    columns.addColumn(new recoil.ui.widgets.table.NumberColumn(tblKeys.count,"Count", {enabled: new recoil.ui.BoolWithExplaination(
+    columns.addColumn(new recoil.ui.widgets.table.NumberColumn(tblKeys.count,"Count", {enabled: new recoil.ui.BoolWithExplanation(
     false,
     new recoil.ui.message.Message("It is good"), 
     new recoil.ui.message.Message("It is bad") )

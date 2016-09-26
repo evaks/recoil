@@ -10,7 +10,7 @@ goog.require('recoil.frp.table.TableCell');
 goog.require('recoil.structs.table.Table');
 goog.require('recoil.structs.table.TableRow');
 goog.require('recoil.ui.AttachableWidget');
-goog.require('recoil.ui.BoolWithExplaination');
+goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.RenderedDecorator');
 goog.require('recoil.ui.widgets.LabelWidget');
@@ -268,7 +268,7 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_ =
         var name = scope.getFrp().liftB(function(cell) {
             return cell.getMeta().name;
             }, cellB);
-        widget.attach(name, recoil.ui.BoolWithExplaination.TRUE);
+        widget.attach(name, recoil.ui.BoolWithExplanation.TRUE);
         return widget;
     };
 

@@ -71,17 +71,17 @@ See the COPYING file for details.
 
     label.attach(frp.liftB(function () {
         return value.get().a
-    }, value), recoil.ui.BoolWithExplaination.TRUE);
+    }, value), recoil.ui.BoolWithExplanation.TRUE);
 
     var selector = new recoil.ui.widgets.SelectorWidget(scope);
 
     var enabledItems = {
-        enabledItems: [new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
-            new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
-            new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
-            new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
-            new recoil.ui.BoolWithExplaination(true, undefined, recoil.ui.messages.VALID),
-            new recoil.ui.BoolWithExplaination(false, undefined, recoil.ui.messages.INVALID)]};
+        enabledItems: [new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(false, undefined, recoil.ui.messages.INVALID)]};
 
     recoil.ui.widgets.SelectorWidget.options
             .value(value)

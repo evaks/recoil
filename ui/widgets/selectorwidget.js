@@ -4,10 +4,6 @@ goog.require('goog.ui.Control');
 goog.require('recoil.util');
 goog.require('recoil.frp.Behaviour');
 
-/**
- * list of functions available when creating a selectorWidget
- */
-recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value', 'list', 'renderer', 'enabledItems');
 
 /**
  *
@@ -24,6 +20,10 @@ recoil.ui.widgets.SelectorWidget = function (scope) {
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.CHANGE);
 
 };
+/**
+ * list of functions available when creating a selectorWidget
+ */
+recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value', 'list', 'renderer', 'enabledItems');
 
 /**
  *
@@ -38,7 +38,7 @@ recoil.ui.widgets.SelectorWidget.prototype.getComponent = function () {
  * @param {recoil.frp.Behaviour<!string>|!string} nameB
  * @param {recoil.frp.Behaviour<!T>|!T} valueB
  * @param {recoil.frp.Behaviour<!Array<T>>|Array<T>} listB
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} opt_enabledB
+ * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} opt_enabledB
  * @param {recoil.frp.Behaviour<!function(T) : string>| !function(T) : string} opt_rendererB
  */
 recoil.ui.widgets.SelectorWidget.prototype.attach = function (nameB, valueB, listB, opt_enabledB, opt_rendererB, opt_enabledItemsB) {
@@ -58,16 +58,16 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
     this.valueB_ = structs.get('value', optionsB);
     this.listB_ = structs.get('list', optionsB);
     /**
-     * @type {recoil.frp.Behaviour.<!Array<recoil.ui.BooleanWithExplaination>}
+     * @type {recoil.frp.Behaviour<!Array<recoil.ui.BoolWithExplanation>}
      * @private
      */
     this.enabledItemsB_ = structs.get('enabledItems', optionsB, []);
 
     /**
-     * @type {recoil.frp.Behaviour.<!recoil.ui.BoolWithExplaination>}
+     * @type {recoil.frp.Behaviour.<!recoil.ui.BoolWithExplanation>}
      * @private
      */
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
     this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.SelectorWidget.DEFAULT);
 
     this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_, this.enabledItemsB_);
@@ -109,14 +109,14 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
         var found = -1;
         for(i  = 0; i < list.length; i++){
             var val = list[i];
-            var enabled = enabledItems.length > i ? enabledItems[i] : recoil.ui.BoolWithExplaination.TRUE;
+            var enabled = enabledItems.length > i ? enabledItems[i] : recoil.ui.BoolWithExplanation.TRUE;
             sel.addItem(renderer(val, true, enabled));
             if (recoil.util.isEqual(this.valueB_.get(), val)) {
                 found = i;
             }
         }
         if (found === -1) {
-            sel.addItem(renderer(this.valueB_.get(), false, recoil.ui.BoolWithExplaination.FALSE));
+            sel.addItem(renderer(this.valueB_.get(), false, recoil.ui.BoolWithExplanation.FALSE));
             found = list.length;
         }
 
@@ -129,7 +129,7 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
  * 
  * @param obj
  * @param valid
- * @param {!recoil.ui.BoolWithExplaination} enabled
+ * @param {!recoil.ui.BoolWithExplanation} enabled
  * @returns {!goog.ui.MenuItem}
  * @constructor
  */

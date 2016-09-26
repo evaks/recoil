@@ -52,7 +52,7 @@ recoil.ui.widgets.LabelWidget = function(scope) {
 
 /**
  * @param {!recoil.frp.Behaviour<string>|!string} name
- * @param {!recoil.ui.BoolWithExplaination|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} enabled
+ * @param {!recoil.ui.BoolWithExplanation|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} enabled
  */
 recoil.ui.widgets.LabelWidget.prototype.attach = function(name, enabled) {
     var util = new recoil.frp.Util(this.helper_.getFrp());
@@ -121,7 +121,7 @@ recoil.ui.widgets.LabelWidgetHelper = function(scope) {
 /**
  *
  * @param {!string|!recoil.frp.Behaviour<!string>} name
- * @param {!recoil.ui.BoolWithExplaination|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} enabled
+ * @param {!recoil.ui.BoolWithExplanation|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} enabled
  * @return {recoil.ui.widgets.LabelWidget}
  */
 recoil.ui.widgets.LabelWidgetHelper.prototype.createAndAttach = function(name, enabled) {

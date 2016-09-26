@@ -54,7 +54,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.getLabel = function () {
 /**
  * @param {recoil.frp.Behaviour<!string>|!string} nameB
  * @param {recoil.frp.Behaviour<!string>|!string} valueB
- * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} opt_enabledB
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} opt_enabledB
  */
 recoil.ui.widgets.TextAreaWidget.prototype.attach = function (nameB, valueB, opt_enabledB) {
     var frp = this.helper_.getFrp();
@@ -73,12 +73,12 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function (options) {
     var optionsB = structs.flattern(frp, options);
     
     this.valueB_   = structs.get('value', optionsB);
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
     var readyB = util.isAllGoodExplain(this.valueB_, this.enabledB_);
 
     this.label_.attach(
           structs.get('name', optionsB),
-          recoil.ui.BoolWithExplaination.and(frp, this.enabledB_, readyB));
+          recoil.ui.BoolWithExplanation.and(frp, this.enabledB_, readyB));
 
     this.helper_.attach(this.valueB_, this.enabledB_);
 
