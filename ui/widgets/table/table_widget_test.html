@@ -3,6 +3,7 @@
 <title>recoil.ui.widgets.TableWidget</title>
 <script src="../../../../../closure-library/closure/goog/base.js"></script>
 <script src="../../../../../my-deps.js"></script>
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/checkbox.css">
 
 <script>
   goog.require('recoil.frp.Frp');
@@ -14,6 +15,8 @@
   goog.require('recoil.ui.widgets.table.StringColumn');
   goog.require('recoil.ui.widgets.table.NumberColumn');
   goog.require('recoil.ui.widgets.table.BooleanColumn');
+  goog.require('recoil.ui.widgets.CheckboxWidget');
+
 </script>
 <style>
   .recoil_table_selected {background-color:green;}
@@ -65,18 +68,14 @@
 
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
-//    columns.add(tblKeys.count, "Count");
     var numCol = new recoil.ui.widgets.table.NumberColumn(tblKeys.count,"Count", {enabled: new recoil.ui.BoolWithExplanation(
             true,
             new recoil.ui.message.Message("It is good"),
             new recoil.ui.message.Message("It is bad") )
     });
-    console.log('numCol', numCol);
     columns.addColumn(numCol);
-//    columns.add(tblKeys.check, "Check");
     var boolCol = new recoil.ui.widgets.table.BooleanColumn(tblKeys.check, "Check",
             {enabled: new recoil.ui.BoolWithExplanation(true)});
-    console.log('boolCol', boolCol);
     columns.addColumn(boolCol);
 
 

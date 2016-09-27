@@ -8,6 +8,8 @@ goog.require('recoil.ui.widgets.table.Column');
  * @param {recoil.structs.table.ColumnKey} key
  * @param {string} name
  * @param {(recoil.frp.Behaviour<Object>|Object)=} opt_options
+ * @implements {recoil.ui.widgets.table.Column}
+ * @template T
  * @constructor
  */
 recoil.ui.widgets.table.BooleanColumn = function (key, name, opt_options ) {
@@ -52,7 +54,9 @@ recoil.ui.widgets.table.BooleanColumn.prototype.getMeta = function (curMeta) {
     return meta;
 };
 
-
+/**
+ * @return {recoil.structs.table.ColumnKey}
+ */
 recoil.ui.widgets.table.BooleanColumn.prototype.getKey = function () {
     return this.key_;
 };
