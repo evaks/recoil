@@ -2,7 +2,7 @@ goog.provide('recoil.ui.widgets.table.StringColumn');
 
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.struct');
-goog.require('recoil.ui.BoolWithExplaination');
+goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.widgets.InputWidget');
 goog.require('recoil.ui.widgets.table.Column');
 
@@ -61,7 +61,7 @@ recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ =
 
 
     widget.attach('', value,
-                  recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplaination.TRUE));
+                  recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplanation.TRUE));
     return widget;
 };
 

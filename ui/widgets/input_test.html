@@ -33,9 +33,9 @@
     var val = frp.createB("test");
 
     var input1 = new recoil.ui.widgets.InputWidget(scope);
-    input1.attach('input1', val, recoil.ui.BoolWithExplaination.TRUE);
+    input1.attach('input1', val, recoil.ui.BoolWithExplanation.TRUE);
     input1.getLabel().getComponent().render($('label1'));
-    input1.getLabel().attach(val, recoil.ui.BoolWithExplaination.TRUE);
+    input1.getLabel().attach(val, recoil.ui.BoolWithExplanation.TRUE);
     input1.getComponent().render($('input1'));
 
 //    var input2 = new recoil.ui.widgets.LabelWidget(scope);

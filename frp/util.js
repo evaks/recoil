@@ -105,7 +105,7 @@ recoil.frp.Util.prototype.isAllGood = function(var_values) {
 /**
  *
  * @param {...recoil.frp.Behaviour} var_values
- * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>}
+ * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
  */
 recoil.frp.Util.prototype.isAllGoodExplain = function(var_values) {
 
@@ -126,10 +126,10 @@ recoil.frp.Util.prototype.isAllGoodExplain = function(var_values) {
             }
         }
         if (errors.length == 0) {
-            return new recoil.frp.BStatus(recoil.ui.BoolWithExplaination.TRUE);
+            return new recoil.frp.BStatus(recoil.ui.BoolWithExplanation.TRUE);
         }
 
-        return new recoil.ui.BoolWithExplaination(false, recoil.ui.messages.join(errors));
+        return new recoil.ui.BoolWithExplanation(false, recoil.ui.messages.join(errors));
 
     }, arguments);
 };

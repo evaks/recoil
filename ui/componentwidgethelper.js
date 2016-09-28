@@ -11,7 +11,7 @@ goog.provide('recoil.ui.TooltipHelper');
 goog.require('goog.events.FocusHandler');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
-goog.require('recoil.ui.BoolWithExplaination');
+goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.messages');
 /**
@@ -293,7 +293,7 @@ recoil.ui.TooltipHelper = function(widgetScope, component) {
 
 
 /**
- * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} enabledB
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} enabledB
  * @param {...recoil.ui.ComponentWidgetHelper} var_helpers
  */
 recoil.ui.TooltipHelper.prototype.attach = function(enabledB, var_helpers) {

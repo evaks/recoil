@@ -1,7 +1,7 @@
-goog.provide('recoil.ui.widgets.table.BooleanColumn');
+goog.provide('recoil.ui.widgets.table.SelectColumn');
 
-goog.require('recoil.ui.widgets.CheckboxWidget');
 goog.require('recoil.ui.widgets.table.Column');
+goog.require('recoil.ui.widgets.SelectorWidget');
 
 /**
  *
@@ -12,7 +12,7 @@ goog.require('recoil.ui.widgets.table.Column');
  * @template T
  * @constructor
  */
-recoil.ui.widgets.table.BooleanColumn = function (key, name, opt_options ) {
+recoil.ui.widgets.table.SelectColumn = function (key, name, opt_options) {
     this.key_ = key;
     this.name_ = name;
     this.options_ = opt_options || {};
@@ -25,9 +25,9 @@ recoil.ui.widgets.table.BooleanColumn = function (key, name, opt_options ) {
  * @return {recoil.ui.Widget}
  * @private
  */
-recoil.ui.widgets.table.BooleanColumn.defaultWidgetFactory_ = function (scope, cellB) {
+recoil.ui.widgets.table.SelectColumn.prototype.defaultWidgetFactory_ = function (scope, cellB) {
     var frp = scope.getFrp();
-    var widget = new recoil.ui.widgets.CheckboxWidget(scope);
+    var widget = new recoil.ui.widgets.SelectorWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
     var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
 
@@ -46,9 +46,9 @@ recoil.ui.widgets.table.BooleanColumn.defaultWidgetFactory_ = function (scope, c
  * @param {Object} curMeta
  * @return {Object}
  */
-recoil.ui.widgets.table.BooleanColumn.prototype.getMeta = function (curMeta) {
+recoil.ui.widgets.table.SelectColumn.prototype.getMeta = function (curMeta) {
     var meta = {name: this.name_,
-                cellWidgetFactory: recoil.ui.widgets.table.BooleanColumn.defaultWidgetFactory_};
+        cellWidgetFactory: recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_};
 
     goog.object.extend(meta, this.options_, curMeta);
     return meta;
@@ -57,6 +57,10 @@ recoil.ui.widgets.table.BooleanColumn.prototype.getMeta = function (curMeta) {
 /**
  * @return {recoil.structs.table.ColumnKey}
  */
-recoil.ui.widgets.table.BooleanColumn.prototype.getKey = function () {
+recoil.ui.widgets.table.SelectColumn.prototype.getKey = function () {
     return this.key_;
 };
+
+
+
+

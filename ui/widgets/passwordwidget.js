@@ -39,7 +39,7 @@ recoil.ui.widgets.PasswordWidget.prototype.getLabel = function () {
 /**
  * @param {recoil.frp.Behaviour<!string>|!string} name
  * @param {recoil.frp.Behaviour<!string>|!string} value
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} enabled
+ * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} enabled
  */
 recoil.ui.widgets.PasswordWidget.prototype.attach = function (name, value, enabled) {
     //this.passwordInput_.attachStruct({'name': name, 'value': value, 'enabled': enabled});

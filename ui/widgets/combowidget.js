@@ -36,7 +36,7 @@ recoil.ui.widgets.ComboWidget.prototype.getComponent = function () {
  * @param {recoil.frp.Behaviour<!string>|!string} name
  * @param {recoil.frp.Behaviour<!T>|!T} value
  * @param {recoil.frp.Behaviour<!Array<T>>|Array<T>} list
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>|!recoil.ui.BoolWithExplaination} opt_enabled
+ * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} opt_enabled
  * @param {recoil.frp.Behaviour<!function(T) : string>| !function(T) : string} opt_renderer
  */
 recoil.ui.widgets.ComboWidget.prototype.attach = function (name, value, list, opt_enabled, opt_renderer) {
@@ -57,10 +57,10 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
     this.valueB_ = structs.get('value', optionsB);
     this.listB_ = structs.get('list', optionsB);
     /**
-     * @type {recoil.frp.Behaviour.<!recoil.ui.BoolWithExplaination>}
+     * @type {recoil.frp.Behaviour.<!recoil.ui.BoolWithExplanation>}
      * @private
      */
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
     this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.ComboWidget.DEFAULT_RENDERER);
 
     var readyB = util.isAllGoodExplain(this.valueB_, this.nameB_, this.listB_, this.enabledB_, this.rendererB_);

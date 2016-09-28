@@ -8,7 +8,7 @@ goog.require('goog.events.PasteHandler');
 goog.require('goog.ui.Component');
 goog.require('goog.ui.Tooltip');
 goog.require('recoil.frp.Util');
-goog.require('recoil.ui.BoolWithExplaination');
+goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.LabeledWidget');
 goog.require('recoil.ui.TooltipHelper');
 goog.require('recoil.ui.Widget');
@@ -232,7 +232,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.minB_ = structs.get('min', optionsB, NaN);
     this.maxB_ = structs.get('max', optionsB, NaN);
     this.stepB_ = structs.get('step', optionsB, 1);
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplaination.TRUE);
+    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
 
     var readyB = util.isAllGood(
         this.nameB_, this.valueB_,
@@ -241,9 +241,9 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 
     this.labelWidget_.attach(
         this.nameB_,
-        recoil.ui.BoolWithExplaination.and(
-            frp,     /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} */ (this.enabledB_),
-            recoil.ui.BoolWithExplaination.fromBool(frp, readyB)));
+        recoil.ui.BoolWithExplanation.and(
+            frp,     /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
+            recoil.ui.BoolWithExplanation.fromBool(frp, readyB)));
 
     this.valueHelper_.attach(this.valueB_);
     this.configHelper_.attach(this.minB_, this.maxB_, this.stepB_, this.enabledB_);
@@ -255,7 +255,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     }, this.valueB_));
 
     this.enabledHelper_.attach(
-        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplaination>} */ (this.enabledB_),
+        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
         this.valueHelper_, this.configHelper_);
 };
 
