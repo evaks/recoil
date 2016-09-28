@@ -150,6 +150,23 @@ recoil.db.ObjectManager = function (frp) {
     this.frp_ = frp;
 };
 
+
+/**
+ * baseed on the key type get all behaviours that are inside 
+ *
+ */
+
+recoil.db.ObjectManager.prototype.getRelatedBehaviours = function (keyType, value, behaviour) {
+    var res = [];
+    for (var i = 0; i < keyType.getPaths(); i++) {
+        var path = keyType.getPaths();
+
+        path.forEach(value, function (val) {
+            res.push();
+        });
+    }
+    
+};
 /**
  * this is called to say we are interested in a key and about get the data
  * it does
@@ -161,7 +178,7 @@ recoil.db.ObjectManager = function (frp) {
  */
 recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options, coms) {
     var frp = this.frp_;
-    var behaviours = recoil.util.map.safeGet(this.queries__,typeKey, new goog.structs.AvlTree(recoil.db.Query.comparator_));
+    var behaviours = recoil.util.map.safeGet(this.queries_,typeKey, new goog.structs.AvlTree(recoil.db.Query.comparator_));
 
     var behaviour = this.frp_.createNotReadyB();
 
@@ -169,10 +186,10 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
         function (v) {return v;},
         function (v, b) {
 
-            var related = getRelatedBehaviours(typeKey, v, b);
+            var related = this.getRelatedBehaviours(typeKey, v, b);
             
             for (var i = 0 ; i < related.length; i++) {
-                var subV = related[i];
+                var sub = related[i];
                 sub.b.set(sub.v);
                 coms.set(sub.v.getSending(), sub.v.getStored(),
                          function (v) {

@@ -76,6 +76,13 @@ recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
 };
 
 /**
+ * @return {!boolean}
+ */
+recoil.ui.ComponentWidgetHelper.prototype.isAttached = function () {
+    return this.isAttached_;
+};
+
+/**
  * removes all children
  */
 recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function() {
@@ -237,7 +244,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         if (me.listener_) {
             me.listener_.frp().accessTrans(function() {
                 // sometimes events fire when before it is on the screen
-                if (me.listener_.hasRefs()) {
+                if (me.helper_.isAttached()) {
                     me.listener_.set(e);
                 }
             }, me.listener_);

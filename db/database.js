@@ -321,15 +321,17 @@ recoil.db.DelayedDatabase.prototype.get = function(id, var_parameters)  {
         changedOut.refListen(function(hasRef) {
             var changedVal = changed.findFirst({key: key});
             if (hasRef) {
-                if (changedVal) {
-                    changedVal.refs++;
-                    if (changedIn.get() !== changedVal.value) {
-                        changedIn.set(changedVal.value);
+                frp.accessTrans(function() {
+                    if (changedVal) {
+                        changedVal.refs++;
+                        if (changedIn.get() !== changedVal.value) {
+                            changedIn.set(changedVal.value);
+                        }
                     }
-                }
-                else {
-                    changed.add({key: key, refs: 1, value: changedIn.get()});
-                }
+                    else {
+                        changed.add({key: key, refs: 1, value: changedIn.get()});
+                    }
+                }, changedIn);
             }
             else {
                 if (changedVal) {
