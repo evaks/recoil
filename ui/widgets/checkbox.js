@@ -27,6 +27,10 @@ recoil.ui.widgets.CheckboxWidget = function(scope) {
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.checkBox_, this, this.updateState_);
 };
 
+/**
+ * list of functions available when creating a CHECKBOXWidget
+ */
+recoil.ui.widgets.CheckboxWidget.options = recoil.util.Options('name', 'value', 'enabled');
 
 /**
  * @return {!goog.ui.Component}

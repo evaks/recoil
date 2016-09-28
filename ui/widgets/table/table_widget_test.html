@@ -118,7 +118,7 @@
     }, "boolean": function (meta) {
         return new recoil.ui.widgets.table.BooleanColumn(meta);
     }, "select": function (meta) {
-        return new recoil.ui.widgets.table.SelectColumn(meta)
+        return new recoil.ui.widgets.table.SelectColumn(meta);
     }};
 
     var table = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));

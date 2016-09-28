@@ -30,8 +30,21 @@ recoil.ui.widgets.table.SelectColumn.prototype.defaultWidgetFactory_ = function 
     var widget = new recoil.ui.widgets.SelectorWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
     var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
+    var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
 
-    widget.attach('', value, recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplanation.TRUE));
+    var opt_renderer = function (val, errored, enabled) {
+
+        return recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER(list.a, errored, enabled);
+    };
+
+    // recoil.ui.widgets.SelectorWidget.options
+    //     .value(value)
+    //     .list(list)
+    //     .renderer(opt_renderer)
+    //     .attach(widget);
+
+    widget.attach('', value, list, recoil.ui.BoolWithExplanation.TRUE, opt_renderer, undefined);
+
     return widget;
 };
 

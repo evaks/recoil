@@ -8,6 +8,7 @@ goog.require('recoil.frp.Behaviour');
 /**
  *
  * @param {!recoil.ui.WidgetScope} scope
+ * @implements {recoil.ui.Widget}
  * @constructor
  */
 recoil.ui.widgets.SelectorWidget = function (scope) {
@@ -40,6 +41,7 @@ recoil.ui.widgets.SelectorWidget.prototype.getComponent = function () {
  * @param {recoil.frp.Behaviour<!Array<T>>|Array<T>} listB
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} opt_enabledB
  * @param {recoil.frp.Behaviour<!function(T) : string>| !function(T) : string} opt_rendererB
+ * @param {recoil.frp.Behaviour<!Array<recoil.ui.BoolWithExplanation>>} opt_enabledItemsB
  */
 recoil.ui.widgets.SelectorWidget.prototype.attach = function (nameB, valueB, listB, opt_enabledB, opt_rendererB, opt_enabledItemsB) {
     this.attachStruct({name: nameB, value: valueB, list: listB, enabled: opt_enabledB, renderer: opt_rendererB, enabledItems : opt_enabledItemsB});

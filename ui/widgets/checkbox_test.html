@@ -45,13 +45,19 @@ See the COPYING file for details.
 
     var val = frp.createB(true);
     var checkboxWidget = new recoil.ui.widgets.CheckboxWidget(scope);
-    checkboxWidget.getComponent().render($('checkbox'));
-    checkboxWidget.attach("boo", val, true);
 
-//    checkboxWidget.attachStruct({enabled : true, checked : val})
+    recoil.ui.widgets.CheckboxWidget.options
+            .name('boo')
+            .value(val)
+            .enabled(true)
+            .attach(checkboxWidget);
+
+    checkboxWidget.getComponent().render($('checkbox'));
+
 
     var checkboxWidget2 = new recoil.ui.widgets.CheckboxWidget(scope);
     checkboxWidget2.getComponent().render($('checkbox2'));
+    // attach using alternate method
     checkboxWidget2.attach("boo2", val, true);
 
 
