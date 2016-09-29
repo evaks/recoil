@@ -1,13 +1,21 @@
 goog.provide('recoil.db.Path');
 goog.provide('recoil.db.PathItem');
 
-goog.require('goog.struct.AvlTree');
+goog.require('goog.structs.AvlTree');
 
 /**
  * @interface
  */
 recoil.db.PathItem = function () {
 };
+
+
+/**
+ * @param {*} value
+ * @param {func(*)} callback
+ */
+
+recoil.db.PathItem.prototype.forEach = function (value, func) {};
 
 /**
  * @type Map<String,*>  
@@ -73,12 +81,15 @@ recoil.db.Path.prototype.forEach = function (value, func, opt_start) {
     var me = this;
     if (opt_start < this.elements_.length) {
         var item = this.elements_[i];
+        if (!item) {
+            return;
+        }
         item.forEach(value, function (subValue) {
             me.forEach(subValue, func, opt_start + 1);
         });
                    
     }
-    else {
+    else if (!value) {
         func(value);
     }
 };
@@ -94,6 +105,17 @@ recoil.db.Path.Array = function () {
 };
 
 /**
+ * @param {*} value
+ * @param {func(*)} callback
+ */
+
+recoil.db.Path.Avl.prototype.forEach = function (value, func) {
+    for (var i = 0; i < value.length; i++) {
+        func(value[i]);
+    }
+};
+
+/**
  * basic item get it by name
  * @constructor
  * @param {!String} name the name of the item
@@ -102,19 +124,52 @@ recoil.db.Path.Item = function (name) {
     this.name_ = name;
 };
 
+/**
+ * @param {*} value
+ * @param {func(*)} callback
+ */
+
+recoil.db.Path.Item.prototype.forEach = function (value, func) {
+    func(value[this.name_]);
+};
 
 /**
  * every item in the avl tree
+ * @implements recoil.db.PathItem
  * @constructor
  */
 recoil.db.Path.Avl = function () {
 };
 
+
+/**
+ * @param {*} value
+ * @param {func(*)} callback
+ */
+
+recoil.db.Path.Avl.prototype.forEach = function (value, func) {
+    value.inOrderTraverse(func);
+};
+
+
 /**
  * every item in the the object
  * @constructor
+ * @implements recoil.db.PathItem
  */
 recoil.db.Path.Object = function () {
+};
+
+
+/**
+ * @param {*} value
+ * @param {func(*)} callback
+ */
+
+recoil.db.Path.Object.prototype.forEach = function (value, func) {
+    for (var key in value) {
+        func(value[key]);
+    }
 };
 
 recoil.db.PathItem.addDefaultType("", recoil.db.Path.Array);
