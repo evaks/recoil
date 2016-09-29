@@ -1,6 +1,7 @@
 goog.provide('recoil.ui.widgets.SelectorWidget');
 goog.require('goog.ui.Container');
 goog.require('goog.ui.Control');
+goog.require('goog.ui.Select');
 goog.require('recoil.util');
 goog.require('recoil.frp.Behaviour');
 

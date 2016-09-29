@@ -55,11 +55,24 @@
     frp.tm().attach(toSet);
 
     var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
+    var enabledItems =
+            [new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(false, undefined, recoil.ui.messages.INVALID)];
+
+    var opt_renderer = function (val, errored, enabled) {
+
+        return recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER(list.a, errored, enabled);
+    };
+
 
     var rawTable = [
-    {id: 1, name: "row 1", count:2, check: true, select: list},
-    {id: 2, name: "row 2", count:4, check: true, select: list},
-    {id: 3, name: "row 3", count:6, check: true, select: list}];
+    {id: 1, name: "row 1", count:2, check: true, list: list},
+    {id: 2, name: "row 2", count:4, check: true, list: list},
+    {id: 3, name: "row 3", count:6, check: true, list: list}];
     
     var tblKeys = {
     id : new recoil.structs.table.ColumnKey("id_"),
@@ -74,7 +87,7 @@
     id : { type : "int", primary : 0, key : tblKeys.id},
     count : { type: "int", min : 1, max:100, key: tblKeys.count},
     check : { type: "bool", key: tblKeys.check},
-    select : {type: "select", key: tblKeys.select}
+    select : {type: "select", list: list, renderer: opt_renderer, key: tblKeys.select}
     };
 
     var columns = new recoil.ui.widgets.TableMetaData();
@@ -85,12 +98,10 @@
             new recoil.ui.message.Message("It is bad") )
     });
     columns.addColumn(numCol);
-    var boolCol = new recoil.ui.widgets.table.BooleanColumn(tblKeys.check, "Check",
-            {enabled: new recoil.ui.BoolWithExplanation(true)});
+    var boolCol = new recoil.ui.widgets.table.BooleanColumn(tblKeys.check, "Check");
     columns.addColumn(boolCol);
 
-    var selectCol = new recoil.ui.widgets.table.SelectColumn(tblKeys.select, "Select",
-            {enabled: new recoil.ui.BoolWithExplanation(true)});
+    var selectCol = new recoil.ui.widgets.table.SelectColumn(tblKeys.select, "Select");
     columns.addColumn(selectCol);
 
 

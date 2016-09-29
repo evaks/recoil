@@ -25,25 +25,15 @@ recoil.ui.widgets.table.SelectColumn = function (key, name, opt_options) {
  * @return {recoil.ui.Widget}
  * @private
  */
-recoil.ui.widgets.table.SelectColumn.prototype.defaultWidgetFactory_ = function (scope, cellB) {
+recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function (scope, cellB) {
     var frp = scope.getFrp();
     var widget = new recoil.ui.widgets.SelectorWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
     var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
-    var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
+    var struct = recoil.frp.struct;
 
-    var opt_renderer = function (val, errored, enabled) {
-
-        return recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER(list.a, errored, enabled);
-    };
-
-    // recoil.ui.widgets.SelectorWidget.options
-    //     .value(value)
-    //     .list(list)
-    //     .renderer(opt_renderer)
-    //     .attach(widget);
-
-    widget.attach('', value, list, recoil.ui.BoolWithExplanation.TRUE, opt_renderer, undefined);
+    // dunno if this is correct
+    widget.attach('', value, struct.get('list', meta), undefined, struct.get('renderer', meta), undefined);
 
     return widget;
 };
