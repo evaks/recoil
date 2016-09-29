@@ -76,12 +76,18 @@ recoil.db.Path = function (var_parts) {
     }
 };
 
+/**
+ * calls func for each node that matches the path
+ * @param {Object} value
+ * @param {func(*)} func
+ * @param {number?} opt_start the depth of the path to start on
+ */
 recoil.db.Path.prototype.forEach = function (value, func, opt_start) {
     opt_start = opt_start || 0;
     var me = this;
     if (opt_start < this.elements_.length) {
-        var item = this.elements_[i];
-        if (!item) {
+        var item = this.elements_[opt_start];
+        if (!value) {
             return;
         }
         item.forEach(value, function (subValue) {
@@ -89,7 +95,7 @@ recoil.db.Path.prototype.forEach = function (value, func, opt_start) {
         });
                    
     }
-    else if (!value) {
+    else {
         func(value);
     }
 };
@@ -109,11 +115,30 @@ recoil.db.Path.Array = function () {
  * @param {func(*)} callback
  */
 
-recoil.db.Path.Avl.prototype.forEach = function (value, func) {
+recoil.db.Path.Array.prototype.forEach = function (value, func) {
     for (var i = 0; i < value.length; i++) {
         func(value[i]);
     }
 };
+
+
+/**
+ * every item in the avl tree
+ * @implements recoil.db.PathItem
+ * @constructor
+ */
+recoil.db.Path.Avl = function () {
+};
+
+/**
+ * @param {*} value
+ * @param {func(*)} callback
+ */
+
+recoil.db.Path.Avl.prototype.forEach = function (value, func) {
+    value.inOrderTraverse(func);
+};
+
 
 /**
  * basic item get it by name
@@ -131,24 +156,6 @@ recoil.db.Path.Item = function (name) {
 
 recoil.db.Path.Item.prototype.forEach = function (value, func) {
     func(value[this.name_]);
-};
-
-/**
- * every item in the avl tree
- * @implements recoil.db.PathItem
- * @constructor
- */
-recoil.db.Path.Avl = function () {
-};
-
-
-/**
- * @param {*} value
- * @param {func(*)} callback
- */
-
-recoil.db.Path.Avl.prototype.forEach = function (value, func) {
-    value.inOrderTraverse(func);
 };
 
 
