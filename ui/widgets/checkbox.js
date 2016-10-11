@@ -83,7 +83,6 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function (options) {
  */
 recoil.ui.widgets.CheckboxWidget.prototype.updateState_ = function (helper) {
     if(helper.isGood()){
-        console.log('valueB', this.valueB_.get());
         this.checkBox_.setChecked(this.valueB_.get());
     }
 };

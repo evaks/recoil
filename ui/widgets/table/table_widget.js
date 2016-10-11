@@ -24,7 +24,7 @@ goog.require('recoil.ui.widgets.table.StringColumn');
  */
 recoil.ui.widgets.table.TableWidget = function(scope) {
     this.scope_ = scope;
-    this.container_ = new goog.ui.Container();
+    this.container_ = new goog.ui.Component();
     this.container_.createDom();
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
     var me = this;

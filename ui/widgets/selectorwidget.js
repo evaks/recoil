@@ -96,7 +96,7 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
 recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 
     if (helper.isGood()) {
-        console.log('in selectWidget updateState');
+        // console.log('in selectWidget updateState');
 
         var list = this.listB_.get();
         var sel = this.selector_;

@@ -1,4 +1,4 @@
-<html>
+    <html>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <title>recoil.ui.widgets.TableWidget</title>
 <script src="../../../../../closure-library/closure/goog/base.js"></script>
@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/menuitem.css">
 <link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/menuseparator.css">
 <link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/flatmenubutton.css">
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/common.css">
 
 <script>
   goog.require('recoil.frp.Frp');
@@ -60,19 +61,18 @@
                 new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
                 new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
                 new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
-                new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
                 new recoil.ui.BoolWithExplanation(false, undefined, recoil.ui.messages.INVALID)];
 
     var opt_renderer = function (val, errored, enabled) {
 
-        return recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER(list.a, errored, enabled);
+        return recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER(val.a, errored, enabled);
     };
 
 
     var rawTable = [
-    {id: 1, name: "row 1", count:2, check: true, list: list},
-    {id: 2, name: "row 2", count:4, check: true, list: list},
-    {id: 3, name: "row 3", count:6, check: true, list: list}];
+    {id: 1, name: "row 1", count:2, check: true, select: {a: 'one'}},
+    {id: 2, name: "row 2", count:4, check: true, select: {a: 'one'}},
+    {id: 3, name: "row 3", count:6, check: true,  select: {a: 'one'}}];
     
     var tblKeys = {
     id : new recoil.structs.table.ColumnKey("id_"),
@@ -87,7 +87,7 @@
     id : { type : "int", primary : 0, key : tblKeys.id},
     count : { type: "int", min : 1, max:100, key: tblKeys.count},
     check : { type: "bool", key: tblKeys.check},
-    select : {type: "select", list: list, renderer: opt_renderer, key: tblKeys.select}
+    select : {type: "select", renderer: opt_renderer, key: tblKeys.select, enabled: enabledItems}
     };
 
     var columns = new recoil.ui.widgets.TableMetaData();
@@ -101,8 +101,9 @@
     var boolCol = new recoil.ui.widgets.table.BooleanColumn(tblKeys.check, "Check");
     columns.addColumn(boolCol);
 
-    var selectCol = new recoil.ui.widgets.table.SelectColumn(tblKeys.select, "Select");
+    var selectCol = new recoil.ui.widgets.table.SelectColumn(tblKeys.select, "Select", list);
     columns.addColumn(selectCol);
+
 
 
     //this is wrong we can't simply go create b because tableMetaData contain
@@ -193,6 +194,7 @@
     columns.add(tblKeys.name, "Name");
     //columns.add(tblKeys.count, "Count");
     columns.add(tblKeys.check, "Check");
+    columns.add(tblKeys.select, "Select");
     switchB.set(columns.createB(frp));
     },switchB));
 
@@ -215,6 +217,7 @@
     columns.add(tblKeys.name, "Name");
     columns.add(tblKeys.count, "Count");
     columns.add(tblKeys.check, "Check");
+    columns.add(tblKeys.select, "Select");
     columnsB.set(columns);
     },columnsB));
 
