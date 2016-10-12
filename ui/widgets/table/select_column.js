@@ -3,6 +3,7 @@ goog.provide('recoil.ui.widgets.table.SelectColumn');
 goog.require('recoil.ui.widgets.table.Column');
 goog.require('recoil.ui.widgets.SelectorWidget');
 goog.require('recoil.frp.Debug');
+goog.require('recoil.frp.struct');
 
 /**
  *
@@ -31,13 +32,10 @@ recoil.ui.widgets.table.SelectColumn = function (key, name, list, opt_options) {
 recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function (scope, cellB) {
     var frp = scope.getFrp();
     var widget = new recoil.ui.widgets.SelectorWidget(scope);
-
-    // var value = recoil.frp.Debug("Select Value", recoil.frp.table.TableCell.getValue(frp, cellB));
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
-    var meta = recoil.frp.Debug("Meta", recoil.frp.table.TableCell.getMeta(frp, cellB));
-    var struct = recoil.frp.struct;
-    
-    widget.attach('', value, struct.get("list", meta), undefined, struct.get('renderer', meta), struct.get('enabledItems', meta));
+    var metaData = recoil.frp.Debug("Meta", recoil.frp.table.TableCell.getMeta(frp, cellB));
+
+    widget.attachStruct(recoil.frp.struct.extend(frp, metaData, {value : value}));
 
     return widget;
 };
