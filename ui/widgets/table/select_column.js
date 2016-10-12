@@ -34,10 +34,10 @@ recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function (scope, ce
 
     // var value = recoil.frp.Debug("Select Value", recoil.frp.table.TableCell.getValue(frp, cellB));
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
-    var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
+    var meta = recoil.frp.Debug("Meta", recoil.frp.table.TableCell.getMeta(frp, cellB));
     var struct = recoil.frp.struct;
-
-    widget.attach('', value, struct.get("list", meta), undefined, struct.get('renderer', meta), struct.get('enabled', meta));
+    
+    widget.attach('', value, struct.get("list", meta), undefined, struct.get('renderer', meta), struct.get('enabledItems', meta));
 
     return widget;
 };

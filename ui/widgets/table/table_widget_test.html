@@ -87,7 +87,7 @@
     id : { type : "int", primary : 0, key : tblKeys.id},
     count : { type: "int", min : 1, max:100, key: tblKeys.count},
     check : { type: "bool", key: tblKeys.check},
-    select : {type: "select", renderer: opt_renderer, key: tblKeys.select, enabled: enabledItems}
+    select : {type: "select", renderer: opt_renderer, key: tblKeys.select, enabledItems: enabledItems}
     };
 
     var columns = new recoil.ui.widgets.TableMetaData();
@@ -162,7 +162,7 @@
     row.set(tblKeys.name, "row "+ max);
     row.set(tblKeys.count, max);
     row.set(tblKeys.check, false);
-    row.set(tblKeys.select, frp.createB({a: 'test'}));
+    row.set(tblKeys.select, {a: 'test'});
 
     mtable.addRow(row);
     table.set(mtable.freeze());
@@ -194,7 +194,7 @@
     columns.add(tblKeys.name, "Name");
     //columns.add(tblKeys.count, "Count");
     columns.add(tblKeys.check, "Check");
-    columns.add(tblKeys.select, "Select");
+    columns.addColumn(selectCol);
     switchB.set(columns.createB(frp));
     },switchB));
 
