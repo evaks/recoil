@@ -59,7 +59,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
     var structs = recoil.frp.struct;
-    var optionsB = structs.flattern(frp, options); // util.toBehaviour(options);
+    var optionsB = structs.flatten(frp, options); // util.toBehaviour(options);
 
     this.nameB_ = frp.liftB(function (val) { console.log("NAME"); return val;},structs.get('name', optionsB, ""));
     this.valueB_ = structs.get('value', optionsB);

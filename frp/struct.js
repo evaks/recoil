@@ -64,7 +64,7 @@ recoil.frp.struct.extend = function(frp, structB, var_extensionsB) {
         }
     });
     for (var i = 1; i < arguments.length; i++) {
-        args.push(recoil.frp.struct.flattern(frp, arguments[i]));
+        args.push(recoil.frp.struct.flatten(frp, arguments[i]));
     }
 
     return frp.liftBI.apply(frp, args);
@@ -116,13 +116,13 @@ recoil.frp.struct.getBehaviours = function(struct) {
 };
 
 /**
- * the inverse of flattern rec which sets the behaviours in the struct
+ * the inverse of flatten rec which sets the behaviours in the struct
  * @private
  * @param {!recoil.frp.Behaviour<!Object>|!Object} struct
  * @param {!Object}  newVal
  * @param {!Array<?>} path
  */
-recoil.frp.struct.setFlatternRec_ = function(struct, newVal, path) {
+recoil.frp.struct.setFlattenRec_ = function(struct, newVal, path) {
     if (newVal === undefined) {
         return;
     }
@@ -144,14 +144,14 @@ recoil.frp.struct.setFlatternRec_ = function(struct, newVal, path) {
     var res;
     if (struct instanceof Array) {
         for (var i = 0; i < struct.length; i++) {
-            recoil.frp.struct.setFlatternRec_(struct[i], newVal[i], newPath);
+            recoil.frp.struct.setFlattenRec_(struct[i], newVal[i], newPath);
         }
         return;
     }
     if (struct instanceof Object) {
         for (var prop in struct) {
             if (struct.hasOwnProperty(prop)) {
-                recoil.frp.struct.setFlatternRec_(struct[prop], newVal[prop], newPath);
+                recoil.frp.struct.setFlattenRec_(struct[prop], newVal[prop], newPath);
             }
         }
         return;
@@ -165,7 +165,7 @@ recoil.frp.struct.setFlatternRec_ = function(struct, newVal, path) {
  * @param {!Array<?>} path
  * @return {!Object}
  */
-recoil.frp.struct.flatternRec_ = function(struct, path) {
+recoil.frp.struct.flattenRec_ = function(struct, path) {
     if (struct instanceof recoil.frp.Behaviour) {
         return struct.get();
     }
@@ -182,7 +182,7 @@ recoil.frp.struct.flatternRec_ = function(struct, path) {
     if (struct instanceof Array) {
         res = [];
         for (var i = 0; i < struct.length; i++) {
-            res.push(recoil.frp.struct.flatternRec_(struct[i], newPath));
+            res.push(recoil.frp.struct.flattenRec_(struct[i], newPath));
         }
         return res;
     }
@@ -190,7 +190,7 @@ recoil.frp.struct.flatternRec_ = function(struct, path) {
         res = {};
         for (var prop in struct) {
             if (struct.hasOwnProperty(prop)) {
-                res[prop] = recoil.frp.struct.flatternRec_(struct[prop], newPath);
+                res[prop] = recoil.frp.struct.flattenRec_(struct[prop], newPath);
             }
         }
         return res;
@@ -208,17 +208,17 @@ recoil.frp.struct.flatternRec_ = function(struct, path) {
  * @param {!recoil.frp.Behaviour<!Object>|!Object} structB
  * @return {!recoil.frp.Behaviour<!Object>}
  */
-recoil.frp.struct.flattern = function(frp, structB) {
+recoil.frp.struct.flatten = function(frp, structB) {
     if (structB instanceof recoil.frp.Behaviour) {
         return structB;
     }
 
     var args = [
         function() {
-            return recoil.frp.struct.flatternRec_(structB, []);
+            return recoil.frp.struct.flattenRec_(structB, []);
         },
         function(val) {
-            return recoil.frp.struct.setFlatternRec_(structB, val, []);
+            return recoil.frp.struct.setFlattenRec_(structB, val, []);
 
         }
     ];

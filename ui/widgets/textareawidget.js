@@ -70,7 +70,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function (options) {
     var util = new recoil.frp.Util(frp);
     
     var structs = recoil.frp.struct;
-    var optionsB = structs.flattern(frp, options);
+    var optionsB = structs.flatten(frp, options);
     
     this.valueB_   = structs.get('value', optionsB);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
