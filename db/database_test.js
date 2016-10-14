@@ -10,6 +10,11 @@ goog.require('recoil.frp.Frp');
 
 goog.setTestOnly('recoil.db.DatabaseTest');
 
+
+var VAL_KEY = new recoil.db.BasicType(['key'], 'val');
+var HELLO_KEY = new recoil.db.BasicType(['key'], 'hello');
+var WORLD_KEY = new recoil.db.BasicType(['key'], 'hello');
+
 /**
  * @implements recoil.db.DatabaseComms
  * @constructor
@@ -33,15 +38,16 @@ MyDb.prototype.makeKey = function (args) {
  * @param var_parameters
  */
 MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, key, var_parameters) {
+    console.log("db data set", key, data);
     var me = this;
     if (this.delay_) {
         this.delay_.push (function() {
-            me.values_[id][key] = data;
+            me.values_[id.getData()][key] = data;
             successFunc(data);
         });
     }
     else {
-        this.values_[id][key] = data;
+        this.values_[id.getData()][key] = data;
         successFunc(data);
         
     }
@@ -58,22 +64,22 @@ MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, key, var
 MyDb.prototype.get = function(success, failure, id, key, options) {
 
     console.log("getting ",id, key);
-    if (this.values_[id] === undefined) {
-        this.values_[id] = {};
+    if (this.values_[id.getData()] === undefined) {
+        this.values_[id.getData()] = {};
     }
 
-    if (this.values_[id][key] === undefined) {
-        this.values_[id][key] = 'xxx' + id + "-" + key;
+    if (this.values_[id.getData()][key] === undefined) {
+        this.values_[id.getData()][key] = 'xxx' + id.getData() + "-" + key;
     }
     var me = this;
     if (this.delay_) {
         this.delay_.push (function() {
             
-            success(me.values_[id][key]);
+            success(me.values_[id.getData()][key]);
         });
     }
     else {
-        success(this.values_[id][key]);
+        success(this.values_[id.getData()][key]);
     }
 };
 
@@ -110,11 +116,11 @@ function getVals(vals) {
 
 /**
  *
- * @param key
+ * @param {recoil.db.BasicKey} key
  * @return {*}
  */
 MyDb.prototype.getValue = function(key, subKey) {
-    return this.values_[key][subKey];
+    return this.values_[key.getData()][subKey];
 };
 
 function testGetSame() {
@@ -122,10 +128,10 @@ function testGetSame() {
     var coms = new MyDb();
     var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms);
 
-    var a1 = readwriteDb.get('hello','a');
-    var a2 = readwriteDb.get('hello','a');
-    var c1 = readwriteDb.get('hello','c');
-    var b1 = readwriteDb.get('world','a');
+    var a1 = readwriteDb.get(HELLO_KEY,'a');
+    var a2 = readwriteDb.get(HELLO_KEY,'a');
+    var c1 = readwriteDb.get(HELLO_KEY,'c');
+    var b1 = readwriteDb.get(WORLD_KEY,'a');
 
     frp.attach(a1);
     frp.attach(a2);
@@ -202,8 +208,8 @@ function testSet() {
     var coms = new MyDb(true);
     var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms);
     var readDb = new recoil.db.ReadOnlyDatabase(frp, readwriteDb);
-    var readwriteB = readwriteDb.get('hello','a');
-    var readB = readDb.get('hello','a');
+    var readwriteB = readwriteDb.get(HELLO_KEY,'a');
+    var readB = readDb.get(HELLO_KEY,'a');
 
     assertFalse(readB.unsafeMetaGet().ready());
     frp.attach(readB);
@@ -229,7 +235,7 @@ function testSet() {
     coms.process();
     assertEquals('goodbye', readwriteB.unsafeMetaGet().get());
     assertEquals('goodbye', readB.unsafeMetaGet().get());
-    assertEquals('goodbye', coms.getValue('hello','a'));
+    assertEquals('goodbye', coms.getValue(HELLO_KEY,'a'));
 
     // Writing to the readwritedb the change should be reflected on the readdb and
     // write to the readdb and the change should not be on the readwritedb
@@ -253,9 +259,11 @@ function testDelayed () {
     var readDb = new recoil.db.ReadOnlyDatabase(frp, coms);
     var readwriteDb = new recoil.db.ReadWriteDatabase(frp, coms, readDb);
     var delayedDb = new recoil.db.DelayedDatabase(frp, readwriteDb);
+
     
-    var val1 =  delayedDb.get("val","key1");
-    var val2 =  delayedDb.get("val","key1");
+    
+    var val1 =  delayedDb.get(VAL_KEY,"key1");
+    var val2 =  delayedDb.get(VAL_KEY,"key1");
 
     tm.attach(val1);
     tm.attach(val2);
@@ -270,28 +278,28 @@ function testDelayed () {
 
     assertEquals(0, val2.unsafeMetaGet().get());
 
-    var val3 =  delayedDb.get("val","key1");
+    var val3 =  delayedDb.get(VAL_KEY,"key1");
     tm.attach(val3);
 
     assertEquals(0, val3.unsafeMetaGet().get());
     
-    assertEquals("xxxval-key1",coms.getValue("val","key1"));
+    assertEquals("xxxval-key1",coms.getValue(VAL_KEY,"key1"));
 
     delayedDb.flush();
 
-    assertEquals(0,coms.getValue("val","key1"));
+    assertEquals(0,coms.getValue(VAL_KEY,"key1"));
 
 
     frp.accessTrans(function () {
         val1.set(1);
     }, val1);
 
-    assertEquals(0,coms.getValue("val","key1"));
+    assertEquals(0,coms.getValue(VAL_KEY,"key1"));
     assertEquals(1, val3.unsafeMetaGet().get());
 
     delayedDb.clear();
 
-    assertEquals(0,coms.getValue("val","key1"));
+    assertEquals(0,coms.getValue(VAL_KEY,"key1"));
     assertEquals(0, val3.unsafeMetaGet().get());
 
 }

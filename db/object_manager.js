@@ -152,20 +152,26 @@ recoil.db.ObjectManager = function (frp) {
 
 
 /**
- * baseed on the key type get all behaviours that are inside 
+ * based on the key type get all behaviours that are inside 
  *
+ * @return {!Array<!recoil.util.Pair<!recoil.db.Type, !recoil.frp.Behaviour>} 
  */
 
-recoil.db.ObjectManager.prototype.getRelatedBehaviours = function (keyType, value, behaviour) {
+recoil.db.ObjectManager.prototype.getRelatedBehaviours = function (keyType, value, behaviour, opt_options) {
     var res = [];
+    var me = this;
     for (var i = 0; i < keyType.getPaths(); i++) {
-        var path = keyType.getPaths();
+        var path = keyType.getSubKeys();
 
         path.forEach(value, function (val) {
-            res.push();
+            
+            res.push(
+                new recoil.util.Pair(
+                    path, me.register(path, val, opt_options)));
         });
     }
-    
+
+    return res;
 };
 /**
  * this is called to say we are interested in a key and about get the data
@@ -181,33 +187,65 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
     var behaviours = recoil.util.map.safeGet(this.queries_,typeKey, new goog.structs.AvlTree(recoil.db.Query.comparator_));
 
     var behaviour = this.frp_.createNotReadyB();
+    
+    var me = this;
+    // TODO get the sub items for this behaviour, it is not our job to set, create, or delete our children that is the coms layers
+    // (maybe) responsiblity all we do calculate our data from our children
 
-    var inversableB = frp.liftBI(
-        function (v) {return v;},
-        function (v, b) {
+    var resultBB = frp.liftB(
+        function (v) {
+            var related = me.getRelatedBehaviours(typeKey, v, behaviour, opt_options);
 
-            var related = this.getRelatedBehaviours(typeKey, v, b);
-            
+            var providers = [];
             for (var i = 0 ; i < related.length; i++) {
-                var sub = related[i];
-                sub.b.set(sub.v);
-                coms.set(sub.v.getSending(), sub.v.getStored(),
-                         function (v) {
-                             frp.accessTrans( function () {
-                                 behaviour.set(new recoil.db.SendInfo(v));
-                             }, behaviour);
-                         },
-                         function (status) {
-                             frp.accessTrans( function () {
-                                 
-                                 behaviour.metaSet(v);
-                             }, behaviour);
-                         },
-                         typeKey,key, opt_options);
+                providers.push(related[i].y);
             }
-        },behaviour);
 
+            
+            var res = v;
+            //TODO cache the result here if all the related behaviours are the same no
+            // need to redo this or return a new behaviour
 
+            return frp.liftBI.apply(frp, [
+                function () {
+                    var res = goog.object.clone(behaviour.get());
+                    var curPath = undefined;
+
+                    for (var i = 0; i < related.length; i++) {
+                        var newPath = related[i].x;
+                        if (newPath !== curPath) {
+                            // clear any array or map for that path so we can start adding
+                            newPath.reset(res);
+                        }
+                        // Errors, should be ok since liftBI should propergate
+                        newPath.put(res, related.y.get());
+                    }
+                    
+                },
+                function (v) {
+                    behaviour.set(v);
+                    // TODO do we set our subobjects too, no need to send them
+                    // since it is the databases responsiblity to do that
+                    coms.set(v.getSending(), v.getStored(),
+                             function (v) {
+                                 frp.accessTrans( function () {
+                                     behaviour.set(new recoil.db.SendInfo(v));
+                                 }, behaviour);
+                             },
+                             function (status) {
+                                 frp.accessTrans( function () {
+                                     
+                                     behaviour.metaSet(v);
+                                 }, behaviour);
+                             },
+                             typeKey,key, opt_options);
+                    
+                }, behaviour].concat(providers));
+                
+        }, behaviour);
+    
+    var inversableB = frp.switchB(resultBB);
+    
     var entity = new recoil.db.Entity(key, inversableB);
 
     var oldEntity = behaviours.findFirst(entity);
