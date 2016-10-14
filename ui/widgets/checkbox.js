@@ -59,7 +59,7 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function (options) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
     var structs = recoil.frp.struct;
-    var optionsB = structs.flattern(frp, options);
+    var optionsB = structs.flatten(frp, options);
 
     this.nameB_    = structs.get('name', optionsB, '');
     this.valueB_   = structs.get('value', optionsB, recoil.ui.BoolWithExplanation.FALSE);
@@ -83,7 +83,6 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function (options) {
  */
 recoil.ui.widgets.CheckboxWidget.prototype.updateState_ = function (helper) {
     if(helper.isGood()){
-        console.log('valueB', this.valueB_.get());
         this.checkBox_.setChecked(this.valueB_.get());
     }
 };

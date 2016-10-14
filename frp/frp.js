@@ -578,18 +578,19 @@ recoil.frp.Behaviour.prototype.refListen = function(callback) {
  * increases the reference count
  *
  * @param {recoil.frp.TransactionManager} manager
+ * @param {number?} opt_count this can add more than 1 used internally
  * @return {boolean} true if count was zero
  *
  */
-recoil.frp.Behaviour.prototype.addRef = function(manager) {
-
+recoil.frp.Behaviour.prototype.addRef = function(manager, opt_count) {
+    var count = opt_count === undefined ? 1 : opt_count;
     var hadRefs = this.hasRefs();
 
     var curRefs = this.refs_[manager.id_];
     if (curRefs === undefined) {
         this.refs_[manager.id_] = {
             manager: manager,
-            count: 1
+            count: count
         };
         if (!hadRefs) {
             for (var l = 0; l < this.refListeners_.length; l++) {
@@ -598,7 +599,7 @@ recoil.frp.Behaviour.prototype.addRef = function(manager) {
         }
         return true;
     } else {
-        this.refs_[manager.id_].count++;
+        this.refs_[manager.id_].count += count;
         if (!hadRefs) {
             for (var l = 0; l < this.refListeners_.length; l++) {
                 this.refListeners_[l](true);
@@ -613,14 +614,16 @@ recoil.frp.Behaviour.prototype.addRef = function(manager) {
  * decreases the reference count
  *
  * @param {recoil.frp.TransactionManager} manager
+ * @param {number?} opt_count this can remove than 1 used internally
  * @return {boolean} true if count goes to zero
  */
-recoil.frp.Behaviour.prototype.removeRef = function(manager) {
+recoil.frp.Behaviour.prototype.removeRef = function(manager, opt_count) {
     var curRefs = this.refs_[manager.id_];
-    if (curRefs === undefined || curRefs.count <= 0) {
-        goog.asserts.assert(false, 'Behaviour removing reference when not referenced');
+    var count = opt_count === undefined ? 1 : opt_count;
+    if (curRefs === undefined || curRefs.count < count) {
+        goog.asserts.assert(false, 'Behaviour ' + this.origSeq_ + ' removing reference when not referenced');
         return false;
-    } else if (curRefs.count === 1) {
+    } else if (curRefs.count === count) {
         delete this.refs_[manager.id_];
         if (!this.hasRefs()) {
             for (var l = 0; l < this.refListeners_.length; l++) {
@@ -629,7 +632,7 @@ recoil.frp.Behaviour.prototype.removeRef = function(manager) {
         }
         return true;
     } else {
-        this.refs_[manager.id_].count = curRefs.count - 1;
+        this.refs_[manager.id_].count = curRefs.count - count;
         return false;
     }
 };
@@ -1576,6 +1579,7 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
  * @param {...recoil.frp.Behaviour} var_providers
  */
 recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, var_providers) {
+    var count =   dependant.getRefs(this);
     var oldVisited = this.visit(dependant);
     var oldProviders = goog.array.clone(dependant.providers_);
     dependant.providers_ = goog.array.clone(arguments);
@@ -1614,7 +1618,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
         b = oldVisited[idx];
         var newIdx = newVisited[b.seqStr_];
         if (!newIdx) {
-            if (b.removeRef(this)) {
+            if (b.removeRef(this, count)) {
                 me.removeProvidersFromDependancyMap_(b);
                 me.removePending_(b);
             }
@@ -1625,7 +1629,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     for (var idx in newVisited) {
         b = newVisited[idx];
         if (!oldVisited[b.seqStr_]) {
-            if (b.addRef(this)) {
+            if (b.addRef(this, count)) {
                 me.addProvidersToDependancyMap_(b);
                 pending.push(b);
             }

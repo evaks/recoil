@@ -494,6 +494,45 @@ function testDependancyRemoved() {
     
 }
 
+function testSwitchBRefCount() {
+
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+    
+    var a = frp.createB(0);
+    var b = frp.liftB(function (x) { return x + 1;}, a);
+
+    var c = frp.createB(1);
+    var d = frp.liftB(function (x) { return x + 1;}, c);
+
+    var selector1 = frp.createB(b);
+    var testee = frp.switchB(selector1);
+
+    tm.attach(testee);
+    tm.attach(testee);
+
+console.log("xxx");
+    assertEquals("val1",1, testee.unsafeMetaGet().get());
+    assertEquals("count a - 1", 2, a.getRefs(tm));
+    assertEquals("count b - 1",2, b.getRefs(tm));
+    assertFalse(c.hasRefs());
+    assertFalse(d.hasRefs());
+
+
+    frp.accessTrans(function () {
+        selector1.set(d);
+    }, selector1);
+
+    assertEquals(2, testee.unsafeMetaGet().get());
+
+    console.log("C=",c);
+    assertEquals("c refs", 2, c.getRefs(tm));
+    assertEquals(2, d.getRefs(tm));
+    assertFalse(a.hasRefs());
+    assertFalse(b.hasRefs());
+
+
+}
 /**
  * this tests if the behaviours returned in a switch b
  * are created after the switchb and not inside the actual 

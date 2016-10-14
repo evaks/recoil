@@ -87,7 +87,6 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbac
  */
 recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbackB, textB, enabledB) {
     if (this.button_) {
-        console.log('in updateState');
         this.button_.setEnabled(helper.isGood());
         if (helper.isGood()) {
           this.button_.setContent(textB.get());

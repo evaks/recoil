@@ -2,19 +2,23 @@ goog.provide('recoil.ui.widgets.table.SelectColumn');
 
 goog.require('recoil.ui.widgets.table.Column');
 goog.require('recoil.ui.widgets.SelectorWidget');
+goog.require('recoil.frp.Debug');
+goog.require('recoil.frp.struct');
 
 /**
  *
  * @param {recoil.structs.table.ColumnKey} key
  * @param {string} name
+ * @param {recoil.frp.Behaviour<!Array<T>>|Array<T>} list
  * @param {(recoil.frp.Behaviour<Object>|Object)=} opt_options
  * @implements {recoil.ui.widgets.table.Column}
  * @template T
  * @constructor
  */
-recoil.ui.widgets.table.SelectColumn = function (key, name, opt_options) {
+recoil.ui.widgets.table.SelectColumn = function (key, name, list, opt_options) {
     this.key_ = key;
     this.name_ = name;
+    this.list_ = list;
     this.options_ = opt_options || {};
 };
 
@@ -29,11 +33,9 @@ recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function (scope, ce
     var frp = scope.getFrp();
     var widget = new recoil.ui.widgets.SelectorWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
-    var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
-    var struct = recoil.frp.struct;
+    var metaData = recoil.frp.Debug("Meta", recoil.frp.table.TableCell.getMeta(frp, cellB));
 
-    // dunno if this is correct
-    widget.attach('', value, struct.get('list', meta), undefined, struct.get('renderer', meta), undefined);
+    widget.attachStruct(recoil.frp.struct.extend(frp, metaData, {value : value}));
 
     return widget;
 };
@@ -50,7 +52,7 @@ recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function (scope, ce
  * @return {Object}
  */
 recoil.ui.widgets.table.SelectColumn.prototype.getMeta = function (curMeta) {
-    var meta = {name: this.name_,
+    var meta = {name: this.name_, list: this.list_,
         cellWidgetFactory: recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_};
 
     goog.object.extend(meta, this.options_, curMeta);

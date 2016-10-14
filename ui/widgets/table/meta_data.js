@@ -63,7 +63,7 @@ recoil.ui.widgets.TableMetaData.prototype.getBehaviours = function() {
  * @return {!recoil.frp.Behaviour<!Object>}
  */
 recoil.ui.widgets.TableMetaData.prototype.createB = function(frp) {
-    return recoil.frp.struct.flattern(frp, this);
+    return recoil.frp.struct.flatten(frp, this);
 };
 
 /**

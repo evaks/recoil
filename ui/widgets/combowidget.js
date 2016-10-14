@@ -51,7 +51,7 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
     var util = new recoil.frp.Util(frp);
 
     var structs = recoil.frp.struct;
-    var optionsB = structs.flattern(frp, options);
+    var optionsB = structs.flatten(frp, options);
 
     this.nameB_ = structs.get('name', optionsB);
     this.valueB_ = structs.get('value', optionsB);
