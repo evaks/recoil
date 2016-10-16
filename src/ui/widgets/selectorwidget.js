@@ -25,7 +25,8 @@ recoil.ui.widgets.SelectorWidget = function (scope) {
 /**
  * list of functions available when creating a selectorWidget
  */
-recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value', 'list', 'renderer', 'enabledItems');
+recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value', 'list', 'renderer',
+    { renderers :['button', 'menu']}, 'buttonRenderer', 'menuRenderer', 'enabledItems');
 
 /**
  *
@@ -71,9 +72,12 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
      * @private
      */
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
-    this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.SelectorWidget.DEFAULT);
+    this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.SelectorWidget.RENDERER);
+    this.buttonRendererB_ = structs.get('buttonRenderer', optionsB, recoil.ui.widgets.SelectorWidget.BUTTON_RENDERER);
+    this.menuRendererB_ = structs.get('menuRenderer', optionsB, recoil.ui.widgets.SelectorWidget.MENU_RENDERER);
 
-    this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_, this.enabledItemsB_);
+    this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_,
+        this.buttonRendererB_, this.menuRendererB_, this.enabledItemsB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
@@ -104,6 +108,9 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
         sel.setEnabled(this.enabledB_.get().val());
 
         var renderer = this.rendererB_.get();
+        var buttonRenderer = this.buttonRendererB_.get();
+        var menuRenderer = this.menuRendererB_.get();
+
 
         for(var i = sel.getItemCount() - 1; i >= 0; i--){
             sel.removeItemAt(i);
@@ -136,13 +143,46 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
  * @returns {!goog.ui.MenuItem}
  * @constructor
  */
-recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER = function(obj, valid, enabled) {
+recoil.ui.widgets.SelectorWidget.RENDERER = function(obj, valid, enabled) {
 
-    var t = goog.dom.createDom("div", valid ? undefined : "error", obj);
-    var item = new goog.ui.MenuItem(t);
+    this.vals_ = goog.dom.createDom("div", valid ? undefined : "recoil-error", obj);
+
+    return recoil.ui.widgets.SelectorWidget.MENU_RENDERER(obj, valid, enabled);
+
+};
+
+/**
+ *
+ * @param obj
+ * @param valid
+ * @param {!recoil.ui.BoolWithExplanation} enabled
+ * @returns {!goog.ui.MenuItem}
+ * @constructor
+ */
+recoil.ui.widgets.SelectorWidget.MENU_RENDERER = function(obj, valid, enabled) {
+
+    var t = goog.dom.createDom("div", valid ? undefined : "test-error", obj);
+    var item = new goog.ui.MenuItem(this.vals_ === undefined ? t : this.vals_);
     item.setEnabled(enabled.val());
 
     return item;
+};
+
+/**
+ *
+ * @param obj
+ * @param valid
+ * @param {!recoil.ui.BoolWithExplanation} enabled
+ * @returns {!goog.ui.MenuButton}
+ * @constructor
+ */
+recoil.ui.widgets.SelectorWidget.BUTTON_RENDERER = function(obj, valid, enabled) {
+
+    var t = goog.dom.createDom("div", valid ? undefined : "recoil-error", obj);
+    var button = new goog.ui.MenuButton(this.vals_ === undefined ? t : this.vals_);
+    button.setEnabled(enabled.val());
+
+    return button;
 };
 
 

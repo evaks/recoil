@@ -61,17 +61,17 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
      * @private
      */
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
-    this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.ComboWidget.DEFAULT_RENDERER);
+    this.defaultRendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.ComboWidget.DEFAULT_RENDERER);
 
-    var readyB = util.isAllGoodExplain(this.valueB_, this.nameB_, this.listB_, this.enabledB_, this.rendererB_);
+    var readyB = util.isAllGoodExplain(this.valueB_, this.nameB_, this.listB_, this.enabledB_, this.defaultRendererB_);
 
-    this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_);
+    this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.defaultRendererB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
 
         var val = v.target.getValue();
-        var r = me.rendererB_.get();
+        var r = me.defaultRendererB_.get();
         var list = me.listB_.get();
         for (var i = 0; i < list.length; i++) {
             if (recoil.util.isEqual(val, r(list[i]))) {
@@ -81,7 +81,7 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function (options) {
         }
         // me.listB_.set([{a:'one'}, {a:'two'}, {a: 'three'}, {a: 'four'}]);
 
-    }, this.valueB_, this.listB_, this.rendererB_));
+    }, this.valueB_, this.listB_, this.defaultRendererB_));
 };
 
 /**
@@ -97,7 +97,7 @@ recoil.ui.widgets.ComboWidget.prototype.updateState_ = function (helper) {
         c.setEnabled(this.enabledB_.get().val());
         c.removeAllItems();
 
-        var renderer = this.rendererB_.get();
+        var renderer = this.defaultRendererB_.get();
 
         var selected = this.valueB_.get();
         var found = false;

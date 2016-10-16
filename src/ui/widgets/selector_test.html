@@ -36,12 +36,7 @@ See the COPYING file for details.
     <link rel="stylesheet" href="../../../lib/closure-library/closure/goog/css/menuitem.css">
     <link rel="stylesheet" href="../../../lib/closure-library/closure/goog/css/menuseparator.css">
     <link rel="stylesheet" href="../../../lib/closure-library/closure/goog/css/flatmenubutton.css">
-
-    <style>
-        .error {
-            color: red;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/checklist.css">
 
 </head>
 <body>
@@ -65,7 +60,16 @@ See the COPYING file for details.
 
     var opt_renderer = function (val, errored, enabled) {
 
-        return recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER(val.a, errored, enabled);
+        return recoil.ui.widgets.SelectorWidget.RENDERER(val.a, errored, enabled);
+    };
+
+    var opt_button_renderer = function (val, errored, enabled) {
+
+        return recoil.ui.widgets.SelectorWidget.BUTTON_RENDERER(val.a, errored, enabled);
+    };
+    var opt_menu_renderer = function (val, errored, enabled) {
+
+        return recoil.ui.widgets.SelectorWidget.MENU_RENDERER(val.a, errored, enabled);
     };
 
     var listB = frp.createB(list);
@@ -84,14 +88,16 @@ See the COPYING file for details.
             new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
             new recoil.ui.BoolWithExplanation(false, undefined, recoil.ui.messages.INVALID)];
 
-//    recoil.ui.widgets.SelectorWidget.options
-//            .value(value)
-//            .list(list)
-//            .renderer(opt_renderer)
-//            .enabledItems(enabledItems)
-//            .attach(selector);
+    recoil.ui.widgets.SelectorWidget.options
+            .value(value)
+            .list(list)
+//            .renderers([opt_menu_renderer, opt_button_renderer])
 
-    selector.attach('', value, list, recoil.ui.BoolWithExplanation.TRUE, opt_renderer, frp.createB(enabledItems));
+//            .renderer(opt_renderer)
+            .enabledItems(enabledItems)
+            .attach(selector);
+
+//    selector.attach('', value, list, recoil.ui.BoolWithExplanation.TRUE, opt_renderer, frp.createB(enabledItems));
 
     selector.getComponent().render($('selector'));
     label.getComponent().render($('label'));
