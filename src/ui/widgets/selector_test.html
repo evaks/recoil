@@ -63,17 +63,6 @@ See the COPYING file for details.
         return recoil.ui.widgets.SelectorWidget.RENDERER(val.a, errored, enabled);
     };
 
-    var opt_button_renderer = function (val, errored, enabled) {
-
-        return recoil.ui.widgets.SelectorWidget.BUTTON_RENDERER(val.a, errored, enabled);
-    };
-    var opt_menu_renderer = function (val, errored, enabled) {
-
-        return recoil.ui.widgets.SelectorWidget.MENU_RENDERER(val.a, errored, enabled);
-    };
-
-    var listB = frp.createB(list);
-
     label.attach(frp.liftB(function () {
         return value.get().a
     }, value), recoil.ui.BoolWithExplanation.TRUE);
@@ -91,9 +80,7 @@ See the COPYING file for details.
     recoil.ui.widgets.SelectorWidget.options
             .value(value)
             .list(list)
-//            .renderers([opt_menu_renderer, opt_button_renderer])
-
-//            .renderer(opt_renderer)
+            .renderer(opt_renderer)
             .enabledItems(enabledItems)
             .attach(selector);
 

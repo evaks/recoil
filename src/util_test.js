@@ -132,7 +132,7 @@ function testCompare() {
 }
 
 function testOptions () {
-    var testee = recoil.util.Options('a', 'b');
+    var testee = recoil.util.Options('a', 'b', {d: ['x', 'y', 'z']});
 
     var val = testee.a(1).b(2).struct();
     assertObjectEquals(val, {a: 1, b: 2});
@@ -145,5 +145,8 @@ function testOptions () {
         testee.a(3).a(3);
     });
     assertObjectEquals(testee.struct(), {});
+
+    val = testee.d(5, 6, 7).struct();
+    assertObjectEquals(val, {d_x: 5, d_y : 6, d_z: 7});
 
 }

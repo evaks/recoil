@@ -473,7 +473,17 @@ recoil.util.Options = function(var_options) {
 
       return function (val) {
           delete remaining[name];
-          struct[name] = val;
+
+          if(arguments.length > 1){
+              for(var n in name){
+                  for(var i = 0; i < name[n].length; i++){
+                      struct[n + "_" + name[n][i]] = arguments[i];
+                  }
+              }
+          } else {
+              struct[name] = val;
+          }
+
           var res1 = {};
           for (var name1 in remaining) {
               res1[name1] = mkSetFunc(struct, remaining, name1);
@@ -490,12 +500,24 @@ recoil.util.Options = function(var_options) {
 
     for (var i = 0; i < arguments.length; i++) {
         var name = arguments[i];
-        remaining[name] = true;
+        if (name instanceof Object) {
+            for(var v in name) {
+                    remaining[v] = true;
+            }
+        } else {
+            remaining[name] = true;
+        }
     }
 
     for (var i = 0; i < arguments.length; i++) {
-        var name = arguments[i];
-        res[name] = mkSetFunc({},remaining, name);
+         var name = arguments[i];
+
+        if(name instanceof Object){
+            res[v] = mkSetFunc({}, remaining, name);
+
+        } else {
+            res[name] = mkSetFunc({}, remaining, name);
+        }
     }
 
     res.struct = function () {
