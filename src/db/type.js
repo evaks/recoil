@@ -2,7 +2,7 @@ goog.provide('recoil.db.Type');
 goog.provide('recoil.db.BasicType');
 
 goog.require('recoil.db.Path');
-
+goog.require('recoil.util.Sequence');
 
 /**
  * @interface
@@ -15,6 +15,21 @@ recoil.db.Type = function() {};
  * @return {!Array<?>} the primary keys of the object
  */
 recoil.db.Type.prototype.getKeys = function (obj) {};
+
+
+/**
+ * @return {string} an unique id identifing this key, use .seq in order
+ * to generate one
+ */
+recoil.db.Type.prototype.uniqueId = function () {};
+
+/**
+ * @final
+ * @type recoil.util.Sequence
+ */
+recoil.db.Type.seq = new recoil.util.Sequence();
+
+
 
 /**
  * gets a list of all the objects that this object can be made up out of
@@ -35,6 +50,7 @@ recoil.db.BasicType = function (keys, data, opt_subpaths) {
     this.keys_ = keys;
     this.data_ = data;
     this.subpaths_ = opt_subpaths || [];
+    this.id_ = recoil.db.Type.seq.next();
 };
 
 
@@ -52,4 +68,11 @@ recoil.db.BasicType.prototype.getPaths = function () {
  */
 recoil.db.BasicType.prototype.getData = function () {
     return this.data_;
+};
+
+/**
+ * @return {string} an unique id identifing this key
+ */
+recoil.db.BasicType.prototype.uniqueId = function () {
+    return this.id_;
 };

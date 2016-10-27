@@ -184,7 +184,7 @@ recoil.db.ObjectManager.prototype.getRelatedBehaviours = function (keyType, valu
  */
 recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options, coms) {
     var frp = this.frp_;
-    var behaviours = recoil.util.map.safeGet(this.queries_,typeKey, new goog.structs.AvlTree(recoil.db.Query.comparator_));
+    var behaviours = recoil.util.map.safeGet(this.queries_,typeKey.uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
 
     var behaviour = this.frp_.createNotReadyB();
     
@@ -220,6 +220,7 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
                         // Errors, should be ok since liftBI should propergate
                         newPath.put(res, related.y.get());
                     }
+                    return res;
                     
                 },
                 function (v) {
@@ -364,75 +365,12 @@ recoil.db.ObjectManager.prototype.unregister = function (typeKey, key, opt_optio
 
 };
 
-recoil.db.ObjectManager.prototype.registerQuery = function (typeKey, query, opt_options, coms) {
-    var queries =  recoil.util.map.safeGet(this.queries_,typeKey, new goog.structs.AvlTree(recoil.db.ObjectManager.comparator_));
-    var frp = this.frp_;
-    var entry = new recoil.db.QueryEntry(query);
-
-    var oldEntry = queries.findFirst(entry);
-
-    if (oldEntry) {
-        oldEntry.addRef();
-        return oldEntry.behaviour();
-    }
-
-    entry.addRef();
-    queries.add(entry);
-
-    // this is a list of all the behaviours
-    var allObjectsB = recoil.util.map.safeGet(this.objectTypes_,typeKey, new goog.structs.AvlTree(recoil.db.Entity.comparator_));
-
-    var behaviourBB = this.frp_.createNotReadyB();
-    var behaviour = frp.switchB(behaviourBB);
-
-    coms.getList(
-        function (values) {
-            frp.accessTrans(function () {
-                // get the
-                var oldVal = behaviour.metaGet();
-
-                if (oldVal.good()) {
-                    // add all the behaviours that don't exist  to all objects
-
-
-                    // we are trying to construct a list of entities
-                    for (var i = 0; i < values.length; i++) {
-                        // if the new value exist old value set the value
-
-                        // if the new value doesn't exist create it and add the reference
-                    }
-
-                    for (i = 0; i < oldVal.getRead(); i++) {
-                        var val = oldVal.getRead()[i];
-
-                        // if the old value does not exist remove the reference
-                    }
-
-                    behaviourBB.set(createList(allEntities));
-                    // construct a behaviour that references all the entities
-                }
-                else {
-                    behaviour.set(new recoil.db.SendInfo(val));
-                }
-            }, behaviour);
-        }, function() {
-            frp.accessTrans(function (val) {
-                behaviour.metaSet(val);
-            }, behaviour);
-
-        }, typeKey, opt_options);
-
-    return behaviour;
-
-};
-
-
  /**
   * create a behaviour given a list of behaviours
   * @param {!Array<recoil.frp.Behaviour>} list
   * @param {!recoil.frp.Behaviour<goog.structs.AvlTree>} addedB
   */
-createListB = function (frp, list, addedB, removeB, orderB) {
+recoil.db.ObjectManager.createListB = function (frp, list, addedB, removeB, orderB) {
     var orderB = frp.createB([]);
     var addedB = frp.createB();
     var removedB = frp.createB();
