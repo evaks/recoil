@@ -3,7 +3,8 @@ goog.provide('recoil.frp.Util');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.ui.messages');
 goog.require('recoil.util');
-
+goog.require('recoil.frp.Frp')
+goog.require('recoil.frp.struct')
 /**
  * @constructor
  * @param {recoil.frp.Frp} frp the frp engine to do operations on
@@ -140,3 +141,155 @@ var y = createB(2);
 
 var z = metaLiftB(function() {return x.get() + y.get()}, x, y);
 */
+
+/**
+ *
+ * @param {!string|!Object} var_options
+ * @returns {{}}
+ */
+
+recoil.frp.Util.Options = function(var_options) {
+    var res = {};
+    var remaining = {};
+
+    var checkRemaining = function (remaining) {
+        for (var i in remaining) {
+            if (!(remaining[i] instanceof Object)) {
+                throw "missing argument";
+            }
+        }
+    };
+    var mkSetFunc =  function (struct, remaining, name, params) {
+        struct = goog.object.clone(struct);
+        remaining = goog.object.clone(remaining);
+
+        return function (var_vals) {
+
+            delete remaining[name];
+
+            if(name instanceof Object){
+                for(var n in name) {
+                    struct[n] = var_vals;
+                }
+            } else {
+                if (arguments.length !== params.length) {
+                    throw "Invalid number of arguments";
+                }
+                for (var i = 0; i < arguments.length; i++) {
+                    struct[params[i]] = arguments[i];
+                }
+
+            }
+
+
+            var res1 = {};
+            for (var name1 in remaining) {
+                functionParams(remaining[name1]).forEach(function (func) {
+                    res1[name1] = mkSetFunc(struct, remaining, func.name, func.params);
+                });
+            }
+            res1.struct = function () {
+                checkRemaining(remaining);
+                return struct;
+            };
+            res1.attach = function (widget) {
+                checkRemaining(remaining);
+                widget.attachStruct(struct);
+            };
+            return res1;
+        }
+    };
+
+    function functionParams(name, defVal) {
+        if (name instanceof Object) {
+            var objRes = [];
+            for (var n in name) {
+                functionParams(n, name[n]).forEach(function (p) {
+                    objRes.push(p);
+                })
+            }
+            return objRes;
+        }
+
+        var defMap = {};
+        var startIndex = name.indexOf('(');
+        if (startIndex !== -1 || name.endsWith(')')) {
+
+            var prefix = name.substring(0, startIndex);
+            var params = name.substring(startIndex + 1, name.length - 1);
+            var paramArr = params.split(',');
+            var res = [];
+            paramArr.forEach(function (p) {
+                res.push(prefix + "_" + p);
+                if (defVal) {
+                    if (!defVal.hasOwnProperty(p)) {
+                        throw "you must specify " + p;
+                    }
+                    defMap[prefix + "_" + p] = defVal[p];
+                }
+            });
+
+            return [{name : prefix , params : res, def : defMap}];
+        }
+        else {
+            if (defVal) {
+                defMap[name] = defVal;
+            }
+            return [{name : name, params : [name], def : defMap}];
+        }
+    }
+
+    var args = arguments;
+
+    for (var i = 0; i < arguments.length; i++) {
+        var name = arguments[i];
+        functionParams(name).forEach (function (func) {
+            remaining[func.name] = name;
+        });
+    }
+
+
+    for (var i = 0; i < arguments.length; i++) {
+        var name = arguments[i];
+        functionParams(name).forEach (function (func) {
+            res[func.name] = mkSetFunc({}, remaining, func.name, func.params);
+        });
+    }
+
+
+    res.struct = function () {
+        checkRemaining(remaining);
+        return {};
+    };
+    res.attach = function (widget) {
+        checkRemaining(remaining);
+        widget.attachStruct({});
+    };
+
+    /**
+     *
+     * @param {recoil.frp.Frp} frp
+     * @param {!recoil.frp.Behaviour<!Object>|!Object} val
+     * @returns {!Object}
+     */
+    res.bind = function (frp, val) {
+        var optionsB = recoil.frp.struct.flatten(frp, val);
+        var res = {};
+        for (var i = 0; i < args.length; i++)
+            (function (name) {
+                var funcs = functionParams(name);
+                funcs.forEach(function (func) {
+                    func.params.forEach(function (param) {
+                        res[param] = function () {
+                            return recoil.frp.struct.get(param, optionsB, func.def[param]);
+                        }
+                    });
+                });
+
+        })(args[i]);
+        console.log('res', res);
+        return res;
+
+    };
+    return res;
+};

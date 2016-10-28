@@ -131,22 +131,26 @@ function testCompare() {
 
 }
 
-function testOptions () {
-    var testee = recoil.util.Options('a', 'b', {d: ['x', 'y', 'z']});
+// function testOptions () {
+//     // var testee = recoil.util.Options('a', 'b', {d: ['x', 'y', 'z']});
+//
 
-    var val = testee.a(1).b(2).struct();
-    assertObjectEquals(val, {a: 1, b: 2});
-
-    assertThrows("unknown value", function () {
-        testee.c(3);
-    });
-
-    assertThrows("dup value",function () {
-        testee.a(3).a(3);
-    });
-    assertObjectEquals(testee.struct(), {});
-
-    val = testee.d(5, 6, 7).struct();
-    assertObjectEquals(val, {d_x: 5, d_y : 6, d_z: 7});
-
-}
+//     // var val = testee.a('abc').b(2).struct();
+//     // assertObjectEquals(val, {a: 'abc', b: 2});
+//
+//     var val = testee.a('abc').b([1, 2, 3]).struct();
+//     assertObjectEquals(val, {a: 'abc', b: [1, 2, 3]});
+//
+//
+//     assertThrows("unknown value", function () {
+//         testee.c(3);
+//     });
+//
+//     assertThrows("dup value",function () {
+//         testee.a(3).a(3);
+//     });
+//     assertObjectEquals(testee.struct(), {});
+//
+//     val = testee.d(5, 6, 7).struct();
+//     assertObjectEquals(val, {d_x: 5, d_y : 6, d_z: 7});
+// }

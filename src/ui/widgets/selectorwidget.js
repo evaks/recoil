@@ -31,8 +31,16 @@ recoil.ui.widgets.SelectorWidget = function (scope) {
 /**
  * list of functions available when creating a selectorWidget
  */
-recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value' , 'list', 'renderer',
-    { renderers :['button', 'menu']}, 'enabledItems');
+// recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value' , {'!list': [1, 2, 3]}, {'renderer' : recoil.util.widgets.RENDERER},
+//     { renderers :['button', 'menu']}, 'enabledItems');
+recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options(
+    {
+        'name' :'',
+        'renderer': recoil.ui.widgets.SelectorWidget.RENDERER,
+        'enabledItems' : [],
+        'enabled' : recoil.ui.BoolWithExplanation.TRUE
+    },
+    'value' , 'list');
 
 /**
  *
@@ -59,33 +67,32 @@ recoil.ui.widgets.SelectorWidget.prototype.attach = function (nameB, valueB, lis
  * @param {!Object| !recoil.frp.Behaviour<Object>} options
  */
 recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
-    console.log('2');
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
-    var structs = recoil.frp.struct;
+    var bound =  recoil.ui.widgets.SelectorWidget.options.bind(frp, options);
     var optionsB = structs.flatten(frp, options);
 
-    this.nameB_ = structs.get('name', optionsB);
-    this.valueB_ = structs.get('value', optionsB);
-    this.listB_ = structs.get('list', optionsB);
+    // var bound = recoil.ui.widgets.SelectorWidget.options.bind(optionsB);
+    // this.nameB_ =  bound.name();
+
+    this.nameB_ = bound.name();
+    this.valueB_ = bound.value();
+    this.listB_ = bound.list();
     /**
      * @type {recoil.frp.Behaviour<!Array<recoil.ui.BoolWithExplanation>>}
      * @private
      */
-    this.enabledItemsB_ = structs.get('enabledItems', optionsB, []);
+    this.enabledItemsB_ = bound.enabledItems();
 
     /**
      * @type {recoil.frp.Behaviour.<!recoil.ui.BoolWithExplanation>}
      * @private
      */
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
-    this.rendererB_ = structs.get('renderer', optionsB, recoil.ui.widgets.SelectorWidget.RENDERER);
-
-    this.buttonRendererB_ = structs.get('renderers_button', optionsB, recoil.ui.widgets.SelectorWidget.BUTTON_RENDERER);
-    this.menuRendererB_ = structs.get('renderers_menu', optionsB, recoil.ui.widgets.SelectorWidget.MENU_RENDERER);
+    this.enabledB_ = bound.enabled();
+    this.rendererB_ = bound.renderer();
 
     this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_,
-        this.buttonRendererB_, this.menuRendererB_, this.enabledItemsB_);
+         this.enabledItemsB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
@@ -100,9 +107,19 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
 
 };
 
+/**
+ *
+ * @param {function(T) : string} renderer
+ * @param {Object} val
+ * @param {boolean} valid
+ * @param {recoil.ui.BoolWithExplanation} enabled
+ * @returns {goog.ui.MenuItem}
+ * @private
+ */
 recoil.ui.widgets.SelectorWidget.createMenuItem_ = function (renderer, val, valid, enabled) {
     return new goog.ui.MenuItem(renderer(val, valid, enabled), {value : val, valid : valid, enabled : enabled, renderer : renderer});
 };
+
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
@@ -112,7 +129,6 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
 
     if (helper.isGood()) {
         // console.log('in selectWidget updateState');
-        console.log('3');
         var list = this.listB_.get();
         var sel = this.selector_;
         var enabledItems = this.enabledItemsB_.get();

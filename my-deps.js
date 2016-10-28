@@ -1536,7 +1536,8 @@ goog.addDependency("../../../../src/frp/frp.js", ['recoil.frp', 'recoil.frp.BSta
 goog.addDependency("../../../../src/frp/frp_test.js", ['recoil.frp.FrpTest'], ['goog.dom', 'goog.events', 'goog.style', 'goog.testing.jsunit', 'recoil.exception.NoAccessors', 'recoil.exception.NotAttached', 'recoil.exception.NotInTransaction', 'recoil.frp.Frp', 'recoil.util']);
 goog.addDependency("../../../../src/frp/struct.js", ['recoil.frp.struct'], ['goog.object', 'recoil.frp.Behaviour', 'recoil.frp.Frp', 'recoil.util.object']);
 goog.addDependency("../../../../src/frp/table.js", ['recoil.frp.table.TableCell', 'recoil.frp.table.TableRow'], ['goog.object']);
-goog.addDependency("../../../../src/frp/util.js", ['recoil.frp.Util'], ['recoil.frp.Behaviour', 'recoil.ui.messages', 'recoil.util']);
+goog.addDependency("../../../../src/frp/util.js", ['recoil.frp.Util'], ['recoil.frp.Behaviour', 'recoil.ui.messages', 'recoil.util', 'recoil.frp.Frp', 'recoil.frp.struct']);
+goog.addDependency("../../../../src/frp/util_test.js", ['recoil.frp.util.UtilTest'], ['recoil.frp.Util', 'goog.testing.jsunit', 'recoil.frp.Frp']);
 goog.addDependency("../../../../src/frp/visibleobserver.js", ['recoil.frp.VisibleObserver'], ['goog.dom', 'goog.style', 'goog.events', 'goog.math', 'goog.math.Long', 'goog.structs.AvlTree', 'recoil.exception.NotInDom', 'recoil.util.Sequence']);
 goog.addDependency("../../../../src/frp/visibleobserver_test.js", ['recoil.frp.VisibleObserverTest'], ['goog.dom', 'goog.testing.AsyncTestCase', 'goog.testing.jsunit', 'recoil.exception.NotInDom', 'recoil.frp.VisibleObserver']);
 goog.addDependency("../../../../src/layout/fieldlayout.js", ['recoil.layout.FieldLayoutWidget'], ['recoil.frp.Behaviour', 'recoil.frp.Util', 'recoil.ui.widgets.InputWidget']);
@@ -1571,7 +1572,7 @@ goog.addDependency("../../../../src/ui/widgets/menu.js", ['recoil.ui.widgets.Men
 goog.addDependency("../../../../src/ui/widgets/menuStructure.js", ['recoil.ui.widgets.MenuStructure'], ['recoil.ui.widgets.MenuButtonWidget']);
 goog.addDependency("../../../../src/ui/widgets/number.js", ['recoil.ui.widgets.NumberWidget'], ['goog.events', 'goog.events.InputHandler', 'goog.events.KeyCodes', 'goog.events.PasteHandler', 'goog.ui.Component', 'goog.ui.Tooltip', 'recoil.frp.Util', 'recoil.ui.BoolWithExplanation', 'recoil.ui.LabeledWidget', 'recoil.ui.TooltipHelper', 'recoil.ui.Widget', 'recoil.ui.widgets.LabelWidget']);
 goog.addDependency("../../../../src/ui/widgets/passwordwidget.js", ['recoil.ui.widgets.PasswordWidget'], ['goog.events', 'goog.events.InputHandler', 'goog.ui.Component', 'recoil.frp.Util', 'recoil.ui.widgets.InputWidget']);
-goog.addDependency("../../../../src/ui/widgets/selectorwidget.js", ['recoil.ui.widgets.SelectorWidget'], ['goog.ui.Container', 'goog.ui.Control', 'goog.ui.Select', 'recoil.util', 'recoil.frp.Behaviour']);
+goog.addDependency("../../../../src/ui/widgets/selectorwidget.js", ['recoil.ui.widgets.SelectorWidget'], ['goog.ui.Container', 'goog.ui.Control', 'goog.ui.Select', 'recoil.util', 'recoil.frp.Behaviour', 'recoil.frp.Debug']);
 goog.addDependency("../../../../src/ui/widgets/testdata.js", [], []);
 goog.addDependency("../../../../src/ui/widgets/textareawidget.js", ['recoil.ui.widgets.TextAreaWidget'], ['recoil.ui.WidgetHelper', 'recoil.ui.WidgetScope', 'recoil.ui.Widget', 'goog.ui.Component', 'recoil.frp.Behaviour', 'recoil.frp.Util', 'recoil.frp.struct', 'goog.ui.Textarea', 'goog.ui.TextareaRenderer', 'recoil.ui.ComponentWidgetHelper', 'goog.events.InputHandler', 'recoil.ui.widgets.LabelWidget']);
 goog.addDependency("../../../../src/ui/widgets/textwidget.js", ['recoil.ui.widgets.TextWidget'], ['goog.events', 'goog.events.InputHandler', 'goog.ui.Component', 'goog.ui.Textarea', 'recoil.frp.Util']);

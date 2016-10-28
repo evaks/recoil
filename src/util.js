@@ -8,6 +8,7 @@ goog.require('goog.array');
 goog.require('goog.math.Long');
 goog.require('goog.object');
 goog.require('goog.structs.AvlTree');
+
 /**
  * a class to create a incrementing sequence
  * of strings
@@ -462,69 +463,4 @@ recoil.util.notNull = function(args)  {
             throw 'parameter ' + i + ' cannot be null';
         }
     }
-};
-
-recoil.util.Options = function(var_options) {
-    var res = {};
-    var remaining = {};
-    var mkSetFunc =  function (struct, remaining, name) {
-        struct = goog.object.clone(struct);
-        remaining = goog.object.clone(remaining);
-
-      return function (val) {
-          delete remaining[name];
-
-          if(arguments.length > 1){
-              for(var n in name){
-                  for(var i = 0; i < name[n].length; i++){
-                      struct[n + "_" + name[n][i]] = arguments[i];
-                  }
-              }
-          } else {
-              struct[name] = val;
-          }
-
-          var res1 = {};
-          for (var name1 in remaining) {
-              res1[name1] = mkSetFunc(struct, remaining, name1);
-          }
-          res1.struct = function () {
-              return struct;
-          };
-          res1.attach = function (widget) {
-              widget.attachStruct(struct);
-          };
-          return res1;
-      }
-     };
-
-    for (var i = 0; i < arguments.length; i++) {
-        var name = arguments[i];
-        if (name instanceof Object) {
-            for(var v in name) {
-                    remaining[v] = true;
-            }
-        } else {
-            remaining[name] = true;
-        }
-    }
-
-    for (var i = 0; i < arguments.length; i++) {
-         var name = arguments[i];
-
-        if(name instanceof Object){
-            res[v] = mkSetFunc({}, remaining, name);
-
-        } else {
-            res[name] = mkSetFunc({}, remaining, name);
-        }
-    }
-
-    res.struct = function () {
-        return {};
-    };
-    res.attach = function (widget) {
-        widget.attachStruct({});
-    };
-    return res;
 };
