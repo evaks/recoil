@@ -15,8 +15,9 @@ recoil.db.DatabaseComms = function() {
  * @template T
  * @param {function(T)} successFunction called when the data is retrieve from the database, maybe called multiple times
  * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database, maybe called multiple times
- * @param {!recoil.db.Type<T>} typedKey identifier of the object that to be retrieve from the database
- * @param {?} key the information we need to get the object/objects
+ * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
+ * @param {*} key the information we need to get the object/objects
+ * @param {*} options
  * 
  */
 recoil.db.DatabaseComms.prototype.get = function(successFunction, failFunction, id, key, options) {
@@ -29,24 +30,12 @@ recoil.db.DatabaseComms.prototype.get = function(successFunction, failFunction, 
  * @param {T} oldData old data that we already been received this can be used to only send changes
  * @param {function(T)} successFunction called when the data is retrieve from the database, the parameter is the set data
  * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database
- * @param {!recoil.db.Type<T>} typedKey identifier of the object that to be retrieve from the database
- * @param {?} key the information we need to get the object/objects
- *
+ * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
+ * @param {*} key the information we need to get the object/objects
+ * @param {*} options
  */
 
 recoil.db.DatabaseComms.prototype.set = function(data, oldData, successFunction, failFunction, id, key, options) {
-
-};
-
-/**
- * gets a list of objects
- * @param {function(!Array<T>)} successFunction called when the data is retrieve from the database, the parameter is the set data
- * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database
- * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
- * @param {!recoil.db.Query} query 
- * @param {?} key the information we need to get the object/objects
- */
-recoil.db.DatabaseComms.prototype.getList = function (successFunction, failFunction, id, query, options) {
 
 };
 

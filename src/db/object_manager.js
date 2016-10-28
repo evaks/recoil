@@ -5,7 +5,7 @@ goog.provide('recoil.db.ObjectManager');
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.db.Type');
 goog.require('recoil.frp.Behaviour');
-
+goog.require('recoil.structs.Pair');
 
 /**
  * @template T
@@ -154,19 +154,19 @@ recoil.db.ObjectManager = function (frp) {
 /**
  * based on the key type get all behaviours that are inside 
  *
- * @return {!Array<!recoil.util.Pair<!recoil.db.Type, !recoil.frp.Behaviour>} 
+ * @return {!Array<!recoil.structs.Pair<!recoil.db.Type, !recoil.frp.Behaviour>>} 
  */
 
 recoil.db.ObjectManager.prototype.getRelatedBehaviours = function (keyType, value, behaviour, opt_options) {
     var res = [];
     var me = this;
     for (var i = 0; i < keyType.getPaths(); i++) {
-        var path = keyType.getSubKeys();
+        var path = keyType.getPaths()[i];
 
         path.forEach(value, function (val) {
             
             res.push(
-                new recoil.util.Pair(
+                new recoil.structs.Pair(
                     path, me.register(path, val, opt_options)));
         });
     }
@@ -179,10 +179,11 @@ recoil.db.ObjectManager.prototype.getRelatedBehaviours = function (keyType, valu
  * @template T
  * @param {!recoil.db.Type<T>} typeKey
  * @param {?} key
- * @param {!recoil.frp.Behaviour<T>} value
+ * @param {*} options
+ * @param {!recoil.db.DatabaseComms} coms
  * @return {!recoil.frp.Behaviour<T>}
  */
-recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options, coms) {
+recoil.db.ObjectManager.prototype.register = function (typeKey, key, options, coms) {
     var frp = this.frp_;
     var behaviours = recoil.util.map.safeGet(this.queries_,typeKey.uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
 
@@ -194,7 +195,7 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
 
     var resultBB = frp.liftB(
         function (v) {
-            var related = me.getRelatedBehaviours(typeKey, v, behaviour, opt_options);
+            var related = me.getRelatedBehaviours(typeKey, v, behaviour, options);
 
             var providers = [];
             for (var i = 0 ; i < related.length; i++) {
@@ -239,7 +240,7 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
                                      behaviour.metaSet(v);
                                  }, behaviour);
                              },
-                             typeKey,key, opt_options);
+                             typeKey,key, options);
                     
                 }, behaviour].concat(providers));
                 
@@ -277,7 +278,7 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, opt_options
                 behaviour.metaSet(val);
             }, behaviour);
 
-        }, typeKey, key, opt_options);
+        }, typeKey, key, options);
 
     return inversableB;
 };
@@ -310,8 +311,9 @@ recoil.db.ObjectManager.prototype.disassemble = function (typeKey, object) {
  * makes a behaviour out a to level objects and sub parts
  * 
  * this is an inversable behaviour so setting it will work
+ * @template T
  * @param {T} topLevel 
- * @param {!Array<recoil.db.ObjectManager.PartInfo} parts
+ * @param {!Array<recoil.db.ObjectManager.PartInfo>} parts
  * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.db.ObjectManager.prototype.createParts_ = function (topLevel, parts) {
@@ -362,45 +364,6 @@ recoil.db.ObjectManager.prototype.unregister = function (typeKey, key, opt_optio
             delete this.objectTypes_[typeKey];
         }
     }
-
-};
-
- /**
-  * create a behaviour given a list of behaviours
-  * @param {!Array<recoil.frp.Behaviour>} list
-  * @param {!recoil.frp.Behaviour<goog.structs.AvlTree>} addedB
-  */
-recoil.db.ObjectManager.createListB = function (frp, list, addedB, removeB, orderB) {
-    var orderB = frp.createB([]);
-    var addedB = frp.createB();
-    var removedB = frp.createB();
-    // just use added and removed to deal with this the implementation
-    // of these will have to go outside the frp engine
-    var calc = function() {
-            var res = [];
-            var seen = new goog.structs.AvlTree(xxx);
-
-            for (var i = 0; i < orderB.get().length; i++) {
-                var orderInfo = orderB.get()[i];
-                if (orderInfo.src !== undefined) {
-                    res.push(list[orderInfo.src].get());
-                }
-                else {
-                    res.push(list[orderInfo.src].get());
-                }
-            }
-
-            for (var i = 0; i < list.length; i++) {
-                res.push(list[i].get());
-            }
-            return res;
-    };
-
-    var inv = function (val) {
-    };
-    var args = [calc, inv, addedB, removedB].concat(list);
-
-    return frp.liftBI.apply (frp, args);
 
 };
 

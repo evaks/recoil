@@ -33,7 +33,7 @@ recoil.db.Type.seq = new recoil.util.Sequence();
 
 /**
  * gets a list of all the objects that this object can be made up out of
- * @return {!Array<!recoil.db.OwnedPath>}
+ * @return {!Array<!recoil.db.Path>}
  */
 recoil.db.Type.prototype.getPaths = function () {
 };
@@ -42,7 +42,7 @@ recoil.db.Type.prototype.getPaths = function () {
  * a type that has a value and possibly some references to so external values
  * @param {!Array<string>} keys
  * @param {*} data arbitary data that can be used the the database to figure out what key it is
- * @param {Array<!recoil.db.OwnedPath>?} opt_subpaths
+ * @param {Array<!recoil.db.Path>?} opt_subpaths
  * @implements recoil.db.Type
  * @constructor
  */
@@ -57,7 +57,7 @@ recoil.db.BasicType = function (keys, data, opt_subpaths) {
 
 /**
  * gets a list of all the objects that this object can be made up out of
- * @return {!Array<!recoil.db.OwnedPath>}
+ * @return {!Array<!recoil.db.Path>}
  */
 recoil.db.BasicType.prototype.getPaths = function () {
     return this.subpaths_;

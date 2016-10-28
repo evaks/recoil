@@ -812,7 +812,6 @@ recoil.frp.Frp.prototype.createB = function(initial) {
 /**
  * helper function to create a behaviour that is not ready
  * @template T
- * @param {T} initial
  * @return {!recoil.frp.Behaviour<T>}
  */
 

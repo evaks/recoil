@@ -1512,7 +1512,6 @@ goog.addDependency("../../third_party/closure/goog/svgpan/svgpan.js", ['svgpan.S
 goog.addDependency("../../doc/_scripts/10-api.js", [], []);
 goog.addDependency("../../../../src/main.js", ['recoil'], []);
 goog.addDependency("../../../../src/util.js", ['recoil.util', 'recoil.util.Handle', 'recoil.util.Sequence', 'recoil.util.object', 'recoil.util.map'], ['goog.array', 'goog.math.Long', 'goog.object', 'goog.structs.AvlTree']);
-goog.addDependency("../../../../src/pair.js", ['recoil.Pair'], []);
 goog.addDependency("../../../../src/util_test.js", ['recoil.util.UtilTest'], ['recoil.util', 'goog.testing.jsunit']);
 goog.addDependency("../../../../src/structs/table.js", ['recoil.structs.table.ColumnKey', 'recoil.structs.table.MutableTable', 'recoil.structs.table.MutableTableRow', 'recoil.structs.table.Table', 'recoil.structs.table.TableCell', 'recoil.structs.table.TableRow'], ['goog.array', 'goog.math.Long', 'goog.structs.AvlTree', 'goog.structs.Collection', 'recoil.util.Sequence', 'recoil.util.object']);
 goog.addDependency("../../../../src/structs/cache_test.js", ['recoil.structs.CacheTest'], ['goog.testing.jsunit', 'recoil.structs.Cache']);
@@ -1521,6 +1520,7 @@ goog.addDependency("../../../../src/structs/cache.js", ['recoil.structs.Cache'],
 goog.addDependency("../../../../src/structs/tree_test.js", ['recoil.structs.TreeTest'], ['goog.testing.jsunit', 'recoil.structs.Tree']);
 goog.addDependency("../../../../src/structs/table_test.js", ['recoil.structs.TableTest'], ['goog.testing.jsunit', 'recoil.structs.table.Table']);
 goog.addDependency("../../../../src/structs/tree.js", ['recoil.structs.Tree'], ['goog.array', 'goog.object', 'recoil.util']);
+goog.addDependency("../../../../src/structs/pair.js", ['recoil.structs.Pair'], []);
 goog.addDependency("../../../../src/structs/uniquepriorityqueue_test.js", ['recoil.structs.UniquePriorityQueueTest'], ['goog.testing.jsunit', 'recoil.structs.UniquePriorityQueue']);
 goog.addDependency("../../../../src/autogen/user.js", ['recoil.db.User'], []);
 goog.addDependency("../../../../src/ui/events.js", ['recoil.ui.events'], ['goog.events', 'recoil.frp.Behaviour']);
@@ -1559,7 +1559,7 @@ goog.addDependency("../../../../src/ui/widgets/table/select_column.js", ['recoil
 goog.addDependency("../../../../src/ui/layout/card.js", ['recoil.ui.layout.Card'], []);
 goog.addDependency("../../../../src/ui/actions/screenAction.js", ['recoil.ui.actions.ScreenAction'], []);
 goog.addDependency("../../../../src/ui/actions/action.js", ['recoil.ui.actions.Action'], ['recoil.frp.Behaviour', 'recoil.ui.WidgetScope']);
-goog.addDependency("../../../../src/layout/fieldlayout.js", ['recoil.layout.FieldLayoutWidget'], ['recoil.frp.Behaviour', 'recoil.frp.Util', 'recoil.ui.widgets.InputWidget']);
+goog.addDependency("../../../../src/layout/fieldlayout.js", ['recoil.layout.FieldLayoutWidget'], ['recoil.frp.Behaviour', 'recoil.frp.Util', 'recoil.structs.Pair', 'recoil.ui.widgets.InputWidget']);
 goog.addDependency("../../../../src/frp/table.js", ['recoil.frp.table.TableCell', 'recoil.frp.table.TableRow'], ['goog.object']);
 goog.addDependency("../../../../src/frp/frp.js", ['recoil.frp', 'recoil.frp.BStatus', 'recoil.frp.Behaviour', 'recoil.frp.EStatus', 'recoil.frp.Frp', 'recoil.frp.TransactionManager'], ['goog.array', 'goog.math.Long', 'recoil.exception.InvalidState', 'recoil.exception.LoopDetected', 'recoil.exception.NoAccessors', 'recoil.exception.NotAttached', 'recoil.exception.NotInTransaction', 'recoil.structs.UniquePriorityQueue', 'recoil.util']);
 goog.addDependency("../../../../src/frp/util.js", ['recoil.frp.Util'], ['recoil.frp.Behaviour', 'recoil.ui.messages', 'recoil.util']);
@@ -1582,5 +1582,5 @@ goog.addDependency("../../../../src/db/database_test.js", ['recoil.db.DatabaseTe
 goog.addDependency("../../../../src/db/path_test.js", ['recoil.db.PathTest'], ['goog.testing.jsunit', 'goog.structs.AvlTree', 'recoil.db.Path']);
 goog.addDependency("../../../../src/db/database.js", ['recoil.db.Database', 'recoil.db.ReadOnlyDatabase', 'recoil.db.ReadWriteDatabase'], ['goog.structs.AvlTree', 'recoil.frp.ChangeManager', 'recoil.util', 'recoil.db.Type', 'recoil.db.DatabaseComms', 'recoil.db.ObjectManager', 'recoil.frp.Debug']);
 goog.addDependency("../../../../src/db/path.js", ['recoil.db.Path', 'recoil.db.PathItem'], ['goog.structs.AvlTree']);
-goog.addDependency("../../../../src/db/object_manager.js", ['recoil.db.Entity', 'recoil.db.ObjectManager'], ['goog.structs.AvlTree', 'recoil.db.Type', 'recoil.frp.Behaviour']);
+goog.addDependency("../../../../src/db/object_manager.js", ['recoil.db.Entity', 'recoil.db.ObjectManager'], ['goog.structs.AvlTree', 'recoil.db.Type', 'recoil.frp.Behaviour', 'recoil.structs.Pair']);
 goog.addDependency("../../../../src/exception/exception.js", ['recoil.exception.InvalidState', 'recoil.exception.LoopDetected', 'recoil.exception.NoAccessors', 'recoil.exception.NotAttached', 'recoil.exception.NotInDom', 'recoil.exception.NotInTransaction'], []);

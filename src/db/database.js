@@ -23,7 +23,6 @@ recoil.db.Database = function() {
 recoil.db.Database.prototype.makeKey = function(values) {
 };
 
-
 /**
  * gets an individual object from the database
  * @template T
@@ -35,19 +34,6 @@ recoil.db.Database.prototype.makeKey = function(values) {
 recoil.db.Database.prototype.get = function(id, primaryKeys, opt_options) {
 };
 
-
-/**
- * gets a list of options from the database, this should ensure that the same object
- * gets returned even if the query options is different
- *
- * @template T
- * @param {!recoil.db.Type<T>} id the id to identify the type of objects to retrieve
- * @param {!recoil.db.Query} query a filter to apply to the query
- * @param {!recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<!Array<T>>}
- */
-recoil.db.Database.prototype.getList = function (id, query, opt_options) {
-};
 
 /**
  * @constructor
@@ -68,7 +54,6 @@ recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
     return this.dbComs_.makeKey(values);
 };
 
-
 /**
  * gets an individual object from the database
  * @template T
@@ -80,21 +65,6 @@ recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
 recoil.db.ReadOnlyDatabase.prototype.get = function(id, primaryKeys, opt_options) {
     return this.frp_.liftB(function (v) {return v.getStored();}, this.db_.getSendInfo(id, primaryKeys, opt_options));
 };
-
-/**
- * gets a list of options from the database, this should ensure that the same object
- * gets returned even if the query options is different
- *
- * @template T
- * @param {!recoil.db.Type<T>} id the id to identify the type of objects to retrieve
- * @param {!recoil.db.Query} query a filter to apply to the query
- * @param {!recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<!Array<T>>}
- */
-recoil.db.ReadOnlyDatabase.prototype.getList = function (id, query, opt_options) {
-    return this.frp_.liftB(function (v) {return v;}, this.db_.getList(id, query, opt_options));
-};
-
 
 /**
  *
@@ -168,7 +138,7 @@ recoil.db.ReadWriteDatabase.prototype.makeKey = function(values) {
 /**
  * @private
  * @param {recoil.frp.Frp} frp
- * @param {!recoil.frp.Behaviour<recoil.db.SendInfo} uniq
+ * @param {!recoil.frp.Behaviour<recoil.db.SendInfo>} uniq
  */
 recoil.db.ReadOnlyDatabase.filterSending_ = function (frp, uniq) {
     return frp.liftB(
@@ -181,7 +151,7 @@ recoil.db.ReadOnlyDatabase.filterSending_ = function (frp, uniq) {
 /**
  * @private
  * @param {recoil.frp.Frp} frp
- * @param {!recoil.frp.Behaviour<recoil.db.SendInfo} uniq
+ * @param {!recoil.frp.Behaviour<recoil.db.SendInfo>} uniq
  */
 recoil.db.ReadWriteDatabase.showSending_ = function (frp, uniq) {
     return frp.liftBI(
@@ -266,21 +236,6 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfoList = function (id, query, opt
         });
     return frp.switchB(valueBB);
 };
-
-/**
- * gets a list of options from the database, this should ensure that the same object
- * gets returned even if the query options is different
- *
- * @template T
- * @param {!recoil.db.Type<T>} id the id to identify the type of objects to retrieve
- * @param {!recoil.db.Query} query a filter to apply to the query
- * @param {!recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<!Array<T>>}
- */
-recoil.db.ReadWriteDatabase.prototype.getList = function (id, query, opt_options) {
-    return recoil.db.ReadWriteDatabase.showSending_(this.frp_, this.getSendInfoList(id, query, opt_options));
-};
-
 
 /**
  * A database that will not send data to the server until an event is sent to
