@@ -2,6 +2,7 @@ goog.provide('recoil.layout.FieldLayoutWidget');
 
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
+goog.require('recoil.structs.Pair');
 goog.require('recoil.ui.widgets.InputWidget');
 
 
@@ -20,7 +21,7 @@ recoil.layout.FieldLayoutWidget = function(scope) {
 
 /**
  *
- * @param {Array<recoil.Pair<recoil.ui.Widget, recoil.ui.Widget>>|recoil.frp.Behaviour<Array<recoil.Pair<recoil.ui.Widget, recoil.ui.Widget>>>} widgetsB
+ * @param {Array<recoil.structs.Pair<recoil.ui.Widget, recoil.ui.Widget>>|recoil.frp.Behaviour<Array<recoil.structs.Pair<recoil.ui.Widget, recoil.ui.Widget>>>} widgetsB
  */
 recoil.layout.FieldLayoutWidget.prototype.attach = function(widgetsB) {
     var util = new recoil.frp.Util(this.helper_.getFrp());

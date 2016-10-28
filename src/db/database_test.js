@@ -13,7 +13,7 @@ goog.setTestOnly('recoil.db.DatabaseTest');
 
 var VAL_KEY = new recoil.db.BasicType(['key'], 'val');
 var HELLO_KEY = new recoil.db.BasicType(['key'], 'hello');
-var WORLD_KEY = new recoil.db.BasicType(['key'], 'hello');
+var WORLD_KEY = new recoil.db.BasicType(['key'], 'world');
 
 /**
  * @implements recoil.db.DatabaseComms

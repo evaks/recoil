@@ -12,7 +12,7 @@ recoil.db.PathItem = function () {
 
 /**
  * @param {*} value
- * @param {func(*)} callback
+ * @param {function(*)} func
  */
 
 recoil.db.PathItem.prototype.forEach = function (value, func) {};
@@ -24,7 +24,7 @@ recoil.db.PathItem.FACTORY = {};
 /**
  * adds an item so that you can use strings to construct a path
  * @param {!String} prefix the name to be used inside []
- * @param {*) type the class of the item to use, it can take any arguments thes will be the
+ * @param {*} type the class of the item to use, it can take any arguments thes will be the
  *            string that is passed minus the first part, and split on space
  */
 recoil.db.PathItem.addDefaultType =  function (prefix, type) {
@@ -79,7 +79,7 @@ recoil.db.Path = function (var_parts) {
 /**
  * calls func for each node that matches the path
  * @param {Object} value
- * @param {func(*)} func
+ * @param {function(*)} func
  * @param {number?} opt_start the depth of the path to start on
  */
 recoil.db.Path.prototype.forEach = function (value, func, opt_start) {
@@ -112,12 +112,12 @@ recoil.db.Path.Array = function () {
 
 /**
  * @param {*} value
- * @param {func(*)} callback
+ * @param {function(*)} callback
  */
 
-recoil.db.Path.Array.prototype.forEach = function (value, func) {
+recoil.db.Path.Array.prototype.forEach = function (value, callback) {
     for (var i = 0; i < value.length; i++) {
-        func(value[i]);
+        callback(value[i]);
     }
 };
 
@@ -132,11 +132,11 @@ recoil.db.Path.Avl = function () {
 
 /**
  * @param {*} value
- * @param {func(*)} callback
+ * @param {function(*)} callback
  */
 
-recoil.db.Path.Avl.prototype.forEach = function (value, func) {
-    value.inOrderTraverse(func);
+recoil.db.Path.Avl.prototype.forEach = function (value, callback) {
+    value.inOrderTraverse(callback);
 };
 
 
@@ -151,11 +151,11 @@ recoil.db.Path.Item = function (name) {
 
 /**
  * @param {*} value
- * @param {func(*)} callback
+ * @param {function(*)} callback
  */
 
-recoil.db.Path.Item.prototype.forEach = function (value, func) {
-    func(value[this.name_]);
+recoil.db.Path.Item.prototype.forEach = function (value, callback) {
+    callback(value[this.name_]);
 };
 
 
@@ -170,12 +170,12 @@ recoil.db.Path.Object = function () {
 
 /**
  * @param {*} value
- * @param {func(*)} callback
+ * @param {function(*)} callback
  */
 
-recoil.db.Path.Object.prototype.forEach = function (value, func) {
+recoil.db.Path.Object.prototype.forEach = function (value, callback) {
     for (var key in value) {
-        func(value[key]);
+        callback(value[key]);
     }
 };
 

@@ -812,7 +812,6 @@ recoil.frp.Frp.prototype.createB = function(initial) {
 /**
  * helper function to create a behaviour that is not ready
  * @template T
- * @param {T} initial
  * @return {!recoil.frp.Behaviour<T>}
  */
 
@@ -877,6 +876,11 @@ recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
  * @param {...recoil.frp.Behaviour} var_behaviours
  */
 recoil.frp.Frp.access = function(callback, var_behaviours) {
+    for (var i = 1; i < arguments.length; i++) {
+        if (!(arguments[i] instanceof recoil.frp.Behaviour)) {
+            throw "All arguments must be a behaviour";
+        }
+    }
     try {
         for (var i = 1; i < arguments.length; i++) {
             arguments[i].accessors_++;
@@ -933,7 +937,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
             b = metaBb.value_;
         });
 
-        if (b !== null || b !== undefined) {
+        if (b !== null && b !== undefined) {
 
             recoil.frp.Frp.access(function() {
                 res.merge(b.metaGet());

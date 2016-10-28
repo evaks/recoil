@@ -354,7 +354,6 @@ recoil.db.Query.prototype.not$ = function(opt_x) {
 };
 
 /**
- * @param {recoil.db.Query|recoil.db.QueryExp} opt_x
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.True = function() {
@@ -996,7 +995,6 @@ recoil.db.expr.Where.prototype.eval = function(scope) {
 
 /**
  * @constructor
- * @param {string} expr
  * @implements recoil.db.QueryExp
  */
 recoil.db.expr.True = function() {
