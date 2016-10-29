@@ -47,11 +47,11 @@ recoil.db.PathItem.addDefaultType =  function (prefix, type) {
  * @param {Array<!recoil.db.PathItem|!recoil.db.String>} var_parts
  * @constructor
  */
-recoil.db.Path = function (var_parts) {
+recoil.db.Path = function (parts) {
     this.elements_ = [];
 
-    for (var i = 0; i < arguments.length; i++) {
-        var part = arguments[i];
+    for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
         if (part.startsWith && part.endsWith && part.substring ) {
             if (part.startsWith("[") && part.endsWith("]")) {
                 var cleanPath = part.substring(1, part.length - 1);

@@ -1,5 +1,6 @@
 goog.provide('recoil.db.Type');
 goog.provide('recoil.db.BasicType');
+goog.provide('recoil.db.TypePath');
 
 goog.require('recoil.db.Path');
 goog.require('recoil.util.Sequence');
@@ -42,7 +43,7 @@ recoil.db.Type.prototype.getPaths = function () {
  * a type that has a value and possibly some references to so external values
  * @param {!Array<string>} keys
  * @param {*} data arbitary data that can be used the the database to figure out what key it is
- * @param {Array<!recoil.db.Path>?} opt_subpaths
+ * @param {Array<!recoil.db.TypePath>?} opt_subpaths
  * @implements recoil.db.Type
  * @constructor
  */
@@ -75,4 +76,17 @@ recoil.db.BasicType.prototype.getData = function () {
  */
 recoil.db.BasicType.prototype.uniqueId = function () {
     return this.id_;
+};
+
+
+/**
+ * used for subpaths inorder so that we can determine which key should be used for
+ * a subpath
+ * @param {!recoil.db.Type} type
+ * @param {!recoil.db.Path|!string} path the path to type
+ * @constructor
+ */
+recoil.db.TypePath = function (type, path) {
+    this.path_ = typeof(path) === "string" ? new recoil.db.Path(path) : path;
+    this.type_ = type;
 };

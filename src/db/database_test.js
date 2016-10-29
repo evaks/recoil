@@ -14,6 +14,8 @@ goog.setTestOnly('recoil.db.DatabaseTest');
 var VAL_KEY = new recoil.db.BasicType(['key'], 'val');
 var HELLO_KEY = new recoil.db.BasicType(['key'], 'hello');
 var WORLD_KEY = new recoil.db.BasicType(['key'], 'world');
+var LIST_ITEM_KEY = new recoil.db.BasicType(['id'], 'list');
+var LIST_KEY = new recoil.db.BasicType([], 'list-item', new recoil.db.TypePath(LIST_ITEM_KEY, '[]'));
 
 /**
  * @implements recoil.db.DatabaseComms
@@ -69,7 +71,12 @@ MyDb.prototype.get = function(success, failure, id, key, options) {
     }
 
     if (this.values_[id.getData()][key] === undefined) {
-        this.values_[id.getData()][key] = 'xxx' + id.getData() + "-" + key;
+        if (id.getData() === 'list') {
+            this.values_[id.getData()][key] = [1,2,3,4];
+        }
+        else {
+            this.values_[id.getData()][key] = 'xxx' + id.getData() + "-" + key;
+        }
     }
     var me = this;
     if (this.delay_) {
@@ -303,3 +310,21 @@ function testDelayed () {
     assertEquals(0, val3.unsafeMetaGet().get());
 
 }
+
+
+function testGetList ()  {
+    var frp = new recoil.frp.Frp();
+    var coms = new MyDb(false);
+    var db = new recoil.db.ReadWriteDatabase(frp, coms);
+    var listB = db.get(LIST_KEY,'List');
+    var listItemB = db.get(LIST_ITEM_KEY, 1);
+
+    frp.attach(listB);
+    frp.attach(listItemB);
+    
+    assertEquals([1,2,3,4], listB.unsafeMetaGet().get());
+    assertEquals("test", listItemB.unsafeMetaGet().get());
+
+    
+}
+
