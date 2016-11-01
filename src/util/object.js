@@ -1,48 +1,15 @@
-goog.provide('recoil.util');
-goog.provide('recoil.util.Handle');
-goog.provide('recoil.util.Sequence');
 goog.provide('recoil.util.object');
-goog.provide('recoil.util.map');
 
 goog.require('goog.array');
-goog.require('goog.math.Long');
 goog.require('goog.object');
 goog.require('goog.structs.AvlTree');
-
-/**
- * a class to create a incrementing sequence
- * of strings
- * @constructor
- */
-recoil.util.Sequence = function() {
-    this.val_ = goog.math.Long.getOne();
-};
-/**
- * get the next value and increment the counter
- * @return {string}
- */
-recoil.util.Sequence.prototype.next = function() {
-    var res = new String(this.val_);
-    this.val_ = this.val_.add(goog.math.Long.getOne());
-    return res.toString();
-};
-
-/**
- * get the next value and increment the counter
- * @return {goog.math.Long}
- */
-recoil.util.Sequence.prototype.nextLong = function() {
-    var res = this.val_;
-    this.val_ = this.val_.add(goog.math.Long.getOne());
-    return res;
-};
 
 /**
  * @template T
  * @param {T} value
  * @return {T}
  */
-recoil.util.safeFreeze = function(value) {
+recoil.util.object.safeFreeze = function(value) {
 
     if (value instanceof Object) {
         if (Object.isFrozen && !Object.isFrozen(value)) {
@@ -55,53 +22,6 @@ recoil.util.safeFreeze = function(value) {
 
 };
 
-
-/**
- * invokes function with arg1 and converts the rest array the rest of the paramters
- *
- * @template T
- * @template F
- * @param {Object} me
- * @param {F} func
- * @param {*} arg1
- * @param {Array<*>} rest
- * @return {T}
- */
-recoil.util.invokeOneParamAndArray = function(me, func, arg1, rest) {
-    var params = [arg1];
-    for (var i = 0; i < rest.length; i++) {
-        params.push(rest[i]);
-    }
-    return func.apply(me, params);
-};
-
-
-/**
- * will call func passing in all the arguments and converting the last
- * array parameter as more arguments
- *
- * @template T
- * @param {function(...) : T} func the function to call
- * @param {Object} obj the this parameter to call
- * @param {...} var_arguments a list of arguments the last one should be an array
- *
- * @return {T}
- */
-recoil.util.invokeParamsAndArray = function(func, obj, var_arguments) {
-    var args = [];
-    for (var i = 2; i < arguments.length - 1; i++) {
-        args.push(arguments[i]);
-
-    }
-    if (arguments.length > 2) {
-        var arr = arguments[arguments.length - 1];
-        for (var i = 0; i < arr.length; i++) {
-            args.push(arr[i]);
-        }
-    }
-    return func.apply(obj, args);
-};
-
 /**
  * a generic compare function that should handle anything
  *
@@ -109,8 +29,8 @@ recoil.util.invokeParamsAndArray = function(func, obj, var_arguments) {
  * @param {*} b
  * @return {!number}
  */
-recoil.util.compare = function(a, b) {
-    return recoil.util.compare_(a, b, [], []);
+recoil.util.object.compare = function(a, b) {
+    return recoil.util.object.compare_(a, b, [], []);
 };
 
 /**
@@ -122,7 +42,7 @@ recoil.util.compare = function(a, b) {
  * @return {number}
  * @private
  */
-recoil.util.compare_ = function(a, b, aPath, bPath) {
+recoil.util.object.compare_ = function(a, b, aPath, bPath) {
 
     // check for loops
 
@@ -180,7 +100,7 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
         return goog.array.compare3(/** @type {!IArrayLike} */
             (a), /** @type {!IArrayLike} */
             (b), function(a, b) {
-                return recoil.util.compare_(a, b, newAPath, newBPath);
+                return recoil.util.object.compare_(a, b, newAPath, newBPath);
             });
     }
 
@@ -206,7 +126,7 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
         }
         for (var i = 0; i < aKeys.length; i++) {
             var k = aKeys[i];
-            res = recoil.util.compare_(a[k], b[k], newAPath, newBPath);
+            res = recoil.util.object.compare_(a[k], b[k], newAPath, newBPath);
             if (res !== 0) {
                 return res;
             }
@@ -230,9 +150,9 @@ recoil.util.compare_ = function(a, b, aPath, bPath) {
  * @param {Object|number|undefined} b
  * @return {!boolean}
  */
-recoil.util.isEqual = function(a, b) {
+recoil.util.object.isEqual = function(a, b) {
 
-    return recoil.util.isEqual.isEqualRec_(a, b, [], [], []);
+    return recoil.util.object.isEqual.isEqualRec_(a, b, [], [], []);
 };
 
 /**
@@ -255,7 +175,7 @@ goog.structs.AvlTree.prototype.equals = function(other) {
         other.inOrderTraverse(function(row) {
             otherRows.push(row);
         });
-        return recoil.util.isEqual(myRows, otherRows);
+        return recoil.util.object.isEqual(myRows, otherRows);
     }
     return false;
 };
@@ -270,7 +190,7 @@ goog.structs.AvlTree.prototype.equals = function(other) {
  * @param {!Array<!string>} debugPath
  * @return {!boolean}
  */
-recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
+recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
 
     // check for loops
 
@@ -286,19 +206,19 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
     }
 
     if (a === undefined || b === undefined || a === null || b === null) {
-        return recoil.util.isEqualDebug_(false, debugPath);
+        return recoil.util.object.isEqualDebug_(false, debugPath);
     }
 
     if (a.equals !== undefined && a.equals instanceof Function) {
         return a.equals(b);
     }
     if (b.equals !== undefined && b.equals instanceof Function) {
-        return recoil.util.isEqualDebug_(b.equals(a), debugPath);
+        return recoil.util.object.isEqualDebug_(b.equals(a), debugPath);
     }
 
     if (goog.isArrayLike(a) != goog.isArrayLike(b)) {
 
-        return recoil.util.isEqualDebug_(false, debugPath);
+        return recoil.util.object.isEqualDebug_(false, debugPath);
     }
 
     var newAPath = goog.array.concat(aPath, [a]);
@@ -313,31 +233,31 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
             (b), function(a, b) {
                 var newDebugPath = goog.array.concat(debugPath, '[' + idx + ']');
 
-                return recoil.util.isEqual.isEqualRec_(
+                return recoil.util.object.isEqual.isEqualRec_(
                     a, b, newAPath, newBPath, newDebugPath);
             });
     }
 
     if (a instanceof Object || b instanceof Object) {
         if (!(a instanceof Object) || !(b instanceof Object)) {
-            return recoil.util.isEqualDebug_(false, debugPath);
+            return recoil.util.object.isEqualDebug_(false, debugPath);
         }
 
         for (var k in a) {
             var newDebugPath = goog.array.concat(debugPath, k);
-            if (!(k in b) || !recoil.util.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath, newDebugPath)) {
+            if (!(k in b) || !recoil.util.object.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath, newDebugPath)) {
                 return false;
             }
         }
         for (var k in b) {
             if (!(k in a)) {
                 newDebugPath = goog.array.concat(debugPath, k);
-                return recoil.util.isEqualDebug_(false, newDebugPath);
+                return recoil.util.object.isEqualDebug_(false, newDebugPath);
             }
         }
         return true;
     }
-    recoil.util.isEqualDebug_(false, debugPath);
+    recoil.util.object.isEqualDebug_(false, debugPath);
     return false;
 };
 
@@ -348,35 +268,12 @@ recoil.util.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
  * @param {!Array<string>} path
  * @return {!boolean}
  */
-recoil.util.isEqualDebug_ = function(val, path) {
+recoil.util.object.isEqualDebug_ = function(val, path) {
 //    if (!val) {
 //        console.log('Not Equal', path);
 //    }
     return val;
 };
-/**
- * @template T
- * @param {T=} opt_value
- * @constructor
- */
-recoil.util.Handle = function(opt_value) {
-    this.value_ = opt_value;
-};
-/**
- *
- * @param {T} value
- */
-recoil.util.Handle.prototype.set = function(value) {
-    this.value_ = value;
-};
-
-/**
- * @return {T}
- */
-recoil.util.Handle.prototype.get = function() {
-    return this.value_;
-};
-
 
 /**
  * @param {!Object} source
@@ -425,42 +322,49 @@ recoil.util.object.getByParts = function(obj, var_parts) {
 };
 
 /**
- * gets an item out of a map, if the item
- * does not exist it will insert the default into the map
- * and return that
- * @template T
- * @param {Object} map
- * @param {?} key
- * @param {T} def
- * @return {T}
- */
-
-recoil.util.map.safeGet = function (map, key, def) {
-    var res = map[key];
-    if (!res) {
-        res = def;
-        map[key] = def;
-    }
-    return res;
-};
-/**
- * checks to see if any of the items are null, if so throws an exception
- * this is needed because the closure compiler does type check for nulls however
- * code such as:
- * constructor
- *    x = null;
- * latter:
- *    x = new X();
- *    foo(x)
- * gives an error since x can be null
+ * best effort at deep clone, it handles loops, it handles instanceof
+ * I don't think it handles cloning parent scope
  *
- * @param {!IArrayLike} args
+ * if there is a clone method on it it will call that instead
+ * @template T
+ * @param {T} obj the object to clone
+ * @return T
  */
-recoil.util.notNull = function(args)  {
-    var i;
-    for (i = 0; i < args.length; i++) {
-        if (args[i] === null) {
-            throw 'parameter ' + i + ' cannot be null';
+recoil.util.object.clone = function (obj) {
+    return recoil.util.object.clone.cloneRec_(obj, [], []);
+};
+
+recoil.util.object.clone.cloneRec_ = function (obj, path, clonedPath) {
+
+    var type = goog.typeOf(obj);
+    if (type == 'object' || type == 'array') {
+        var idx = goog.array.indexOf(path, obj);
+        
+        if (idx !== -1) {
+            return clonedPath[idx];
         }
+        
+        if (goog.isFunction(obj.clone)) {
+            return obj.clone();
+        }
+        
+        var clone = type == 'array' ? [] : Object.create(Object.getPrototypeOf(obj));
+        var newPath = goog.array.clone(path);
+        var newClonedPath = goog.array.clone(clonedPath);
+        newPath.push(obj);
+        newClonedPath.push(clone);
+
+        
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                clone[key] = recoil.util.object.clone.cloneRec_(obj[key], newPath, newClonedPath);
+            }
+        }
+
+//        clone.__proto__ 
+        console.log(clone,Object.getPrototypeOf(obj), obj);
+        return clone;
     }
+    
+    return obj;
 };

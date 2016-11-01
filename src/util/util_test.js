@@ -2,7 +2,7 @@ goog.provide('recoil.util.UtilTest');
 
 goog.require('recoil.util');
 goog.require('goog.testing.jsunit');
-
+goog.require('goog.math');
 goog.setTestOnly('recoil.util.UtilTest');
 
 function testIsEqual() {
@@ -131,6 +131,47 @@ function testCompare() {
 
 }
 
+function testClone() {
+    var O1 = function (a) {
+        this.a_ = a;
+    };
+
+    O1.prototype.getA = function () {
+        return this.a_;
+    };
+
+    O1.prototype.setA = function (a) {
+        this.a_ = a;
+    };
+    
+    var x = new O1(1);
+    var arr = [1,2,3];
+    
+    var clone = recoil.util.object.clone(x);
+    var cloneArr = recoil.util.object.clone(arr);
+
+    assertTrue ("instance x", x instanceof O1);
+    assertTrue ("instance clone", clone instanceof O1);
+
+    assertEquals("attrib", 1, clone.getA());
+    x.setA(3);
+    assertEquals("attrib x changed", 3, x.getA());
+    assertEquals("attrib clone changed", 1, clone.getA());
+
+    assertArrayEquals("array equals", arr, cloneArr);
+
+    var a = {n : 'a'};
+    var b = {n : 'b', v : a};
+    a.v = b;
+    //test a loop
+    clone = recoil.util.object.clone(a);
+
+    clone.f = 1;
+    assertEquals("set", 1, clone.v.v.f);
+    assertTrue("loop 1",clone.v.v === clone);
+    assertTrue("loop 2",clone.v === clone.v.v.v);
+    assertTrue("loop diff", clone !== a);
+}
 // function testOptions () {
 //     // var testee = recoil.util.Options('a', 'b', {d: ['x', 'y', 'z']});
 //
