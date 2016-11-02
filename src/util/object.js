@@ -361,8 +361,6 @@ recoil.util.object.clone.cloneRec_ = function (obj, path, clonedPath) {
             }
         }
 
-//        clone.__proto__ 
-        console.log(clone,Object.getPrototypeOf(obj), obj);
         return clone;
     }
     

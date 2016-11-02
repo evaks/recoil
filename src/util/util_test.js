@@ -160,7 +160,7 @@ function testClone() {
 
     assertArrayEquals("array equals", arr, cloneArr);
 
-    var a = {n : 'a'};
+    var a = {n : 'a', x : null, y : undefined};
     var b = {n : 'b', v : a};
     a.v = b;
     //test a loop
@@ -168,9 +168,35 @@ function testClone() {
 
     clone.f = 1;
     assertEquals("set", 1, clone.v.v.f);
+    assertTrue("null check", clone.x === null);
+    assertTrue("undefined exists check", clone.hasOwnProperty('y'));
+    assertTrue("undefined check", clone.y === undefined);
     assertTrue("loop 1",clone.v.v === clone);
     assertTrue("loop 2",clone.v === clone.v.v.v);
     assertTrue("loop diff", clone !== a);
+
+    // this test I expect to fail don't know how to get round it yet
+
+    var src = (function () {
+        var a = 1;
+        return {
+            setA : function (v) {
+                a = v;
+            },
+            getA : function () {
+                return a;
+            }
+        };
+    })();
+
+    clone = recoil.util.object.clone(src);
+
+    assertObjectEquals(clone,src);
+    assertEquals("good get src", 1, src.getA());
+    clone.setA(2);
+    assertEquals("good get clone", 2, clone.getA());
+//    assertEquals("bad get src", 1, src.getA());
+
 }
 // function testOptions () {
 //     // var testee = recoil.util.Options('a', 'b', {d: ['x', 'y', 'z']});
