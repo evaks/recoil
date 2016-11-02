@@ -14,8 +14,8 @@ goog.setTestOnly('recoil.db.DatabaseTest');
 var VAL_KEY = new recoil.db.BasicType(['key'], 'val');
 var HELLO_KEY = new recoil.db.BasicType(['key'], 'hello');
 var WORLD_KEY = new recoil.db.BasicType(['key'], 'world');
-var LIST_ITEM_KEY = new recoil.db.BasicType(['id'], 'list');
-var LIST_KEY = new recoil.db.BasicType([], 'list-item', new recoil.db.TypePath(LIST_ITEM_KEY, '[]'));
+var LIST_ITEM_KEY = new recoil.db.BasicType(['id'], 'list-item');
+var LIST_KEY = new recoil.db.BasicType([], 'list', new recoil.db.TypePath(LIST_ITEM_KEY, '[]'));
 
 /**
  * @implements recoil.db.DatabaseComms
@@ -91,11 +91,6 @@ MyDb.prototype.get = function(success, failure, id, key, options) {
 };
 
 
-MyDb.prototype.getList = function (successFunction, failFunction, id, query, options) {
-    
-
-
-};
 
 
 MyDb.prototype.process = function () {
@@ -163,53 +158,6 @@ function testGetSame() {
 
 }
 
-function testGetList () {
-    var frp = new recoil.frp.Frp();
-    var coms = new MyDb(true);
-    var db = new recoil.db.ReadWriteDatabase(frp, coms);
-
-    var a = db.get('a',[1]);
-    var b = db.get('a',[3]);
-    frp.attach(a);
-    var list = db.getList('a', recoil.db.Query.True);
-    frp.attach(list);
-
-    assertEquals('xxxa', a.unsafeMetaGet().get());
-    assertEquals('xxxa', list.unsafeMetaGet().get()[0]);
-    assertEquals('xxxa', list.unsafeMetaGet().get()[1]);
-    assertEquals('xxxa', list.unsafeMetaGet().get()[2]);
-
-
-    frp.accessTrans(function () {
-        a.set('a1');
-    },a);
-    
-
-    assertEquals('a1', a.unsafeMetaGet().get());
-    assertEquals('xxxa', list.unsafeMetaGet().get()[0]);
-    assertEquals('a1', list.unsafeMetaGet().get()[1]);
-    assertEquals('xxxa', list.unsafeMetaGet().get()[2]);
-
-
-    var newList = goog.array.clone(list.unsafeMetaGet().get());
-    newList.push('b');
-    
-    frp.accessTrans(function () {
-        list.set(newList);
-    },list);
-
-    frp.attach(b);
-    
-    assertEquals('a1', a.unsafeMetaGet().get());
-    assertEquals('b', b.unsafeMetaGet().get());
-    assertEquals('xxxa', list.unsafeMetaGet().get()[0]);
-    assertEquals('a1', list.unsafeMetaGet().get()[1]);
-    assertEquals('xxxa', list.unsafeMetaGet().get()[2]);
-    assertEquals('b', list.unsafeMetaGet().get()[3]);
-
-    //check it has been sent to the database
-    assertTrue("not implemented yet, insert, delete",false);
-}
 function testSet() {
     var frp = new recoil.frp.Frp();
     var coms = new MyDb(true);
@@ -317,14 +265,45 @@ function testGetList ()  {
     var coms = new MyDb(false);
     var db = new recoil.db.ReadWriteDatabase(frp, coms);
     var listB = db.get(LIST_KEY,'List');
-    var listItemB = db.get(LIST_ITEM_KEY, 1);
+    var listItem0B = db.get(LIST_ITEM_KEY, 0);
+    var listItem1B = db.get(LIST_ITEM_KEY, 1);
+    var listItem2B = db.get(LIST_ITEM_KEY, 2);
+    var listItem3B = db.get(LIST_ITEM_KEY, 3);
 
     frp.attach(listB);
-    frp.attach(listItemB);
-    
-    assertEquals([1,2,3,4], listB.unsafeMetaGet().get());
-    assertEquals("test", listItemB.unsafeMetaGet().get());
+    frp.attach(listItem0B);
+    frp.attach(listItem1B);
+    frp.attach(listItem2B);
+    frp.attach(listItem3B);
 
+    assertArrayEquals([1,2,3,4], listB.unsafeMetaGet().get());
+    //currently there is no code to register subitems to the main list so
+    //this is expected to fail
+    assertEquals(1, listItem0B.unsafeMetaGet().get());
+    assertEquals(2, listItem1B.unsafeMetaGet().get());
+    assertEquals(3, listItem2B.unsafeMetaGet().get());
+    assertEquals(4, listItem3B.unsafeMetaGet().get());
+
+    frp.accessTrans(function () {
+        listB.set([11,12,13,14]);
+    });
+
+    assertArrayEquals([1,2,3,4], listB.unsafeMetaGet().get());
+    assertEquals(11, listItem0B.unsafeMetaGet().get());
+    assertEquals(12, listItem1B.unsafeMetaGet().get());
+    assertEquals(13, listItem2B.unsafeMetaGet().get());
+    assertEquals(14, listItem3B.unsafeMetaGet().get());
+
+    frp.accessTrans(function () {
+        listB.set([11,12,13]);
+    });
     
+    assertEquals(11, listItem0B.unsafeMetaGet().get());
+    assertEquals(12, listItem1B.unsafeMetaGet().get());
+    assertEquals(13, listItem2B.unsafeMetaGet().get());
+    assertEquals(notReady, listItem3B.unsafeMetaGet());
+
+    // TODO also test geting the sub item first then the list
+
 }
 
