@@ -33,7 +33,7 @@ recoil.ui.widgets.SelectorWidget = function (scope) {
  */
 // recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value' , {'!list': [1, 2, 3]}, {'renderer' : recoil.util.widgets.RENDERER},
 //     { renderers :['button', 'menu']}, 'enabledItems');
-recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options(
+recoil.ui.widgets.SelectorWidget.options =  recoil.frp.Util.Options(
     {
         'name' :'',
         'renderer': recoil.ui.widgets.SelectorWidget.RENDERER,
@@ -70,7 +70,7 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
     var bound =  recoil.ui.widgets.SelectorWidget.options.bind(frp, options);
-    var optionsB = structs.flatten(frp, options);
+    // var optionsB = structs.flatten(frp, options);
 
     // var bound = recoil.ui.widgets.SelectorWidget.options.bind(optionsB);
     // this.nameB_ =  bound.name();

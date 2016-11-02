@@ -49,6 +49,19 @@ function testOptions () {
         testee.a('xxx').struct();
     });
 
+
+    testee = recoil.frp.Util.Options({'a' : 1, b: 2}, 'c');
+    var strB =  testee.c(4).a(7).struct();
+    bound = testee.bind(frp, strB);
+
+    aB = bound.a();
+    bB = bound.b();
+
+    frp.attach(aB);
+    frp.attach(bB);
+
+    assertEquals(7, aB.unsafeMetaGet().get());
+    assertEquals(2, bB.unsafeMetaGet().get());
     // var B = recoil.ui.widgets.SelectorWidget.options.name('fred').get();
 }
 

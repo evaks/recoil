@@ -143,9 +143,46 @@ var z = metaLiftB(function() {return x.get() + y.get()}, x, y);
 */
 
 /**
+ * This is a utility that creates an object that will do some checking on structs
+ * passed to widgets in the widgets create a constant like so:
+ *
+ * var options = recoil.frp.Util.Options('a', {b : 'def1', c: 'def'}, 'x(a,b)');
+ *
+ * when using it to create the structure do the following
+ * var struct = options.a(1).x(2,4).b('fish');
+ *
+ * the values passed can be normal values or behaviours.
+ *
+ * then either do
+ *
+ * struct.attach(widget) or struct.attachStruct(struct.struct()) to attach the data
+ *
+ * in the widget to access the values do the following
+ *
+ * var bound = options.bind(struct);
+ *
+ * the to access the behaviours, that will have defaults populated do:
+ *
+ * var valB = bound.a(); to access a
+ *
+ * the following describes the format the var_options parameter, their can be any number of them
+ * and as long as the names don't clash it should work
+ *
+ * all identifiers should be valid javascript identifies for ease of use
+ *
+ * there are 3 types of values that var_options can have:
+ *
+ * 1. simple string e.g. 'value', this means the user must specify the item as no default is provided
+ * 2. function e.g. 'render(button, menu)' this requires the user of the widget to provide all the parameters
+ *             this is useful when groups of parameters must be specified together.
+ *             The values can be accessed inside the widget in this example by bound.render_button and bound.render_menu
+ * 3. An object, this provides a mechanism for specifying defaults, the keys can be like 1 and 2 and the default values are
+ *               the values, you can either specify multiple keys in 1 object or multiple object parameters.
+ *               To specify defaults of functions (type 2) the default should be an object with fields matching the parameters
  *
  * @param {!string|!Object} var_options
- * @returns {{}}
+ * @returns {!Object} this has dynamic fields based on the parameters, and struct, attach, and bind function
+ *
  */
 
 recoil.frp.Util.Options = function(var_options) {
@@ -185,7 +222,7 @@ recoil.frp.Util.Options = function(var_options) {
             var res1 = {};
             for (var name1 in remaining) {
                 functionParams(remaining[name1]).forEach(function (func) {
-                    res1[name1] = mkSetFunc(struct, remaining, func.name, func.params);
+                    res1[func.name] = mkSetFunc(struct, remaining, func.name, func.params);
                 });
             }
             res1.struct = function () {
