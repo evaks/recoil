@@ -15,7 +15,7 @@ var VAL_KEY = new recoil.db.BasicType(['key'], 'val');
 var HELLO_KEY = new recoil.db.BasicType(['key'], 'hello');
 var WORLD_KEY = new recoil.db.BasicType(['key'], 'world');
 var LIST_ITEM_KEY = new recoil.db.BasicType(['id'], 'list-item');
-var LIST_KEY = new recoil.db.BasicType([], 'list', new recoil.db.TypePath(LIST_ITEM_KEY, '[]'));
+var LIST_KEY = new recoil.db.BasicType([], 'list', undefined, [new recoil.db.TypePath(LIST_ITEM_KEY, '[]')]);
 
 /**
  * @implements recoil.db.DatabaseComms
@@ -72,7 +72,7 @@ MyDb.prototype.get = function(success, failure, id, key, options) {
 
     if (this.values_[id.getData()][key] === undefined) {
         if (id.getData() === 'list') {
-            this.values_[id.getData()][key] = [1,2,3,4];
+            this.values_[id.getData()][key] = [{id: 1} ,{id: 2} ,{id : 3},{id:4}];
         }
         else {
             this.values_[id.getData()][key] = 'xxx' + id.getData() + "-" + key;
@@ -265,18 +265,27 @@ function testGetList ()  {
     var coms = new MyDb(false);
     var db = new recoil.db.ReadWriteDatabase(frp, coms);
     var listB = db.get(LIST_KEY,'List');
-    var listItem0B = db.get(LIST_ITEM_KEY, 0);
-    var listItem1B = db.get(LIST_ITEM_KEY, 1);
-    var listItem2B = db.get(LIST_ITEM_KEY, 2);
-    var listItem3B = db.get(LIST_ITEM_KEY, 3);
+    var listItem0B = db.get(LIST_ITEM_KEY, [0]);
+    var listItem1B = db.get(LIST_ITEM_KEY, [1]);
+    var listItem2B = db.get(LIST_ITEM_KEY, [2]);
+    var listItem3B = db.get(LIST_ITEM_KEY, [3]);
 
     frp.attach(listB);
+
+    var val = listB.unsafeMetaGet().get();
+    console.log(val);
+
+    // current problems we are initialting a database read when we get these
+    // items, we should not go to the database for sub items that is the coms
+    // layers job to do if it wants, but what happens if we update via sub items
+    // shouldn't register with a val stop this a bit
+    
+    assertObjectEquals([{id: 1 }, {id : 2}, {id : 3}, {id : 4}], val);
+
     frp.attach(listItem0B);
     frp.attach(listItem1B);
     frp.attach(listItem2B);
     frp.attach(listItem3B);
-
-    assertArrayEquals([1,2,3,4], listB.unsafeMetaGet().get());
     //currently there is no code to register subitems to the main list so
     //this is expected to fail
     assertEquals(1, listItem0B.unsafeMetaGet().get());
