@@ -12,7 +12,7 @@ recoil.db.PathItem = function () {
 
 /**
  * @param {*} value
- * @param {function(*)} func
+ * @param {function(*)} func 
  */
 
 recoil.db.PathItem.prototype.forEach = function (value, func) {};
@@ -79,26 +79,85 @@ recoil.db.Path = function (parts) {
 /**
  * calls func for each node that matches the path
  * @param {Object} value
- * @param {function(*)} func
+ * @param {function(*, !IArrayLike<*>)} func first is the object second 
+ * is the parents
  * @param {number?} opt_start the depth of the path to start on
  */
-recoil.db.Path.prototype.forEach = function (value, func, opt_start) {
+recoil.db.Path.prototype.forEach = function (value, func, opt_start, opt_parents) {
     opt_start = opt_start || 0;
+    opt_parents = opt_parents || [];
+    
     var me = this;
     if (opt_start < this.elements_.length) {
         var item = this.elements_[opt_start];
         if (!value) {
             return;
         }
+        var parents = goog.array.clone(opt_parents);
+        parents.push(value);
         item.forEach(value, function (subValue) {
             me.forEach(subValue, func, opt_start + 1);
         });
                    
     }
     else {
-        func(value);
+        func(value, opt_parents);
     }
 };
+
+/**
+ * calls func for each node that matches the path
+ * @param {Object} value
+ * @param {function(*, !IArrayLike<*>)} func first is the object second 
+ * is the parents
+ * @param {number?} opt_start the depth of the path to start on
+ * @private
+ */
+recoil.db.Path.prototype.forEachParent_ = function (value, func, opt_start, opt_parents) {
+    opt_start = opt_start || 0;
+    opt_parents = opt_parents || [];
+    
+    var me = this;
+    if (opt_start < this.elements_.length - 1) {
+        var item = this.elements_[opt_start];
+        if (!value) {
+            return;
+        }
+        var parents = goog.array.clone(opt_parents);
+        parents.push(value);
+        item.forEach(value, function (subValue) {
+            me.forEachParent_(subValue, func, opt_start + 1);
+        });
+                   
+    }
+    else if (opt_start == this.elements_.length - 1) {
+        func(this.elements_[opt_start], value, opt_parents);
+    }
+};
+
+
+/**
+ * clears the object at the path ready for new objects be put in
+ * @param {!Object} object
+ */
+recoil.db.Path.prototype.reset = function (object) {
+    this.forEachParent_(object, function (part, value, parents) {
+        part.reset(value);
+    });
+};
+
+/**
+ * puts an item at the the path
+ * @param {!Object} object
+ * @param {*} val
+ */
+recoil.db.Path.prototype.put = function (object, val) {
+    this.forEachParent_(object, function (part, value, parents) {
+        part.put(value,val);
+    });
+
+};
+
 
 /**
  * this indicated that we should get every item in an array
@@ -121,6 +180,14 @@ recoil.db.Path.Array.prototype.forEach = function (value, callback) {
     }
 };
 
+recoil.db.Path.Array.prototype.reset = function (value) {
+    value.length = 0;
+};
+
+recoil.db.Path.Array.prototype.put = function (parent, val) {
+    parent.push(val);
+};
+
 
 /**
  * every item in the avl tree
@@ -138,6 +205,15 @@ recoil.db.Path.Avl = function () {
 recoil.db.Path.Avl.prototype.forEach = function (value, callback) {
     value.inOrderTraverse(callback);
 };
+ 
+recoil.db.Path.Avl.prototype.reset = function (value) {
+    value.clear();
+};
+
+recoil.db.Path.Avl.prototype.put = function (parent, val) {
+    parent.add(val);
+};
+
 
 
 /**
@@ -156,6 +232,14 @@ recoil.db.Path.Item = function (name) {
 
 recoil.db.Path.Item.prototype.forEach = function (value, callback) {
     callback(value[this.name_]);
+};
+
+
+recoil.db.Path.Item.prototype.reset = function (value) {
+};
+
+recoil.db.Path.Item.prototype.put = function (parent, val) {
+    parent[this.name_] = val;
 };
 
 

@@ -1588,6 +1588,11 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     var oldProviders = goog.array.clone(dependant.providers_);
     dependant.providers_ = goog.array.clone(arguments);
     dependant.providers_.shift();
+    dependant.providers_.forEach(function (v) {
+        if (!(v instanceof recoil.frp.Behaviour)) {
+            throw "provider not a behaviour in switch for " + dependant.origSeq_;
+        };
+    });
     var newVisited = this.visit(dependant);
     /** @type recoil.frp.Behaviour */
     var b;
