@@ -200,7 +200,7 @@ recoil.frp.Util.Options = function(var_options) {
         struct = goog.object.clone(struct);
         remaining = goog.object.clone(remaining);
 
-        return function (var_vals) {
+       return function (var_vals) {
 
             delete remaining[name];
 
@@ -249,14 +249,17 @@ recoil.frp.Util.Options = function(var_options) {
         }
 
         var defMap = {};
+        name = name.trim();
+
         var startIndex = name.indexOf('(');
         if (startIndex !== -1 || name.endsWith(')')) {
 
-            var prefix = name.substring(0, startIndex);
+            var prefix = name.substring(0, startIndex).trim();
             var params = name.substring(startIndex + 1, name.length - 1);
             var paramArr = params.split(',');
             var res = [];
             paramArr.forEach(function (p) {
+                p = p.trim();
                 res.push(prefix + "_" + p);
                 if (defVal) {
                     if (!defVal.hasOwnProperty(p)) {
@@ -324,7 +327,6 @@ recoil.frp.Util.Options = function(var_options) {
                 });
 
         })(args[i]);
-        console.log('res', res);
         return res;
 
     };

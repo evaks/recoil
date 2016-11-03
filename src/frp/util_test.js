@@ -8,13 +8,9 @@ goog.setTestOnly('recoil.util.UtilTest');
 
 function testOptions () {
 
-    // var testee = recoil.util.Options('a', 'b', {d: ['x', 'y', 'z']});
-
     var frp = new recoil.frp.Frp();
 
-    var testee = recoil.frp.Util.Options({'a' : 'xxx'}, 'b', {'d(x,y,z)' : {x: 1, y : 2, z : 3}});
-    // d_x, d_y, d_z
-    // x_y x(y) {x_y : 334}
+    var testee = recoil.frp.Util.Options({'a' : 'xxx'}, 'b', {'d ( x ,y,z) ' : {x: 1, y : 2, z : 3}});
 
     var val = testee.a('xxx').b(1).d(3,4,5).struct();
     assertObjectEquals(val, {a: 'xxx', b : 1, d_x: 3, d_y : 4, d_z : 5 });
@@ -26,6 +22,7 @@ function testOptions () {
 
     var bound = testee.bind(frp, val);
     var aB = bound.a();
+
     var bB = bound.b();
     frp.attach(aB);
     frp.attach(bB);
