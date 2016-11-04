@@ -265,10 +265,10 @@ function testGetList ()  {
     var coms = new MyDb(false);
     var db = new recoil.db.ReadWriteDatabase(frp, coms);
     var listB = db.get(LIST_KEY,'List');
-    var listItem0B = db.get(LIST_ITEM_KEY, [0]);
-    var listItem1B = db.get(LIST_ITEM_KEY, [1]);
-    var listItem2B = db.get(LIST_ITEM_KEY, [2]);
-    var listItem3B = db.get(LIST_ITEM_KEY, [3]);
+    var listItem0B = db.get(LIST_ITEM_KEY, [1]);
+    var listItem1B = db.get(LIST_ITEM_KEY, [2]);
+    var listItem2B = db.get(LIST_ITEM_KEY, [3]);
+    var listItem3B = db.get(LIST_ITEM_KEY, [4]);
 
     frp.attach(listB);
 
@@ -288,29 +288,29 @@ function testGetList ()  {
     frp.attach(listItem3B);
     //currently there is no code to register subitems to the main list so
     //this is expected to fail
-    assertEquals(1, listItem0B.unsafeMetaGet().get());
-    assertEquals(2, listItem1B.unsafeMetaGet().get());
-    assertEquals(3, listItem2B.unsafeMetaGet().get());
-    assertEquals(4, listItem3B.unsafeMetaGet().get());
+    assertObjectEquals({ id : 1}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({ id : 2}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({ id : 3}, listItem2B.unsafeMetaGet().get());
+    assertObjectEquals({ id : 4}, listItem3B.unsafeMetaGet().get());
 
     frp.accessTrans(function () {
-        listB.set([11,12,13,14]);
-    });
+        listB.set([{id : 11}, {id : 12},{id : 13},{id : 14}]);
+    }, listB);
 
-    assertArrayEquals([1,2,3,4], listB.unsafeMetaGet().get());
-    assertEquals(11, listItem0B.unsafeMetaGet().get());
-    assertEquals(12, listItem1B.unsafeMetaGet().get());
-    assertEquals(13, listItem2B.unsafeMetaGet().get());
-    assertEquals(14, listItem3B.unsafeMetaGet().get());
+    assertArrayEquals([{id : 11},{id : 12},{id : 13}, {id : 14}], listB.unsafeMetaGet().get());
+    assertObjectEquals({id : 11}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 12}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({id : 13}, listItem2B.unsafeMetaGet().get());
+    assertObjectEquals({id : 14}, listItem3B.unsafeMetaGet().get());
 
     frp.accessTrans(function () {
-        listB.set([11,12,13]);
-    });
-    
-    assertEquals(11, listItem0B.unsafeMetaGet().get());
-    assertEquals(12, listItem1B.unsafeMetaGet().get());
-    assertEquals(13, listItem2B.unsafeMetaGet().get());
-    assertEquals(notReady, listItem3B.unsafeMetaGet());
+        listB.set([{id : 11}, {id : 12},{id : 13}]);
+    }, listB);
+
+    assertObjectEquals({id : 11}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 12}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({id : 13}, listItem2B.unsafeMetaGet().get());
+    // assertObEquals(notReady, listItem3B.unsafeMetaGet());
 
     // TODO also test geting the sub item first then the list
 

@@ -211,11 +211,11 @@ recoil.db.ObjectManager.updateSubObjects_ = function (res, related, stored) {
 };
 recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, coms, opt_val) {
 
-    console.log("registering", key);
+    console.log("registering", typeKey, key);
     var frp = this.frp_;
     var behaviours = recoil.util.map.safeGet(this.queries_,typeKey.uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
 
-    var hasVal = arguments.length > 5;
+    var hasVal = arguments.length > 4;
     
     var behaviour =  this.frp_.createNotReadyB();
     
@@ -281,9 +281,11 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
 
 
     if (oldEntity) {
+        console.log("already exists, return");
         oldEntity.addRef();
         return oldEntity.behaviour();
     }
+    console.log("new behaviour created");
     entity.addRef();
     behaviours.add(entity);
 
