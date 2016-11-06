@@ -38,7 +38,8 @@ recoil.db.PathItem.addDefaultType =  function (prefix, type) {
  * special symbols will specify what type of path items they are
  * all symbols begin with a *
  * here are the build in ones
- * []      every item in an array 
+ * [#] every item in an array (keyed by index)
+ * [# k1 k2] every item in an array (keyed by fields)
  * [obj]   every item in an object
  * [map]   every item in an avl tree
  * 
@@ -140,22 +141,41 @@ recoil.db.Path.prototype.forEachParent_ = function (value, func, opt_start, opt_
  * clears the object at the path ready for new objects be put in
  * @param {!Object} object
  */
-recoil.db.Path.prototype.reset = function (object) {
+recoil.db.Path.prototype.reset = function (object, check) {
     this.forEachParent_(object, function (part, value, parents) {
-        part.reset(value);
+        if (check(parents)) {
+            part.reset(value);
+        }
     });
 };
+
 
 /**
  * puts an item at the the path
  * @param {!Object} object
  * @param {*} val
  */
-recoil.db.Path.prototype.put = function (object, val) {
+recoil.db.Path.prototype.put = function (object, key, val, check) {
     this.forEachParent_(object, function (part, value, parents) {
-        part.put(value,val);
+        if (check(parents)) {
+            part.put(value,key, val);
+        }
     });
 
+};
+
+/**
+ * puts an item at the the path
+ * @param {!Object} object
+ */
+recoil.db.Path.prototype.get = function (object, key, check) {
+    var val = undefined;
+    this.forEachParent_(object, function (part, value, parents) {
+        if (check(parents)) {
+            val = part.get(value,key);
+        }
+    });
+    return val;
 };
 
 
@@ -165,8 +185,33 @@ recoil.db.Path.prototype.put = function (object, val) {
  * @constructor
  * @implements recoil.db.PathItem
  */
-recoil.db.Path.Array = function () {
-    
+recoil.db.Path.Array = function (var_fields) {
+    if (arguments.length === 0) {
+        
+        this.lookup_ = {
+            get : function (arr, idx) {
+                return arr[idx];
+            }
+        };
+    }
+    else {
+        var args = arguments;
+        this.lookup_ = {
+            get : function (arr, obj) {
+                for (var i = 0; i < arr.length; i++) {
+                    var cur = arr[i];
+                    for (var j = 0; j < args.length; j++) {
+                        var k = args[j];
+                        if (recoil.util.object.isEqual(cur[k], obj[j])) {
+                            return cur;
+                        }
+                    }
+                }
+                
+            return undefined;
+            }
+        };
+    }
 };
 
 /**
@@ -184,8 +229,12 @@ recoil.db.Path.Array.prototype.reset = function (value) {
     value.length = 0;
 };
 
-recoil.db.Path.Array.prototype.put = function (parent, val) {
+recoil.db.Path.Array.prototype.put = function (parent, key, val) {
     parent.push(val);
+};
+
+recoil.db.Path.Array.prototype.get = function (parent, key) {
+    return this.lookup_.get(parent, key);
 };
 
 
@@ -210,8 +259,12 @@ recoil.db.Path.Avl.prototype.reset = function (value) {
     value.clear();
 };
 
-recoil.db.Path.Avl.prototype.put = function (parent, val) {
-    parent.add(val);
+    recoil.db.Path.Avl.prototype.put = function (parent, key, val) {
+        parent.add(val);
+};
+
+recoil.db.Path.Avl.prototype.get = function (parent, key)  {
+    throw "not inmplemented yet";
 };
 
 
@@ -238,7 +291,7 @@ recoil.db.Path.Item.prototype.forEach = function (value, callback) {
 recoil.db.Path.Item.prototype.reset = function (value) {
 };
 
-recoil.db.Path.Item.prototype.put = function (parent, val) {
+recoil.db.Path.Item.prototype.put = function (parent, key, val) {
     parent[this.name_] = val;
 };
 
@@ -263,7 +316,11 @@ recoil.db.Path.Object.prototype.forEach = function (value, callback) {
     }
 };
 
-recoil.db.PathItem.addDefaultType("", recoil.db.Path.Array);
+recoil.db.Path.Object.prototype.put = function (parent, key, val) {
+    parent[key] = val;
+};
+
+recoil.db.PathItem.addDefaultType("#", recoil.db.Path.Array);
 recoil.db.PathItem.addDefaultType("map", recoil.db.Path.Avl);
 recoil.db.PathItem.addDefaultType("obj", recoil.db.Path.Object);
 

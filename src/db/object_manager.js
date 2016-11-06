@@ -1,3 +1,7 @@
+/**
+ * the job of the object manager is to handle objects inside objects
+ * and ensure that the get updated correctly
+ */
 goog.provide('recoil.db.Entity');
 goog.provide('recoil.db.ObjectManager');
 
@@ -12,12 +16,14 @@ goog.require('recoil.structs.Pair');
  * @constructor
  * @param {?} key
  * @param {recoil.frp.Behaviour<T>} value
+ * @param {boolean} owned
  */
-recoil.db.Entity = function (key, value) {
+recoil.db.Entity = function (key, value, owned) {
 
     this.key_ = key;
     this.value_ = value;
     this.refs_ = 0;
+    this.owners_ =  owned ? 1 : 0;
 };
 
 
@@ -26,6 +32,24 @@ recoil.db.Entity = function (key, value) {
  */
 recoil.db.Entity.prototype.behaviour = function () {
     return this.value_;
+};
+
+recoil.db.Entity.prototype.setBehaviour_ = function (value) {
+    this.value_ = value;
+};
+recoil.db.Entity.prototype.addOwner = function () {
+    this.owners_++;
+};
+recoil.db.Entity.prototype.removeOwner = function (value) {
+    this.owners_--;
+};
+
+/**
+ * should this entity access the database directly or is it being done by
+ * another object
+ */
+recoil.db.Entity.prototype.accessDb = function () {
+    return this.owners_ === 0;
 };
 
 /**
@@ -154,20 +178,33 @@ recoil.db.ObjectManager = function (frp) {
 /**
  * based on the key type get all behaviours that are inside 
  * @private
- * @return {!Array<!recoil.structs.Pair<!recoil.db.TypePath, !recoil.frp.Behaviour>>} 
+ * @return {!Array<!Object>} each object contains a path, behaviour, key, parentKey 
  */
 
-recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function (keyType, value, behaviour, opt_options, coms) {
+recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function (keyType, value, behaviour, opt_options, coms, doRegister) {
     var res = [];
     var me = this;
     for (var i = 0; i < keyType.getPaths().length; i++) {
         var path = keyType.getPaths()[i];
-
-        path.forEach(value, function (key, val) {
-            
-            res.push(
-                new recoil.structs.Pair(
-                    path, me.register_(path.getType(), key, opt_options, coms, val)));
+        
+        path.forEach(value, function (parentKey, key, val) {
+            var b;
+            var behaviours = recoil.util.map.safeGet(me.queries_,path.getType().uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
+            if (doRegister) {
+                b = me.register_(path.getType(), key, opt_options, coms, val);
+            }
+            else {
+                b = behaviours.findFirst(new recoil.db.Entity(key, undefined, false));
+            }
+            if (b) {
+                res.push(
+                    {
+                        key : key,
+                        parentKey : parentKey,
+                        path : path,
+                        behaviour :  me.register_(path.getType(), key, opt_options, coms, val)
+                    });
+            }
         });
     }
 
@@ -193,22 +230,46 @@ recoil.db.ObjectManager.prototype.register = function (typeKey, key, options, co
  * updates all realated subobjects, this gets called twice once
  * for sending data and once for stored data
  * @param {*} res the object to be updated
- * @param {!Array<!recoil.structs.Pair<!recoil.db.TypePath, !recoil.frp.Behaviour>>} a list of paths and behaviours that are related
+ * @param {!Array<!Object>} a list of paths and behaviours that are related
  */
 recoil.db.ObjectManager.updateSubObjects_ = function (res, related, stored) {
-    var curPath = undefined;
+    var prev = undefined;
     for (var i = 0; i < related.length; i++) {
-        var newPath = related[i].getX();
-        if (newPath !== curPath) {
+        var cur = related[i];
+        if (prev === undefined || prev.path !== cur.path || !recoil.util.object.isEqual(cur.parentKey, prev.parentKey)) {
             // clear any array or map for that path so we can start adding
-            newPath.reset(res);
+            console.log("reseting", i, res);
+            cur.path.reset(cur.parentKey, res);
         }
         // Errors, should be ok since liftBI should propergate
-        var val = related[i].getY().get();
-        newPath.put(res, stored ? val.getStored() : val.getSending());
-        curPath = newPath;
+        var val = cur.behaviour.get();
+        var v = stored ? val.getStored() : val.getSending();
+        cur.path.put(cur.parentKey, res, cur.key, v);
+        console.log("put data", cur.key, recoil.util.object.clone(res), stored, recoil.util.object.clone(v));
+        prev = cur;
     }
 };
+
+recoil.db.ObjectManager.setSubObjects_ = function (val, related, frp) {
+    for (var i = 0; i < related.length; i++) {
+        var cur = related[i];
+        var subVal;
+        if (frp) {
+            subVal = cur.path.get(cur.parentKey, val, cur.key);
+            frp.accessTrans(function () {
+                cur.behaviour.set(new recoil.db.SendInfo(subVal));
+            }, cur.behaviour);
+        }
+        else {
+            subVal = cur.path.get(cur.parentKey, val.getSending(), cur.key);
+            console.log("setting value", subVal, val);
+            var info = cur.behaviour.get().setSending(subVal);
+            cur.behaviour.set(info);
+        }
+    }
+};
+
+var ccc = 0;
 recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, coms, opt_val) {
 
     console.log("registering", typeKey, key);
@@ -218,6 +279,17 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
     var hasVal = arguments.length > 4;
     
     var behaviour =  this.frp_.createNotReadyB();
+
+    var entity = new recoil.db.Entity(key, undefined, hasVal);
+    var oldEntity = behaviours.findFirst(entity);
+
+    if (oldEntity) {
+        if (hasVal) {
+            oldEntity.addOwner();
+        }
+        oldEntity.addRef();
+        return oldEntity.behaviour();
+    }
     
     var me = this;
     // TODO get the sub items for this behaviour, it is not our job to set, create, or delete our children that is the coms layers
@@ -225,25 +297,29 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
 
     var resultBB = frp.liftB(
         function (v) {
-            var relatedStored = me.getRelatedBehaviours_(typeKey, v.getStored(), behaviour, options, coms);
-            var relatedSending = me.getRelatedBehaviours_(typeKey, v.getSending(), behaviour, options, coms);
+            var m = ccc++;
+            console.log("fire change", m, recoil.util.object.clone(behaviour.get()));
+            var relatedStored = me.getRelatedBehaviours_(typeKey, v.getStored(), behaviour, options, coms, true);
+            var relatedSending = me.getRelatedBehaviours_(typeKey, v.getSending(), behaviour, options, coms, true);
 
             var providers = [];
             for (var i = 0 ; i < relatedStored.length; i++) {
-                providers.push(relatedStored[i].getY());
+                providers.push(relatedStored[i].behaviour);
             }
             for (i = 0 ; i < relatedSending.length; i++) {
-                providers.push(relatedSending[i].getY());
+                providers.push(relatedSending[i].behaviour);
             }
 
             
             var res = v;
             //TODO cache the result here if all the related behaviours are the same no
-            // need to redo this or return a new behaviour
+            // need to redo this or return a new behaviour, we also need to deregister the related behaviours if we do so
 
             return frp.liftBI.apply(frp, [
                 function () {
+                    // the related maybe out of date by now, they only change when the behaviours change
                     var res = recoil.util.object.clone(behaviour.get());
+                    console.log("updating related subobjects", m,  recoil.util.object.clone(res));
                     recoil.db.ObjectManager
                         .updateSubObjects_(res.getStored(),relatedStored, true);
                     recoil.db.ObjectManager
@@ -253,39 +329,41 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
                 },
                 function (v) {
                     behaviour.set(v);
-                    // TODO do we set our subobjects too, no need to send them
-                    // since it is the databases responsiblity to do that
-                    coms.set(v.getSending(), v.getStored(),
-                             function (v) {
-                                 frp.accessTrans( function () {
-                                     behaviour.set(new recoil.db.SendInfo(v));
-                                 }, behaviour);
-                             },
-                             function (status) {
-                                 frp.accessTrans( function () {
-                                     
-                                     behaviour.metaSet(v);
-                                 }, behaviour);
-                             },
-                             typeKey,key, options);
-                    
+                    recoil.db.ObjectManager.setSubObjects_(v, relatedStored);
+
+                    if (entity.accessDb()) {
+
+                        // TODO do we set our subobjects too, no need to send them
+                        // since it is the databases responsiblity to do that
+                        coms.set(v.getSending(), v.getStored(),
+                                 function (v) {
+                                     frp.accessTrans( function () {
+                                         behaviour.set(new recoil.db.SendInfo(v));
+                                         // don't register
+                                         var relatedStored = me.getRelatedBehaviours_(typeKey, v, behaviour, options, coms, false);
+                                         recoil.db.ObjectManager
+                                             .setSubObjects_(v,relatedStored, frp);
+
+                                         
+                                     }, behaviour);
+                                 },
+                                 function (status) {
+                                     frp.accessTrans( function () {
+                                         behaviour.metaSet(v);
+                                     }, behaviour);
+                                 },
+                                 typeKey,key, options);
+                    }
+                        
                 }, behaviour].concat(providers));
                 
         }, behaviour);
     
     var inversableB = frp.switchB(resultBB);
-    
-    var entity = new recoil.db.Entity(key, inversableB);
-
-    var oldEntity = behaviours.findFirst(entity);
+    entity.setBehaviour_(inversableB);
 
 
-    if (oldEntity) {
-        console.log("already exists, return");
-        oldEntity.addRef();
-        return oldEntity.behaviour();
-    }
-    console.log("new behaviour created");
+
     entity.addRef();
     behaviours.add(entity);
 

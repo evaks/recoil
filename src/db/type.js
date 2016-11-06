@@ -18,6 +18,12 @@ recoil.db.Type = function() {};
  */
 recoil.db.Type.prototype.getKeys = function (obj, parents) {};
 
+/**
+ * @param {Object} obj the object
+ * @param {!Array<!Object>} parents the parents of object
+ */
+recoil.db.Type.prototype.getParentKeys = function (parents) {};
+
 
 /**
  * @return {string} an unique id identifing this key, use .seq in order
@@ -92,6 +98,15 @@ recoil.db.BasicType.prototype.getKeys = function (obj, parents) {
 
 
 /**
+ * @param {!Array<!Object>} parents the parents of object
+ * @return {!Array<?>} the primary keys of the object
+ */
+recoil.db.BasicType.prototype.getParentKeys = function (parents) {
+    return this.keyGetter_(undefined, parents);
+};
+
+
+/**
  * used for subpaths inorder so that we can determine which key should be used for
  * a subpath
  * @param {!recoil.db.Type} type
@@ -125,8 +140,8 @@ recoil.db.TypePath.prototype.getType = function () {
 
 recoil.db.TypePath.prototype.forEach = function (obj, itr) {
     var me = this;
-    this.path_.forEach(obj, function (sub, parents) {
-        itr(me.type_.getKeys(sub, parents), sub);
+    this.path_.forEach(obj, function (subObject, parents) {
+        itr(me.type_.getParentKeys(parents), me.type_.getKeys(subObject, parents), subObject);
     });
 };
 
@@ -138,15 +153,28 @@ recoil.db.TypePath.prototype.forEach = function (obj, itr) {
  * @return {!Array<?>} the primary keys of the object
  */
 recoil.db.TypePath.prototype.getKeys = function (obj, parents) {
-    return this.type.getKeys(obj, parents);
+    return this.type_.getKeys(obj, parents);
+};
+
+
+/**
+ * @param {Object} obj the object
+ * @param {!Array<!Object>} parents the parents of object
+ */
+recoil.db.TypePath.prototype.getParentKeys = function (obj, parents) {
+    return this.type_.getParentKeys(parents);
 };
 
 /**
  * clears the object at the path ready for new objects be put in
  * @param {!Object} object
  */
-recoil.db.TypePath.prototype.reset = function (object) {
-    this.path_.reset(object);
+recoil.db.TypePath.prototype.reset = function (parentKeys, object) {
+    var me = this;
+    
+    this.path_.reset(object, function (parents) {
+        return recoil.util.object.isEqual(parentKeys, me.getParentKeys(parents));
+    });
 };
 
 /**
@@ -154,8 +182,18 @@ recoil.db.TypePath.prototype.reset = function (object) {
  * @param {!Object} object
  * @param {*} val
  */
-recoil.db.TypePath.prototype.put = function (object, val) {
-    this.path_.put(object, val);
+recoil.db.TypePath.prototype.put = function (parentKeys, object, key, val) {
+    var me = this;
+    this.path_.put(object, key, val, function (parents) {
+        return recoil.util.object.isEqual(parentKeys, me.getParentKeys(parents));
+    });
+};
+
+recoil.db.TypePath.prototype.get = function (parentKeys, object, key) {
+    var me = this;
+    return this.path_.get(object, key, function (parents) {
+        return recoil.util.object.isEqual(parentKeys, me.getParentKeys(parents));
+    });
 };
 /***
  *
@@ -168,12 +206,13 @@ recoil.db.SimpleKeyGetter = function (var_keys) {
     return function (object, parents) {
         var res = [];
         var arg = 0;
-        if (args.length > 0) {
+        if (args.length > 0 && object !== undefined) {
             for (var i = 0; i < args[arg].length; i++) {
                 var key = args[arg][i];
                 res.push(object[key]);
             }
         }
+        
         var parent = 0;
         for (arg = args.length - 1;
              arg > 0 && parent < parents.length; arg--) {

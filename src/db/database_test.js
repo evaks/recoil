@@ -15,7 +15,7 @@ var VAL_KEY = new recoil.db.BasicType(['key'], 'val');
 var HELLO_KEY = new recoil.db.BasicType(['key'], 'hello');
 var WORLD_KEY = new recoil.db.BasicType(['key'], 'world');
 var LIST_ITEM_KEY = new recoil.db.BasicType(['id'], 'list-item');
-var LIST_KEY = new recoil.db.BasicType([], 'list', undefined, [new recoil.db.TypePath(LIST_ITEM_KEY, '[]')]);
+var LIST_KEY = new recoil.db.BasicType([], 'list', undefined, [new recoil.db.TypePath(LIST_ITEM_KEY, '[# id]')]);
 
 /**
  * @implements recoil.db.DatabaseComms
@@ -50,6 +50,7 @@ MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, key, var
     }
     else {
         this.values_[id.getData()][key] = data;
+        console.log("sending data back", data);
         successFunc(data);
         
     }
@@ -72,7 +73,7 @@ MyDb.prototype.get = function(success, failure, id, key, options) {
 
     if (this.values_[id.getData()][key] === undefined) {
         if (id.getData() === 'list') {
-            this.values_[id.getData()][key] = [{id: 1} ,{id: 2} ,{id : 3},{id:4}];
+            this.values_[id.getData()][key] = [{id: 1, v : 1} ,{id: 2, v: 2} ,{id : 3, v: 3},{id:4, v: 4}];
         }
         else {
             this.values_[id.getData()][key] = 'xxx' + id.getData() + "-" + key;
@@ -273,14 +274,13 @@ function testGetList ()  {
     frp.attach(listB);
 
     var val = listB.unsafeMetaGet().get();
-    console.log(val);
 
     // current problems we are initialting a database read when we get these
     // items, we should not go to the database for sub items that is the coms
     // layers job to do if it wants, but what happens if we update via sub items
     // shouldn't register with a val stop this a bit
     
-    assertObjectEquals([{id: 1 }, {id : 2}, {id : 3}, {id : 4}], val);
+    assertObjectEquals([{id: 1, v : 1 }, {id : 2, v : 2}, {id : 3, v : 3}, {id : 4, v : 4}], val);
 
     frp.attach(listItem0B);
     frp.attach(listItem1B);
@@ -288,23 +288,24 @@ function testGetList ()  {
     frp.attach(listItem3B);
     //currently there is no code to register subitems to the main list so
     //this is expected to fail
-    assertObjectEquals({ id : 1}, listItem0B.unsafeMetaGet().get());
-    assertObjectEquals({ id : 2}, listItem1B.unsafeMetaGet().get());
-    assertObjectEquals({ id : 3}, listItem2B.unsafeMetaGet().get());
-    assertObjectEquals({ id : 4}, listItem3B.unsafeMetaGet().get());
+    assertObjectEquals({ id : 1, v : 1}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({ id : 2, v : 2}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({ id : 3, v : 3}, listItem2B.unsafeMetaGet().get());
+    assertObjectEquals({ id : 4, v : 4}, listItem3B.unsafeMetaGet().get());
 
     frp.accessTrans(function () {
-        listB.set([{id : 11}, {id : 12},{id : 13},{id : 14}]);
+        listB.set([{id : 1, v : 11}, {id : 2, v: 12},{id : 3, v : 13},{id : 4, v : 14}]);
     }, listB);
 
-    assertArrayEquals([{id : 11},{id : 12},{id : 13}, {id : 14}], listB.unsafeMetaGet().get());
-    assertObjectEquals({id : 11}, listItem0B.unsafeMetaGet().get());
-    assertObjectEquals({id : 12}, listItem1B.unsafeMetaGet().get());
-    assertObjectEquals({id : 13}, listItem2B.unsafeMetaGet().get());
-    assertObjectEquals({id : 14}, listItem3B.unsafeMetaGet().get());
+    assertArrayEquals([{id : 1, v : 11},{id : 2, v: 12},{id : 3, v:13}, {id : 4, v: 14}], listB.unsafeMetaGet().get());
+    assertObjectEquals({id : 1, v : 11}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 2, v : 12}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({id : 3, v : 13}, listItem2B.unsafeMetaGet().get());
+    assertObjectEquals({id : 4, v : 14}, listItem3B.unsafeMetaGet().get());
 
+    // testing delete and object, we need ownership
     frp.accessTrans(function () {
-        listB.set([{id : 11}, {id : 12},{id : 13}]);
+        listB.set([{id : 1, v : 11}, {id : 2, v : 12},{id : 3, v : 13}]);
     }, listB);
 
     assertObjectEquals({id : 11}, listItem0B.unsafeMetaGet().get());
@@ -312,6 +313,13 @@ function testGetList ()  {
     assertObjectEquals({id : 13}, listItem2B.unsafeMetaGet().get());
     // assertObEquals(notReady, listItem3B.unsafeMetaGet());
 
+    // test inserting
+
+    // test reference counting, are there any entries left in the object manager, are getting data from the database
+    // what happens if we never use it does the item hang around
+
+
+    // test other types of objects not just list, items avl, object
     // TODO also test geting the sub item first then the list
 
 }

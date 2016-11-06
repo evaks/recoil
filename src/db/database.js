@@ -190,7 +190,7 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
                 }
             }, valueB);
         });
-    return recoil.frp.Debug("SWITCH", frp.switchB(valueB));
+    return frp.switchB(valueB);
 };
 
 
