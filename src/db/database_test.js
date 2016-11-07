@@ -308,12 +308,21 @@ function testGetList ()  {
         listB.set([{id : 1, v : 11}, {id : 2, v : 12},{id : 3, v : 13}]);
     }, listB);
 
-    assertObjectEquals({id : 11}, listItem0B.unsafeMetaGet().get());
-    assertObjectEquals({id : 12}, listItem1B.unsafeMetaGet().get());
-    assertObjectEquals({id : 13}, listItem2B.unsafeMetaGet().get());
-    // assertObEquals(notReady, listItem3B.unsafeMetaGet());
+    assertObjectEquals({id : 1, v: 11}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 2, v: 12}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({id : 3, v: 13}, listItem2B.unsafeMetaGet().get());
+    // assertObjectEquals([recoil.db.errors.NOT_PRESENT], listItem3B.unsafeMetaGet().errors());
 
     // test inserting
+    frp.accessTrans(function () {
+         listB.set([{id : 1, v : 11}, {id : 2, v: 12},{id : 3, v : 13},{id : 4, v : 14}]);
+    }, listB);
+
+    assertArrayEquals([{id : 1, v : 11},{id : 2, v: 12},{id : 3, v:13}, {id : 4, v: 14}], listB.unsafeMetaGet().get());
+    assertObjectEquals({id : 1, v : 11}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 2, v : 12}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({id : 3, v : 13}, listItem2B.unsafeMetaGet().get());
+    assertObjectEquals({id : 4, v : 14}, listItem3B.unsafeMetaGet().get());
 
     // test reference counting, are there any entries left in the object manager, are getting data from the database
     // what happens if we never use it does the item hang around
@@ -321,6 +330,7 @@ function testGetList ()  {
 
     // test other types of objects not just list, items avl, object
     // TODO also test geting the sub item first then the list
+
 
 }
 

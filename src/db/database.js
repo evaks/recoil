@@ -333,3 +333,8 @@ recoil.db.DelayedDatabase.prototype.clear = function () {
 recoil.db.DelayedDatabase.prototype.makeKey = function(values) {
     return this.source_.makeKey(values);
 };
+
+
+recoil.db.errors = {
+    NOT_PRESENT : {name :  "Not present"}
+};
