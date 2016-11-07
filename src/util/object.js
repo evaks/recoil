@@ -366,3 +366,20 @@ recoil.util.object.clone.cloneRec_ = function (obj, path, clonedPath) {
     
     return obj;
 };
+
+/**
+ * make an object a constant, this means clone and equal only compare pointers
+ * @template T
+ * @param {!T} obj
+ * @return {!T}
+ */
+recoil.util.object.constant = function (obj) {
+    obj.clone = function () {
+        return obj;
+    };
+    obj.equals = function (that) {
+        return obj === that;
+    };
+
+    return obj;
+};

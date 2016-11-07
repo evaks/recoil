@@ -339,5 +339,5 @@ recoil.db.DelayedDatabase.prototype.makeKey = function(values) {
 /**
  * defines the database errors
  */
-recoil.db.error.NOT_PRESENT = {name : 'not present'};
+recoil.db.error.NOT_PRESENT = recoil.util.object.constant({name : 'not present'});
     
