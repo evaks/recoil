@@ -1,6 +1,7 @@
 goog.provide('recoil.db.Database');
 goog.provide('recoil.db.ReadOnlyDatabase');
 goog.provide('recoil.db.ReadWriteDatabase');
+goog.provide('recoil.db.error');
 
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.frp.ChangeManager');
@@ -92,7 +93,7 @@ recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters)
         b.metaSet(error);
     }, id];
 
-    for (var i = 1; i < arguments.length; i++) {
+    for (i = 1; i < arguments.length; i++) {
         args.push(arguments[i]);
     }
 
@@ -333,3 +334,10 @@ recoil.db.DelayedDatabase.prototype.clear = function () {
 recoil.db.DelayedDatabase.prototype.makeKey = function(values) {
     return this.source_.makeKey(values);
 };
+
+
+/**
+ * defines the database errors
+ */
+recoil.db.error.NOT_PRESENT = {name : 'not present'};
+    

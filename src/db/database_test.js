@@ -305,13 +305,16 @@ function testGetList ()  {
 
     // testing delete and object, we need ownership
     frp.accessTrans(function () {
-        listB.set([{id : 1, v : 11}, {id : 2, v : 12},{id : 3, v : 13}]);
+        listB.set([{id : 1, v : 21}, {id : 2, v : 22},{id : 4, v : 24}]);
     }, listB);
 
-    assertObjectEquals({id : 11}, listItem0B.unsafeMetaGet().get());
-    assertObjectEquals({id : 12}, listItem1B.unsafeMetaGet().get());
-    assertObjectEquals({id : 13}, listItem2B.unsafeMetaGet().get());
-    // assertObEquals(notReady, listItem3B.unsafeMetaGet());
+    assertArrayEquals([{id : 1, v : 21},{id : 2, v: 22}, {id : 4, v: 24}], listB.unsafeMetaGet().get());
+    
+    assertObjectEquals({id : 1, v:21}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 2, v:22}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals([recoil.db.error.NOT_PRESENT], listItem2B.unsafeMetaGet().errors());
+    assertObjectEquals({id : 4, v:24}, listItem3B.unsafeMetaGet().get());
+
 
     // test inserting
 

@@ -278,6 +278,9 @@ recoil.frp.BStatus.errors = function(errors) {
  * @param {recoil.frp.Status} other
  */
 recoil.frp.BStatus.prototype.merge = function(other) {
+    if (!other.errors) {
+        console.log("merging with non error");
+    }
     this.errors_ = goog.array.concat(this.errors_, other.errors());
     this.ready_ = this.ready_ && other.ready();
 };
@@ -289,6 +292,7 @@ recoil.frp.BStatus.prototype.merge = function(other) {
  */
 recoil.frp.BStatus.prototype.set = function(val) {
     this.value_ = val;
+    return this;
 };
 
 /**
@@ -488,7 +492,7 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
  * @constructor
  * @template T
  * @param {recoil.frp.Frp} frp the frp engine
- * @param {recoil.frp.Status <T>} value
+ * @param {!recoil.frp.Status <T>} value
  * @param {function(...) : T| undefined} calc
  * @param {function(T)| undefined} inverse
  * @param {Array <goog.math.Long>} sequence
@@ -498,6 +502,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     var me = this;
     this.frp_ = frp;
     var myValue = value;
+
     this.val_ = value;
     this.calc_ = calc || function() {
         return myValue;
@@ -507,6 +512,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     }
 
     this.inv_ = inverse || function(newVal) {
+        console.log("setting", newVal);
         myValue = newVal;
     };
 
@@ -723,13 +729,16 @@ recoil.frp.Behaviour.prototype.metaGet = function() {
 };
 
 /**
- * @param {recoil.frp.Status<T>} value
+ * @param {!recoil.frp.Status<T>} value
  */
 
 recoil.frp.Behaviour.prototype.metaSet = function(value) {
     var hasTm = this.hasRefs();
     var hasProviders = this.providers_.length > 0;
 
+    if (!value) {
+        throw "value must be of type status";
+    }
     if (!hasTm && hasProviders) {
         // if it has providers then it is not ok to set it with no
         // transaction manager attached
@@ -1105,6 +1114,29 @@ recoil.frp.Frp.prototype.liftEI = function(func, invFunc, var_args) {
     }, arguments);
 };
 
+recoil.frp.Frp.prototype.mergeErrors = function (args, opt_result) {
+    var metaResult = opt_result || new recoil.frp.BStatus(null);
+    var metaResultB = null;
+    var eventReady = false;
+
+    
+    for (var i = 0; i < args.length; i++) {
+        var metaArgVal = args[i];
+        metaResult.merge(metaArgVal);
+        
+        if (metaArgVal instanceof recoil.frp.BStatus) {
+            if (metaResultB === null) {
+                metaResultB = new recoil.frp.BStatus(null);
+            }
+            metaResultB.merge(metaArgVal);
+        }
+        else {
+            eventReady = eventReady || metaArgVal.ready();
+        }
+    }
+    return metaResult;
+    
+};
 /**
  * func will fire if all dependant behaviours are good or
  * or there is 1 ready event

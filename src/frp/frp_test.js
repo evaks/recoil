@@ -417,6 +417,22 @@ function testSwitchBOutsideBehaviour() {
 
 }
 
+function testSwitchBWithError() {
+    
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+    
+    var errorBB = frp.createB(frp.metaLiftB(
+        function(z) {return recoil.frp.BStatus.errors(['hi']);})    );
+    var b = frp.switchB(errorBB);
+
+    frp.attach(b);
+    assertObjectEquals(['hi'],b.unsafeMetaGet().errors());
+    frp.detach(b);
+
+
+}
+
 function testSwitchBUp() {
 
     var frp = new recoil.frp.Frp();

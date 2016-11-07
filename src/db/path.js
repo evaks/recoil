@@ -169,7 +169,7 @@ recoil.db.Path.prototype.put = function (object, key, val, check) {
  * @param {!Object} object
  */
 recoil.db.Path.prototype.get = function (object, key, check) {
-    var val = undefined;
+    var val = recoil.db.error.NOT_PRESENT;
     this.forEachParent_(object, function (part, value, parents) {
         if (check(parents)) {
             val = part.get(value,key);
@@ -190,6 +190,9 @@ recoil.db.Path.Array = function (var_fields) {
         
         this.lookup_ = {
             get : function (arr, idx) {
+                if (idx < 0 || idx >= arr.length) {
+                    return recoil.db.error.NOT_PRESENT;
+                }
                 return arr[idx];
             }
         };
@@ -207,8 +210,7 @@ recoil.db.Path.Array = function (var_fields) {
                         }
                     }
                 }
-                
-            return undefined;
+                return recoil.db.error.NOT_PRESENT;
             }
         };
     }
@@ -265,6 +267,8 @@ recoil.db.Path.Avl.prototype.reset = function (value) {
 
 recoil.db.Path.Avl.prototype.get = function (parent, key)  {
     throw "not inmplemented yet";
+                
+    return recoil.db.error.NOT_PRESENT;
 };
 
 
