@@ -18,12 +18,12 @@ recoil.db.PathItem = function () {
 recoil.db.PathItem.prototype.forEach = function (value, func) {};
 
 /**
- * @type Map<String,*>  
+ * @dict
  */
 recoil.db.PathItem.FACTORY = {};
 /**
  * adds an item so that you can use strings to construct a path
- * @param {!String} prefix the name to be used inside []
+ * @param {!string} prefix the name to be used inside []
  * @param {*} type the class of the item to use, it can take any arguments thes will be the
  *            string that is passed minus the first part, and split on space
  */
@@ -45,7 +45,7 @@ recoil.db.PathItem.addDefaultType =  function (prefix, type) {
  * 
  *  you may specify more tems by calling recoil.db.PathItem.addDefaultType
  *
- * @param {Array<!recoil.db.PathItem|!recoil.db.String>} var_parts
+ * @param {Array<!recoil.db.PathItem|!string>} parts
  * @constructor
  */
 recoil.db.Path = function (parts) {
@@ -56,7 +56,7 @@ recoil.db.Path = function (parts) {
         if (part.startsWith && part.endsWith && part.substring ) {
             if (part.startsWith("[") && part.endsWith("]")) {
                 var cleanPath = part.substring(1, part.length - 1);
-                var keyParts = cleanPath.split(" ");
+                var keyParts = /** @type Array<string|null> */(cleanPath.split(" "));
                 var type = recoil.db.PathItem.FACTORY[keyParts[0]];
 
                 if (type) {
@@ -68,7 +68,7 @@ recoil.db.Path = function (parts) {
                 }
             }
             else {
-                this.elements_.push(new recoil.db.Path.Item(part));
+                this.elements_.push(new recoil.db.Path.Item(/** @type string */ (part)));
             }
         }
         else {
@@ -82,7 +82,8 @@ recoil.db.Path = function (parts) {
  * @param {Object} value
  * @param {function(*, !IArrayLike<*>)} func first is the object second 
  * is the parents
- * @param {number?} opt_start the depth of the path to start on
+ * @param {number=} opt_start the depth of the path to start on
+ * @param {Array<*>=} opt_parents
  */
 recoil.db.Path.prototype.forEach = function (value, func, opt_start, opt_parents) {
     opt_start = opt_start || 0;
@@ -97,7 +98,7 @@ recoil.db.Path.prototype.forEach = function (value, func, opt_start, opt_parents
         var parents = goog.array.clone(opt_parents);
         parents.push(value);
         item.forEach(value, function (subValue) {
-            me.forEach(subValue, func, opt_start + 1);
+            me.forEach(subValue, func, opt_start + 1, parents);
         });
                    
     }
@@ -109,9 +110,10 @@ recoil.db.Path.prototype.forEach = function (value, func, opt_start, opt_parents
 /**
  * calls func for each node that matches the path
  * @param {Object} value
- * @param {function(*, !IArrayLike<*>)} func first is the object second 
+ * @param {function(*, *, !IArrayLike<*>)} func first is the object second 
  * is the parents
- * @param {number?} opt_start the depth of the path to start on
+ * @param {number=} opt_start the depth of the path to start on
+ * @param {Array<*>=} opt_parents array of parent objects
  * @private
  */
 recoil.db.Path.prototype.forEachParent_ = function (value, func, opt_start, opt_parents) {
@@ -268,7 +270,7 @@ recoil.db.Path.Avl.prototype.reset = function (value) {
 recoil.db.Path.Avl.prototype.get = function (parent, key)  {
     throw "not inmplemented yet";
                 
-    return recoil.db.error.NOT_PRESENT;
+//    return recoil.db.error.NOT_PRESENT;
 };
 
 
@@ -276,7 +278,7 @@ recoil.db.Path.Avl.prototype.get = function (parent, key)  {
 /**
  * basic item get it by name
  * @constructor
- * @param {!String} name the name of the item
+ * @param {!string} name the name of the item
  */
 recoil.db.Path.Item = function (name) {
     this.name_ = name;

@@ -31,7 +31,7 @@ recoil.frp.struct.get = function(name, value, opt_default) {
 /**
  * takes a structure and adds all overrides all the fields with extenstions
  * @param {!recoil.frp.Frp} frp the frp engine
- * @param {Object| recoil.frp.Behaviour<Object>} structB
+ * @param {Object|recoil.frp.Behaviour<Object>} structB
  * @param {...(Object| recoil.frp.Behaviour<Object>)} var_extensionsB
  * @return {!recoil.frp.Behaviour<Object>}
  */

@@ -14,7 +14,7 @@ recoil.db.DatabaseComms = function() {
  *
  * @template T
  * @param {function(T)} successFunction called when the data is retrieve from the database, maybe called multiple times
- * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database, maybe called multiple times
+ * @param {function(!recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database, maybe called multiple times
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
  * @param {*} key the information we need to get the object/objects
  * @param {*} options

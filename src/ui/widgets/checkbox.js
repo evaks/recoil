@@ -30,7 +30,7 @@ recoil.ui.widgets.CheckboxWidget = function(scope) {
 /**
  * list of functions available when creating a CHECKBOXWidget
  */
-recoil.ui.widgets.CheckboxWidget.options = recoil.util.Options('name', 'value', 'enabled');
+recoil.ui.widgets.CheckboxWidget.options = recoil.frp.Util.Options('name', 'value', 'enabled');
 
 /**
  * @return {!goog.ui.Component}
@@ -49,7 +49,7 @@ recoil.ui.widgets.CheckboxWidget.prototype.attach = function (name, value, enabl
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
 
-    this.attachStruct(recoil.frp.struct.extend(frp, enabled, {'name': name, 'value': value}));
+    this.attachStruct(recoil.frp.struct.extend(frp, {enabled: enabled, 'name': name, 'value': value}));
 };
 
 /**

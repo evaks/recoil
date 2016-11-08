@@ -115,6 +115,7 @@ recoil.frp.Status.prototype.get = function() {};
 
 /**
  * @param {*} value
+ * @return {!recoil.frp.Status}
  */
 recoil.frp.Status.prototype.set = function(value) {};
 
@@ -150,7 +151,7 @@ recoil.frp.EStatus = function(generator, opt_values) {
 /**
  * creates a not ready event
  * @param {!boolean} generator if true this is only clears after up event
- * @return {recoil.frp.EStatus}
+ * @return {!recoil.frp.EStatus}
  */
 recoil.frp.EStatus.notReady = function(generator) {
     return new recoil.frp.EStatus(generator);
@@ -187,7 +188,7 @@ recoil.frp.EStatus.prototype.get = function() {
 
 /**
  * @param {T} value
- * @return {recoil.frp.EStatus<T>}
+ * @return {!recoil.frp.EStatus<T>}
  */
 recoil.frp.EStatus.prototype.addValue = function(value) {
     var values = goog.array.clone(this.values_);
@@ -198,10 +199,12 @@ recoil.frp.EStatus.prototype.addValue = function(value) {
 
 /**
  * @param {T} value
+ * @return {!recoil.frp.Status}
  */
 recoil.frp.EStatus.prototype.set = function(value) {
 
     this.values_.push(value);
+    return this;
 };
 
 /**
@@ -252,7 +255,7 @@ recoil.frp.BStatus = function(initial) {
 
 
 /**
- * @return {recoil.frp.BStatus}
+ * @return {!recoil.frp.BStatus}
  */
 recoil.frp.BStatus.notReady = function()  {
     var res = new recoil.frp.BStatus(undefined);
@@ -262,7 +265,7 @@ recoil.frp.BStatus.notReady = function()  {
 /**
  * @template T
  * @param {!Array<*>} errors
- * @return {recoil.frp.BStatus<T>}
+ * @return {!recoil.frp.BStatus<T>}
  */
 recoil.frp.BStatus.errors = function(errors) {
     var res = new recoil.frp.BStatus(undefined);
@@ -289,6 +292,7 @@ recoil.frp.BStatus.prototype.merge = function(other) {
  * set the of the status
  *
  * @param {T} val
+ * @return {!recoil.frp.Status}
  */
 recoil.frp.BStatus.prototype.set = function(val) {
     this.value_ = val;
@@ -584,7 +588,7 @@ recoil.frp.Behaviour.prototype.refListen = function(callback) {
  * increases the reference count
  *
  * @param {recoil.frp.TransactionManager} manager
- * @param {number?} opt_count this can add more than 1 used internally
+ * @param {number=} opt_count this can add more than 1 used internally
  * @return {boolean} true if count was zero
  *
  */
@@ -620,7 +624,7 @@ recoil.frp.Behaviour.prototype.addRef = function(manager, opt_count) {
  * decreases the reference count
  *
  * @param {recoil.frp.TransactionManager} manager
- * @param {number?} opt_count this can remove than 1 used internally
+ * @param {number=} opt_count this can remove than 1 used internally
  * @return {boolean} true if count goes to zero
  */
 recoil.frp.Behaviour.prototype.removeRef = function(manager, opt_count) {
@@ -825,7 +829,7 @@ recoil.frp.Frp.prototype.createB = function(initial) {
  */
 
 recoil.frp.Frp.prototype.createNotReadyB = function ()  {
-    var metaInitial = new recoil.frp.BStatus.notReady();
+    var metaInitial = recoil.frp.BStatus.notReady();
     return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
 };
 
@@ -840,8 +844,8 @@ recoil.frp.Frp.prototype.createE = function() {
 };
 /**
  * @template T
- * @param {recoil.frp.BStatus<T>} initial
- * @return {recoil.frp.Behaviour<T>}
+ * @param {!recoil.frp.BStatus<T>} initial
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.Frp.prototype.createMetaB = function(initial) {
     return new recoil.frp.Behaviour(this, initial, undefined, undefined, this.transactionManager_.nextIndex(), []);
@@ -924,7 +928,7 @@ var xxxx = null;
 /**
  *
  * @template T
- * @param {!recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} Bb
+ * @param {!recoil.frp.Behaviour<!recoil.frp.Behaviour<T>>} Bb
  * @return {T}
  */
 recoil.frp.Frp.prototype.switchB = function(Bb) {
@@ -1114,6 +1118,12 @@ recoil.frp.Frp.prototype.liftEI = function(func, invFunc, var_args) {
     }, arguments);
 };
 
+/**
+ * @param {IArrayLike} args
+ * @param {!recoil.frp.Status=} opt_result
+ * @return {!recoil.frp.Status} 
+ */
+
 recoil.frp.Frp.prototype.mergeErrors = function (args, opt_result) {
     var metaResult = opt_result || new recoil.frp.BStatus(null);
     var metaResultB = null;
@@ -1268,7 +1278,7 @@ recoil.frp.TransactionManager.nextId_ = new recoil.util.Sequence();
  * behaviour that depends on it TODO
  *
  * @template T
- * @param {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} behaviour the parent behaviour all generated sequences will
+ * @param {recoil.frp.Behaviour<!recoil.frp.Behaviour<T>>} behaviour the parent behaviour all generated sequences will
  *            be less than this
  * @param {function()} callback
  */

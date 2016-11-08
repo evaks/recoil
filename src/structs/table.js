@@ -739,7 +739,7 @@ recoil.structs.table.Table.prototype.getCell = function(keys, columnKey) {
  * @param {Object} typeFactories
  * @param {Object} tableMeta
  * @param {Array<Object>} rawTable
- * @param {number} opt_ordered if true then it will enforce the order it rawtable came in
+ * @param {boolean} opt_ordered if true then it will enforce the order it rawtable came in
  * @return {recoil.structs.table.Table}
  */
 recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable, opt_ordered) {
@@ -865,7 +865,7 @@ recoil.structs.table.TableRow.positionComparator_ = function (comparator) {
 };
 
 /**
- * @return {number}
+ * @return {number|undefined}
  */
 recoil.structs.table.TableRow.prototype.pos = function () {
     return this.pos_;
@@ -1026,7 +1026,7 @@ recoil.structs.table.MutableTableRow = function(opt_position, opt_immutable) {
 };
 
 /**
- * @return {number}
+ * @return {number|undefined}
  */
 recoil.structs.table.MutableTableRow.prototype.pos = function () {
     return this.pos_;

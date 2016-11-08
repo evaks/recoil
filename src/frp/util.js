@@ -180,7 +180,7 @@ var z = metaLiftB(function() {return x.get() + y.get()}, x, y);
  *               the values, you can either specify multiple keys in 1 object or multiple object parameters.
  *               To specify defaults of functions (type 2) the default should be an object with fields matching the parameters
  *
- * @param {!string|!Object} var_options
+ * @param {...(!string|!Object)} var_options
  * @returns {!Object} this has dynamic fields based on the parameters, and struct, attach, and bind function
  *
  */
@@ -237,13 +237,17 @@ recoil.frp.Util.Options = function(var_options) {
         }
     };
 
-    function functionParams(name, defVal) {
+    /**
+     * @param {Object|string} name
+     * @param {*=} opt_defVal
+     */
+    function functionParams(name, opt_defVal) {
         if (name instanceof Object) {
             var objRes = [];
             for (var n in name) {
                 functionParams(n, name[n]).forEach(function (p) {
                     objRes.push(p);
-                })
+                });
             }
             return objRes;
         }
@@ -261,19 +265,19 @@ recoil.frp.Util.Options = function(var_options) {
             paramArr.forEach(function (p) {
                 p = p.trim();
                 res.push(prefix + "_" + p);
-                if (defVal) {
-                    if (!defVal.hasOwnProperty(p)) {
+                if (opt_defVal) {
+                    if (!opt_defVal.hasOwnProperty(p)) {
                         throw "you must specify " + p;
                     }
-                    defMap[prefix + "_" + p] = defVal[p];
+                    defMap[prefix + "_" + p] = opt_defVal[p];
                 }
             });
 
             return [{name : prefix , params : res, def : defMap}];
         }
         else {
-            if (defVal) {
-                defMap[name] = defVal;
+            if (opt_defVal) {
+                defMap[name] = opt_defVal;
             }
             return [{name : name, params : [name], def : defMap}];
         }
@@ -308,7 +312,7 @@ recoil.frp.Util.Options = function(var_options) {
 
     /**
      *
-     * @param {recoil.frp.Frp} frp
+     * @param {!recoil.frp.Frp} frp
      * @param {!recoil.frp.Behaviour<!Object>|!Object} val
      * @returns {!Object}
      */
@@ -322,7 +326,7 @@ recoil.frp.Util.Options = function(var_options) {
                     func.params.forEach(function (param) {
                         res[param] = function () {
                             return recoil.frp.struct.get(param, optionsB, func.def[param]);
-                        }
+                        };
                     });
                 });
 

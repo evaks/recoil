@@ -214,11 +214,11 @@ recoil.db.QueryScope.prototype.evalWhere = function(func) {
 
 /**
  * @constructor
- * @param {number} pollRate milliseconds between polls <0 means notify, if not
- * @param {Object} extra
+ * @param {number=} opt_pollRate milliseconds between polls <0 means notify, if not
+ * @param {Object=} opt_extra
  */
-recoil.db.QueryOptions = function(pollRate, extra) {
-    this.pollRate_ = pollRate;
+recoil.db.QueryOptions = function(opt_pollRate, opt_extra) {
+    this.pollRate_ = opt_pollRate === undefined ? 0 : opt_pollRate;
 };
 
 /**
@@ -226,7 +226,7 @@ recoil.db.QueryOptions = function(pollRate, extra) {
  * that can be sent to the database to filter requests
  *
  * @constructor
- * @param {?recoil.db.QueryExp} opt_expr
+ * @param {recoil.db.QueryExp=} opt_expr
  */
 recoil.db.Query = function(opt_expr) {
     /**
@@ -1027,4 +1027,6 @@ recoil.db.expr.Search.prototype.eval = function(scope) {
     throw 'not implemented yet';
 };
 
+/**
+ */
 recoil.db.Query.True = new recoil.db.Query().True();
