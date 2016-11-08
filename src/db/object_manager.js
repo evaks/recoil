@@ -37,20 +37,6 @@ recoil.db.Entity.prototype.behaviour = function () {
 recoil.db.Entity.prototype.setBehaviour_ = function (value) {
     this.value_ = value;
 };
-recoil.db.Entity.prototype.addOwner = function () {
-    this.owners_++;
-};
-recoil.db.Entity.prototype.removeOwner = function (value) {
-    this.owners_--;
-};
-
-/**
- * should this entity access the database directly or is it being done by
- * another object
- */
-recoil.db.Entity.prototype.accessDb = function () {
-    return this.owners_ === 0;
-};
 
 /**
  * @return {!boolean} true if the ref count was 0
@@ -125,12 +111,14 @@ recoil.db.QueryEntry.comparator_ = function (x, y) {
  * @constructor
  * @template T
  * @param {T} value the value read from the database
+ * @param {!boolean} toplevel
  */
-recoil.db.SendInfo = function (value) {
+recoil.db.SendInfo = function (value, toplevel) {
     this.value_ = value;
     /**
      * @type {T}
      */
+    this.toplevel_ = toplevel;
     this.sending_ = null;
 };
 
@@ -144,20 +132,30 @@ recoil.db.SendInfo.prototype.getSending = function () {
 
 /**
  * @param {T} value
+ * @param {!boolean} toplevel
  * @return {!recoil.db.SendInfo<T>}
  */
-recoil.db.SendInfo.prototype.setSending = function (value) {
-    var res = new recoil.db.SendInfo(this.value_);
+recoil.db.SendInfo.prototype.setSending = function (value, toplevel) {
+    var res = new recoil.db.SendInfo(this.value_, toplevel);
     res.sending_ = value;
     return res;
 };
 
 /**
+ * returns if object is a top level object, this is used to determine
+ * if we should send the data to the database
+ * @return {!boolean}
+ */
+recoil.db.SendInfo.prototype.isToplevel = function () {
+    return this.toplevel_;
+};
+/**
  * @param {T} value
+ * @param {!boolean} toplevel
  * @return {!recoil.db.SendInfo<T>}
  */
-recoil.db.SendInfo.prototype.setRead = function (value) {
-    var res = new recoil.db.SendInfo(value);
+recoil.db.SendInfo.prototype.setRead = function (value, toplevel) {
+    var res = new recoil.db.SendInfo(value, toplevel);
     res.sending_ = this.sending_;
     return res;
 };
@@ -275,7 +273,7 @@ recoil.db.ObjectManager.setSubObjects_ = function (outer, related, opt_frp) {
         if (opt_frp) {
             subVal = cur.path.get(cur.parentKey, outer, cur.key);
             opt_frp.accessTrans(function () {
-                cur.behaviour.set(new recoil.db.SendInfo(subVal));
+                cur.behaviour.set(new recoil.db.SendInfo(subVal, false));
             }, cur.behaviour);
         }
         else {
@@ -287,7 +285,7 @@ recoil.db.ObjectManager.setSubObjects_ = function (outer, related, opt_frp) {
                 cur.behaviour.metaSet(recoil.frp.BStatus.errors([subVal]));
             }
             else {
-                var info = cur.behaviour.get().setSending(subVal);
+                var info = cur.behaviour.get().setSending(subVal, false);
                 cur.behaviour.set(info);
             }
         }
@@ -321,9 +319,6 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
     var oldEntity = behaviours.findFirst(entity);
 
     if (oldEntity) {
-        if (hasVal) {
-            oldEntity.addOwner();
-        }
         oldEntity.addRef();
         return oldEntity.behaviour();
     }
@@ -334,6 +329,10 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
 
     var resultBB = frp.liftB(
         function (v) {
+
+            // this job of this is to get all the related behaviours and
+            // create a behaviour that depends on them
+            
             var relatedStored = me.getRelatedBehaviours_(typeKey, v.getStored(), behaviour, options, coms, true);
             var relatedSending = me.getRelatedBehaviours_(typeKey, v.getSending(), behaviour, options, coms, true);
 
@@ -356,11 +355,11 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
                     if (!metaRes.good()) {
                         return metaRes;
                     }
-                    // the related maybe out of date by now, they only change when the behaviours change
                     var res = recoil.util.object.clone(behaviour.get());
-                    if (res === undefined) {
-                        console.log("undef",res);
-                    }
+                    // update the result with all the sub behaviours
+                    // the only case in which we we may update children
+                    // here is when they have not been registered yet
+                    
                     recoil.db.ObjectManager
                         .updateWithSubObjects_(res.getStored(),relatedStored, true);
                     recoil.db.ObjectManager
@@ -370,21 +369,24 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
                 },
                 function (metaV) {
                     if (!metaV.good()) {
-                        console.log("setting un", metaV, behaviour.metaGet());
                         behaviour.metaSet(metaV);
+                        // TODO we may need to send the data to the database  if we
+                        // are deleting this object
                         return;
                     }
+
+                    // update the child objects with the new sent data
                     var v = metaV.get();
                     behaviour.set(v);
                     recoil.db.ObjectManager.setSubObjects_(v, relatedStored);
 
-                    if (entity.accessDb()) {
-                        // TODO do we set our subobjects too, no need to send them
-                        // since it is the databases responsiblity to do that
+                    // only send the information to the database at the top level
+                    // it is the database coms layer responsiblity to handle children
+                    if (v.isToplevel()) {
                         coms.set(v.getSending(), v.getStored(),
                                  function (v) {
                                      frp.accessTrans( function () {
-                                         behaviour.set(new recoil.db.SendInfo(v));
+                                         behaviour.set(new recoil.db.SendInfo(v, false));
                                          // don't register, if they are already registered get the
                                          // otherwize just ignore them MAYBE
                                          var relatedStored = me.getRelatedBehaviours_(typeKey, v, behaviour, options, coms, false);
@@ -422,10 +424,10 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
                 var oldVal = /** @type {recoil.frp.BStatus<!recoil.db.SendInfo>} */ (behaviour.metaGet());
                 
                 if (oldVal.good()) {
-                    behaviour.set(oldVal.get().setRead(opt_val));
+                    behaviour.set(oldVal.get().setRead(opt_val, false));
                 }
                 else{ 
-                    behaviour.set(new recoil.db.SendInfo(opt_val));
+                    behaviour.set(new recoil.db.SendInfo(opt_val, false));
                 }
                 
             }, behaviour);
@@ -437,10 +439,10 @@ recoil.db.ObjectManager.prototype.register_ = function (typeKey, key, options, c
                     var oldVal = behaviour.metaGet();
                     
                     if (oldVal.good()) {
-                        behaviour.set(oldVal.get().setRead(val));
+                        behaviour.set(oldVal.get().setRead(val, false));
                     }
                     else{ 
-                        behaviour.set(new recoil.db.SendInfo(val));
+                        behaviour.set(new recoil.db.SendInfo(val, false));
                     }
                     
                 }, behaviour);
