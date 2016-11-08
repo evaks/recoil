@@ -309,9 +309,8 @@ function testGetList ()  {
     }, listB);
 
     assertArrayEquals([{id : 1, v : 21},{id : 2, v: 22}, {id : 4, v: 24}], listB.unsafeMetaGet().get());
-    
-    assertObjectEquals({id : 1, v:21}, listItem0B.unsafeMetaGet().get());
-    assertObjectEquals({id : 2, v:22}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({id : 1, v: 21}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 2, v: 22}, listItem1B.unsafeMetaGet().get());
     assertObjectEquals([recoil.db.error.NOT_PRESENT], listItem2B.unsafeMetaGet().errors());
     assertObjectEquals({id : 4, v:24}, listItem3B.unsafeMetaGet().get());
 
