@@ -282,7 +282,7 @@ recoil.frp.BStatus.errors = function(errors) {
  */
 recoil.frp.BStatus.prototype.merge = function(other) {
     if (!other.errors) {
-        console.log("merging with non error");
+        console.log('merging with non error');
     }
     this.errors_ = goog.array.concat(this.errors_, other.errors());
     this.ready_ = this.ready_ && other.ready();
@@ -516,7 +516,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     }
 
     this.inv_ = inverse || function(newVal) {
-        console.log("setting", newVal);
+        console.log('setting', newVal);
         myValue = newVal;
     };
 
@@ -741,7 +741,7 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
     var hasProviders = this.providers_.length > 0;
 
     if (!value) {
-        throw "value must be of type status";
+        throw 'value must be of type status';
     }
     if (!hasTm && hasProviders) {
         // if it has providers then it is not ok to set it with no
@@ -828,7 +828,7 @@ recoil.frp.Frp.prototype.createB = function(initial) {
  * @return {!recoil.frp.Behaviour<T>}
  */
 
-recoil.frp.Frp.prototype.createNotReadyB = function ()  {
+recoil.frp.Frp.prototype.createNotReadyB = function()  {
     var metaInitial = recoil.frp.BStatus.notReady();
     return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
 };
@@ -891,7 +891,7 @@ recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
 recoil.frp.Frp.access = function(callback, var_behaviours) {
     for (var i = 1; i < arguments.length; i++) {
         if (!(arguments[i] instanceof recoil.frp.Behaviour)) {
-            throw "All arguments must be a behaviour";
+            throw 'All arguments must be a behaviour';
         }
     }
     try {
@@ -1121,19 +1121,19 @@ recoil.frp.Frp.prototype.liftEI = function(func, invFunc, var_args) {
 /**
  * @param {IArrayLike} args
  * @param {!recoil.frp.Status=} opt_result
- * @return {!recoil.frp.Status} 
+ * @return {!recoil.frp.Status}
  */
 
-recoil.frp.Frp.prototype.mergeErrors = function (args, opt_result) {
+recoil.frp.Frp.prototype.mergeErrors = function(args, opt_result) {
     var metaResult = opt_result || new recoil.frp.BStatus(null);
     var metaResultB = null;
     var eventReady = false;
 
-    
+
     for (var i = 0; i < args.length; i++) {
         var metaArgVal = args[i];
         metaResult.merge(metaArgVal);
-        
+
         if (metaArgVal instanceof recoil.frp.BStatus) {
             if (metaResultB === null) {
                 metaResultB = new recoil.frp.BStatus(null);
@@ -1145,7 +1145,7 @@ recoil.frp.Frp.prototype.mergeErrors = function (args, opt_result) {
         }
     }
     return metaResult;
-    
+
 };
 /**
  * func will fire if all dependant behaviours are good or
@@ -1625,15 +1625,15 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
  * @param {...recoil.frp.Behaviour} var_providers
  */
 recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, var_providers) {
-    var count =   dependant.getRefs(this);
+    var count = dependant.getRefs(this);
     var oldVisited = this.visit(dependant);
     var oldProviders = goog.array.clone(dependant.providers_);
     dependant.providers_ = goog.array.clone(arguments);
     dependant.providers_.shift();
-    dependant.providers_.forEach(function (v) {
+    dependant.providers_.forEach(function(v) {
         if (!(v instanceof recoil.frp.Behaviour)) {
-            throw "provider not a behaviour in switch for " + dependant.origSeq_;
-        };
+            throw 'provider not a behaviour in switch for ' + dependant.origSeq_;
+        }
     });
     var newVisited = this.visit(dependant);
     /** @type recoil.frp.Behaviour */

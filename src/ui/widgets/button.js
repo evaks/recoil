@@ -2,17 +2,16 @@
 
 goog.provide('recoil.ui.widgets.ButtonWidget');
 
+goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('goog.ui.Button');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.struct');
+goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
-goog.require('recoil.ui.ComponentWidgetHelper');
-
-goog.require('recoil.ui.ComponentWidgetHelper');
 
 /**
  * @constructor

@@ -61,7 +61,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     var structs = recoil.frp.struct;
     var optionsB = structs.flatten(frp, options); // util.toBehaviour(options);
 
-    this.nameB_ = frp.liftB(function (val) { console.log("NAME"); return val;},structs.get('name', optionsB, ""));
+    this.nameB_ = frp.liftB(function(val) { console.log('NAME'); return val;},structs.get('name', optionsB, ''));
     this.valueB_ = structs.get('value', optionsB);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
     var readyB = util.isAllGoodExplain(this.nameB_, this.valueB_, this.enabledB_);

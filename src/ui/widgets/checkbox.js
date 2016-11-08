@@ -1,16 +1,16 @@
 goog.provide('recoil.ui.widgets.CheckboxWidget');
 
 goog.require('goog.events');
-goog.require('goog.ui.Component');
 goog.require('goog.ui.Checkbox');
 goog.require('goog.ui.Checkbox.State');
+goog.require('goog.ui.Component');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
 goog.require('recoil.frp.struct');
+goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
-goog.require('recoil.ui.Widget');
-goog.require('recoil.ui.ComponentWidgetHelper');
 
 
 /**
@@ -45,7 +45,7 @@ recoil.ui.widgets.CheckboxWidget.prototype.getComponent = function() {
  * @param {recoil.frp.Behaviour<boolean>|boolean} value
  * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|boolean} enabled
  */
-recoil.ui.widgets.CheckboxWidget.prototype.attach = function (name, value, enabled) {
+recoil.ui.widgets.CheckboxWidget.prototype.attach = function(name, value, enabled) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
 
@@ -55,20 +55,20 @@ recoil.ui.widgets.CheckboxWidget.prototype.attach = function (name, value, enabl
 /**
  * @param {!Object| !recoil.frp.Behaviour<Object>} options
  */
-recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function (options) {
+recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function(options) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
     var structs = recoil.frp.struct;
     var optionsB = structs.flatten(frp, options);
 
-    this.nameB_    = structs.get('name', optionsB, '');
-    this.valueB_   = structs.get('value', optionsB, recoil.ui.BoolWithExplanation.FALSE);
+    this.nameB_ = structs.get('name', optionsB, '');
+    this.valueB_ = structs.get('value', optionsB, recoil.ui.BoolWithExplanation.FALSE);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
 
     var readyB = util.isAllGood(this.nameB_, this.valueB_, this.enabledB_);
 
     var me = this;
-    this.changeHelper_.listen(this.scope_.getFrp().createCallback(function (v) {
+    this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         me.valueB_.set(me.checkBox_.getChecked());
     }, me.valueB_));
 
@@ -81,8 +81,8 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function (options) {
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
-recoil.ui.widgets.CheckboxWidget.prototype.updateState_ = function (helper) {
-    if(helper.isGood()){
+recoil.ui.widgets.CheckboxWidget.prototype.updateState_ = function(helper) {
+    if (helper.isGood()) {
         this.checkBox_.setChecked(this.valueB_.get());
     }
 };

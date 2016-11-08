@@ -4,12 +4,12 @@ goog.provide('recoil.db.ReadWriteDatabase');
 goog.provide('recoil.db.error');
 
 goog.require('goog.structs.AvlTree');
-goog.require('recoil.frp.ChangeManager');
-goog.require('recoil.util');
-goog.require('recoil.db.Type');
 goog.require('recoil.db.DatabaseComms');
 goog.require('recoil.db.ObjectManager');
+goog.require('recoil.db.Type');
+goog.require('recoil.frp.ChangeManager');
 goog.require('recoil.frp.Debug');
+goog.require('recoil.util');
 
 /**
  * @interface
@@ -30,7 +30,7 @@ recoil.db.Database.prototype.makeKey = function(values) {
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
  * @param {!Array<?>} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<T>} the corisponding object 
+ * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
 recoil.db.Database.prototype.get = function(id, primaryKeys, opt_options) {
 };
@@ -61,10 +61,10 @@ recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
  * @param {!Array<?>} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<T>} the corisponding object 
+ * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
 recoil.db.ReadOnlyDatabase.prototype.get = function(id, primaryKeys, opt_options) {
-    return this.frp_.liftB(function (v) {return v.getStored();}, this.db_.getSendInfo(id, primaryKeys, opt_options));
+    return this.frp_.liftB(function(v) {return v.getStored();}, this.db_.getSendInfo(id, primaryKeys, opt_options));
 };
 
 /**
@@ -108,9 +108,9 @@ recoil.db.ReadWriteDatabase.prototype.makeKey = function(values) {
  * @param {recoil.frp.Frp} frp
  * @param {!recoil.frp.Behaviour<recoil.db.SendInfo>} uniq
  */
-recoil.db.ReadOnlyDatabase.filterSending_ = function (frp, uniq) {
+recoil.db.ReadOnlyDatabase.filterSending_ = function(frp, uniq) {
     return frp.liftB(
-        function (val) {
+        function(val) {
             return val.getStored();
         },uniq);
 
@@ -121,23 +121,23 @@ recoil.db.ReadOnlyDatabase.filterSending_ = function (frp, uniq) {
  * @param {recoil.frp.Frp} frp
  * @param {!recoil.frp.Behaviour<!recoil.db.SendInfo>} uniq
  */
-recoil.db.ReadWriteDatabase.showSending_ = function (frp, uniq) {
+recoil.db.ReadWriteDatabase.showSending_ = function(frp, uniq) {
     return frp.liftBI(
-        function (val) {
+        function(val) {
             return val.getSending() ? val.getSending() : val.getStored();
         },
-        function (val) {
+        function(val) {
             uniq.set(uniq.get().setSending(val, true));
         }, uniq);
 };
 /**
  * gets an individual object from the database, this is really for internal use only
- * it seperates 
+ * it seperates
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
  * @param {!Array<?>} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<!recoil.db.SendInfo<T>>} the corisponding object 
+ * @return {!recoil.frp.Behaviour<!recoil.db.SendInfo<T>>} the corisponding object
  */
 recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, opt_options)  {
     var valueB = this.frp_.createNotReadyB();
@@ -145,12 +145,12 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
     var objectManager = this.objectManager_;
     var frp = this.frp_;
     var options = opt_options || new recoil.db.QueryOptions();
-    
+
     valueB.refListen(
-        function (used) {
-            frp.accessTrans(function () {
+        function(used) {
+            frp.accessTrans(function() {
                 if (used) {
-                    var uniq = objectManager.register(id, primaryKeys, options , dbComs);
+                    var uniq = objectManager.register(id, primaryKeys, options, dbComs);
                     valueB.set(uniq);
                 }
                 else {
@@ -169,7 +169,7 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
  * @param {!Array<?>} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<T>} the corisponding object 
+ * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
 recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_options)  {
     return recoil.db.ReadWriteDatabase.showSending_(this.frp_, this.getSendInfo(id, primaryKeys, opt_options));
@@ -186,9 +186,9 @@ recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_option
 recoil.db.DelayedDatabase = function(frp, source) {
     this.source_ = source;
     this.frp_ = frp;
-    this.changed_ = new goog.structs.AvlTree(function (x, y) {return recoil.util.compare(x.key, y.key);});
+    this.changed_ = new goog.structs.AvlTree(function(x, y) {return recoil.util.compare(x.key, y.key);});
     /**
-     * @private 
+     * @private
      * @type !recoil.frp.Behaviour<recoil.frp.ChangeManager.Action>
      */
     this.changeEvent_ = frp.createE();
@@ -202,10 +202,10 @@ recoil.db.DelayedDatabase = function(frp, source) {
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
  * @param {!Array<?>} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<T>} the corisponding object 
+ * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
 
-recoil.db.DelayedDatabase.prototype.get = function(id, primaryKeys, opt_options) {  
+recoil.db.DelayedDatabase.prototype.get = function(id, primaryKeys, opt_options) {
 
     var key = this.source_.makeKey(arguments);
     var frp = this.frp_;
@@ -247,9 +247,9 @@ recoil.db.DelayedDatabase.prototype.get = function(id, primaryKeys, opt_options)
 /**
  * writes all the data out to the database
  */
-recoil.db.DelayedDatabase.prototype.flush = function () {
+recoil.db.DelayedDatabase.prototype.flush = function() {
     var me = this;
-    this.frp_.accessTrans(function () {
+    this.frp_.accessTrans(function() {
         me.changeEvent_.set(recoil.frp.ChangeManager.Action.FLUSH);
     }, this.changeEvent_);
 };
@@ -258,9 +258,9 @@ recoil.db.DelayedDatabase.prototype.flush = function () {
 /**
  * loose all the changes
  */
-recoil.db.DelayedDatabase.prototype.clear = function () {
+recoil.db.DelayedDatabase.prototype.clear = function() {
     var me = this;
-    this.frp_.accessTrans(function () {
+    this.frp_.accessTrans(function() {
         me.changeEvent_.set(recoil.frp.ChangeManager.Action.CLEAR);
     }, this.changeEvent_);
 };
@@ -277,5 +277,5 @@ recoil.db.DelayedDatabase.prototype.makeKey = function(values) {
 /**
  * defines the database errors
  */
-recoil.db.error.NOT_PRESENT = recoil.util.object.constant({name : 'not present'});
-    
+recoil.db.error.NOT_PRESENT = recoil.util.object.constant({name: 'not present'});
+

@@ -1,9 +1,9 @@
 goog.provide('recoil.util');
 
 goog.require('recoil.util.Sequence');
-goog.require('recoil.util.object');
 goog.require('recoil.util.func');
 goog.require('recoil.util.map');
+goog.require('recoil.util.object');
 
 /**
  * @template T

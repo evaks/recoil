@@ -330,31 +330,31 @@ recoil.util.object.getByParts = function(obj, var_parts) {
  * @param {T} obj the object to clone
  * @return T
  */
-recoil.util.object.clone = function (obj) {
+recoil.util.object.clone = function(obj) {
     return recoil.util.object.clone.cloneRec_(obj, [], []);
 };
 
-recoil.util.object.clone.cloneRec_ = function (obj, path, clonedPath) {
+recoil.util.object.clone.cloneRec_ = function(obj, path, clonedPath) {
 
     var type = goog.typeOf(obj);
     if (type == 'object' || type == 'array') {
         var idx = goog.array.indexOf(path, obj);
-        
+
         if (idx !== -1) {
             return clonedPath[idx];
         }
-        
+
         if (goog.isFunction(obj.clone)) {
             return obj.clone();
         }
-        
+
         var clone = type == 'array' ? [] : Object.create(Object.getPrototypeOf(obj));
         var newPath = goog.array.clone(path);
         var newClonedPath = goog.array.clone(clonedPath);
         newPath.push(obj);
         newClonedPath.push(clone);
 
-        
+
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
                 clone[key] = recoil.util.object.clone.cloneRec_(obj[key], newPath, newClonedPath);
@@ -363,7 +363,7 @@ recoil.util.object.clone.cloneRec_ = function (obj, path, clonedPath) {
 
         return clone;
     }
-    
+
     return obj;
 };
 
@@ -373,11 +373,11 @@ recoil.util.object.clone.cloneRec_ = function (obj, path, clonedPath) {
  * @param {!T} obj
  * @return {!T}
  */
-recoil.util.object.constant = function (obj) {
-    obj.clone = function () {
+recoil.util.object.constant = function(obj) {
+    obj.clone = function() {
         return obj;
     };
-    obj.equals = function (that) {
+    obj.equals = function(that) {
         return obj === that;
     };
 

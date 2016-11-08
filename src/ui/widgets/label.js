@@ -10,10 +10,10 @@ goog.require('goog.ui.LabelInput');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
 goog.require('recoil.frp.struct');
+goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
-goog.require('recoil.ui.ComponentWidgetHelper');
 
 /**
  * @constructor
