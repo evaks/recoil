@@ -115,6 +115,7 @@ recoil.frp.Status.prototype.get = function() {};
 
 /**
  * @param {*} value
+ * @return {!recoil.frp.Status}
  */
 recoil.frp.Status.prototype.set = function(value) {};
 
@@ -150,7 +151,7 @@ recoil.frp.EStatus = function(generator, opt_values) {
 /**
  * creates a not ready event
  * @param {!boolean} generator if true this is only clears after up event
- * @return {recoil.frp.EStatus}
+ * @return {!recoil.frp.EStatus}
  */
 recoil.frp.EStatus.notReady = function(generator) {
     return new recoil.frp.EStatus(generator);
@@ -187,7 +188,7 @@ recoil.frp.EStatus.prototype.get = function() {
 
 /**
  * @param {T} value
- * @return {recoil.frp.EStatus<T>}
+ * @return {!recoil.frp.EStatus<T>}
  */
 recoil.frp.EStatus.prototype.addValue = function(value) {
     var values = goog.array.clone(this.values_);
@@ -198,10 +199,12 @@ recoil.frp.EStatus.prototype.addValue = function(value) {
 
 /**
  * @param {T} value
+ * @return {!recoil.frp.Status}
  */
 recoil.frp.EStatus.prototype.set = function(value) {
 
     this.values_.push(value);
+    return this;
 };
 
 /**
@@ -252,7 +255,7 @@ recoil.frp.BStatus = function(initial) {
 
 
 /**
- * @return {recoil.frp.BStatus}
+ * @return {!recoil.frp.BStatus}
  */
 recoil.frp.BStatus.notReady = function()  {
     var res = new recoil.frp.BStatus(undefined);
@@ -262,7 +265,7 @@ recoil.frp.BStatus.notReady = function()  {
 /**
  * @template T
  * @param {!Array<*>} errors
- * @return {recoil.frp.BStatus<T>}
+ * @return {!recoil.frp.BStatus<T>}
  */
 recoil.frp.BStatus.errors = function(errors) {
     var res = new recoil.frp.BStatus(undefined);
@@ -278,6 +281,9 @@ recoil.frp.BStatus.errors = function(errors) {
  * @param {recoil.frp.Status} other
  */
 recoil.frp.BStatus.prototype.merge = function(other) {
+    if (!other.errors) {
+        console.log("merging with non error");
+    }
     this.errors_ = goog.array.concat(this.errors_, other.errors());
     this.ready_ = this.ready_ && other.ready();
 };
@@ -286,9 +292,11 @@ recoil.frp.BStatus.prototype.merge = function(other) {
  * set the of the status
  *
  * @param {T} val
+ * @return {!recoil.frp.Status}
  */
 recoil.frp.BStatus.prototype.set = function(val) {
     this.value_ = val;
+    return this;
 };
 
 /**
@@ -488,7 +496,7 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
  * @constructor
  * @template T
  * @param {recoil.frp.Frp} frp the frp engine
- * @param {recoil.frp.Status <T>} value
+ * @param {!recoil.frp.Status <T>} value
  * @param {function(...) : T| undefined} calc
  * @param {function(T)| undefined} inverse
  * @param {Array <goog.math.Long>} sequence
@@ -498,6 +506,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     var me = this;
     this.frp_ = frp;
     var myValue = value;
+
     this.val_ = value;
     this.calc_ = calc || function() {
         return myValue;
@@ -507,6 +516,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     }
 
     this.inv_ = inverse || function(newVal) {
+        console.log("setting", newVal);
         myValue = newVal;
     };
 
@@ -578,7 +588,7 @@ recoil.frp.Behaviour.prototype.refListen = function(callback) {
  * increases the reference count
  *
  * @param {recoil.frp.TransactionManager} manager
- * @param {number?} opt_count this can add more than 1 used internally
+ * @param {number=} opt_count this can add more than 1 used internally
  * @return {boolean} true if count was zero
  *
  */
@@ -614,7 +624,7 @@ recoil.frp.Behaviour.prototype.addRef = function(manager, opt_count) {
  * decreases the reference count
  *
  * @param {recoil.frp.TransactionManager} manager
- * @param {number?} opt_count this can remove than 1 used internally
+ * @param {number=} opt_count this can remove than 1 used internally
  * @return {boolean} true if count goes to zero
  */
 recoil.frp.Behaviour.prototype.removeRef = function(manager, opt_count) {
@@ -723,13 +733,16 @@ recoil.frp.Behaviour.prototype.metaGet = function() {
 };
 
 /**
- * @param {recoil.frp.Status<T>} value
+ * @param {!recoil.frp.Status<T>} value
  */
 
 recoil.frp.Behaviour.prototype.metaSet = function(value) {
     var hasTm = this.hasRefs();
     var hasProviders = this.providers_.length > 0;
 
+    if (!value) {
+        throw "value must be of type status";
+    }
     if (!hasTm && hasProviders) {
         // if it has providers then it is not ok to set it with no
         // transaction manager attached
@@ -816,7 +829,7 @@ recoil.frp.Frp.prototype.createB = function(initial) {
  */
 
 recoil.frp.Frp.prototype.createNotReadyB = function ()  {
-    var metaInitial = new recoil.frp.BStatus.notReady();
+    var metaInitial = recoil.frp.BStatus.notReady();
     return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
 };
 
@@ -831,8 +844,8 @@ recoil.frp.Frp.prototype.createE = function() {
 };
 /**
  * @template T
- * @param {recoil.frp.BStatus<T>} initial
- * @return {recoil.frp.Behaviour<T>}
+ * @param {!recoil.frp.BStatus<T>} initial
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.Frp.prototype.createMetaB = function(initial) {
     return new recoil.frp.Behaviour(this, initial, undefined, undefined, this.transactionManager_.nextIndex(), []);
@@ -915,7 +928,7 @@ var xxxx = null;
 /**
  *
  * @template T
- * @param {!recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} Bb
+ * @param {!recoil.frp.Behaviour<!recoil.frp.Behaviour<T>>} Bb
  * @return {T}
  */
 recoil.frp.Frp.prototype.switchB = function(Bb) {
@@ -1106,6 +1119,35 @@ recoil.frp.Frp.prototype.liftEI = function(func, invFunc, var_args) {
 };
 
 /**
+ * @param {IArrayLike} args
+ * @param {!recoil.frp.Status=} opt_result
+ * @return {!recoil.frp.Status} 
+ */
+
+recoil.frp.Frp.prototype.mergeErrors = function (args, opt_result) {
+    var metaResult = opt_result || new recoil.frp.BStatus(null);
+    var metaResultB = null;
+    var eventReady = false;
+
+    
+    for (var i = 0; i < args.length; i++) {
+        var metaArgVal = args[i];
+        metaResult.merge(metaArgVal);
+        
+        if (metaArgVal instanceof recoil.frp.BStatus) {
+            if (metaResultB === null) {
+                metaResultB = new recoil.frp.BStatus(null);
+            }
+            metaResultB.merge(metaArgVal);
+        }
+        else {
+            eventReady = eventReady || metaArgVal.ready();
+        }
+    }
+    return metaResult;
+    
+};
+/**
  * func will fire if all dependant behaviours are good or
  * or there is 1 ready event
  * @template RT
@@ -1236,7 +1278,7 @@ recoil.frp.TransactionManager.nextId_ = new recoil.util.Sequence();
  * behaviour that depends on it TODO
  *
  * @template T
- * @param {recoil.frp.Behaviour<recoil.frp.Behaviour<T>>} behaviour the parent behaviour all generated sequences will
+ * @param {recoil.frp.Behaviour<!recoil.frp.Behaviour<T>>} behaviour the parent behaviour all generated sequences will
  *            be less than this
  * @param {function()} callback
  */

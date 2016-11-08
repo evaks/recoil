@@ -54,15 +54,6 @@ recoil.util.invokeParamsAndArray = recoil.util.func.invokeParamsAndArray;
 
 
 /**
- * a generic compare function that should handle anything
- *
- * @param {*} a
- * @param {*} b
- * @return {!number}
- */
-recoil.util.compare = recoil.util.object.compare;
-
-/**
  * compares 2 objects
  *
  * @param {Object|number|undefined} a

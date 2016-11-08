@@ -20,7 +20,7 @@ goog.require('recoil.ui.widgets.LabelWidget');
  */
 recoil.ui.widgets.TextAreaWidget = function (scope) {
     this.scope_ = scope;
-    this.textarea_ = new goog.ui.Textarea();
+    this.textarea_ = new goog.ui.Textarea('');
     this.container_ = new goog.ui.Container();
 
     this.label_ = new recoil.ui.widgets.LabelWidget(scope);

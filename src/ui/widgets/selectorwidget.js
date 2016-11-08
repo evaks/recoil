@@ -5,9 +5,12 @@ goog.require('goog.ui.Select');
 goog.require('recoil.util');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Debug');
+goog.require('recoil.frp.Util');
+goog.require('recoil.ui.BoolWithExplanation');
 
 /**
  *
+ * @template T
  * @param {!recoil.ui.WidgetScope} scope
  * @implements {recoil.ui.Widget}
  * @constructor
@@ -51,7 +54,6 @@ recoil.ui.widgets.SelectorWidget.prototype.getComponent = function () {
 };
 
 /**
- *
  * @param {recoil.frp.Behaviour<!string>|!string} nameB
  * @param {recoil.frp.Behaviour<!T>|!T} valueB
  * @param {recoil.frp.Behaviour<!Array<T>>|Array<T>} listB
@@ -108,8 +110,8 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options){
 };
 
 /**
- *
- * @param {function(T) : string} renderer
+ * @template T
+ * @param {function(T,boolean, recoil.ui.BoolWithExplanation) : string} renderer
  * @param {Object} val
  * @param {boolean} valid
  * @param {recoil.ui.BoolWithExplanation} enabled
@@ -165,7 +167,7 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function (helper) {
  * @param obj
  * @param valid
  * @param {!recoil.ui.BoolWithExplanation} enabled
- * @returns {!goog.ui.MenuItem}
+ * @returns {!Element}
  * @constructor
  */
 recoil.ui.widgets.SelectorWidget.RENDERER = function(obj, valid, enabled) {

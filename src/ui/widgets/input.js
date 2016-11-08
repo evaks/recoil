@@ -34,7 +34,7 @@ recoil.ui.widgets.InputWidget.prototype.getComponent = function() {
 
 /**
  *
- * @return {recoil.ui.Widget}
+ * @return {!recoil.ui.Widget}
  */
 recoil.ui.widgets.InputWidget.prototype.getLabel = function() {
     return this.labelWidget_;
@@ -89,7 +89,6 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
         this.input_.setValue(this.valueB_.get());
-        this.labelWidget_.getComponent().set
     }
 };
 

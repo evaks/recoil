@@ -305,24 +305,27 @@ function testGetList ()  {
 
     // testing delete and object, we need ownership
     frp.accessTrans(function () {
-        listB.set([{id : 1, v : 11}, {id : 2, v : 12},{id : 3, v : 13}]);
+        listB.set([{id : 1, v : 21}, {id : 2, v : 22},{id : 4, v : 24}]);
     }, listB);
 
-    assertObjectEquals({id : 1, v: 11}, listItem0B.unsafeMetaGet().get());
-    assertObjectEquals({id : 2, v: 12}, listItem1B.unsafeMetaGet().get());
-    assertObjectEquals({id : 3, v: 13}, listItem2B.unsafeMetaGet().get());
-    // assertObjectEquals([recoil.db.errors.NOT_PRESENT], listItem3B.unsafeMetaGet().errors());
+    assertArrayEquals([{id : 1, v : 21},{id : 2, v: 22}, {id : 4, v: 24}], listB.unsafeMetaGet().get());
+    
+    assertObjectEquals({id : 1, v:21}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 2, v:22}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals([recoil.db.error.NOT_PRESENT], listItem2B.unsafeMetaGet().errors());
+    assertObjectEquals({id : 4, v:24}, listItem3B.unsafeMetaGet().get());
+
 
     // test inserting
     frp.accessTrans(function () {
-         listB.set([{id : 1, v : 11}, {id : 2, v: 12},{id : 3, v : 13},{id : 4, v : 14}]);
+         listB.set([{id : 1, v : 11}, {id : 2, v: 12},{id : 4, v : 14}, {id : 5, v : 15}]);
     }, listB);
 
-    assertArrayEquals([{id : 1, v : 11},{id : 2, v: 12},{id : 3, v:13}, {id : 4, v: 14}], listB.unsafeMetaGet().get());
+    assertArrayEquals([{id : 1, v : 11},{id : 2, v: 12}, {id : 4, v: 14}, {id : 5, v:15}], listB.unsafeMetaGet().get());
     assertObjectEquals({id : 1, v : 11}, listItem0B.unsafeMetaGet().get());
     assertObjectEquals({id : 2, v : 12}, listItem1B.unsafeMetaGet().get());
-    assertObjectEquals({id : 3, v : 13}, listItem2B.unsafeMetaGet().get());
     assertObjectEquals({id : 4, v : 14}, listItem3B.unsafeMetaGet().get());
+    assertObjectEquals({id : 5, v : 15}, listItem2B.unsafeMetaGet().get());
 
     // test reference counting, are there any entries left in the object manager, are getting data from the database
     // what happens if we never use it does the item hang around

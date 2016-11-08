@@ -1,6 +1,7 @@
 goog.provide('recoil.db.Database');
 goog.provide('recoil.db.ReadOnlyDatabase');
 goog.provide('recoil.db.ReadWriteDatabase');
+goog.provide('recoil.db.error');
 
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.frp.ChangeManager');
@@ -51,7 +52,7 @@ recoil.db.ReadOnlyDatabase = function(frp, db) {
  * @return {!Object}
  */
 recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
-    return this.dbComs_.makeKey(values);
+    return this.db_.makeKey(values);
 };
 
 /**
@@ -74,41 +75,8 @@ recoil.db.ReadOnlyDatabase.prototype.get = function(id, primaryKeys, opt_options
  * @private
  */
 recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters) {
-    var key = [id];
-    for (var i = 1; i < arguments.length; i++) {
-        key.push(arguments[i]);
-    }
-
-    var b = this.objects_.findFirst({key: key});
-    if (b !== null) {
-        return b;
-    }
-
-    b = this.frp_.createMetaB(recoil.frp.BStatus.notReady());
-    var me = this;
-    var args = [function(data) {
-        b.set(data);
-    }, function(error) {
-        b.metaSet(error);
-    }, id];
-
-    for (var i = 1; i < arguments.length; i++) {
-        args.push(arguments[i]);
-    }
-
-    b.refListen(function(hasRef) {
-        if (hasRef) {
-            me.dbComs_.get.apply(me.dbComs_, args);
-        } else {
-            me.dbComs_.stop.apply(me.dbComs_, key);
-        }
-
-    });
-
-    var readOnly = this.frp_.metaLiftB(function(v) {return v;}, b);
-    var res = {key: key, value: readOnly, internal: b};
-    this.objects_.add(res);
-    return res;
+    //TODO
+    throw 'not implemented yet';
 
 };
 
@@ -116,8 +84,8 @@ recoil.db.ReadOnlyDatabase.prototype.getInternal_ = function(id, var_parameters)
 /**
  * @constructor
  * @implements {recoil.db.Database}
- * @param {recoil.frp.Frp} frp the associated FRP engine
- * @param {recoil.db.DatabaseComms} dbComs the interface to get and set data to the backend
+ * @param {!recoil.frp.Frp} frp the associated FRP engine
+ * @param {!recoil.db.DatabaseComms} dbComs the interface to get and set data to the backend
  */
 
 recoil.db.ReadWriteDatabase = function(frp, dbComs) {
@@ -151,7 +119,7 @@ recoil.db.ReadOnlyDatabase.filterSending_ = function (frp, uniq) {
 /**
  * @private
  * @param {recoil.frp.Frp} frp
- * @param {!recoil.frp.Behaviour<recoil.db.SendInfo>} uniq
+ * @param {!recoil.frp.Behaviour<!recoil.db.SendInfo>} uniq
  */
 recoil.db.ReadWriteDatabase.showSending_ = function (frp, uniq) {
     return frp.liftBI(
@@ -176,17 +144,18 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
     var dbComs = this.comms_;
     var objectManager = this.objectManager_;
     var frp = this.frp_;
+    var options = opt_options || new recoil.db.QueryOptions();
     
     valueB.refListen(
         function (used) {
             frp.accessTrans(function () {
                 if (used) {
-                    var uniq = objectManager.register(id, primaryKeys, opt_options, dbComs);
+                    var uniq = objectManager.register(id, primaryKeys, options , dbComs);
                     valueB.set(uniq);
                 }
                 else {
-                    objectManager.unregister(id, primaryKeys, dbComs);
-                    valueB.metaSet(recoil.frp.notReady());
+                    objectManager.unregister(id, primaryKeys, options, dbComs);
+                    valueB.metaSet(recoil.frp.BStatus.notReady());
                 }
             }, valueB);
         });
@@ -204,37 +173,6 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
  */
 recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_options)  {
     return recoil.db.ReadWriteDatabase.showSending_(this.frp_, this.getSendInfo(id, primaryKeys, opt_options));
-};
-
-/**
- * gets a list of options from the database, this should ensure that the same object
- * gets returned even if the query options is different
- *
- * @template T
- * @param {!recoil.db.Type<T>} id the id to identify the type of objects to retrieve
- * @param {!recoil.db.Query} query a filter to apply to the query
- * @param {!recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
- * @return {!recoil.frp.Behaviour<!recoil.db.SendInfo<!Array<T>>>}
- */
-recoil.db.ReadWriteDatabase.prototype.getSendInfoList = function (id, query, opt_options) {
-    
-    var valueBB = this.frp_.createNotReadyB();
-    var dbComs = this.comms_;
-    var objectManager = this.objectManager_;
-    var frp = this.frp_;
-    
-    valueBB.refListen(
-        function (used) {
-            if (used) {
-                var uniq = objectManager.registerQuery(id, query, opt_options, dbComs);
-                valueBB.set(uniq);
-            }
-            else {
-                objectManager.unregisterQuery(id, query, dbComs);
-                valueBB.metaSet(recoil.frp.notReady());
-            }
-        });
-    return frp.switchB(valueBB);
 };
 
 /**
@@ -261,12 +199,13 @@ recoil.db.DelayedDatabase = function(frp, source) {
 /**
  * Returns a behaviour, with a value that we can get, set etc
  * @template T
- * @param {string} id the id of the object to get
- * @param {...*} var_parameters the parameters to the get function, this can be useful if you want to get something like
- *            a particular id
- * @return {recoil.frp.Behaviour<T>}
+ * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
+ * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
+ * @return {!recoil.frp.Behaviour<T>} the corisponding object 
  */
-recoil.db.DelayedDatabase.prototype.get = function(id, var_parameters)  {
+
+recoil.db.DelayedDatabase.prototype.get = function(id, primaryKeys, opt_options) {  
 
     var key = this.source_.makeKey(arguments);
     var frp = this.frp_;
@@ -335,6 +274,8 @@ recoil.db.DelayedDatabase.prototype.makeKey = function(values) {
 };
 
 
-recoil.db.errors = {
-    NOT_PRESENT : {name :  "Not present"}
-};
+/**
+ * defines the database errors
+ */
+recoil.db.error.NOT_PRESENT = recoil.util.object.constant({name : 'not present'});
+    
