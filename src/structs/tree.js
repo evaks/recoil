@@ -19,7 +19,7 @@ goog.require('recoil.util');
  */
 recoil.structs.Tree = function(value, opt_children) {
    this.value_ = recoil.util.safeFreeze(value);
-   this.children_ = /** @type !Array<!recoil.structs.Tree<T>>=} */(goog.object.createImmutableView(opt_children || []));
+   this.children_ = /** @type {!Array<!recoil.structs.Tree<T>>} */(goog.object.createImmutableView(opt_children || []));
 };
 
 /**

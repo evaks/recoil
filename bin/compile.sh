@@ -13,11 +13,18 @@ else
 	PYTHON=python
     else
         PYTHON=$PYTHON2
-	    fi
+    fi
 fi
 
 DIR=`dirname $0`
 cd ${DIR}/..
+
+gjslint --disable 0110,0120 `find src -name "*.js" -and -not -name "*_test.js" `
+if [ $? -ne 0 ]; then
+    echo Error Occured in Lint stopping compile
+    exit 2
+fi
+
 
 
 ${PYTHON} lib/closure-library/closure/bin/build/closurebuilder.py --root lib/closure-library/ --root src/ --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" --compiler_flags="--warning_level=VERBOSE" \

@@ -34,6 +34,10 @@ recoil.db.Entity.prototype.behaviour = function() {
     return this.value_;
 };
 
+/**
+ * @private
+ * @param {recoil.frp.Behaviour<T>} value
+ */
 recoil.db.Entity.prototype.setBehaviour_ = function(value) {
     this.value_ = value;
 };
@@ -57,6 +61,7 @@ recoil.db.Entity.prototype.removeRef = function() {
 
 
 /**
+ * @private
  * @param {!recoil.db.Entity} x
  * @param {!recoil.db.Entity} y
  * @return {number}
@@ -97,6 +102,7 @@ recoil.db.QueryEntry.prototype.removeRef = function() {
 };
 
 /**
+ * @private
  * @param {!recoil.db.QueryEntry} x
  * @param {!recoil.db.QueryEntry} y
  * @return {number}
@@ -117,6 +123,7 @@ recoil.db.SendInfo = function(value, toplevel) {
     this.value_ = value;
     /**
      * @type {T}
+     * @private
      */
     this.toplevel_ = toplevel;
     this.sending_ = null;
@@ -175,7 +182,8 @@ recoil.db.SendInfo.prototype.getStored = function() {
  */
 recoil.db.ObjectManager = function(frp) {
     /**
-     * @type Object<!recoil.db.Type,goog.structs.AvlTree<!recoil.db.Entity>>
+     * @type Object<!recoil.db.Type,goog.structs.AvlTree<!recoil.db.Entity>>>
+     * @private
      */
     this.objectTypes_ = {};
     this.queries_ = {};
@@ -186,10 +194,17 @@ recoil.db.ObjectManager = function(frp) {
 /**
  * based on the key type get all behaviours that are inside
  * @private
- * @return {!Array<!Object>} each object contains a path, behaviour, key, parentKey
+ * @template T
+ * @param {!recoil.db.Type<T>} keyType
+ * @param {T} value
+ * @param {!recoil.frp.Behaviour<T>} behaviour
+ * @param {!recoil.db.QueryOptions} options
+ * @param {!recoil.db.DatabaseComms} coms
+ * @param {!boolean} doRegister
+ * @return {!IArrayLike<!Object>} each object contains a path, behaviour, key, parentKey
  */
 
-recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function(keyType, value, behaviour, opt_options, coms, doRegister) {
+recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function(keyType, value, behaviour, options, coms, doRegister) {
     var res = [];
     var me = this;
     for (var i = 0; i < keyType.getPaths().length; i++) {
@@ -199,7 +214,7 @@ recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function(keyType, valu
             var b;
             var behaviours = recoil.util.map.safeGet(me.queries_, path.getType().uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
             if (doRegister) {
-                b = me.register_(path.getType(), key, opt_options, coms, val);
+                b = me.register_(path.getType(), key, options, coms, val);
             }
             else {
                 b = behaviours.findFirst(new recoil.db.Entity(key, null, false));
@@ -210,7 +225,7 @@ recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function(keyType, valu
                         key: key,
                         parentKey: parentKey,
                         path: path,
-                        behaviour: me.register_(path.getType(), key, opt_options, coms, val)
+                        behaviour: me.register_(path.getType(), key, options, coms, val)
                     });
             }
         });
@@ -237,8 +252,9 @@ recoil.db.ObjectManager.prototype.register = function(typeKey, key, options, com
 /**
  * updates the outer object with all the sub objects,
  *
+ * @private
  * @param {*} outer the object to be updated
- * @param {!Array<!Object>} related list of paths and behaviours that are subobjects of
+ * @param {!IArrayLike<!Object>} related list of paths and behaviours that are subobjects of
  * @param {!boolean} stored is the outer object stored value, or the sending value
  */
 recoil.db.ObjectManager.updateWithSubObjects_ = function(outer, related, stored) {
@@ -263,7 +279,7 @@ recoil.db.ObjectManager.updateWithSubObjects_ = function(outer, related, stored)
  * sets the related sub objects base on the outer object
  * @private
  * @param {!Object} outer the outer object to update from
- * @param {!Array<!Object>} related a list of paths and behaviours for the sub object
+ * @param {!IArrayLike<!Object>} related a list of paths and behaviours for the sub object
  * @param {!recoil.frp.Frp=} opt_frp if specified will use this to create the transaction to set the behavior
  */
 recoil.db.ObjectManager.setSubObjects_ = function(outer, related, opt_frp) {
@@ -296,8 +312,8 @@ recoil.db.ObjectManager.setSubObjects_ = function(outer, related, opt_frp) {
  * @template T
  * @private
  * @param {!recoil.db.Type<T>} typeKey
- * @param {!Array<?>} key
- * @param {recoil.db.QueryOptions} options
+ * @param {!IArrayLike<?>} key
+ * @param {!recoil.db.QueryOptions} options
  * @param {!recoil.db.DatabaseComms} coms
  * @param {*=} opt_val
  * @return {!recoil.frp.Behaviour<T>}
@@ -311,7 +327,7 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
     var hasVal = arguments.length > 4;
 
     /**
-     * @type {recoil.frp.Behaviour<!recoil.db.SendInfo>}
+     * @type {!recoil.frp.Behaviour<!recoil.db.SendInfo>}
      */
     var behaviour = this.frp_.createNotReadyB();
 
@@ -488,6 +504,3 @@ recoil.db.ObjectManager.prototype.unregister = function(typeKey, key, options, c
 
 };
 
-recoil.db.ObjectManager.prototype.dataRecieved = function(typeKey, value) {
-
-};

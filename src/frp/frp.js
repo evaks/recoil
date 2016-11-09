@@ -530,7 +530,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.dirtyDown_ = false;
     this.refs_ = {};
     /**
-     * @type Array<goog.math.Long>
+     * @type {Array<goog.math.Long>}
      * @private
      */
     this.seq_ = sequence;
@@ -1250,7 +1250,7 @@ recoil.frp.TransactionManager = function(frp) {
      */
     this.curIndex_ = new recoil.util.Sequence();
     /**
-     * @type Array<Array<goog.math.Long>>
+     * @type {Array<Array<goog.math.Long>>}
      * @private
      */
     this.curIndexPrefix_ = [[]];

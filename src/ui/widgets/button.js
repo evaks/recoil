@@ -2,7 +2,6 @@
 
 goog.provide('recoil.ui.widgets.ButtonWidget');
 
-goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('goog.ui.Button');

@@ -19,7 +19,7 @@ recoil.db.Type = function() {};
 recoil.db.Type.prototype.getKeys = function(obj, parents) {};
 
 /**
- * @param {!Array<!Object>} parents the parents of object
+ * @param {!IArrayLike<!Object>} parents the parents of object
  * @return {!Array<?>} the primary keys of the object
  */
 recoil.db.Type.prototype.getParentKeys = function(parents) {};
@@ -50,6 +50,7 @@ recoil.db.Type.prototype.getPaths = function() {
  * a type that has a value and possibly some references to so external values
  * @param {!Array<string>} keys
  * @param {*} data arbitary data that can be used the the database to figure out what key it is
+ * @param {function(*,*):!Array<*>} opt_keyGetter
  * @param {Array<!recoil.db.TypePath>?} opt_subpaths
  * @implements recoil.db.Type
  * @constructor
@@ -98,7 +99,7 @@ recoil.db.BasicType.prototype.getKeys = function(obj, parents) {
 
 
 /**
- * @param {!Array<!Object>} parents the parents of object
+ * @param {!IArrayLike<!Object>} parents the parents of object
  * @return {!Array<?>} the primary keys of the object
  */
 recoil.db.BasicType.prototype.getParentKeys = function(parents) {
@@ -119,7 +120,7 @@ recoil.db.TypePath = function(type, path) {
         this.path_ = new recoil.db.Path(path.split('/'));
     }
     else if (goog.isArrayLike(path)) {
-        this.path_ = new recoil.db.Path(/** @type !Array<!string>*/(path));
+        this.path_ = new recoil.db.Path(/** @type !Array<!string> */(path));
     }
     else {
         this.path_ = path;
@@ -127,14 +128,19 @@ recoil.db.TypePath = function(type, path) {
     this.type_ = type;
 };
 
+/**
+ * @return {!recoil.db.Type}
+ */
+
 recoil.db.TypePath.prototype.getType = function() {
     return this.type_;
 };
+
 /**
  * calls itr for each item that matches the type path,
  *
  * @param {!Object} obj the object to iterate over
- * @param {!function(*,*,*)} itr called for each item, the first paramter is the
+ * @param {!function(*,!IArrayLike<*>,*)} itr called for each item, the first paramter is the
  *                             key the object, the second is the object
  */
 
@@ -158,7 +164,8 @@ recoil.db.TypePath.prototype.getKeys = function(obj, parents) {
 
 
 /**
- * @param {!Array<!Object>} parents the parents of object
+ * @param {!IArrayLike<!Object>} parents the parents of object
+ * @return {*}
  */
 recoil.db.TypePath.prototype.getParentKeys = function(parents) {
     return this.type_.getParentKeys(parents);
@@ -166,6 +173,7 @@ recoil.db.TypePath.prototype.getParentKeys = function(parents) {
 
 /**
  * clears the object at the path ready for new objects be put in
+ * @param {*} parentKeys
  * @param {!Object} object
  */
 recoil.db.TypePath.prototype.reset = function(parentKeys, object) {
@@ -178,7 +186,9 @@ recoil.db.TypePath.prototype.reset = function(parentKeys, object) {
 
 /**
  * puts an item at the the path
+ * @param {*} parentKeys
  * @param {!Object} object
+ * @param {*} key
  * @param {*} val
  */
 recoil.db.TypePath.prototype.put = function(parentKeys, object, key, val) {
@@ -188,6 +198,12 @@ recoil.db.TypePath.prototype.put = function(parentKeys, object, key, val) {
     });
 };
 
+/**
+ * @param {*} parentKeys
+ * @param {!Object} object
+ * @param {*} key
+ * @return {*}
+ */
 recoil.db.TypePath.prototype.get = function(parentKeys, object, key) {
     var me = this;
     return this.path_.get(object, key, function(parents) {
@@ -196,9 +212,10 @@ recoil.db.TypePath.prototype.get = function(parentKeys, object, key) {
 };
 /***
  *
- * @param {!Array<!string>} var_keys each element specifies the keys
+ * @param {...!Array<!string>} var_keys each element specifies the keys
  *                                   this list is backwards, starting at the
  *                                   and working up through the ancestors
+ * @return {function(*,*):!Array<*>}
  */
 recoil.db.SimpleKeyGetter = function(var_keys) {
     var args = arguments;

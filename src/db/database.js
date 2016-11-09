@@ -105,8 +105,10 @@ recoil.db.ReadWriteDatabase.prototype.makeKey = function(values) {
 
 /**
  * @private
+ * @template T
  * @param {recoil.frp.Frp} frp
- * @param {!recoil.frp.Behaviour<recoil.db.SendInfo>} uniq
+ * @param {!recoil.frp.Behaviour<recoil.db.SendInfo<T>>} uniq
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.db.ReadOnlyDatabase.filterSending_ = function(frp, uniq) {
     return frp.liftB(
@@ -118,8 +120,10 @@ recoil.db.ReadOnlyDatabase.filterSending_ = function(frp, uniq) {
 
 /**
  * @private
+ * @template T
  * @param {recoil.frp.Frp} frp
  * @param {!recoil.frp.Behaviour<!recoil.db.SendInfo>} uniq
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.db.ReadWriteDatabase.showSending_ = function(frp, uniq) {
     return frp.liftBI(
