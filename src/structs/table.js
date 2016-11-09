@@ -844,6 +844,7 @@ recoil.structs.table.TableRow = function(opt_tableRow) {
 
 
 /**
+ * @private
  * @param {function (!recoil.structs.table.TableRow, !recoil.structs.table.TableRow):number}  comparator
  * @return {function (!recoil.structs.table.TableRow, !recoil.structs.table.TableRow):number}
  */

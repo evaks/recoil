@@ -234,12 +234,13 @@ recoil.frp.Util.Options = function(var_options) {
                 widget.attachStruct(struct);
             };
             return res1;
-        }
+       };
     };
 
     /**
      * @param {Object|string} name
      * @param {*=} opt_defVal
+     * @return {!Array<*>}
      */
     function functionParams(name, opt_defVal) {
         if (name instanceof Object) {

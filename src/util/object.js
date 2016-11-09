@@ -146,8 +146,8 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
 /**
  * compares 2 objects
  *
- * @param {Object|number|undefined} a
- * @param {Object|number|undefined} b
+ * @param {?} a
+ * @param {?} b
  * @return {!boolean}
  */
 recoil.util.object.isEqual = function(a, b) {
@@ -183,8 +183,8 @@ goog.structs.AvlTree.prototype.equals = function(other) {
 
 /**
  * @private
- * @param {Object|number|undefined} a
- * @param {Object|number|undefined} b
+ * @param {*} a
+ * @param {*} b
  * @param {!Array<Object>} aPath
  * @param {!Array<Object>} bPath
  * @param {!Array<!string>} debugPath
@@ -328,12 +328,19 @@ recoil.util.object.getByParts = function(obj, var_parts) {
  * if there is a clone method on it it will call that instead
  * @template T
  * @param {T} obj the object to clone
- * @return T
+ * @return {T}
  */
 recoil.util.object.clone = function(obj) {
     return recoil.util.object.clone.cloneRec_(obj, [], []);
 };
-
+/**
+ * @template T
+ * @private
+ * @param {T} obj the object to clone
+ * @param {!Array<!Object>} path
+ * @param {!Array<!Object>} clonedPath
+ * @return {T}
+ */
 recoil.util.object.clone.cloneRec_ = function(obj, path, clonedPath) {
 
     var type = goog.typeOf(obj);

@@ -164,8 +164,8 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function(helper) {
 
 /**
  *
- * @param obj
- * @param valid
+ * @param {?} obj
+ * @param {!boolean} valid
  * @param {!recoil.ui.BoolWithExplanation} enabled
  * @return {!Element}
  * @constructor

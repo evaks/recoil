@@ -12,7 +12,7 @@ goog.require('recoil.ui.widgets.table.Column');
  * @template T
  * @constructor
  */
-recoil.ui.widgets.table.BooleanColumn = function(key, name, opt_options ) {
+recoil.ui.widgets.table.BooleanColumn = function(key, name, opt_options) {
     this.key_ = key;
     this.name_ = name;
     this.options_ = opt_options || {};

@@ -142,6 +142,7 @@ recoil.db.Path.prototype.forEachParent_ = function(value, func, opt_start, opt_p
 /**
  * clears the object at the path ready for new objects be put in
  * @param {!Object} object
+ * @param {function(!IArrayLike<*>):!boolean} check used to we should run on this parent
  */
 recoil.db.Path.prototype.reset = function(object, check) {
     this.forEachParent_(object, function(part, value, parents) {
@@ -155,7 +156,9 @@ recoil.db.Path.prototype.reset = function(object, check) {
 /**
  * puts an item at the the path
  * @param {!Object} object
+ * @param {*} key
  * @param {*} val
+ * @param {function(!IArrayLike<*>):!boolean} check used to we should run on this parent
  */
 recoil.db.Path.prototype.put = function(object, key, val, check) {
     this.forEachParent_(object, function(part, value, parents) {
@@ -169,6 +172,9 @@ recoil.db.Path.prototype.put = function(object, key, val, check) {
 /**
  * puts an item at the the path
  * @param {!Object} object
+ * @param {*} key
+ * @param {function(!IArrayLike<*>):!boolean} check used to we should run on this parent
+ * @return {*}
  */
 recoil.db.Path.prototype.get = function(object, key, check) {
     var val = recoil.db.error.NOT_PRESENT;
@@ -185,6 +191,7 @@ recoil.db.Path.prototype.get = function(object, key, check) {
  * this indicated that we should get every item in an array
  *
  * @constructor
+ * @param {...!string} var_fields the key fields of the object it contains
  * @implements recoil.db.PathItem
  */
 recoil.db.Path.Array = function(var_fields) {
@@ -228,15 +235,30 @@ recoil.db.Path.Array.prototype.forEach = function(value, callback) {
         callback(value[i]);
     }
 };
-
-recoil.db.Path.Array.prototype.reset = function(value) {
-    value.length = 0;
+/**
+ * clears out the container so that items can be placed in it
+ * @param {Object} parent
+ */
+recoil.db.Path.Array.prototype.reset = function(parent) {
+    parent.length = 0;
 };
 
+
+/**
+ * put the value into the parent object with the key
+ * @param {Object} parent
+ * @param {*} key
+ * @param {?} val
+ */
 recoil.db.Path.Array.prototype.put = function(parent, key, val) {
     parent.push(val);
 };
 
+/**
+ * @param {Object} parent the container
+ * @param {*} key
+ * @return {*}
+ */
 recoil.db.Path.Array.prototype.get = function(parent, key) {
     return this.lookup_.get(parent, key);
 };
@@ -259,14 +281,28 @@ recoil.db.Path.Avl.prototype.forEach = function(value, callback) {
     value.inOrderTraverse(callback);
 };
 
-recoil.db.Path.Avl.prototype.reset = function(value) {
-    value.clear();
+/**
+ * clears out the container so that items can be placed in it
+ * @param {Object} parent
+ */
+recoil.db.Path.Avl.prototype.reset = function(parent) {
+    parent.clear();
 };
 
-    recoil.db.Path.Avl.prototype.put = function(parent, key, val) {
+/**
+ * put the value into the parent object with the key
+ * @param {Object} parent
+ * @param {*} key
+ * @param {?} val
+ */
+recoil.db.Path.Avl.prototype.put = function(parent, key, val) {
         parent.add(val);
 };
 
+/**
+ * @param {Object} parent the container
+ * @param {*} key
+ */
 recoil.db.Path.Avl.prototype.get = function(parent, key)  {
     throw 'not inmplemented yet';
 
@@ -294,9 +330,20 @@ recoil.db.Path.Item.prototype.forEach = function(value, callback) {
 };
 
 
-recoil.db.Path.Item.prototype.reset = function(value) {
+
+/**
+ * clears out the container so that items can be placed in it
+ * @param {Object} parent
+ */
+recoil.db.Path.Item.prototype.reset = function(parent) {
 };
 
+/**
+ * put the value into the parent object with the key
+ * @param {Object} parent
+ * @param {*} key
+ * @param {?} val
+ */
 recoil.db.Path.Item.prototype.put = function(parent, key, val) {
     parent[this.name_] = val;
 };
@@ -322,6 +369,12 @@ recoil.db.Path.Object.prototype.forEach = function(value, callback) {
     }
 };
 
+/**
+ * put the value into the parent object with the key
+ * @param {Object} parent
+ * @param {*} key
+ * @param {?} val
+ */
 recoil.db.Path.Object.prototype.put = function(parent, key, val) {
     parent[key] = val;
 };
