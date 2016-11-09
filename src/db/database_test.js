@@ -320,11 +320,14 @@ function testGetList ()  {
          listB.set([{id : 1, v : 11}, {id : 2, v: 12},{id : 4, v : 14}, {id : 5, v : 15}]);
     }, listB);
 
+    var listItem5B = db.get(LIST_ITEM_KEY, [5]);
+    frp.attach(listItem5B);
+
     assertArrayEquals([{id : 1, v : 11},{id : 2, v: 12}, {id : 4, v: 14}, {id : 5, v:15}], listB.unsafeMetaGet().get());
     assertObjectEquals({id : 1, v : 11}, listItem0B.unsafeMetaGet().get());
     assertObjectEquals({id : 2, v : 12}, listItem1B.unsafeMetaGet().get());
     assertObjectEquals({id : 4, v : 14}, listItem3B.unsafeMetaGet().get());
-    assertObjectEquals({id : 5, v : 15}, listItem2B.unsafeMetaGet().get());
+    assertObjectEquals({id : 5, v : 15}, listItem5B.unsafeMetaGet().get());
 
     // test reference counting, are there any entries left in the object manager, are getting data from the database
     // what happens if we never use it does the item hang around

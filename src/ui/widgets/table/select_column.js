@@ -1,9 +1,9 @@
 goog.provide('recoil.ui.widgets.table.SelectColumn');
 
-goog.require('recoil.ui.widgets.table.Column');
-goog.require('recoil.ui.widgets.SelectorWidget');
 goog.require('recoil.frp.Debug');
 goog.require('recoil.frp.struct');
+goog.require('recoil.ui.widgets.SelectorWidget');
+goog.require('recoil.ui.widgets.table.Column');
 
 /**
  *
@@ -15,7 +15,7 @@ goog.require('recoil.frp.struct');
  * @template T
  * @constructor
  */
-recoil.ui.widgets.table.SelectColumn = function (key, name, list, opt_options) {
+recoil.ui.widgets.table.SelectColumn = function(key, name, list, opt_options) {
     this.key_ = key;
     this.name_ = name;
     this.list_ = list;
@@ -29,13 +29,13 @@ recoil.ui.widgets.table.SelectColumn = function (key, name, list, opt_options) {
  * @return {recoil.ui.Widget}
  * @private
  */
-recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function (scope, cellB) {
+recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function(scope, cellB) {
     var frp = scope.getFrp();
     var widget = new recoil.ui.widgets.SelectorWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
-    var metaData = recoil.frp.Debug("Meta", recoil.frp.table.TableCell.getMeta(frp, cellB));
+    var metaData = recoil.frp.Debug('Meta', recoil.frp.table.TableCell.getMeta(frp, cellB));
 
-    widget.attachStruct(recoil.frp.struct.extend(frp, metaData, {value : value}));
+    widget.attachStruct(recoil.frp.struct.extend(frp, metaData, {value: value}));
 
     return widget;
 };
@@ -51,7 +51,7 @@ recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function (scope, ce
  * @param {Object} curMeta
  * @return {Object}
  */
-recoil.ui.widgets.table.SelectColumn.prototype.getMeta = function (curMeta) {
+recoil.ui.widgets.table.SelectColumn.prototype.getMeta = function(curMeta) {
     var meta = {name: this.name_, list: this.list_,
         cellWidgetFactory: recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_};
 
@@ -62,7 +62,7 @@ recoil.ui.widgets.table.SelectColumn.prototype.getMeta = function (curMeta) {
 /**
  * @return {recoil.structs.table.ColumnKey}
  */
-recoil.ui.widgets.table.SelectColumn.prototype.getKey = function () {
+recoil.ui.widgets.table.SelectColumn.prototype.getKey = function() {
     return this.key_;
 };
 

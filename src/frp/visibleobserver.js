@@ -1,11 +1,11 @@
 goog.provide('recoil.frp.VisibleObserver');
 
 goog.require('goog.dom');
-goog.require('goog.style');
 goog.require('goog.events');
 goog.require('goog.math');
 goog.require('goog.math.Long');
 goog.require('goog.structs.AvlTree');
+goog.require('goog.style');
 goog.require('recoil.exception.NotInDom');
 goog.require('recoil.util.Sequence');
 /**
@@ -564,7 +564,7 @@ recoil.frp.VisibleObserver.visible = function(node) {
     if (node.offsetWidth <= 0 && node.offsetHeight <= 0) {
         return false;
     }
-    
+
     while (cur != null && visible) {
 
         if (cur.style) {

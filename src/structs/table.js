@@ -841,24 +841,24 @@ recoil.structs.table.TableRow = function(opt_tableRow) {
         this.pos_ = opt_tableRow.pos();
     }
 };
-    
+
 
 /**
  * @param {function (!recoil.structs.table.TableRow, !recoil.structs.table.TableRow):number}  comparator
- * @return {function (!recoil.structs.table.TableRow, !recoil.structs.table.TableRow):number} 
+ * @return {function (!recoil.structs.table.TableRow, !recoil.structs.table.TableRow):number}
  */
-recoil.structs.table.TableRow.positionComparator_ = function (comparator) {
-    return function (x, y) {
-        if (x.pos() === undefined  && y.pos() === undefined) {
+recoil.structs.table.TableRow.positionComparator_ = function(comparator) {
+    return function(x, y) {
+        if (x.pos() === undefined && y.pos() === undefined) {
             return comparator(x, y);
         }
-        if (x.pos() === undefined  || y.pos() === undefined) {
-            return x.pos() === undefined  ? -1 : 1;
+        if (x.pos() === undefined || y.pos() === undefined) {
+            return x.pos() === undefined ? -1 : 1;
         }
-        
+
         var res = x.pos() - y.pos();
         if (res === 0) {
-            return comparator(x,y);
+            return comparator(x, y);
         }
         return 0;
     };
@@ -867,7 +867,7 @@ recoil.structs.table.TableRow.positionComparator_ = function (comparator) {
 /**
  * @return {number|undefined}
  */
-recoil.structs.table.TableRow.prototype.pos = function () {
+recoil.structs.table.TableRow.prototype.pos = function() {
     return this.pos_;
 };
 /**
@@ -1028,7 +1028,7 @@ recoil.structs.table.MutableTableRow = function(opt_position, opt_immutable) {
 /**
  * @return {number|undefined}
  */
-recoil.structs.table.MutableTableRow.prototype.pos = function () {
+recoil.structs.table.MutableTableRow.prototype.pos = function() {
     return this.pos_;
 };
 

@@ -1,10 +1,10 @@
 goog.provide('recoil.frp.Util');
 
 goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.Frp');
+goog.require('recoil.frp.struct');
 goog.require('recoil.ui.messages');
 goog.require('recoil.util');
-goog.require('recoil.frp.Frp')
-goog.require('recoil.frp.struct')
 /**
  * @constructor
  * @param {recoil.frp.Frp} frp the frp engine to do operations on
@@ -181,7 +181,7 @@ var z = metaLiftB(function() {return x.get() + y.get()}, x, y);
  *               To specify defaults of functions (type 2) the default should be an object with fields matching the parameters
  *
  * @param {...(!string|!Object)} var_options
- * @returns {!Object} this has dynamic fields based on the parameters, and struct, attach, and bind function
+ * @return {!Object} this has dynamic fields based on the parameters, and struct, attach, and bind function
  *
  */
 
@@ -189,28 +189,28 @@ recoil.frp.Util.Options = function(var_options) {
     var res = {};
     var remaining = {};
 
-    var checkRemaining = function (remaining) {
+    var checkRemaining = function(remaining) {
         for (var i in remaining) {
             if (!(remaining[i] instanceof Object)) {
-                throw "missing argument";
+                throw 'missing argument';
             }
         }
     };
-    var mkSetFunc =  function (struct, remaining, name, params) {
+    var mkSetFunc = function(struct, remaining, name, params) {
         struct = goog.object.clone(struct);
         remaining = goog.object.clone(remaining);
 
-       return function (var_vals) {
+       return function(var_vals) {
 
             delete remaining[name];
 
-            if(name instanceof Object){
-                for(var n in name) {
+            if (name instanceof Object) {
+                for (var n in name) {
                     struct[n] = var_vals;
                 }
             } else {
                 if (arguments.length !== params.length) {
-                    throw "Invalid number of arguments";
+                    throw 'Invalid number of arguments';
                 }
                 for (var i = 0; i < arguments.length; i++) {
                     struct[params[i]] = arguments[i];
@@ -221,15 +221,15 @@ recoil.frp.Util.Options = function(var_options) {
 
             var res1 = {};
             for (var name1 in remaining) {
-                functionParams(remaining[name1]).forEach(function (func) {
+                functionParams(remaining[name1]).forEach(function(func) {
                     res1[func.name] = mkSetFunc(struct, remaining, func.name, func.params);
                 });
             }
-            res1.struct = function () {
+            res1.struct = function() {
                 checkRemaining(remaining);
                 return struct;
             };
-            res1.attach = function (widget) {
+            res1.attach = function(widget) {
                 checkRemaining(remaining);
                 widget.attachStruct(struct);
             };
@@ -245,7 +245,7 @@ recoil.frp.Util.Options = function(var_options) {
         if (name instanceof Object) {
             var objRes = [];
             for (var n in name) {
-                functionParams(n, name[n]).forEach(function (p) {
+                functionParams(n, name[n]).forEach(function(p) {
                     objRes.push(p);
                 });
             }
@@ -262,24 +262,24 @@ recoil.frp.Util.Options = function(var_options) {
             var params = name.substring(startIndex + 1, name.length - 1);
             var paramArr = params.split(',');
             var res = [];
-            paramArr.forEach(function (p) {
+            paramArr.forEach(function(p) {
                 p = p.trim();
-                res.push(prefix + "_" + p);
+                res.push(prefix + '_' + p);
                 if (opt_defVal) {
                     if (!opt_defVal.hasOwnProperty(p)) {
-                        throw "you must specify " + p;
+                        throw 'you must specify ' + p;
                     }
-                    defMap[prefix + "_" + p] = opt_defVal[p];
+                    defMap[prefix + '_' + p] = opt_defVal[p];
                 }
             });
 
-            return [{name : prefix , params : res, def : defMap}];
+            return [{name: prefix, params: res, def: defMap}];
         }
         else {
             if (opt_defVal) {
                 defMap[name] = opt_defVal;
             }
-            return [{name : name, params : [name], def : defMap}];
+            return [{name: name, params: [name], def: defMap}];
         }
     }
 
@@ -287,7 +287,7 @@ recoil.frp.Util.Options = function(var_options) {
 
     for (var i = 0; i < arguments.length; i++) {
         var name = arguments[i];
-        functionParams(name).forEach (function (func) {
+        functionParams(name).forEach(function(func) {
             remaining[func.name] = name;
         });
     }
@@ -295,17 +295,17 @@ recoil.frp.Util.Options = function(var_options) {
 
     for (var i = 0; i < arguments.length; i++) {
         var name = arguments[i];
-        functionParams(name).forEach (function (func) {
+        functionParams(name).forEach(function(func) {
             res[func.name] = mkSetFunc({}, remaining, func.name, func.params);
         });
     }
 
 
-    res.struct = function () {
+    res.struct = function() {
         checkRemaining(remaining);
         return {};
     };
-    res.attach = function (widget) {
+    res.attach = function(widget) {
         checkRemaining(remaining);
         widget.attachStruct({});
     };
@@ -314,17 +314,17 @@ recoil.frp.Util.Options = function(var_options) {
      *
      * @param {!recoil.frp.Frp} frp
      * @param {!recoil.frp.Behaviour<!Object>|!Object} val
-     * @returns {!Object}
+     * @return {!Object}
      */
-    res.bind = function (frp, val) {
+    res.bind = function(frp, val) {
         var optionsB = recoil.frp.struct.flatten(frp, val);
         var res = {};
         for (var i = 0; i < args.length; i++)
-            (function (name) {
+            (function(name) {
                 var funcs = functionParams(name);
-                funcs.forEach(function (func) {
-                    func.params.forEach(function (param) {
-                        res[param] = function () {
+                funcs.forEach(function(func) {
+                    func.params.forEach(function(param) {
+                        res[param] = function() {
                             return recoil.frp.struct.get(param, optionsB, func.def[param]);
                         };
                     });

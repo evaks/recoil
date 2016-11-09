@@ -12,7 +12,7 @@ goog.provide('recoil.util.map');
  * @return {T}
  */
 
-recoil.util.map.safeGet = function (map, key, def) {
+recoil.util.map.safeGet = function(map, key, def) {
     var res = map[key];
     if (!res) {
         res = def;

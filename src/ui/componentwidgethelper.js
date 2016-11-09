@@ -78,7 +78,7 @@ recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
 /**
  * @return {!boolean}
  */
-recoil.ui.ComponentWidgetHelper.prototype.isAttached = function () {
+recoil.ui.ComponentWidgetHelper.prototype.isAttached = function() {
     return this.isAttached_;
 };
 
@@ -223,7 +223,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         break;
     case goog.ui.Component.EventType.CHANGE:
         this.handler_ = comp;
-        break;         
+        break;
     case goog.events.EventType.BLUR:
     case goog.events.EventType.FOCUS:
         this.handler_ = comp.getElement();

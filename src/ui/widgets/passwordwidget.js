@@ -12,7 +12,7 @@ goog.require('recoil.ui.widgets.InputWidget');
  * @constructor
  * @implements recoil.ui.Widget
  */
-recoil.ui.widgets.PasswordWidget = function (scope) {
+recoil.ui.widgets.PasswordWidget = function(scope) {
     this.scope_ = scope;
     this.passwordInput_ = new recoil.ui.widgets.InputWidget(scope);
 
@@ -23,15 +23,15 @@ recoil.ui.widgets.PasswordWidget = function (scope) {
 /**
  * @return {!goog.ui.Component}
  */
-recoil.ui.widgets.PasswordWidget.prototype.getComponent = function () {
+recoil.ui.widgets.PasswordWidget.prototype.getComponent = function() {
     return this.passwordInput_.getComponent();
 };
 
 /**
  *
- * @returns {!recoil.ui.Widget}
+ * @return {!recoil.ui.Widget}
  */
-recoil.ui.widgets.PasswordWidget.prototype.getLabel = function () {
+recoil.ui.widgets.PasswordWidget.prototype.getLabel = function() {
     return this.passwordInput_.getLabel();
 };
 
@@ -41,7 +41,7 @@ recoil.ui.widgets.PasswordWidget.prototype.getLabel = function () {
  * @param {recoil.frp.Behaviour<!string>|!string} value
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} enabled
  */
-recoil.ui.widgets.PasswordWidget.prototype.attach = function (name, value, enabled) {
+recoil.ui.widgets.PasswordWidget.prototype.attach = function(name, value, enabled) {
     //this.passwordInput_.attachStruct({'name': name, 'value': value, 'enabled': enabled});
     this.attachStruct({'name': name, 'value': value, 'enabled': enabled});
 
@@ -51,7 +51,7 @@ recoil.ui.widgets.PasswordWidget.prototype.attach = function (name, value, enabl
  *
  * @param {!Object| !recoil.frp.Behaviour<Object>} options
  */
-recoil.ui.widgets.PasswordWidget.prototype.attachStruct = function (options) {
+recoil.ui.widgets.PasswordWidget.prototype.attachStruct = function(options) {
     this.passwordInput_.attachStruct(options);
 
 };

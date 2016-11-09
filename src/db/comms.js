@@ -18,7 +18,7 @@ recoil.db.DatabaseComms = function() {
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
  * @param {*} key the information we need to get the object/objects
  * @param {*} options
- * 
+ *
  */
 recoil.db.DatabaseComms.prototype.get = function(successFunction, failFunction, id, key, options) {
 };
