@@ -828,7 +828,7 @@ recoil.frp.Frp.prototype.createB = function(initial) {
  * @return {!recoil.frp.Behaviour<T>}
  */
 
-recoil.frp.Frp.prototype.createNotReadyB = function()  {
+recoil.frp.Frp.prototype.createNotReadyB = function() {
     var metaInitial = recoil.frp.BStatus.notReady();
     return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
 };
@@ -962,6 +962,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
     }, function(val) {
         var metaBb = Bb.metaGet();
 
+        console.log("switch inverse", val, metaBb.value_ );
         if (metaBb.value_ instanceof recoil.frp.Behaviour) {
             metaBb.value_.metaSet(val);
         }

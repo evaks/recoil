@@ -22,7 +22,7 @@ var LIST_KEY = new recoil.db.BasicType([], 'list', undefined, [new recoil.db.Typ
  * @constructor
  */
 var MyDb = function(opt_delay) {
-    this.values_ = {};
+    this.values_ = {'list' : {'List' : [{id: 1, v : 1} ,{id: 2, v: 2} ,{id : 3, v: 3},{id:4, v: 4}]}};
     this.delay_ = opt_delay ? [] :false ;
 };
 
@@ -73,21 +73,37 @@ MyDb.prototype.get = function(success, failure, id, key, options) {
 
     if (this.values_[id.getData()][key] === undefined) {
         if (id.getData() === 'list') {
-            this.values_[id.getData()][key] = [{id: 1, v : 1} ,{id: 2, v: 2} ,{id : 3, v: 3},{id:4, v: 4}];
+        }
+        else if (id.getData() === 'list-item') {
+
         }
         else {
             this.values_[id.getData()][key] = 'xxx' + id.getData() + "-" + key;
         }
     }
+
     var me = this;
-    if (this.delay_) {
-        this.delay_.push (function() {
-            
+    var doIt = function () {
+        if (id.getData() === 'list-item') {
+            var list = me.values_['list']['List'];
+
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].id === key[0]) {
+                    success(list[i]);
+                    return;
+                }
+            }
+            failure(recoil.frp.BStatus.errors(recoil.db.error.NOT_PRESENT));
+        }
+        else {
             success(me.values_[id.getData()][key]);
-        });
+        }
+    };
+    if (this.delay_) {
+        this.delay_.push (doIt);
     }
     else {
-        success(this.values_[id.getData()][key]);
+        doIt();
     }
 };
 
@@ -331,11 +347,40 @@ function testGetList ()  {
 
     // test reference counting, are there any entries left in the object manager, are getting data from the database
     // what happens if we never use it does the item hang around
+    var listItem6B = recoil.frp.Debug("list 6",db.get(LIST_ITEM_KEY, [6]));
+    frp.attach(listItem6B);
+
+    console.log("xxx 1");
+    assertObjectEquals([recoil.db.error.NOT_PRESENT], listItem6B.unsafeMetaGet().errors());
+
+    frp.accessTrans(function () {
+        listItem6B.set({id : 6 , v : 16});
+    }, listItem6B);
+    console.log("xxx 2");
+
+    assertObjectEquals({id : 6, v : 16}, listItem6B.unsafeMetaGet().get());
+
+    assertArrayEquals([{id : 1, v : 11},{id : 2, v: 12}, {id : 4, v: 14}, {id : 5, v:15}, {id : 6 , v : 16}], listB.unsafeMetaGet().get());
+
+
+    frp.accessTrans(function () {
+        listB.set([{id : 1, v : 11}, {id : 2, v: 12},{id : 4, v : 14}, {id : 5, v : 15}, {id : 6 , v : 17}]);
+    }, listB);
+
+    assertArrayEquals([{id : 1, v : 11},{id : 2, v: 12}, {id : 4, v: 14}, {id : 5, v:15}, {id : 6 , v : 16}], listB.unsafeMetaGet().get());
+    assertObjectEquals({id : 1, v : 11}, listItem0B.unsafeMetaGet().get());
+    assertObjectEquals({id : 2, v : 12}, listItem1B.unsafeMetaGet().get());
+    assertObjectEquals({id : 4, v : 14}, listItem3B.unsafeMetaGet().get());
+    assertObjectEquals({id : 5, v : 15}, listItem5B.unsafeMetaGet().get());
+    assertObjectEquals({id : 6, v : 17}, listItem6B.unsafeMetaGet().get());
+
 
 
     // test other types of objects not just list, items avl, object
     // TODO also test geting the sub item first then the list
+    // set sub items
 
+    //TODO test reference counting cleanup
 
 }
 

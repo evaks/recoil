@@ -343,29 +343,35 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
     // TODO get the sub items for this behaviour, it is not our job to set, create, or delete our children that is the coms layers
     // (maybe) responsiblity all we do calculate our data from our children
 
-    var resultBB = frp.liftB(
-        function(v) {
-
-            // this job of this is to get all the related behaviours and
-            // create a behaviour that depends on them
-
-            var relatedStored = me.getRelatedBehaviours_(typeKey, v.getStored(), behaviour, options, coms, true);
-            var relatedSending = me.getRelatedBehaviours_(typeKey, v.getSending(), behaviour, options, coms, true);
-
+    // we have to use meta lift be here otherwise we will simply return and error here
+    // if an error occurs on behaviour, what we want to do is return a behaviour with an error
+    // in it, otherwise inverse will not work
+    var resultBB = frp.metaLiftB(
+        function(metaV) {
             var providers = [];
-            for (var i = 0; i < relatedStored.length; i++) {
-                providers.push(relatedStored[i].behaviour);
-            }
-            for (i = 0; i < relatedSending.length; i++) {
-                providers.push(relatedSending[i].behaviour);
-            }
+            var relatedStored = [];
+            var relatedSending = [];
+
+            if (metaV.good()) {
+                var v = metaV.get();
+                // this job of this is to get all the related behaviours and
+                // create a behaviour that depends on them
+                relatedStored = me.getRelatedBehaviours_(typeKey, v.getStored(), behaviour, options, coms, true);
+                relatedSending = me.getRelatedBehaviours_(typeKey, v.getSending(), behaviour, options, coms, true);
 
 
-            var res = v;
+                for (var i = 0; i < relatedStored.length; i++) {
+                    providers.push(relatedStored[i].behaviour);
+                }
+                for (i = 0; i < relatedSending.length; i++) {
+                    providers.push(relatedSending[i].behaviour);
+                }
+
+          }
             //TODO cache the result here if all the related behaviours are the same no
             // need to redo this or return a new behaviour, we also need to deregister the related behaviours if we do so
 
-            return frp.metaLiftBI.apply(frp, [
+            return new recoil.frp.BStatus(frp.metaLiftBI.apply(frp, [
                 function() {
                     var metaRes = frp.mergeErrors(arguments);
                     if (!metaRes.good()) {
@@ -384,6 +390,7 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
 
                 },
                 function(metaV) {
+                    console.log("INV,1");
                     if (!metaV.good()) {
                         behaviour.metaSet(metaV);
                         // TODO we may need to send the data to the database  if we
@@ -391,7 +398,8 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
                         return;
                     }
 
-                    // update the child objects with the new sent data
+                    console.log("INV");
+                    // update the +child objects with the new sent data
                     var v = metaV.get();
                     behaviour.set(v);
                     recoil.db.ObjectManager.setSubObjects_(v, relatedStored);
@@ -421,7 +429,7 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
                                  typeKey, key, options);
                     }
 
-                }, behaviour].concat(providers));
+                }, behaviour].concat(providers)));
 
         }, behaviour);
 
