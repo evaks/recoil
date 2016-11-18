@@ -28,7 +28,7 @@ recoil.db.Entity = function(key, value, owned) {
 
 
 /**
- * @return {recoil.frp.Behaviour<T>}
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.db.Entity.prototype.behaviour = function() {
     return this.value_;
@@ -175,6 +175,33 @@ recoil.db.SendInfo.prototype.getStored = function() {
 };
 
 /**
+ *
+ * @param {!recoil.frp.Frp} frp
+ * @private
+ * @constructor
+ */
+recoil.db.TypeBehaviourInfo_ = function(frp) {
+    this.behaviours_ = new goog.structs.AvlTree(recoil.db.Entity.comparator_);
+    this.createdE_ = frp.createE();
+};
+
+/**
+ *
+ * @return {!goog.structs.AvlTree<!recoil.db.Entity>}
+ */
+recoil.db.TypeBehaviourInfo_.prototype.getBehaviours = function() {
+    return this.behaviours_;
+};
+
+/**
+ *
+ * @return {!recoil.frp.Behaviour}
+ */
+recoil.db.TypeBehaviourInfo_.prototype.getCreateEvent = function() {
+    return this.createdE_;
+};
+
+/**
  * This helps keep track of all the objects in the system, and ensures that they are the same
  * each object is actually an entity with a unique id that does not change
  * @constructor
@@ -186,9 +213,17 @@ recoil.db.ObjectManager = function(frp) {
      * @private
      */
     this.objectTypes_ = {};
+    /**
+     *
+     * @type {IObject<string, recoil.db.TypeBehaviourInfo_>}
+     * @private
+     */
     this.queries_ = {};
     this.frp_ = frp;
 };
+
+// {avl: new goog.structs.AvlTree(recoil.db.Entity.comparator_), created: created
+
 
 
 /**
@@ -212,7 +247,7 @@ recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function(keyType, valu
 
         path.forEach(value, function(parentKey, key, val) {
             var b;
-            var behaviours = recoil.util.map.safeGet(me.queries_, path.getType().uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
+            var behaviours = recoil.util.map.safeGet(me.queries_, path.getType().uniqueId(), new recoil.db.TypeBehaviourInfo_(behaviour.frp()));
             if (doRegister) {
                 b = me.register_(path.getType(), key, options, coms, val);
             }
@@ -276,6 +311,7 @@ recoil.db.ObjectManager.updateWithSubObjects_ = function(outer, related, stored)
 };
 
 /**
+
  * sets the related sub objects base on the outer object
  * @private
  * @param {!Object} outer the outer object to update from
@@ -320,9 +356,12 @@ recoil.db.ObjectManager.setSubObjects_ = function(outer, related, opt_frp) {
  */
 recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, coms, opt_val) {
 
-//    console.log("registering", typeKey, key);
+    console.log('registering', typeKey, key);
     var frp = this.frp_;
-    var behaviours = recoil.util.map.safeGet(this.queries_, typeKey.uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
+    // var behaviours = recoil.util.map.safeGet(this.queries_, typeKey.uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
+    var behaviours = recoil.util.map.safeGet(this.queries_, typeKey.uniqueId(),
+            new recoil.db.TypeBehaviourInfo_(frp));
+
 
     var hasVal = arguments.length > 4;
 
@@ -331,8 +370,12 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
      */
     var behaviour = this.frp_.createNotReadyB();
 
+    var childAdded = this.frp_.createE();
+
     var entity = new recoil.db.Entity(key, null, hasVal);
-    var oldEntity = behaviours.findFirst(entity);
+    var behavioursList = behaviours.getBehaviours();
+
+    var oldEntity = behavioursList.findFirst(entity);
 
     if (oldEntity) {
         oldEntity.addRef();
@@ -390,7 +433,7 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
 
                 },
                 function(metaV) {
-                    console.log("INV,1");
+                    console.log('INV,1');
                     if (!metaV.good()) {
                         behaviour.metaSet(metaV);
                         // TODO we may need to send the data to the database  if we
@@ -398,9 +441,19 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
                         return;
                     }
 
-                    console.log("INV");
                     // update the +child objects with the new sent data
                     var v = metaV.get();
+
+
+                    // var creating = v.isToplevel() && v.value_ === null;
+                    // if (v.isToplevel() && behaviour.metaGet().errors().contains(notpresnet)) {
+                    //     console.log('check which parent has the value I\'m sending', v.sending_);
+                    //
+                    //     // for each parent that has the value you creating()
+                    //     //    updater.set(x);
+                    // }
+
+
                     behaviour.set(v);
                     recoil.db.ObjectManager.setSubObjects_(v, relatedStored);
 
@@ -431,15 +484,13 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
 
                 }, behaviour].concat(providers)));
 
-        }, behaviour);
+        }, behaviour/*, behavioursList*/);
 
     var inversableB = frp.switchB(resultBB);
     entity.setBehaviour_(inversableB);
 
-
-
     entity.addRef();
-    behaviours.add(entity);
+    behavioursList.add(entity);
 
 
     if (hasVal) {

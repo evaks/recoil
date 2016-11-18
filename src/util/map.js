@@ -5,9 +5,9 @@ goog.provide('recoil.util.map');
  * gets an item out of a map, if the item
  * does not exist it will insert the default into the map
  * and return that
- * @template T
- * @param {Object} map
- * @param {?} key
+ * @template KT, T
+ * @param {IObject<KT,T>} map
+ * @param {KT} key
  * @param {T} def
  * @return {T}
  */

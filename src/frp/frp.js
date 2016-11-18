@@ -962,7 +962,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
     }, function(val) {
         var metaBb = Bb.metaGet();
 
-        console.log("switch inverse", val, metaBb.value_ );
+        console.log('switch inverse', val, metaBb.value_);
         if (metaBb.value_ instanceof recoil.frp.Behaviour) {
             metaBb.value_.metaSet(val);
         }

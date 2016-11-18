@@ -131,7 +131,7 @@ recoil.db.ReadWriteDatabase.showSending_ = function(frp, uniq) {
             return val.getSending() ? val.getSending() : val.getStored();
         },
         function(val) {
-            var toSend = uniq.metaGet().good() ? uniq.get() : new recoil.db.SendInfo(null,true);
+            var toSend = uniq.metaGet().good() ? uniq.get() : new recoil.db.SendInfo(null, true);
             uniq.set(toSend.setSending(val, true));
         }, uniq);
 };
