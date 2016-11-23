@@ -1,4 +1,3 @@
-goog.provide('recoil.ui.widgets.table.TableMetaData');
 goog.provide('recoil.ui.widgets.table.TableWidget');
 
 goog.require('goog.dom.classes');
@@ -14,8 +13,10 @@ goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.RenderedDecorator');
 goog.require('recoil.ui.widgets.LabelWidget');
+goog.require('recoil.ui.widgets.TableMetaData');
 goog.require('recoil.ui.widgets.table.Column');
 goog.require('recoil.ui.widgets.table.StringColumn');
+
 
 /**
  * @constructor
