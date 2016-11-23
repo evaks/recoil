@@ -19,13 +19,30 @@ fi
 DIR=`dirname $0`
 cd ${DIR}/..
 
+
 gjslint --disable 0110,0120 `find src -name "*.js" -and -not -name "*_test.js" `
 if [ $? -ne 0 ]; then
     echo Error Occured in Lint stopping compile
     exit 2
 fi
 
+OPTIONS_FILE=`mktemp`
+find lib/closure-library/closure -name "*.js" -and -not -name "*_test.js" -and -not -name "*tester.js"  -and -not -name json_perf.js | sed 's/^/--js /g' > ${OPTIONS_FILE}
+find lib/closure-library/third_party -name "*.js" -and -not -name "*_test.js" | sed 's/^/--js /g' >> ${OPTIONS_FILE}
+find src -name "*.js" -and -not -name "*_test.js" | sed 's/^/--js /g' >> ${OPTIONS_FILE}
+echo --compilation_level=ADVANCED_OPTIMIZATIONS --warning_level=VERBOSE --jscomp_error=checkTypes  >> ${OPTIONS_FILE}
 
+which cygpath &> /dev/null
+
+if [ $? -ne 0 ]; then
+    OPTIONS_FILE1=${OPTIONS_FILE}
+else
+    OPTIONS_FILE1=`cygpath -w ${OPTIONS_FILE}`
+fi
+#java -jar bin/compiler.jar --flagfile  ${OPTIONS_FILE1}
+
+rm ${OPTIONS_FILE}
+#exit 
 
 ${PYTHON} lib/closure-library/closure/bin/build/closurebuilder.py --root lib/closure-library/ --root src/ --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" --compiler_flags="--warning_level=VERBOSE" \
     --compiler_flags="--jscomp_error=checkTypes" \

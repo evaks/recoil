@@ -502,7 +502,7 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
  *
  * @constructor
  * @template T
- * @param {recoil.frp.Frp} frp the frp engine
+ * @param {!recoil.frp.Frp} frp the frp engine
  * @param {!recoil.frp.Status <T>} value
  * @param {function(...) : T| undefined} calc
  * @param {function(T)| undefined} inverse
@@ -601,7 +601,7 @@ recoil.frp.Behaviour.prototype.debug = function(name) {
 };
 
 /**
- * @return {recoil.frp.Frp} the associated frp engine
+ * @return {!recoil.frp.Frp} the associated frp engine
  */
 recoil.frp.Behaviour.prototype.frp = function() {
     return this.frp_;

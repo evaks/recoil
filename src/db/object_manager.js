@@ -28,7 +28,7 @@ recoil.db.Entity = function(key, value, owned) {
 
 
 /**
- * @return {!recoil.frp.Behaviour<T>}
+ * @return {recoil.frp.Behaviour<T>}
  */
 recoil.db.Entity.prototype.behaviour = function() {
     return this.value_;
@@ -218,7 +218,7 @@ recoil.db.ObjectManager = function(frp) {
      * @type {IObject<string, recoil.db.TypeBehaviourInfo_>}
      * @private
      */
-    this.queries_ = {};
+    this.queries_ = /** @type {IObject<string, recoil.db.TypeBehaviourInfo_>} */ ({});
     this.frp_ = frp;
 };
 
@@ -252,7 +252,7 @@ recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function(keyType, valu
                 b = me.register_(path.getType(), key, options, coms, val);
             }
             else {
-                b = behaviours.findFirst(new recoil.db.Entity(key, null, false));
+                b = behaviours.getBehaviours().findFirst(new recoil.db.Entity(key, null, false));
             }
             if (b) {
                 res.push(
@@ -379,7 +379,7 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
 
     if (oldEntity) {
         oldEntity.addRef();
-        return oldEntity.behaviour();
+        return /** @type !recoil.frp.Behaviour */(oldEntity.behaviour());
     }
 
     var me = this;
