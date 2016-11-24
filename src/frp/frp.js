@@ -516,7 +516,6 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     }
 
     this.inv_ = inverse || function(newVal) {
-        console.log('setting', newVal);
         myValue = newVal;
     };
 
@@ -776,17 +775,33 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
                 me.dirtyUp_ = true;
                 me.dirtyUpOldValue_ = me.val_;
             }
-            me.dirtyDown_ = true;
-            me.val_ = value;
-            me.forEachManager_(function(manager) {
-                manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
-                manager.addPending_(recoil.frp.Frp.Direction_.DOWN, me);
-            });
+            if (hasProviders) {
+                me.dirtyDown_ = true;
+                me.val_ = value;
+                me.forEachManager_(function(manager) {
+                    manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
+                    manager.addPending_(recoil.frp.Frp.Direction_.DOWN, me);
+                });
+            }
+            else {
+                // no need to go down nothing below us simply call inverse
+                if (value instanceof recoil.frp.BStatus) {
+                    // events don't do this they get cleared anyway
+                    // so if you are not in a transaction leave it
+                    me.inv_(value);
+                    me.val_ = me.calc_();
+                }
+                me.forEachManager_(function(manager) {
+                    manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
+                });
+            }
+                
         }
         else {
             // we don't have a transaction we are simple
             // and nobody is listening so just set my value
             // and calculate down
+
             me.val_ = value;
             if (value instanceof recoil.frp.BStatus) {
                 // events don't do this they get cleared anyway
@@ -941,7 +956,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
         res.merge(metaBb);
         var b = null;
         me.transactionManager_.nestIds(Bb, function() {
-            if (metaBb.value_ === null) {
+            if (metaBb.value_ === null || !metaBb.good()) {
                 me.transactionManager_.updateProviders_(switchB, Bb);
             } else {
                 me.transactionManager_.updateProviders_(switchB, Bb, /** @type recoil.frp.Behaviour */ (metaBb.get()));
@@ -962,7 +977,6 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
     }, function(val) {
         var metaBb = Bb.metaGet();
 
-        console.log('switch inverse', val, metaBb.value_);
         if (metaBb.value_ instanceof recoil.frp.Behaviour) {
             metaBb.value_.metaSet(val);
         }
