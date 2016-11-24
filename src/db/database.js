@@ -6,6 +6,7 @@ goog.provide('recoil.db.error');
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.db.DatabaseComms');
 goog.require('recoil.db.ObjectManager');
+goog.require('recoil.db.QueryOptions');
 goog.require('recoil.db.Type');
 goog.require('recoil.frp.ChangeManager');
 goog.require('recoil.frp.Debug');
@@ -135,6 +136,7 @@ recoil.db.ReadWriteDatabase.showSending_ = function(frp, uniq) {
             uniq.set(toSend.setSending(val, true));
         }, uniq);
 };
+
 /**
  * gets an individual object from the database, this is really for internal use only
  * it seperates
@@ -155,6 +157,7 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
         function(used) {
             frp.accessTrans(function() {
                 if (used) {
+
                     var uniq = objectManager.register(id, primaryKeys, options, dbComs);
                     valueB.set(uniq);
                 }

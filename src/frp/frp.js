@@ -407,8 +407,15 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
             params.push(b.metaGet());
         });
         var oldDirty = getDirty(behaviour.providers_);
+        var newVal;
+        if (behaviour.dirtyDown_) {
+            // do nothing here calulationg here is pointless since we need to recalc anyway
+            newVal = behaviour.val_;
+        }
+        else {
+            newVal = behaviour.calc_.apply(behaviour, params);
+        }
 
-        var newVal = behaviour.calc_.apply(behaviour, params);
         var newDirty = getDirty(behaviour.providers_);
         for (var p in newDirty) {
             if (oldDirty[p] === undefined) {
@@ -568,6 +575,31 @@ recoil.frp.Behaviour.prototype.loopCheck = function(path) {
     }
 
 };
+
+/**
+ * a utility function to print out an frp node when it changes
+ * @template T
+ * @param {string} name
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Behaviour.prototype.debug = function(name) {
+    var behaviour = this;
+    return behaviour.frp().metaLiftBI(
+        function() {
+            if (behaviour.metaGet().good()) {
+                console.log(name, 'calc', behaviour.get());
+            }
+            else {
+                console.log(name, 'calc (not good)', behaviour.metaGet());
+            }
+            return behaviour.metaGet();
+        },
+        function(val) {
+            console.log(name, 'inv', val);
+            behaviour.metaSet(val);
+        }, behaviour);
+};
+
 /**
  * @return {recoil.frp.Frp} the associated frp engine
  */
@@ -775,26 +807,12 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
                 me.dirtyUp_ = true;
                 me.dirtyUpOldValue_ = me.val_;
             }
-            if (hasProviders) {
-                me.dirtyDown_ = true;
-                me.val_ = value;
-                me.forEachManager_(function(manager) {
-                    manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
-                    manager.addPending_(recoil.frp.Frp.Direction_.DOWN, me);
-                });
-            }
-            else {
-                // no need to go down nothing below us simply call inverse
-                if (value instanceof recoil.frp.BStatus) {
-                    // events don't do this they get cleared anyway
-                    // so if you are not in a transaction leave it
-                    me.inv_(value);
-                    me.val_ = me.calc_();
-                }
-                me.forEachManager_(function(manager) {
-                    manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
-                });
-            }
+            me.dirtyDown_ = true;
+            me.val_ = value;
+            me.forEachManager_(function(manager) {
+                manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
+                manager.addPending_(recoil.frp.Frp.Direction_.DOWN, me);
+            });
                 
         }
         else {
