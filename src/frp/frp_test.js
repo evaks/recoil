@@ -384,6 +384,37 @@ function testNoSetOutsideTransaction() {
     }, two);
 }
 
+function testSetDownOnUpAddRef () {
+
+    
+
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var aBB = frp.createNotReadyB();
+    var bB = frp.createNotReadyB();
+
+   
+    bB.refListen(function () {
+        frp.accessTrans(function () {
+            bB.set(1);
+        }, bB);
+    });
+    aBB.refListen(function () {
+        frp.accessTrans(function () {
+            aBB.set(bB);
+        }, aBB);
+    });
+         
+    
+    var outB = frp.switchB(aBB);
+    
+
+    tm.attach(outB);
+    console.log("hi");
+    assertEquals(1, outB.unsafeMetaGet().get());
+
+}
 function testLiftBOnlyGood() {
 
     var frp = new recoil.frp.Frp();
