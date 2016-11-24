@@ -813,7 +813,7 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
                 manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
                 manager.addPending_(recoil.frp.Frp.Direction_.DOWN, me);
             });
-                
+
         }
         else {
             // we don't have a transaction we are simple
