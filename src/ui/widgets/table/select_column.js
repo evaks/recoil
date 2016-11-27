@@ -27,9 +27,8 @@ recoil.ui.widgets.table.SelectColumn = function(key, name, list, opt_options) {
  * @param {recoil.ui.WidgetScope} scope
  * @param {!recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
- * @private
  */
-recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function(scope, cellB) {
+recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory = function(scope, cellB) {
     var frp = scope.getFrp();
     var widget = new recoil.ui.widgets.SelectorWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
@@ -53,7 +52,7 @@ recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function(scope, cel
  */
 recoil.ui.widgets.table.SelectColumn.prototype.getMeta = function(curMeta) {
     var meta = {name: this.name_, list: this.list_,
-        cellWidgetFactory: recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_};
+        cellWidgetFactory: recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory};
 
     goog.object.extend(meta, this.options_, curMeta);
     return meta;
