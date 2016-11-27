@@ -75,7 +75,7 @@ recoil.ui.widgets.LabelWidget.prototype.attach = function(name, enabled) {
  */
 recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
     var frp = this.helper_.getFrp();
-    var bound = recoil.ui.widgets.SelectorWidget.options.bind(frp, value);
+    var bound = recoil.ui.widgets.LabelWidget.options.bind(frp, value);
 
     this.nameB_ = bound.name();
     this.enabledB_ = bound.enabled();
