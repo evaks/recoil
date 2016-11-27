@@ -33,7 +33,7 @@ recoil.ui.widgets.table.SelectColumn.defaultWidgetFactory_ = function(scope, cel
     var frp = scope.getFrp();
     var widget = new recoil.ui.widgets.SelectorWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
-    var metaData = recoil.frp.Debug('Meta', recoil.frp.table.TableCell.getMeta(frp, cellB));
+    var metaData = recoil.frp.table.TableCell.getMeta(frp, cellB);
 
     widget.attachStruct(recoil.frp.struct.extend(frp, metaData, {value: value}));
 

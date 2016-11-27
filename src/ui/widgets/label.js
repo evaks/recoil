@@ -51,33 +51,35 @@ recoil.ui.widgets.LabelWidget = function(scope) {
 };
 
 /**
+ * list of functions available when creating a selectorWidget
+ */
+// recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value' , {'!list': [1, 2, 3]}, {'renderer' : recoil.util.widgets.RENDERER},
+//     { renderers :['button', 'menu']}, 'enabledItems');
+recoil.ui.widgets.LabelWidget.options = recoil.frp.Util.Options(
+    {
+        'name' : '',
+        'enabled' : recoil.ui.BoolWithExplanation.TRUE
+    });
+
+/**
  * @param {!recoil.frp.Behaviour<string>|!string} name
  * @param {!recoil.ui.BoolWithExplanation|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} enabled
  */
 recoil.ui.widgets.LabelWidget.prototype.attach = function(name, enabled) {
-    var util = new recoil.frp.Util(this.helper_.getFrp());
-
-    this.nameB_ = util.toBehaviour(name);
-    this.enabledB_ = util.toBehaviour(enabled);
-
-
-    //this.label_.setContent(this.nameB_.get());
-    //util.toBehaviour(this.label_),
-    this.helper_.attach(this.nameB_, this.enabledB_);
-
-      //var readyB = util.isAllGood(this.nameB, this.enabledB);
+    this.attachStruct({name: name, enabled : enabled});
+    
 };
 
 /**
  * @param {!Object| !recoil.frp.Behaviour<Object>} value
  */
 recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
-    var util = new recoil.frp.Util(this.helper_.getFrp());
-    var valueB = util.toBehaviour(value);
-    var nameB = recoil.frp.struct.get('name', valueB);
-    var enabledB = recoil.frp.struct.get('enabled', valueB);
+    var frp = this.helper_.getFrp();
+    var bound = recoil.ui.widgets.SelectorWidget.options.bind(frp, value);
 
-    this.attach(nameB, enabledB);
+    this.nameB_ = bound.name();
+    this.enabledB_ = bound.enabled();
+    this.helper_.attach(this.nameB_, this.enabledB_);
 };
 
 

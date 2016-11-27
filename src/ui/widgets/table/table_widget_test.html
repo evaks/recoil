@@ -65,7 +65,7 @@
 
     var opt_renderer = function (val, errored, enabled) {
 
-        return recoil.ui.widgets.SelectorWidget.DEFAULT_RENDERER(val.a, errored, enabled);
+        return recoil.ui.widgets.SelectorWidget.RENDERER(val.a, errored, enabled);
     };
 
 
@@ -133,7 +133,23 @@
         return new recoil.ui.widgets.table.SelectColumn(meta);
     }};
 
-    var table = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
+    var tableX = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
+    var table = frp.liftBI(function () {
+	var res = tableX.get().unfreeze();
+	res.setCellMeta([1],tblKeys.name, {cellWidgetFactory : function (scope, cellB) {
+	    var widget = new recoil.ui.widgets.LabelWidget(scope);
+	    var value = recoil.frp.table.TableCell.getValue(frp, cellB).debug("VALUE");
+	    
+	    widget.attachStruct({name : value});
+	    console.log("args", arguments);
+	    return widget;
+	}});
+	return res.freeze();
+    },
+			   function (t) {
+			       tableX.set(t);
+			   }, tableX);
+	
      var tableWidget = new recoil.ui.widgets.table.TableWidget(scope);
 
     console.log('table', $('tablediv'), tableWidget.getComponent().getElement());

@@ -532,6 +532,32 @@ recoil.structs.table.MutableTable.prototype.setCell = function(keys, column, val
  };
 
 /**
+ * sets only the cell meta data, leave the value unchanged
+ * @template CT
+ * @param {!Array<?>} keys
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @param {!Object} meta
+ */
+recoil.structs.table.MutableTable.prototype.setCellMeta = function(keys, column, meta) {
+    var cell = this.getCell(keys, column);
+    this.setCell(keys, column, cell.setMeta(meta));
+};
+
+/**
+ * adds meta data to the cell
+ * @template CT
+ * @param {!Array<?>} keys
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @param {!Object} meta
+ */
+recoil.structs.table.MutableTable.prototype.addCellMeta = function(keys, column, meta) {
+    var cell = this.getCell(keys, column);
+    var newMeta = recoil.util.object.clone(cell.getMeta());
+    recoil.util.object.addProps(newMeta, meta);
+    this.setCell(keys, column, cell.setMeta(meta));
+};
+
+/**
  * Sets the value and meta data for the cell
  * @param {!Array<?>} keys
  * @param {!recoil.structs.table.TableRow} row
