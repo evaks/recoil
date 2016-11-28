@@ -27,6 +27,13 @@ recoil.ui.messages.INVALID = recoil.ui.message.getParamMsg('Invalid');
 
 
 /**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.BLANK = recoil.ui.message.getParamMsg('');
+
+
+/**
  * combines multiple messages, this logic may need to be changed for different languages
  * @param {Array<recoil.ui.message.Message| *>} messages
  * @return {!recoil.ui.message.Message}

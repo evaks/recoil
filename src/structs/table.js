@@ -198,8 +198,7 @@ recoil.structs.table.Table = function(table) {
         me.rows_.add(x);
         me.ordered_.add(x);
     });
-}
-;
+};
 /**
  * @return {Array<recoil.structs.table.ColumnKey>}
  */

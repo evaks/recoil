@@ -142,7 +142,12 @@ var y = createB(2);
 var z = metaLiftB(function() {return x.get() + y.get()}, x, y);
 */
 
-
+/**
+ * @constructor
+ */
+recoil.frp.Util.OptionsType = function()
+{
+};
 /**
  * This is a utility that creates an object that will do some checking on structs
  * passed to widgets in the widgets create a constant like so:
@@ -182,12 +187,12 @@ var z = metaLiftB(function() {return x.get() + y.get()}, x, y);
  *               To specify defaults of functions (type 2) the default should be an object with fields matching the parameters
  *
  * @param {...(!string|!Object)} var_options
- * @return {?} this has dynamic fields based on the parameters, and struct, attach, and bind function
+ * @return {!recoil.frp.Util.OptionsType} this has dynamic fields based on the parameters, and struct, attach, and bind function
  *
  */
 
 recoil.frp.Util.Options = function(var_options) {
-    var res = {};
+    var res = new recoil.frp.Util.OptionsType();
     var remaining = {};
 
     var checkRemaining = function(remaining) {
@@ -320,7 +325,7 @@ recoil.frp.Util.Options = function(var_options) {
      */
     res.bind = function(frp, val) {
         var optionsB = recoil.frp.struct.flatten(frp, val);
-        var res = {};
+        var res = new recoil.frp.Util.OptionsType();
         for (var i = 0; i < args.length; i++)
             (function(name) {
                 var funcs = functionParams(name);

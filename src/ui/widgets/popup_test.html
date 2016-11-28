@@ -18,6 +18,7 @@ See the COPYING file for details.
         goog.require('recoil.ui.widgets.InputWidget');
         goog.require('recoil.ui.widgets.LabelWidget');
         goog.require('recoil.ui.widgets.PopupWidget');
+        goog.require('recoil.ui.widgets.RadioWidget');
         goog.require('recoil.frp.Behaviour');
         goog.require('recoil.frp.Util');
 
@@ -26,13 +27,14 @@ See the COPYING file for details.
     <link rel="stylesheet" href="../css/demo.css"/>
     <link rel="stylesheet" href="../../ui/css/popup.css"/>
     <link rel="stylesheet"   href="../../../../closure-library/closure/goog/css/common.css"/>
+<!--
     <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menubutton.css"/>
     <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css"/>
     <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuitem.css"/>
     <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuseparator.css"/>
     <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/flatmenubutton.css"/>
     <xxlink rel="stylesheet" href="../css/checklist.css">
-
+  -->    
       <style>
   .popup {
     position:absolute;
@@ -66,6 +68,8 @@ See the COPYING file for details.
     <div class='goog-inline-block'>hello</div><div class='goog-inline-block'>world</div>
   </div>
 <div id="popup"></div>
+<div id="r1"></div>
+<div id="r2"></div>
 <!--<div id="selector2"></div>-->
 <br>
 
@@ -79,10 +83,14 @@ See the COPYING file for details.
     var value = frp.createB('test');
 
   var popup = new recoil.ui.widgets.PopupWidget(scope);
+  var radio1 = new recoil.ui.widgets.RadioWidget(scope);
+  var radio2 = new recoil.ui.widgets.RadioWidget(scope);
+
   var display = new recoil.ui.widgets.LabelWidget(scope);
   var popupEntry = new recoil.ui.widgets.InputWidget(scope);
   var display1 = new recoil.ui.widgets.InputWidget(scope);
 
+    var radioValue = frp.createB(1);
 
   display.attach(value.debug("this"));
   display1.attach('',value);
@@ -91,8 +99,14 @@ See the COPYING file for details.
 //  var opts = recoil.ui.widgets.options;
   
   popup.attach(popupEntry, display);
+    radio1.attach(radioValue, 1);
+    radio2.attach(radioValue, 2);
 
+
+    
   popup.getComponent().render($('popup'));
+  radio1.getComponent().render($('r1'));
+  radio2.getComponent().render($('r2'));
 //  display1.getComponent().render($('entry'));
   
 

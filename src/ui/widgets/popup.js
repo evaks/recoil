@@ -1,5 +1,6 @@
 goog.provide('recoil.ui.widgets.PopupWidget');
 
+goog.require('goog.dom');
 goog.require('goog.positioning.AnchoredViewportPosition');
 goog.require('goog.ui.Container');
 goog.require('goog.ui.Popup');
@@ -26,14 +27,10 @@ recoil.ui.widgets.PopupWidget = function(scope) {
     goog.dom.append(this.displayAndButtonContainer_, this.buttonContainer_);
 
     this.container_ = new goog.ui.Component();
-
+    var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
 
 //    this.container_.addClassName("goog-inline-block");
-    var toControl = function(el) {
-        var c = new goog.ui.Control(el);
-        c.setHandleMouseEvents(false);
-        return c;
-    };
+
     this.container_.addChild(toControl(this.displayAndButtonContainer_), true);
     this.container_.addChild(toControl(this.popupContainer_), true);
     this.popup_ = new goog.ui.Popup(this.popupContainer_);
@@ -63,9 +60,8 @@ recoil.ui.widgets.PopupWidget = function(scope) {
 
 
 /**
- * @unrestricted
  */
-recoil.ui.widgets.PopupWidget.options = /** @unrestricted */ (recoil.frp.Util.Options('popupWidget', 'displayWidget'));
+recoil.ui.widgets.PopupWidget.options = recoil.frp.Util.Options('popupWidget', 'displayWidget');
 
 /**
  * @param {!recoil.frp.Behaviour<!recoil.ui.Widget>|!recoil.ui.Widget} popupWidget the widget that will be displayed in the popup

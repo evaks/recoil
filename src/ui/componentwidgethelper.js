@@ -346,5 +346,19 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
         console.log('TOOTIP', this.tooltip_);
 //        this.tooltip_.setEnabled(enabled);
     }
-    this.component_.setEnabled(enabled);
+    if (this.component_.setEnabled) {
+        this.component_.setEnabled(enabled);
+    }
+};
+
+
+/**
+ * utility to convert a element to a control
+ * @param {Node} el
+ * @return {goog.ui.Control}
+ */
+recoil.ui.ComponentWidgetHelper.elementToControl = function(el) {
+    var c = new goog.ui.Control(el);
+    c.setHandleMouseEvents(false);
+    return c;
 };
