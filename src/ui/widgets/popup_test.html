@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by the Apache License, Version 2.0.
+See the COPYING file for details.
+-->
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Popup Test</title>
+    <script src="../../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../../my-deps.js"></script>
+    <script>
+        goog.require('goog.dom');
+        goog.require('recoil.frp.Frp');
+        goog.require('recoil.ui.WidgetScope');
+        goog.require('recoil.ui.widgets.InputWidget');
+        goog.require('recoil.ui.widgets.LabelWidget');
+        goog.require('recoil.ui.widgets.PopupWidget');
+        goog.require('recoil.frp.Behaviour');
+        goog.require('recoil.frp.Util');
+
+    </script>
+
+    <link rel="stylesheet" href="../css/demo.css"/>
+    <link rel="stylesheet" href="../../ui/css/popup.css"/>
+    <link rel="stylesheet"   href="../../../../closure-library/closure/goog/css/common.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menubutton.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuitem.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuseparator.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/flatmenubutton.css"/>
+    <xxlink rel="stylesheet" href="../css/checklist.css">
+
+      <style>
+  .popup {
+    position:absolute;
+    background-color:#e0ecff;
+    color:black;
+    visibility:hidden;
+    width:100px;
+    height:100px;
+    font-size: 80%;
+    border:solid red 1px;
+    -moz-outline:0;
+    outline:0;
+  }
+  button {
+    border: solid black 1px;
+//    margin-left: 50%;
+  }
+  label {
+    display: block;
+    width: 15em;
+  }
+  #abs-box {
+    border: solid black 2px;
+    height: 200px;
+    width: 200px;
+  }
+  </style>
+</head>
+<body>
+  <div >
+    <div class='goog-inline-block'>hello</div><div class='goog-inline-block'>world</div>
+  </div>
+<div id="popup"></div>
+<!--<div id="selector2"></div>-->
+<br>
+
+<br>
+
+<script>
+
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+    var value = frp.createB('test');
+
+  var popup = new recoil.ui.widgets.PopupWidget(scope);
+  var display = new recoil.ui.widgets.LabelWidget(scope);
+  var popupEntry = new recoil.ui.widgets.InputWidget(scope);
+  var display1 = new recoil.ui.widgets.InputWidget(scope);
+
+
+  display.attach(value.debug("this"));
+  display1.attach('',value);
+  popupEntry.attach('',value);
+
+//  var opts = recoil.ui.widgets.options;
+  
+  popup.attach(popupEntry, display);
+
+  popup.getComponent().render($('popup'));
+//  display1.getComponent().render($('entry'));
+  
+
+</script>
+</body>
+</html>

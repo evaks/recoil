@@ -142,6 +142,7 @@ var y = createB(2);
 var z = metaLiftB(function() {return x.get() + y.get()}, x, y);
 */
 
+
 /**
  * This is a utility that creates an object that will do some checking on structs
  * passed to widgets in the widgets create a constant like so:
@@ -181,7 +182,7 @@ var z = metaLiftB(function() {return x.get() + y.get()}, x, y);
  *               To specify defaults of functions (type 2) the default should be an object with fields matching the parameters
  *
  * @param {...(!string|!Object)} var_options
- * @return {!Object} this has dynamic fields based on the parameters, and struct, attach, and bind function
+ * @return {?} this has dynamic fields based on the parameters, and struct, attach, and bind function
  *
  */
 

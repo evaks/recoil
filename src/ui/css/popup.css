@@ -1,0 +1,15 @@
+.recoil-popup {
+    position:absolute;
+    background-color:#e0ecff;
+    color:black;
+    visibility:hidden;
+    border:solid black 1px;
+    -moz-outline:0;
+    outline:0;
+}
+
+.recoil-popup-container {
+    display : inline-block;
+    white-space: nowrap;
+    border : black 1px;
+}

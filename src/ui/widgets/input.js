@@ -25,6 +25,12 @@ recoil.ui.widgets.InputWidget = function(scope) {
 };
 
 /**
+ * all widgets should not allow themselves to be flatterned
+ *
+ */
+
+recoil.ui.widgets.InputWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+/**
  *
  * @return {!goog.ui.Component}
  */

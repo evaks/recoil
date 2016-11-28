@@ -31,6 +31,21 @@ recoil.ui.widgets.SelectorWidget = function(scope) {
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.CHANGE);
 
 };
+
+
+/**
+ * this has to come before options
+ *
+ * @param {?} obj
+ * @param {!boolean} valid
+ * @param {!recoil.ui.BoolWithExplanation} enabled
+ * @return {!Element}
+ * @constructor
+ */
+recoil.ui.widgets.SelectorWidget.RENDERER = function(obj, valid, enabled) {
+
+    return goog.dom.createDom('div', valid ? undefined : 'recoil-error', obj);
+};
 /**
  * list of functions available when creating a selectorWidget
  */
@@ -162,18 +177,6 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function(helper) {
 
 };
 
-/**
- *
- * @param {?} obj
- * @param {!boolean} valid
- * @param {!recoil.ui.BoolWithExplanation} enabled
- * @return {!Element}
- * @constructor
- */
-recoil.ui.widgets.SelectorWidget.RENDERER = function(obj, valid, enabled) {
-
-    return goog.dom.createDom('div', valid ? undefined : 'recoil-error', obj);
-};
 
 
 

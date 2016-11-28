@@ -72,6 +72,11 @@ recoil.frp.struct.extend = function(frp, structB, var_extensionsB) {
 };
 
 /**
+ * @type {!Object}
+ */
+recoil.frp.struct.NO_FLATTEN = recoil.util.object.uniq();
+
+/**
  * get all the behaviours in a struct
  * @private
  * @param {!recoil.frp.Behaviour<!Object>|!Object} struct
@@ -85,7 +90,13 @@ recoil.frp.struct.getBehavioursRec_ = function(struct, path, res) {
     var newPath = goog.array.clone(path);
     newPath.push(struct);
 
+    if (goog.isFunction(struct)) {
+        return;
+    }
 
+    if (struct && struct.flatten === recoil.frp.struct.NO_FLATTEN) {
+        return;
+    }
     if (struct instanceof recoil.frp.Behaviour) {
         res.push(struct);
         return;
@@ -168,6 +179,13 @@ recoil.frp.struct.setFlattenRec_ = function(struct, newVal, path) {
 recoil.frp.struct.flattenRec_ = function(struct, path) {
     if (struct instanceof recoil.frp.Behaviour) {
         return struct.get();
+    }
+
+    if (goog.isFunction(struct)) {
+        return struct;
+    }
+    if (struct && goog.isFunction(struct.flattern)) {
+        return struct.flattern.call(struct);
     }
     if (path.indexOf(struct) !== -1) {
         return struct; // loop detected;

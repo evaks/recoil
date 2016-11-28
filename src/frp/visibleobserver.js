@@ -29,11 +29,11 @@ recoil.frp.VisibleObserver = function() {
             var toAdds = node['$.recoil.watcher'];
             if (toAdds !== undefined) {
                 toAdds.forEach(function(toAdd) {
-
                     toAdd.observer.listen(node, toAdd.callback);
                 });
                 delete node['$.recoil.watcher'];
             }
+
           goog.array.forEach(node.childNodes, function(child) {
                addRec(child);
             });
@@ -43,6 +43,7 @@ recoil.frp.VisibleObserver = function() {
             mutations.forEach(function(mutation, index, array) {
                 for (var i = 0; i < mutation.addedNodes.length; i++) {
                     var node = mutation.addedNodes[i];
+
                     if (recoil.frp.VisibleObserver.exists(node)) {
                         addRec(node);
                     }
@@ -181,7 +182,6 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
             if (state !== null) {
                 var exists = recoil.frp.VisibleObserver.exists(p.node);
                 var visible = exists ? recoil.frp.VisibleObserver.visible(p.node) : false;
-
 
                 if (state.visible !== visible) {
                     state.callbacks.forEach(function(cb) {
@@ -560,10 +560,6 @@ recoil.frp.VisibleObserver.exists = function(node) {
 recoil.frp.VisibleObserver.visible = function(node) {
    var cur = node;
     var visible = true;
-    //reliableHiddenOffsets from jQuery
-    if (node.offsetWidth <= 0 && node.offsetHeight <= 0) {
-        return false;
-    }
 
     while (cur != null && visible) {
 

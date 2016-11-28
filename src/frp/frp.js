@@ -281,7 +281,7 @@ recoil.frp.BStatus.errors = function(errors) {
  * @param {recoil.frp.Status} other
  */
 recoil.frp.BStatus.prototype.merge = function(other) {
-    if (!other.errors) {
+    if (!other || !other.errors) {
         console.log('merging with non error');
     }
     this.errors_ = goog.array.concat(this.errors_, other.errors());
@@ -414,6 +414,10 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         }
         else {
             newVal = behaviour.calc_.apply(behaviour, params);
+            if (!newVal) {
+                console.log('ERROR newVal should be status');
+                behaviour.calc_.apply(behaviour, params);
+            }
         }
 
         var newDirty = getDirty(behaviour.providers_);
@@ -425,8 +429,14 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         }
         var res = [];
         if (behaviour.dirtyUp_ && recoil.util.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
+            if (behaviour.dirtyUpOldValue_ === undefined) {
+                console.log('SETTING UNDEFINED 2');
+            }
             behaviour.val_ = behaviour.dirtyUpOldValue_;
         } else if (behaviour.dirtyUp_ || !recoil.util.isEqual(oldVal, newVal)) {
+            if (newVal === undefined) {
+                console.log('SETTING UNDEFINED 2');
+            }
             behaviour.val_ = newVal;
             res = dependents;
         }
@@ -513,6 +523,10 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     var me = this;
     this.frp_ = frp;
     var myValue = value;
+
+    if (value === undefined) {
+        console.log('SETTING UNDEFINED 3');
+    }
 
     this.val_ = value;
     this.calc_ = calc || function() {
@@ -808,6 +822,9 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
                 me.dirtyUpOldValue_ = me.val_;
             }
             me.dirtyDown_ = true;
+            if (value === undefined) {
+                console.log('SETTING UNDEFINED');
+            }
             me.val_ = value;
             me.forEachManager_(function(manager) {
                 manager.addPending_(recoil.frp.Frp.Direction_.UP, me);
@@ -819,7 +836,9 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
             // we don't have a transaction we are simple
             // and nobody is listening so just set my value
             // and calculate down
-
+            if (value === undefined) {
+                console.log('SETTING UNDEFINED');
+            }
             me.val_ = value;
             if (value instanceof recoil.frp.BStatus) {
                 // events don't do this they get cleared anyway

@@ -66,9 +66,19 @@ recoil.ui.widgets.LabelWidget.options = recoil.frp.Util.Options(
  * @param {!recoil.ui.BoolWithExplanation|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} enabled
  */
 recoil.ui.widgets.LabelWidget.prototype.attach = function(name, enabled) {
-    this.attachStruct({name: name, enabled : enabled});
-    
+    this.attachStruct({name: name, enabled: enabled});
+
 };
+
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.LabelWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
 
 /**
  * @param {!Object| !recoil.frp.Behaviour<Object>} value

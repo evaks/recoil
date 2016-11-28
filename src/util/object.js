@@ -3,6 +3,7 @@ goog.provide('recoil.util.object');
 goog.require('goog.array');
 goog.require('goog.object');
 goog.require('goog.structs.AvlTree');
+goog.require('recoil.util.Sequence');
 
 /**
  * @template T
@@ -33,6 +34,41 @@ recoil.util.object.compare = function(a, b) {
     return recoil.util.object.compare_(a, b, [], []);
 };
 
+/**
+ * a unique object that cloning or equal ensures
+ * @private
+ * @constructor
+ */
+recoil.util.object.UniqObject_ = function() {
+    this.id_ = recoil.util.object.UniqObject_.seq_.next();
+};
+
+/**
+ * @return {!Object}
+ */
+recoil.util.object.UniqObject_.prototype.clone = function() {
+    return this;
+};
+
+/**
+ * @param {*} that
+ * @return {!boolean}
+ */
+recoil.util.object.UniqObject_.prototype.equal = function(that) {
+    return this === that;
+};
+
+/**
+ * @private
+ */
+recoil.util.object.UniqObject_.seq_ = new recoil.util.Sequence();
+
+/**
+ * @return {!Object} returns an object that is uniq, that is can't be cloned, equal will fail if not identical pointer
+ */
+recoil.util.object.uniq = function() {
+    return new recoil.util.object.UniqObject_();
+};
 /**
  *
  * @param {*} a
