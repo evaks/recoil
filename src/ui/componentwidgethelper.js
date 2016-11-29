@@ -85,6 +85,24 @@ recoil.ui.ComponentWidgetHelper.prototype.isAttached = function() {
 };
 
 /**
+ * @param {!Element} node at text node that will contain the message
+ */
+recoil.ui.ComponentWidgetHelper.prototype.setMessage = function(node) {
+    goog.dom.removeChildren(node);
+    goog.dom.classlist.removeAll(node, ['recoil-error', 'recoil-info']);
+    if (!this.isGood()) {
+        var errors = this.errors();
+        if (errors.length > 0) {
+            goog.dom.append(node, goog.dom.createTextNode(recoil.ui.messages.join(errors).toString()));
+            goog.dom.classlist.add(node, 'recoil-error');
+        }
+        else {
+            goog.dom.classlist.add(node, 'recoil-notready');
+            goog.dom.append(node, goog.dom.createTextNode(recoil.ui.messages.NOT_READY.toString()));
+        }
+    }
+};
+/**
  * removes all children
  */
 recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function() {

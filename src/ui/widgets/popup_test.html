@@ -12,21 +12,23 @@ See the COPYING file for details.
     <script src="../../../../closure-library/closure/goog/base.js"></script>
     <script src="../../../../my-deps.js"></script>
     <script>
-        goog.require('goog.dom');
-        goog.require('recoil.frp.Frp');
-        goog.require('recoil.ui.WidgetScope');
-        goog.require('recoil.ui.widgets.InputWidget');
-        goog.require('recoil.ui.widgets.LabelWidget');
-        goog.require('recoil.ui.widgets.PopupWidget');
-        goog.require('recoil.ui.widgets.RadioWidget');
-        goog.require('recoil.frp.Behaviour');
-        goog.require('recoil.frp.Util');
+      goog.require('goog.dom');
+      goog.require('recoil.frp.Frp');
+      goog.require('recoil.ui.WidgetScope');
+      goog.require('recoil.ui.widgets.InputWidget');
+      goog.require('recoil.ui.widgets.LabelWidget');
+      goog.require('recoil.ui.widgets.PopupWidget');
+      goog.require('recoil.ui.widgets.RadioWidget');
+      goog.require('recoil.ui.widgets.DateWidget');
+      goog.require('recoil.frp.Behaviour');
+      goog.require('recoil.frp.Util');
 
     </script>
 
     <link rel="stylesheet" href="../css/demo.css"/>
     <link rel="stylesheet" href="../../ui/css/popup.css"/>
-    <link rel="stylesheet"   href="../../../../closure-library/closure/goog/css/common.css"/>
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/common.css"/>
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/datepicker.css"/>
 <!--
     <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menubutton.css"/>
     <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css"/>
@@ -35,7 +37,11 @@ See the COPYING file for details.
     <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/flatmenubutton.css"/>
     <xxlink rel="stylesheet" href="../css/checklist.css">
   -->    
-      <style>
+  <style>
+  .recoil-notready {
+	color : lightgrey;
+  }
+
   .popup {
     position:absolute;
     background-color:#e0ecff;
@@ -70,6 +76,7 @@ See the COPYING file for details.
 <div id="popup"></div>
 <div id="r1"></div>
 <div id="r2"></div>
+<div id="date"></div>
 <!--<div id="selector2"></div>-->
 <br>
 
@@ -89,8 +96,12 @@ See the COPYING file for details.
   var display = new recoil.ui.widgets.LabelWidget(scope);
   var popupEntry = new recoil.ui.widgets.InputWidget(scope);
   var display1 = new recoil.ui.widgets.InputWidget(scope);
+  var dt = new recoil.ui.widgets.DateWidget(scope);
 
-    var radioValue = frp.createB(1);
+  var radioValue = frp.createB(1);
+
+  var dateB = frp.createB(new goog.date.Date(2011,2,3));
+//  dateB = frp.createNotReadyB();
 
   display.attach(value.debug("this"));
   display1.attach('',value);
@@ -101,12 +112,13 @@ See the COPYING file for details.
   popup.attach(popupEntry, display);
     radio1.attach(radioValue, 1);
     radio2.attach(radioValue, 2);
-
+  dt.attach(dateB);
 
     
   popup.getComponent().render($('popup'));
   radio1.getComponent().render($('r1'));
   radio2.getComponent().render($('r2'));
+  dt.getComponent().render($('date'));
 //  display1.getComponent().render($('entry'));
   
 
