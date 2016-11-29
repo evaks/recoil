@@ -105,7 +105,6 @@ recoil.ui.widgets.DateWidget.prototype.updateState_ = function(helper) {
     }
     else {
         this.picker_.setDate(null);
-        this.picker_.hidden = true;
     }
 
 

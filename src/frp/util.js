@@ -343,3 +343,41 @@ recoil.frp.Util.Options = function(var_options) {
     };
     return res;
 };
+
+/**
+ * @private
+ * @type recoil.frp.Behaviour<!number>
+ */
+recoil.frp.Util.timeB_ = null;
+/**
+ * returns a behaviour that fires every second with the date time in it\
+ * @param {!recoil.frp.Frp} frp
+ * @return {!recoil.frp.Behaviour<!number>} time in miliseconds
+ */
+recoil.frp.Util.timeB = function(frp) {
+    if (recoil.frp.Util.timeB_ === null) {
+        recoil.frp.Util.timeB_ = frp.createNotReadyB();
+        var setTime = function() {
+            frp.accessTrans(
+                function() {
+                    timeB.set(goog.now());
+                }, timeB);
+        };
+        var timeB = recoil.frp.Util.timeB_;
+        var timer = new goog.Timer(1000);
+        timer.listen(goog.Timer.TICK, setTime);
+        timeB.refListen(function(listen) {
+            if (listen) {
+                console.log('start');
+                timer.start();
+                setTime();
+            }
+            else {
+                timer.stop();
+            }
+        });
+    }
+
+    return /** @type {!recoil.frp.Behaviour<!number>} */ (recoil.frp.Util.timeB_);
+
+};

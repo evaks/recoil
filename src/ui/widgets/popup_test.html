@@ -77,6 +77,7 @@ See the COPYING file for details.
 <div id="r1"></div>
 <div id="r2"></div>
 <div id="date"></div>
+<div id="time"></div>
 <!--<div id="selector2"></div>-->
 <br>
 
@@ -94,6 +95,7 @@ See the COPYING file for details.
   var radio2 = new recoil.ui.widgets.RadioWidget(scope);
 
   var display = new recoil.ui.widgets.LabelWidget(scope);
+  var timeWidget = new recoil.ui.widgets.LabelWidget(scope);
   var popupEntry = new recoil.ui.widgets.InputWidget(scope);
   var display1 = new recoil.ui.widgets.InputWidget(scope);
   var dt = new recoil.ui.widgets.DateWidget(scope);
@@ -104,6 +106,8 @@ See the COPYING file for details.
 //  dateB = frp.createNotReadyB();
 
   display.attach(value.debug("this"));
+
+  timeWidget.attach(frp.liftB(function (v) {return "" + new Date(v)}, recoil.frp.Util.timeB(frp)));
   display1.attach('',value);
   popupEntry.attach('',value);
 
@@ -119,6 +123,7 @@ See the COPYING file for details.
   radio1.getComponent().render($('r1'));
   radio2.getComponent().render($('r2'));
   dt.getComponent().render($('date'));
+  timeWidget.getComponent().render($('time'));
 //  display1.getComponent().render($('entry'));
   
 
