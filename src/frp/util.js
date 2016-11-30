@@ -1,4 +1,5 @@
 goog.provide('recoil.frp.Util');
+goog.provide('recoil.frp.util');
 
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
@@ -380,4 +381,22 @@ recoil.frp.Util.timeB = function(frp) {
 
     return /** @type {!recoil.frp.Behaviour<!number>} */ (recoil.frp.Util.timeB_);
 
+};
+
+/**
+ * this creates a behaviour with a memory, that is every
+ * time the behaviour is set the memory behaviour is set to the same value
+ * this can be usefull for storing setting that are not sent to the server
+ *
+ * @template T
+ * @param {!recoil.frp.Behaviour<T>} val
+ * @param {!recoil.frp.Behaviour<T>} memory
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+
+recoil.frp.Util.memoryB = function(val, memory) {
+    return val.frp().liftBI(
+        function(v) {return v;},
+        function(v) {val.set(v); memory.set(v);},
+        val, memory);
 };

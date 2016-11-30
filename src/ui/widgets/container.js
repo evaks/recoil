@@ -31,3 +31,12 @@ recoil.ui.widgets.ContainerWidget = function(node) {
 recoil.ui.widgets.ContainerWidget.prototype.getComponent = function() {
     return this.container_;
 };
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.ContainerWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
