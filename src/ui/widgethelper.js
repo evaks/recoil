@@ -193,18 +193,17 @@ recoil.ui.VisibleHelper = function(widgetScope, container, showElements, opt_hid
     this.helper_ = new recoil.ui.WidgetHelper(
         widgetScope, container, this,
         function(helper) {
-            var me = this;
+            var showList = this.notGood_;
+            
             if (helper.isGood()) {
+                showList = this.visibleB_.get() ? this.show_ : this.hide_; 
             }
-            else {
-                this.show_.concat(this.hide_, this.notGood_).forEach(
-                    function(el) {
-                        var show = me.notGood_.indexOf(el) !== -1;
-                        el.style.display = show ? '' : 'none';
-                    }
-                );
-
-            }
+            this.show_.concat(this.hide_, this.notGood_).forEach(
+                function(el) {
+                    var show = showList.indexOf(el) !== -1;
+                    el.style.display = show ? '' : 'none';
+                }
+            );
         });
 };
 /**
