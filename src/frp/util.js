@@ -367,7 +367,7 @@ recoil.frp.Util.Options = function(var_options) {
  * @private
  * @type recoil.frp.Behaviour<!number>
  */
-recoil.frp.Util.timeB_ = null;
+recoil.frp.util.timeB_ = null;
 /**
  * returns a behaviour that fires every second with the date time in it\
  * @param {!recoil.frp.Frp} frp
