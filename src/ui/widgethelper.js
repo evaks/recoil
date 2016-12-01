@@ -1,3 +1,4 @@
+goog.provide('recoil.ui.VisibleHelper');
 /**
  * a utility class that is used to update widgets based on a behaviour each time the the behaviour changes the callback
  * will be fired
@@ -7,6 +8,7 @@
  */
 goog.provide('recoil.ui.WidgetHelper');
 
+
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
@@ -15,7 +17,7 @@ goog.require('recoil.ui.WidgetScope');
 /**
  * @template T
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
- * @param {Node} container when this is no longer visible updates will longer fire and memory will be cleaned up
+ * @param {Element} container when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {T} obj the this pointer callback will be called with
  * @param {function(this:T, !recoil.ui.WidgetHelper,...)} callback
  * @constructor
@@ -167,4 +169,48 @@ recoil.ui.WidgetHelper.prototype.value = function() {
         return this.behaviours_[0].get();
     }
     return null;
+};
+
+/**
+ * Note:
+ *   the reason we need a container is because we attach to it, if we where to make
+ *   this hidden we would no longer be listening to events for it and that would mean
+ *   we could not make it visible again
+ *
+ * @param {!recoil.ui.WidgetScope} widgetScope gui scope
+ * @param {!Element} container an item that is always visible doesn't really need to contain the items
+ * @param {IArrayLike<!Element>} showElements these elements will be show when attach behaviour is true, otherwize hidden
+ * @param {IArrayLike<!Element>=} opt_hideElements these elements will be hidden when attach behaviour is true, otherwize shown
+ * @param {IArrayLike<!Element>=} opt_notGoodElements these elements will be shown when the behaviour is not good
+ * @constructor
+ */
+recoil.ui.VisibleHelper = function(widgetScope, container, showElements, opt_hideElements, opt_notGoodElements) {
+    this.show_ = showElements;
+    this.hide_ = opt_hideElements || [];
+    this.notGood_ = opt_notGoodElements || [];
+    this.scope_ = widgetScope;
+
+    this.helper_ = new recoil.ui.WidgetHelper(
+        widgetScope, container, this,
+        function(helper) {
+            var me = this;
+            if (helper.isGood()) {
+            }
+            else {
+                this.show_.concat(this.hide_, this.notGood_).forEach(
+                    function(el) {
+                        var show = me.notGood_.indexOf(el) !== -1;
+                        el.style.display = show ? '' : 'none';
+                    }
+                );
+
+            }
+        });
+};
+/**
+ * @param {!recoil.frp.Behaviour<boolean>}  visible hide/show components
+ */
+recoil.ui.VisibleHelper.prototype.attach = function(visible) {
+    this.visibleB_ = visible;
+    this.helper_.attach(this.visibleB_);
 };
