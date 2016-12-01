@@ -1218,7 +1218,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
     var wrappedFunc = function() {
         var args = [];
         var metaResult = statusFactory === null ? new recoil.frp.BStatus(null) : statusFactory();
-        var metaResultB = null;
+        var metaResultB = null; // the result of all the behaviours
         var eventReady = false;
 
         for (var i = 4; i < outerArgs.length; i++) {
@@ -1247,7 +1247,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
             var result = func.apply(this, args);
                 if (statusFactory === null) {
                     // if status factory null then we expect the result a status object
-                    metaResultB = result;
+                    metaResult = result;
                 }
                 else {
                     metaResult.set_(result);

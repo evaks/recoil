@@ -32,7 +32,7 @@ recoil.util.compare = function(a, b) {
  * @param {Object} me
  * @param {F} func
  * @param {*} arg1
- * @param {Array<*>} rest
+ * @param {!IArrayLike<*>} rest
  * @return {T}
  */
 recoil.util.invokeOneParamAndArray = recoil.util.func.invokeOneParamAndArray;

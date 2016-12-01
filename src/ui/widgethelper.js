@@ -47,7 +47,7 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
         }
     };
     /**
-     * @type {Array<!recoil.frp.Behaviour<T>>}
+     * @type {!Array<!recoil.frp.Behaviour<T>>}
      * @private
      */
     this.behaviours_ = [];

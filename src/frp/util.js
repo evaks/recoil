@@ -35,6 +35,24 @@ recoil.frp.Util.prototype.toBehaviour = function(value, opt_default) {
         return this.frp_.createConstB(value);
     }
 };
+
+/**
+ * converts an array values to a array of behaviours, if the value is already a behaviour
+ * does nothing
+ * @param {!recoil.frp.Frp} frp
+ * @param {!IArrayLike<recoil.frp.Behaviour|*>} values
+ * @return {!IArrayLike<!recoil.frp.Behaviour>}
+ *
+ */
+recoil.frp.util.toBehaviours = function(frp, values) {
+    var util = new recoil.frp.Util(frp);
+    var res = [];
+
+    for (var i = 0; i < values.length; i++) {
+        res.push(util.toBehaviour(values[i]));
+    }
+    return res;
+};
 /**
  * if value is undefined returns behaviour with def
  *
@@ -355,16 +373,16 @@ recoil.frp.Util.timeB_ = null;
  * @param {!recoil.frp.Frp} frp
  * @return {!recoil.frp.Behaviour<!number>} time in miliseconds
  */
-recoil.frp.Util.timeB = function(frp) {
-    if (recoil.frp.Util.timeB_ === null) {
-        recoil.frp.Util.timeB_ = frp.createNotReadyB();
+recoil.frp.util.timeB = function(frp) {
+    if (recoil.frp.util.timeB_ === null) {
+        recoil.frp.util.timeB_ = frp.createNotReadyB();
         var setTime = function() {
             frp.accessTrans(
                 function() {
                     timeB.set(goog.now());
                 }, timeB);
         };
-        var timeB = recoil.frp.Util.timeB_;
+        var timeB = recoil.frp.util.timeB_;
         var timer = new goog.Timer(1000);
         timer.listen(goog.Timer.TICK, setTime);
         timeB.refListen(function(listen) {
@@ -379,7 +397,7 @@ recoil.frp.Util.timeB = function(frp) {
         });
     }
 
-    return /** @type {!recoil.frp.Behaviour<!number>} */ (recoil.frp.Util.timeB_);
+    return /** @type {!recoil.frp.Behaviour<!number>} */ (recoil.frp.util.timeB_);
 
 };
 
@@ -394,7 +412,7 @@ recoil.frp.Util.timeB = function(frp) {
  * @return {!recoil.frp.Behaviour<T>}
  */
 
-recoil.frp.Util.memoryB = function(val, memory) {
+recoil.frp.util.memoryB = function(val, memory) {
     return val.frp().liftBI(
         function(v) {return v;},
         function(v) {val.set(v); memory.set(v);},

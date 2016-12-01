@@ -9,7 +9,7 @@ goog.provide('recoil.util.func');
  * @param {Object} me
  * @param {F} func
  * @param {*} arg1
- * @param {Array<*>} rest
+ * @param {!IArrayLike<*>} rest
  * @return {T}
  */
 recoil.util.func.invokeOneParamAndArray = function(me, func, arg1, rest) {

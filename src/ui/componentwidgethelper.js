@@ -54,7 +54,7 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
         return new recoil.frp.BStatus(null);
     };
     /**
-     * @type {Array<!recoil.frp.Behaviour<T>>}
+     * @type {!Array<!recoil.frp.Behaviour<T>>}
      * @private
      */
     this.behaviours_ = [];
