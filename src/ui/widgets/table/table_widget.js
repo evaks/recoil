@@ -275,6 +275,7 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_ =
 
 /**
  * utility function to compare rows in meta data
+ * TODO we don't have the position in here so we will loose the row ordering
  * @private
  * @param {Object} x
  * @param {Object} y
@@ -282,6 +283,13 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_ =
  */
 recoil.ui.widgets.table.TableWidget.rowMetaCompare_ = function(x, y) {
     var res = 0;
+    if (x.pos !== y.pos) {
+        if (x.pos === undefined || y.pos === undefined) {
+            return x.pos === undefined ? -1 : 1;
+        }
+        return x.pos - y.pos;
+    }
+    
     for (var i = 0; i < x.key.length; i++) {
         res = x.keyCols[i].compare(x.key[i], y.key[i]);
         if (res !== 0) {
@@ -344,6 +352,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
                     ['rowSelector']),
                 [tableRowMeta, rowMeta], [tableMeta, info.tableMeta]);
             var rowAndCellMeta = {key: rowKey,
+                                  pos : row.pos(),
                                   keyCols: table.getKeyColumns(),
                                   meta: rowMeta,
                                   cellMeta: {}};
@@ -395,6 +404,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
                     ['rowDecorator']),
                 [tableRowMeta, rowMeta], [tableMeta, info.tableMeta]);
             var rowAndCellMeta = {key: rowKey,
+                                  pos : row.pos(),
                                   keyCols: table.getKeyColumns(),
                                   meta: rowMeta,
                                   cellMeta: {}};
@@ -947,6 +957,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
             rowComponent.cols = [];
             rowComponent.key = row.key;
+            rowComponent.pos = row.pos;
             rowComponent.keyCols = row.keyCols;
             goog.dom.insertChildAt(me.renderState_.table.inner, rowComponent.outer, me.renderState_.headerRow ? row.pos + 1 : row.pos);
 

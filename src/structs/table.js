@@ -258,6 +258,15 @@ recoil.structs.table.MutableTable = function(primaryKeys, otherColumns) {
     this.ordered_ = new goog.structs.AvlTree(recoil.structs.table.TableRow.positionComparator_(comparator));
 
 };
+
+
+/**
+ * gets the number of rows in the table
+ * @return {!number}
+ */
+recoil.structs.table.MutableTable.prototype.size = function() {
+    return this.rows_.getCount();
+};
 /**
  * @param {Object} a
  * @param {Object} b
@@ -886,7 +895,7 @@ recoil.structs.table.TableRow.positionComparator_ = function(comparator) {
         if (res === 0) {
             return comparator(x, y);
         }
-        return 0;
+        return res;
     };
 };
 

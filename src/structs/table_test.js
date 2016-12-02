@@ -2,6 +2,7 @@ goog.provide('recoil.structs.TableTest');
 
 goog.require('goog.testing.jsunit');
 goog.require('recoil.structs.table.Table');
+goog.require('recoil.util');
 
 
 
@@ -15,6 +16,26 @@ var COL_D = new recoil.structs.table.ColumnKey("d", function (x, y) {
 });
 
 
+function testOrdered () {
+    var tbl = new recoil.structs.table.MutableTable([COL_A], []);
+    var row = new recoil.structs.table.MutableTableRow(1);
+    row.set(COL_A, 1);
+    tbl.addRow(row);
+
+    row = new recoil.structs.table.MutableTableRow(-1);
+    row.set(COL_A, 2);
+    tbl.addRow(row);
+
+
+    var expected = [2, 1];
+    var i = 0;
+    tbl.freeze().forEach(function (row) {
+        assertEquals(expected[i], row.get(COL_A));
+        i++;
+    });
+    
+
+}
 function testAddRow() {
     var tbl = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
     var row = new recoil.structs.table.MutableTableRow();
