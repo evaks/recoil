@@ -360,6 +360,39 @@ recoil.frp.Util.Options = function(var_options) {
         return res;
 
     };
+
+
+    /**
+     * will just return behaviour will all the values
+     *
+     * @param {!recoil.frp.Frp} frp
+     * @param {!recoil.frp.Behaviour<!Object>|!Object} val
+     * @return {!recoil.frp.Behaviour<!Object>}
+     */
+    res.bindAll = function(frp, val) {
+        var optionsB = recoil.frp.struct.flatten(frp, val);
+        return frp.liftBI(function(v) {
+            v = recoil.util.object.clone(v);
+            for (var i = 0; i < args.length; i++) {
+                (function(name) {
+                    var funcs = functionParams(name);
+                    funcs.forEach(function(func) {
+                        func.params.forEach(function(param) {
+                            if (!v.hasOwnProperty(param)) {
+                                v[param] = func.def[param];
+                            }
+                        });
+                    });
+                })(args[i]);
+            }
+            return v;
+        }, function(v) {
+            optionsB.set(v);
+
+        }, optionsB);
+    };
+
+
     return res;
 };
 
