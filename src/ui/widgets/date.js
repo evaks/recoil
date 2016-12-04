@@ -48,6 +48,13 @@ recoil.ui.widgets.DateWidget = function(scope) {
     this.tooltip_ = new recoil.ui.TooltipHelper(scope, this.picker_);
 };
 
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.DateWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
 
 /**
  * @type {!recoil.frp.Util.OptionsType}

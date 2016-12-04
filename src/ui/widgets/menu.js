@@ -37,6 +37,14 @@ recoil.ui.widgets.MenuBarWidget = function(scope) {
 };
 
 /**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.MenuBarWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+/**
  * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.MenuBarWidget.prototype.getComponent = function() {
@@ -122,6 +130,14 @@ recoil.ui.widgets.MenuButtonWidget = function(scope) {
 };
 
 /**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.MenuButtonWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+/**
  * @type !Object
  */
 recoil.ui.widgets.MenuButtonWidget.defaultConfig = {
@@ -205,6 +221,14 @@ recoil.ui.widgets.MenuItemActionWidget = function(scope) {
 };
 
 /**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.MenuItemActionWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+/**
  *
  * @return {goog.ui.Component|*}
  */
@@ -269,6 +293,13 @@ recoil.ui.widgets.SubMenuWidget = function(scope) {
 
 };
 
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.SubMenuWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
 
 /**
  *
@@ -315,6 +346,15 @@ recoil.ui.widgets.MenuSeparatorWidget = function() {
       this.menuSeparator_ = new goog.ui.MenuSeparator();
 };
 
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.MenuSeparatorWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
 /**
  *
  * @return {!goog.ui.Component}
@@ -329,10 +369,5 @@ recoil.ui.widgets.MenuSeparatorWidget.prototype.getComponent = function() {
  */
 recoil.ui.widgets.MenuItemWidget = function() {
 };
-
-
-
-
-
 
 

@@ -41,12 +41,14 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
 
     /**
      * @private
+     * @return {recoil.frp.BStatus}
      * @final
      */
     this.callback_ = function() {
         if (me.component_ !== null) {
             recoil.util.invokeOneParamAndArray(obj, callback, me, me.behaviours_);
         }
+        return new recoil.frp.BStatus(null);
     };
     /**
      * @type {!Array<!recoil.frp.Behaviour<T>>}
@@ -194,9 +196,9 @@ recoil.ui.VisibleHelper = function(widgetScope, container, showElements, opt_hid
         widgetScope, container, this,
         function(helper) {
             var showList = this.notGood_;
-            
+
             if (helper.isGood()) {
-                showList = this.visibleB_.get() ? this.show_ : this.hide_; 
+                showList = this.visibleB_.get() ? this.show_ : this.hide_;
             }
             this.show_.concat(this.hide_, this.notGood_).forEach(
                 function(el) {

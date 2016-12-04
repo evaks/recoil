@@ -15,3 +15,12 @@ recoil.ui.Widget.prototype.getComponent = function() {
 
 };
 
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.Widget.prototype.flatten;
+

@@ -64,6 +64,14 @@ recoil.layout.FieldLayoutWidget.prototype.getComponent = function() {
     return this.container_;
 };
 
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.layout.FieldLayoutWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
 ///**
 // *
 // * @param {recoil.ui.Widget} widgets

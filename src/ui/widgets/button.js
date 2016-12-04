@@ -94,3 +94,11 @@ recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbac
 
     }
 };
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.ButtonWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;

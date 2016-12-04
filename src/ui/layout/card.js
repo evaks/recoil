@@ -52,3 +52,11 @@ recoil.ui.layout.Card.prototype.updateState_ = function(helper, widgetB) {
         }
     }
 };
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.layout.Card.prototype.flatten = recoil.frp.struct.NO_FLATTEN;

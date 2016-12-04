@@ -28,6 +28,14 @@ recoil.ui.widgets.CheckboxWidget = function(scope) {
 };
 
 /**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.CheckboxWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+/**
  * list of functions available when creating a CHECKBOXWidget
  */
 recoil.ui.widgets.CheckboxWidget.options = recoil.frp.Util.Options('name', 'value', 'enabled');

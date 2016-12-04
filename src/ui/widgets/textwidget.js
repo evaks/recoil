@@ -22,3 +22,11 @@ recoil.ui.widgets.TextWidget = function(scope) {
 recoil.ui.widgets.TextWidget.prototype.getComponent = function() {
     return this.component_;
 };
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.TextWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;

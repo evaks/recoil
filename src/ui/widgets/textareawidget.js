@@ -30,6 +30,13 @@ recoil.ui.widgets.TextAreaWidget = function(scope) {
 };
 
 /**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.TextAreaWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+/**
  * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.TextAreaWidget.prototype.getComponent = function() {

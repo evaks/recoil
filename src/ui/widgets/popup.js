@@ -113,3 +113,11 @@ recoil.ui.widgets.PopupWidget.prototype.updateState_ = function(helper) {
 recoil.ui.widgets.PopupWidget.prototype.getComponent = function() {
     return this.container_;
 };
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.PopupWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;

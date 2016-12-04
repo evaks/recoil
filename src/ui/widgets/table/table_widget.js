@@ -289,7 +289,7 @@ recoil.ui.widgets.table.TableWidget.rowMetaCompare_ = function(x, y) {
         }
         return x.pos - y.pos;
     }
-    
+
     for (var i = 0; i < x.key.length; i++) {
         res = x.keyCols[i].compare(x.key[i], y.key[i]);
         if (res !== 0) {
@@ -352,7 +352,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
                     ['rowSelector']),
                 [tableRowMeta, rowMeta], [tableMeta, info.tableMeta]);
             var rowAndCellMeta = {key: rowKey,
-                                  pos : row.pos(),
+                                  pos: row.pos(),
                                   keyCols: table.getKeyColumns(),
                                   meta: rowMeta,
                                   cellMeta: {}};
@@ -404,7 +404,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
                     ['rowDecorator']),
                 [tableRowMeta, rowMeta], [tableMeta, info.tableMeta]);
             var rowAndCellMeta = {key: rowKey,
-                                  pos : row.pos(),
+                                  pos: row.pos(),
                                   keyCols: table.getKeyColumns(),
                                   meta: rowMeta,
                                   cellMeta: {}};
@@ -1015,3 +1015,10 @@ recoil.ui.widgets.table.TableWidget.prototype.attach = function(table, meta) {
 
 };
 
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.table.TableWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;

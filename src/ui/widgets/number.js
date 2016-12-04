@@ -34,6 +34,16 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.number_);
 
 };
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.NumberWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+
 /**
  * @private
  * @return {!goog.dom.DomHelper}

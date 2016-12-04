@@ -177,18 +177,10 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function(helper) {
 
 };
 
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+recoil.ui.widgets.SelectorWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;

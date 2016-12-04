@@ -55,3 +55,11 @@ recoil.ui.widgets.PasswordWidget.prototype.attachStruct = function(options) {
     this.passwordInput_.attachStruct(options);
 
 };
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.PasswordWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
