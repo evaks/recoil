@@ -418,3 +418,18 @@ recoil.frp.util.memoryB = function(val, memory) {
         function(v) {val.set(v); memory.set(v);},
         val, memory);
 };
+
+
+/**
+ * utilty to get the frp engin out of the arguments
+ * @param {!IArrayLike} args
+ * @return {!recoil.frp.Frp}
+ */
+recoil.frp.util.getFrp = function(args) {
+    for (var i = 0; i < args.length; i++) {
+        if (args[i] instanceof recoil.frp.Behaviour) {
+            return args[i].frp();
+        }
+    }
+    throw 'No Behaviours given';
+};

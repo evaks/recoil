@@ -49,7 +49,6 @@ recoil.ui.widgets.PopupWidget = function(scope) {
                                                                         goog.positioning.Corner.BOTTOM_LEFT));
 
         me.popup_.setVisible(true);
-        console.log('do it');
     });
 
     this.button_.getComponent().render(this.buttonContainer_);
@@ -92,16 +91,28 @@ recoil.ui.widgets.PopupWidget.prototype.attachStruct = function(options) {
 };
 
 /**
+ * @private
+ * @param {!Element} container where the component goes
+ * @param {goog.ui.Component} current the currently renderd component
+ * @param {goog.ui.Component} newComponent the component we want to render
+ * @return {goog.ui.Component} the new Component
+ */
+recoil.ui.widgets.PopupWidget.prototype.replaceComponent_ = function(container, current, newComponent) {
+    if (current !== newComponent) {
+        goog.dom.removeChildren(container);
+        newComponent.render(container);
+    }
+    return newComponent;
+};
+/**
  *
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
 recoil.ui.widgets.PopupWidget.prototype.updateState_ = function(helper) {
     if (helper.isGood()) {
-        console.log('rendering', this.displayAndButtonContainer_);
-        console.log('rendering dis', this.displayContainer_);
-        this.displayWidgetB.get().getComponent().render(this.displayContainer_);
-        this.popupWidgetB.get().getComponent().render(this.popupContainer_);
+        this.displayComponent_ = this.replaceComponent_(this.displayContainer_, this.displayComponent_, this.displayWidgetB.get().getComponent());
+        this.popupComponent_ = this.replaceComponent_(this.popupContainer_, this.popupComponent_, this.popupWidgetB.get().getComponent());
     }
     else {
     }
