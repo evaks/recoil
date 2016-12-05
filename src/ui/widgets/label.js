@@ -116,7 +116,7 @@ recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
             this.label_.setContent(arr);
         }
         else {
-            this.label_.setContent("ERROR: not string" + arr);
+            this.label_.setContent("ERROR: not string: " + arr);
         }
 
     }
