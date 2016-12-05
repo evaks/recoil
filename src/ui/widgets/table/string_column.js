@@ -54,14 +54,17 @@ recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ =
     function(scope, cellB) 
 {
     var frp = scope.getFrp();
+    var card = new recoil.ui.layout.Card(scope);
     var widget = new recoil.ui.widgets.InputWidget(scope);
+    var readOnly = new recoil.ui.widgets.LabelWidget(scope);
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
 
     var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
 
-
+    readOnly.attach(value);
     widget.attach('', value,
                   recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplanation.TRUE));
+
     return widget;
 };
 
