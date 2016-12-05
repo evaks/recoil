@@ -182,7 +182,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var
 recoil.ui.widgets.table.TableWidget.defaultTableDecorator_ = function() {
     return new recoil.ui.RenderedDecorator(
         recoil.ui.widgets.table.TableWidget.defaultTableDecorator_,
-        goog.dom.createDom('table', {border: 1}));
+        goog.dom.createDom('table'));
 };
 
 /**
