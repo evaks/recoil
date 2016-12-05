@@ -112,7 +112,12 @@ recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
         var arr = this.nameB_.get();
-        this.label_.setContent(arr);
+        if (goog.isString()) {
+            this.label_.setContent(arr);
+        }
+        else {
+            this.label_.setContent("ERROR: not string" + arr);
+        }
 
     }
     else {
