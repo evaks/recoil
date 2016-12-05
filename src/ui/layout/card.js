@@ -44,11 +44,13 @@ recoil.ui.layout.Card.prototype.updateState_ = function(helper, widgetB) {
                 this.container_.removeChild(this.curControl_, true);
             }
             this.container_.addChild(newControl, true);
+            this.curControl_ = newControl;
         }
     }
     else {
         if (this.curControl_) {
             this.container_.removeChild(this.curControl_, true);
+            this.curControl_ = undefined;
         }
     }
 };

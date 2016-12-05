@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by the Apache License, Version 2.0.
+See the COPYING file for details.
+-->
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Popup Test</title>
+    <script src="../../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../../my-deps.js"></script>
+    <script>
+      goog.require('goog.dom');
+      goog.require('recoil.frp.Frp');
+      goog.require('recoil.ui.WidgetScope');
+      goog.require('recoil.ui.widgets.LabelWidget');
+      goog.require('recoil.ui.widgets.ButtonWidget');
+      goog.require('recoil.ui.layout.Card');
+      goog.require('recoil.frp.Behaviour');
+      goog.require('recoil.frp.Util');
+      goog.require('recoil.frp.Chooser');
+
+    </script>
+
+    <link rel="stylesheet" href="../css/demo.css"/>
+    <link rel="stylesheet" href="../../ui/css/popup.css"/>
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/common.css"/>
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/datepicker.css"/>
+<!--
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menubutton.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuitem.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuseparator.css"/>
+    <xxlink rel="stylesheet" href="../../../../closure-library/closure/goog/css/flatmenubutton.css"/>
+    <xxlink rel="stylesheet" href="../css/checklist.css">
+  -->    
+  <style>
+  .recoil-notready {
+	color : lightgrey;
+  }
+
+  </style>
+</head>
+<body>
+  <div >
+    <div class='goog-inline-block'>hello</div><div class='goog-inline-block'>world</div>
+  </div>
+<div id="card"></div>
+<div id="showLabel1"></div>
+<div id="showLabel2"></div>
+<div id="notGood"></div>
+<!--<div id="selector2"></div>-->
+<br>
+
+<br>
+
+<script>
+
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+    var value = frp.createB('test');
+
+  var showLabel1W = new recoil.ui.widgets.ButtonWidget(scope);
+  var showLabel2W = new recoil.ui.widgets.ButtonWidget(scope);
+  var showNotGoodW = new recoil.ui.widgets.ButtonWidget(scope);
+  var cardLayoutW = new recoil.ui.layout.Card(scope);
+
+  var label1W = new recoil.ui.widgets.LabelWidget(scope);
+  var label2W = new recoil.ui.widgets.LabelWidget(scope);
+
+  label1W.attach(frp.createB("label1"));
+  label2W.attach(frp.createB("label2"));
+
+  var choiceB = frp.createB(1);
+  var chooser = new recoil.frp.Chooser(choiceB, frp.createNotReadyB());
+  chooser.option(1, label1W);
+  chooser.option(2, label2W);
+  
+  var valueB = chooser.bind();
+  showLabel1W.attach('', "L1",frp.createCallback(function () {
+      choiceB.set(1);
+  }, choiceB));
+
+  showLabel2W.attach('', 'L2',frp.createCallback(function () {
+      choiceB.set(2);
+  }, choiceB));
+
+  showNotGoodW.attach('', 'Bad', frp.createCallback(function () {
+      choiceB.set(3);
+  }, choiceB));
+
+  cardLayoutW.attach(valueB);
+    
+  cardLayoutW.getComponent().render($('card'));
+  showLabel1W.getComponent().render($('showLabel1'));
+  showLabel2W.getComponent().render($('showLabel2'));
+  showNotGoodW.getComponent().render($('notGood'));
+
+
+//  display1.getComponent().render($('entry'));
+  
+
+</script>
+</body>
+</html>
