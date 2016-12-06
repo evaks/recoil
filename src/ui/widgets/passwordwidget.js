@@ -10,7 +10,7 @@ goog.require('recoil.ui.widgets.InputWidget');
  *
  * @param {!recoil.ui.WidgetScope} scope
  * @constructor
- * @implements recoil.ui.Widget
+ * @implements {recoil.ui.Widget}
  */
 recoil.ui.widgets.PasswordWidget = function(scope) {
     this.scope_ = scope;
@@ -26,15 +26,6 @@ recoil.ui.widgets.PasswordWidget = function(scope) {
 recoil.ui.widgets.PasswordWidget.prototype.getComponent = function() {
     return this.passwordInput_.getComponent();
 };
-
-/**
- *
- * @return {!recoil.ui.Widget}
- */
-recoil.ui.widgets.PasswordWidget.prototype.getLabel = function() {
-    return this.passwordInput_.getLabel();
-};
-
 
 /**
  * @param {recoil.frp.Behaviour<!string>|!string} name

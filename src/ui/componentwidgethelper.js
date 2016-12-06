@@ -373,7 +373,7 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
 /**
  * utility to convert a element to a control
  * @param {Node} el
- * @return {goog.ui.Control}
+ * @return {!goog.ui.Control}
  */
 recoil.ui.ComponentWidgetHelper.elementToControl = function(el) {
     var c = new goog.ui.Control(el);

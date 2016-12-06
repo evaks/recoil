@@ -468,14 +468,14 @@ recoil.structs.table.MutableTable.prototype.forEach = function(func) {
     var list = [];
     //construct a list first just incase we modify the
     //table while iterating over it
-    
+
     this.ordered_.inOrderTraverse(function(row) {
         list.push(row);
     });
 
-    list.forEach(function (row) {
+    list.forEach(function(row) {
         var keys = [];
-        
+
         for (var i = 0; i < me.primaryColumns_.length; i++) {
             keys.push(row.get(me.primaryColumns_[i]));
         }

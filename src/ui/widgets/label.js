@@ -17,6 +17,7 @@ goog.require('recoil.ui.events');
 
 /**
  * @constructor
+ * @template T
  * @implements {recoil.ui.Widget}
  * @param {!recoil.ui.WidgetScope} scope
  */
@@ -51,22 +52,38 @@ recoil.ui.widgets.LabelWidget = function(scope) {
 };
 
 /**
+ * a default formater that takes as a string and returns a string
+ *
+ * @template T
+ * @private
+ * @param {T} value
+ * @return {!goog.ui.ControlContent}
+ */
+recoil.ui.widgets.LabelWidget.defaultFormatter_ = function(value) {
+    if (goog.isString(value)) {
+        return value;
+    }
+    else {
+        return 'ERROR: not string but ' + typeof(value) + ': ' + value;
+    }
+};
+/**
  * list of functions available when creating a selectorWidget
  */
-// recoil.ui.widgets.SelectorWidget.options =  recoil.util.Options('value' , {'!list': [1, 2, 3]}, {'renderer' : recoil.util.widgets.RENDERER},
-//     { renderers :['button', 'menu']}, 'enabledItems');
+
 recoil.ui.widgets.LabelWidget.options = recoil.frp.Util.Options(
     {
         'name' : '',
-        'enabled' : recoil.ui.BoolWithExplanation.TRUE
+        'enabled' : recoil.ui.BoolWithExplanation.TRUE,
+        'formatter' : recoil.ui.widgets.LabelWidget.defaultFormatter_
     });
 
 /**
  * @param {!recoil.frp.Behaviour<string>|!string} name
- * @param {!recoil.ui.BoolWithExplanation|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} enabled
+ * @param {(!recoil.ui.BoolWithExplanation|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>)=} opt_enabled
  */
-recoil.ui.widgets.LabelWidget.prototype.attach = function(name, enabled) {
-    this.attachStruct({name: name, enabled: enabled});
+recoil.ui.widgets.LabelWidget.prototype.attach = function(name, opt_enabled) {
+    this.attachStruct({name: name, enabled: opt_enabled});
 
 };
 
@@ -89,7 +106,8 @@ recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
 
     this.nameB_ = bound.name();
     this.enabledB_ = bound.enabled();
-    this.helper_.attach(this.nameB_, this.enabledB_);
+    this.formatterB_ = bound.formatter();
+    this.helper_.attach(this.nameB_, this.enabledB_, this.formatterB_);
 };
 
 
@@ -111,14 +129,8 @@ recoil.ui.widgets.LabelWidget.prototype.getComponent = function() {
 recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
-        var arr = this.nameB_.get();
-        if (goog.isString(arr)) {
-            this.label_.setContent(arr);
-        }
-        else {
-            this.label_.setContent("ERROR: not string: " + arr);
-        }
-
+        var val = this.nameB_.get();
+        this.label_.setContent(this.formatterB_.get()(val));
     }
     else {
         this.label_.setContent('??');

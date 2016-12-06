@@ -203,7 +203,7 @@ recoil.ui.VisibleHelper = function(widgetScope, container, showElements, opt_hid
             this.show_.concat(this.hide_, this.notGood_).forEach(
                 function(el) {
                     var show = showList.indexOf(el) !== -1;
-                    console.log("showing", show, el);
+                    console.log('showing', show, el);
                     el.style.display = show ? '' : 'none';
                 }
             );
