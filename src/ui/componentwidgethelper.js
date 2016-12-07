@@ -9,11 +9,14 @@ goog.provide('recoil.ui.ComponentWidgetHelper');
 goog.provide('recoil.ui.TooltipHelper');
 
 goog.require('goog.events.FocusHandler');
+goog.require('goog.ui.Tooltip');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.VisibleObserver');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.messages');
+
+
 /**
  * @template T
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
@@ -354,9 +357,11 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
         this.component_.createDom();
     }
     if (this.tooltip_) {
-        this.tooltip_.detach(this.component_);
+        this.tooltip_.detach(this.component_.getElement());
+        this.tooltip_.dispose();
     }
     if (tooltip === null) {
+
         this.tooltip_ = null;
     }
     else {

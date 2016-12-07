@@ -8,8 +8,10 @@ goog.require('recoil.frp.Util');
 goog.require('recoil.frp.struct');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.TooltipHelper');
 goog.require('recoil.ui.util');
 goog.require('recoil.ui.widgets.LabelWidget');
+
 /**
  *
  * @param {!recoil.ui.WidgetScope} scope
@@ -36,6 +38,8 @@ recoil.ui.widgets.InputWidget = function(scope) {
     this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.editableDiv_], [this.readonlyDiv_]);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.InputHandler.EventType.INPUT);
     this.blurChangeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.BLUR);
+    this.input_.setEnabled(false);
+    this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.input_);
 };
 
 /**
@@ -103,6 +107,10 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
             me.valueB_.set(inputEl.value);
         }
     }, this.valueB_, this.immediateB_));
+
+    this.enabledHelper_.attach(
+        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
+        this.helper_);
 };
 
 /**
@@ -113,8 +121,12 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 
     var editable = this.editableB_.metaGet().good() || this.editableB_.get();
-    if (helper.isGood()) {
+    this.input_.setEnabled(helper.isGood() && this.enabledB_.get().val());
+    if (this.valueB_.metaGet().good()) {
         this.input_.setValue(this.valueB_.get());
+    }
+    else {
+        this.input_.setValue(recoil.ui.messages.NOT_READY.toString());
     }
 
 };

@@ -19,12 +19,15 @@ recoil.ui.widgets.SelectorWidget = function(scope) {
     this.scope_ = scope;
     var frp = this.scope_.getFrp();
     this.component_ = new goog.ui.Component();
-
     this.selector_ = new goog.ui.Select(undefined, undefined, undefined, undefined, undefined, function(item) {
         var struct = item.getValue();
         return new struct.renderer(struct.value, struct.valid, struct.enabled);
 
     });
+    // this is to stop leaking dom elements otherwise every time
+    // we open a menu it will add the menu to the root document that will
+    // not get destroyed unless we manage it ourselves
+    this.selector_.setRenderMenuAsSibling(true);
 
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.selector_, this, this.updateState_);
     // this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.ACTION);

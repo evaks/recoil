@@ -26,6 +26,7 @@
 <div id="label1"></div>
 <div id="input1"></div>
 <div id="input2"></div>
+<div id="enabled2"></div>
 
 <script>
     var scope = new recoil.ui.WidgetScope();
@@ -34,18 +35,32 @@
 
     var val = frp.createB("test");
 
+  var enabledB = frp.createB(recoil.ui.BoolWithExplanation.TRUE);
   var editableB = frp.createB(true);
   var label = new recoil.ui.widgets.LabelWidget(scope);
-    var input1 = new recoil.ui.widgets.InputWidget(scope);
-    input1.attachStruct({value : val, editable : editableB});
-    label.getComponent().render($('label1'));
+  var input1 = new recoil.ui.widgets.InputWidget(scope);
+  input1.attachStruct({value : val, editable : editableB, enabled : enabledB});
+  label.getComponent().render($('label1'));
   label.attach(val);
     input1.getComponent().render($('input1'));
 
     var input2 = new recoil.ui.widgets.CheckboxWidget(scope);
+    var enabled = new recoil.ui.widgets.CheckboxWidget(scope);
   input2.getComponent().render($('input2'));
-  input2.attach('fish',editableB, recoil.ui.BoolWithExplanation.TRUE);
-  
+  enabled.getComponent().render($('enabled'));
+  enabled.attach('x',
+		 frp.liftBI (
+		     function (v) {
+			 return v.val();
+		     },
+		     function (v) {
+			 enabledB.set(new recoil.ui.BoolWithExplanation(v, undefined, recoil.ui.message.toMessage("some reason")));
+		     }, 
+		     enabledB), recoil.ui.BoolWithExplanation.TRUE);
+
+  input2.attach('fish',editableB,recoil.ui.BoolWithExplanation.TRUE);
+
+
 </script>
 </body>
 </html>
