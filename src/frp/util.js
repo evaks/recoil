@@ -302,7 +302,7 @@ recoil.frp.Util.Options = function(var_options) {
             return [{name: prefix, params: res, def: defMap}];
         }
         else {
-            if (opt_defVal) {
+            if (opt_defVal !== undefined) {
                 defMap[name] = opt_defVal;
             }
             return [{name: name, params: [name], def: defMap}];

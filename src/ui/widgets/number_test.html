@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>input Test</title>
+    <script src="../../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../../my-deps.js"></script>
+    <script>
+        goog.require('goog.dom');
+        goog.require('recoil.frp.Frp');
+        goog.require('recoil.ui.WidgetScope');
+        goog.require('recoil.frp.Behaviour');
+        goog.require('recoil.frp.Util');
+        goog.require('recoil.frp.struct');
+        goog.require('recoil.ui.WidgetHelper');
+        goog.require('recoil.ui.Widget');
+        goog.require('recoil.ui.widgets.NumberWidget');
+        goog.require('recoil.ui.widgets.CheckboxWidget');
+    </script>
+    <link rel="stylesheet" href="../css/demo.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">
+    <!--<link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">-->
+</head>
+<body>
+
+<div id="label1"></div>
+<div id="input1"></div>
+<div id="input2"></div>
+<div id="enabled2"></div>
+
+<script>
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+
+    var val = frp.createB(7);
+
+  var enabledB = frp.createB(recoil.ui.BoolWithExplanation.TRUE);
+  var editableB = frp.createB(true);
+  var label = new recoil.ui.widgets.LabelWidget(scope);
+  var input1 = new recoil.ui.widgets.NumberWidget(scope);
+  input1.attachStruct({value : val, editable : editableB, max: 100, enabled : enabledB, step : 0.1});
+  label.getComponent().render($('label1'));
+  label.attachStruct({name : val, formatter : function (v) {
+      return ""+ v;
+  }});
+    input1.getComponent().render($('input1'));
+
+    var input2 = new recoil.ui.widgets.CheckboxWidget(scope);
+    var enabled = new recoil.ui.widgets.CheckboxWidget(scope);
+  input2.getComponent().render($('input2'));
+  enabled.getComponent().render($('enabled'));
+  enabled.attach('x',
+		 frp.liftBI (
+		     function (v) {
+			 return v.val();
+		     },
+		     function (v) {
+			 enabledB.set(new recoil.ui.BoolWithExplanation(v, undefined, recoil.ui.message.toMessage("some reason")));
+		     }, 
+		     enabledB), recoil.ui.BoolWithExplanation.TRUE);
+
+  input2.attach('fish',editableB,recoil.ui.BoolWithExplanation.TRUE);
+
+
+</script>
+</body>
+</html>

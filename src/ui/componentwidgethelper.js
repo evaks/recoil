@@ -263,7 +263,6 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
 
     var me = this;
     this.func_ = function(e) {
-        console.log('evt', e);
         if (me.listener_) {
             me.listener_.frp().accessTrans(function() {
                 // sometimes events fire when before it is on the screen
