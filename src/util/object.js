@@ -35,6 +35,19 @@ recoil.util.object.compare = function(a, b) {
 };
 
 /**
+ * a generic compare function that compares only the key
+ * field in the object
+ *
+ * @param {!{key}} a
+ * @param {!{key}} b
+ * @return {!number}
+ */
+recoil.util.object.compareKey = function(a, b) {
+    return recoil.util.object.compare(a.key, b.key);
+};
+
+
+/**
  * a unique object that cloning or equal ensures
  * @private
  * @constructor
