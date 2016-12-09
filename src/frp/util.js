@@ -35,7 +35,84 @@ recoil.frp.Util.prototype.toBehaviour = function(value, opt_default) {
         return this.frp_.createConstB(value);
     }
 };
+/**
+ * converts an object with attributes that are behaviours
+ * to a list of behaviours
+ * @param {!Object<string,!recoil.frp.Behaviour>} struct
+ * @return {!Array<recoil.frp.Behaviour>}
+ */
+recoil.frp.Util.prototype.structToBehaviours = function(struct) {
+    var res = [];
+    for (var key in struct) {
+        if (struct.hasOwnProperty(key)) {
+            res.push(struct[key]);
+        }
+    }
+    return res;
+};
 
+/**
+ * like liftBI but takes structure of behaviours
+ *
+ * @template T
+ * @param {function () : T} calc the calculate function, note no parameters
+ *                               are passed because the order cannot be ensured
+ * @param {function (T)} inv the inverse function
+ * @param {!Object<string,!recoil.frp.Behaviour>} behaviours
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Util.prototype.structLiftBI = function(calc, inv, behaviours) {
+    return this.frp_.liftBI.apply(this.frp_, [
+        function() {
+            return calc();
+        }, inv].concat(this.structToBehaviours(behaviours)));
+};
+
+/**
+ * like liftB but takes structure of behaviours
+ *
+ * @template T
+ * @param {function (...) : T} calc the calculate function, note no parameters
+ *                               are passed because the order cannot be ensured
+ * @param {function (T)} inv the inverse function
+ * @param {!Object<string,!recoil.frp.Behaviour>} behaviours
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Util.prototype.structLiftB = function(calc, inv, behaviours) {
+    return this.frp_.liftB.apply(this.frp_, [calc]
+                                 .concat(behaviours));
+};
+/**
+ * like liftBI but takes list of behaviours
+ *
+ * @template T
+ * @param {function (...) : T} calc the calculate function, note no parameters
+ *                               are passed because the order cannot be ensured
+ * @param {function (T)} inv the inverse function
+ * @param {!IArrayLike<!recoil.frp.Behaviour>} behaviours
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Util.prototype.listLiftBI = function(calc, inv, behaviours) {
+    return this.frp_.liftBI.apply(this.frp_, [calc, inv]
+                                  .concat(behaviours));
+};
+
+/**
+ * like liftB but takes list of behaviours
+ *
+ * @template T
+ * @param {function () : T} calc the calculate function, note no parameters
+ *                               are passed because the order cannot be ensured
+ * @param {function (T)} inv the inverse function
+ * @param {!IArrayLike<!recoil.frp.Behaviour>} behaviours
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Util.prototype.listLiftB = function(calc, inv, behaviours) {
+    return this.frp_.liftB.apply(this.frp_, [
+        function() {
+            return calc();
+        }].concat(this.structToBehaviours(behaviours)));
+};
 /**
  * converts an array values to a array of behaviours, if the value is already a behaviour
  * does nothing
