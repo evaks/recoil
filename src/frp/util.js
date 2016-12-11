@@ -74,11 +74,10 @@ recoil.frp.Util.prototype.structLiftBI = function(calc, inv, behaviours) {
  * @template T
  * @param {function (...) : T} calc the calculate function, note no parameters
  *                               are passed because the order cannot be ensured
- * @param {function (T)} inv the inverse function
  * @param {!Object<string,!recoil.frp.Behaviour>} behaviours
  * @return {!recoil.frp.Behaviour<T>}
  */
-recoil.frp.Util.prototype.structLiftB = function(calc, inv, behaviours) {
+recoil.frp.Util.prototype.structLiftB = function(calc, behaviours) {
     return this.frp_.liftB.apply(this.frp_, [
         function() {
             return calc();
