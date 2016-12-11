@@ -629,6 +629,8 @@ recoil.frp.Behaviour.prototype.frp = function() {
 recoil.frp.Behaviour.prototype.refListen = function(callback) {
     this.refListeners_.push(callback);
 };
+
+
 /**
  * increases the reference count
  *
@@ -640,7 +642,7 @@ recoil.frp.Behaviour.prototype.refListen = function(callback) {
 recoil.frp.Behaviour.prototype.addRef = function(manager, opt_count) {
     var count = opt_count === undefined ? 1 : opt_count;
     var hadRefs = this.hasRefs();
-
+    manager.watching_ += count;
     var curRefs = this.refs_[manager.id_];
     if (curRefs === undefined) {
         this.refs_[manager.id_] = {
@@ -675,6 +677,8 @@ recoil.frp.Behaviour.prototype.addRef = function(manager, opt_count) {
 recoil.frp.Behaviour.prototype.removeRef = function(manager, opt_count) {
     var curRefs = this.refs_[manager.id_];
     var count = opt_count === undefined ? 1 : opt_count;
+    manager.watching_ -= count;
+
     if (curRefs === undefined || curRefs.count < count) {
         goog.asserts.assert(false, 'Behaviour ' + this.origSeq_ + ' removing reference when not referenced');
         return false;
@@ -1320,6 +1324,15 @@ recoil.frp.TransactionManager = function(frp) {
 };
 
 /**
+ * for debug purposes returns the number of items we are watching
+ *
+ * @return {number}
+ */
+recoil.frp.TransactionManager.prototype.watching = function() {
+    return this.watching_;
+};
+
+/**
  * @type recoil.util.Sequence
  * @private
  */
@@ -1663,7 +1676,6 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
                 me.addProvidersToDependancyMap_(b);
             }
             visited[idx].addRef(me);
-            me.watching_++;
         }
     });
 
@@ -1729,12 +1741,13 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     }
 
     var pending = this.getPending_(recoil.frp.Frp.Direction_.UP);
-    for (var idx in newVisited) {
+    for (idx in newVisited) {
         b = newVisited[idx];
         if (!oldVisited[b.seqStr_]) {
             if (b.addRef(this, count)) {
                 me.addProvidersToDependancyMap_(b);
                 pending.push(b);
+
             }
         }
     }
@@ -1861,7 +1874,6 @@ recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
                 me.removeProvidersFromDependancyMap_(b);
                 me.removePending_(b);
             }
-            me.watching_--;
         }
     });
     console.log('Detach Watching = ', this.watching_);

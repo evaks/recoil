@@ -50,6 +50,10 @@ function testBehaviourUp() {
     assertEquals('one fire', 1, count2);
 
     assertEquals(4, d.unsafeMetaGet().get());
+
+    tm.detach(d);
+    tm.detach(c);
+    assertEquals(0, tm.watching());
 }
 
 function testEventDown() {
@@ -269,6 +273,8 @@ function testSwitchBNotReady() {
     tm.attach(sw);
     assertFalse(sw.unsafeMetaGet().ready());
 
+    tm.detach(sw);
+    assertEquals(0, tm.watching());
 }
 function testSwitchBDown() {
 
@@ -313,7 +319,7 @@ function testSwitchBDown() {
     assertEquals(2, switchTest.unsafeMetaGet().get());
 
     tm.detach(switchTest);
-
+    assertEquals(0, tm.watching());
 }
 function testConst() {
     var frp = new recoil.frp.Frp();
@@ -444,7 +450,7 @@ function testSwitchBOutsideBehaviour() {
     assertEquals("hello.",c.unsafeMetaGet().get());
     frp.detach(c);
     frp.detach(c);
-
+    assertEquals(0, tm.watching());
 
 }
 
@@ -460,6 +466,8 @@ function testSwitchBWithError() {
     frp.attach(b);
     assertObjectEquals(['hi'],b.unsafeMetaGet().errors());
     frp.detach(b);
+
+    assertEquals(0, tm.watching());
 
 
 }
@@ -498,6 +506,7 @@ function testSwitchBUp() {
     assertEquals(2, switchTest.unsafeMetaGet().get());
 
     tm.detach(switchTest);
+    assertEquals(0, tm.watching());
 }
 
 function testAttachDetach() {

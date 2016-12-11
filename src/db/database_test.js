@@ -24,6 +24,7 @@ var LIST_KEY = new recoil.db.BasicType([], 'list', undefined, [new recoil.db.Typ
 var MyDb = function(opt_delay) {
     this.values_ = {'list' : {'List' : [{id: 1, v : 1} ,{id: 2, v: 2} ,{id : 3, v: 3},{id:4, v: 4}]}};
     this.delay_ = opt_delay ? [] :false ;
+    this.active_ = {};
 };
 
 MyDb.prototype.makeKey = function (args) {
@@ -57,6 +58,16 @@ MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, key, var
 
 };
 
+MyDb.prototype.isActive = function (id, key) {
+    if (this.active_[id.getData()] === undefined) {
+        return false;
+    }
+    return this.active_[id.getData()][""+ key];
+};
+
+MyDb.prototype.stop = function (id, key, options) {
+    this.active_[id.getData()][""+ key] = false;
+};
 /**
  *
  * @param success
@@ -66,7 +77,10 @@ MyDb.prototype.set = function(data, oldData, successFunc, failFunc, id, key, var
  */
 MyDb.prototype.get = function(success, failure, id, key, options) {
 
-    console.log("getting ",id, key);
+    if (this.active_[id.getData()] === undefined) {
+        this.active_[id.getData()] = {};
+    }
+    this.active_[id.getData()][""+ key] = true;
     if (this.values_[id.getData()] === undefined) {
         this.values_[id.getData()] = {};
     }
@@ -276,6 +290,30 @@ function testDelayed () {
 
 }
 
+function testUnregister() {
+    var frp = new recoil.frp.Frp();
+    var coms = new MyDb(false);
+    var db = new recoil.db.ReadWriteDatabase(frp, coms);
+
+    var listB = db.get(LIST_KEY,'List');
+    
+    frp.attach(listB);
+    frp.attach(listB);
+
+    assertObjectEquals([{id: 1, v : 1 }, {id : 2, v : 2}, {id : 3, v : 3}, {id : 4, v : 4}], listB.unsafeMetaGet().get());
+
+    var a = coms.isActive(LIST_KEY,'List');
+    assertTrue(a);
+               
+    frp.detach(listB);
+    assertTrue(a);
+               
+    frp.detach(listB);
+
+    assertFalse(coms.isActive(LIST_KEY,'List'));
+
+    
+};
 
 function testGetList ()  {
     var frp = new recoil.frp.Frp();

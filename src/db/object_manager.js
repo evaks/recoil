@@ -356,7 +356,6 @@ recoil.db.ObjectManager.setSubObjects_ = function(outer, related, opt_frp) {
  */
 recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, coms, opt_val) {
 
-    console.log('registering', typeKey, key);
     var frp = this.frp_;
     // var behaviours = recoil.util.map.safeGet(this.queries_, typeKey.uniqueId(), new goog.structs.AvlTree(recoil.db.Entity.comparator_));
     var behaviours = recoil.util.map.safeGet(this.queries_, typeKey.uniqueId(),
@@ -542,23 +541,23 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
  * @param {!recoil.db.DatabaseComms} coms
  */
 recoil.db.ObjectManager.prototype.unregister = function(typeKey, key, options, coms) {
-    var behaviours = this.objectTypes_[typeKey];
-    if (behaviours === undefined) {
+    console.log('unregistering', typeKey, key);
+    var behaviours = this.queries_[typeKey.uniqueId()];
+    if (!behaviours) {
         return;
     }
+    console.log('found', typeKey, key);
 
     var entity = new recoil.db.Entity(key, null, true);
+    var behavioursList = behaviours.getBehaviours();
+    var oldEntity = behavioursList.findFirst(entity);
 
-    var oldEntity = behaviours.findFirst(entity);
-
-    if (!oldEntity) {
-        return;
-    }
-    if (oldEntity.removeRef()) {
-        behaviours.remove(oldEntity);
-        if (behaviours.getCount() === 0) {
-            delete this.objectTypes_[typeKey];
-        }
+   if (oldEntity && oldEntity.removeRef()) {
+        coms.stop(typeKey, key, options);
+        behavioursList.remove(oldEntity);
+        if (behavioursList.getCount() === 0) {
+            delete this.queries_[typeKey.uniqueId()];
+        }        
     }
 
 };
