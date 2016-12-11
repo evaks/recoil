@@ -4,6 +4,7 @@ goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.events.InputHandler');
 goog.require('goog.ui.Component');
+goog.require('recoil.converters.DefaultStringConverter');
 goog.require('recoil.frp.Util');
 goog.require('recoil.frp.struct');
 goog.require('recoil.ui.BoolWithExplanation');
@@ -71,7 +72,10 @@ recoil.ui.widgets.InputWidget.prototype.attach = function(value, enabled) {
  */
 recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
     'value',
-    {immediate: false} // if false changes will not propogate untill blur
+    {
+        immediate: false, // if false changes will not propogate untill blur
+        converter: new recoil.converters.DefaultStringConverter()
+    }
 );
 
 /**
@@ -93,6 +97,8 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attach(this.valueB_);
     this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_);
+
+
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {

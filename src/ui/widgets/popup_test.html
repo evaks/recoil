@@ -107,9 +107,9 @@ See the COPYING file for details.
 
   display.attach(value.debug("this"));
 
-  timeWidget.attach(frp.liftB(function (v) {return "" + new Date(v)}, recoil.frp.Util.timeB(frp)));
-  display1.attach('',value);
-  popupEntry.attach('',value);
+  timeWidget.attach(frp.liftB(function (v) {return "" + new Date(v)}, recoil.frp.util.timeB(frp)));
+  display1.attach(value);
+  popupEntry.attach(value);
 
 //  var opts = recoil.ui.widgets.options;
   
