@@ -79,8 +79,10 @@ recoil.frp.Util.prototype.structLiftBI = function(calc, inv, behaviours) {
  * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.Util.prototype.structLiftB = function(calc, inv, behaviours) {
-    return this.frp_.liftB.apply(this.frp_, [calc]
-                                 .concat(behaviours));
+    return this.frp_.liftB.apply(this.frp_, [
+        function() {
+            return calc();
+        }].concat(this.structToBehaviours(behaviours)));
 };
 /**
  * like liftBI but takes list of behaviours
@@ -103,15 +105,12 @@ recoil.frp.Util.prototype.listLiftBI = function(calc, inv, behaviours) {
  * @template T
  * @param {function () : T} calc the calculate function, note no parameters
  *                               are passed because the order cannot be ensured
- * @param {function (T)} inv the inverse function
  * @param {!IArrayLike<!recoil.frp.Behaviour>} behaviours
  * @return {!recoil.frp.Behaviour<T>}
  */
-recoil.frp.Util.prototype.listLiftB = function(calc, inv, behaviours) {
-    return this.frp_.liftB.apply(this.frp_, [
-        function() {
-            return calc();
-        }].concat(this.structToBehaviours(behaviours)));
+recoil.frp.Util.prototype.listLiftB = function(calc, behaviours) {
+    return this.frp_.liftB.apply(this.frp_, [calc]
+                                 .concat(behaviours));
 };
 /**
  * converts an array values to a array of behaviours, if the value is already a behaviour
