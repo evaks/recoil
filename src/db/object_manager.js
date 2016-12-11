@@ -557,7 +557,7 @@ recoil.db.ObjectManager.prototype.unregister = function(typeKey, key, options, c
         behavioursList.remove(oldEntity);
         if (behavioursList.getCount() === 0) {
             delete this.queries_[typeKey.uniqueId()];
-        }        
+        }
     }
 
 };
