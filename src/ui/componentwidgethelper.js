@@ -365,7 +365,6 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     }
     else {
         this.tooltip_ = new goog.ui.Tooltip(this.component_.getElement(), tooltip);
-        console.log('TOOTIP', this.tooltip_);
 //        this.tooltip_.setEnabled(enabled);
     }
     if (this.component_.setEnabled) {

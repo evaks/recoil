@@ -312,7 +312,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var bound = recoil.ui.widgets.NumberWidget.options.bind(frp, options);
 
     this.valueB_ = bound.value();
-    this.minB_ = bound.min().debug('min');
+    this.minB_ = bound.min();
     this.maxB_ = bound.max();
     this.stepB_ = bound.step();
     this.editableB_ = bound.editable();
@@ -374,7 +374,6 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         };
     var calcWidth = function(width, val) {
         var str = formatter(val);
-        console.log('str', val);
         return Math.max(width,
                         recoil.ui.widgets.NumberWidget.calcWidth_(el, str));
     };
@@ -395,6 +394,5 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
     }
     var c = this.number_.getContentElement();
 //    c.width = 2;
-    console.log('content', c.clientWidth, c.width, c.offsetWidth, c.scrollWidth, c, width);
     this.number_.getContentElement().style.width = (width + 10) + 'px';
 };
