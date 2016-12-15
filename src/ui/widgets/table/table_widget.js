@@ -734,10 +734,9 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
 
     // remove the columns from each row
     renderState.rows.inOrderTraverse(function(row) {
+        var newRow = table.rowMeta.findFirst(row);
         for (var i = 0; i < table.columnMeta.length; i++) {
             var columnMeta = table.columnMeta[i];
-
-            var newRow = table.rowMeta.findFirst(row);
             var cellMeta = newRow.cellMeta[columnMeta.key];
             var oldRenderInfo = row.cols[i];
             var decorator = me.getMetaValue('cellDecorator', tableMeta, newRow.meta, columnMeta, cellMeta);
@@ -888,7 +887,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getNewRows_ = function(rowMeta) {
     rowMeta.inOrderTraverse(function(row) {
         if (!state.rowMeta.findFirst(row)) {
             var newRow = goog.object.clone(row);
-            newRow.pos = pos;
+            newRow.rowPos = pos;
             result.add(newRow);
         }
         pos++;
@@ -912,8 +911,17 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
     if (helper.isGood()) {
         // not just build table
+        if (this.renderState_.errors) {
+            this.container_.getElement().removeChild(this.renderState_.errors);
+            if (this.renderState_.table) {
+                this.container_.getElement().appendChild(this.renderState_.table.outer);
+            }
+            this.renderState_.errors = null;
+        }
+            
         var table = tableB.get();
         var tableMeta = table.tableMeta;
+        console.log("table", table);
         /**
          * @type {function () : recoil.ui.RenderedDecorator}
          */
@@ -936,6 +944,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         }
         this.renderState_.table.decorator = tableDecorator;
 
+
         this.doRemoves_(table);
         this.doColumnAdds_(table);
         this.doColumnMoves_(table);
@@ -947,6 +956,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         // now all we have to do is add th new rows
 
         var newRows = this.getNewRows_(table.rowMeta);
+
         newRows.inOrderTraverse(function(row) {
 
             // do this in order of the columns defined in the meta data
@@ -957,9 +967,9 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
             rowComponent.cols = [];
             rowComponent.key = row.key;
-            rowComponent.pos = row.pos;
+            rowComponent.rowPos = row.rowPos;
             rowComponent.keyCols = row.keyCols;
-            goog.dom.insertChildAt(me.renderState_.table.inner, rowComponent.outer, me.renderState_.headerRow ? row.pos + 1 : row.pos);
+            goog.dom.insertChildAt(me.renderState_.table.inner, rowComponent.outer, me.renderState_.headerRow ? row.rowPos + 1 : row.rowPos);
 
 
             table.columnMeta.forEach(function(columnMeta) {
@@ -969,8 +979,25 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
         });
         this.state_ = table;
+
     }
     else {
+        console.log("error");
+        if (!this.renderState_.errors) {
+            if (this.renderState_.table) {
+
+                this.container_.getElement().removeChild(this.renderState_.table.outer);
+            }
+            this.renderState_.errors = goog.dom.createDom('div');
+            this.container_.getElement().appendChild(this.renderState_.errors);
+        }
+        goog.dom.removeChildren(this.renderState_.errors);
+
+        helper.errors().forEach(function(error) {
+            me.renderState_.errors.appendChild(
+                goog.dom.createDom('div', {class : 'error'}, goog.dom.createTextNode(error.toString())));
+        });
+
         // display error or not ready state
     }
 };

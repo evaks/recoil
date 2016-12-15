@@ -6,7 +6,6 @@ goog.require('goog.ui.Container');
 goog.require('goog.ui.Popup');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.WidgetScope');
-goog.require('recoil.ui.widgets.ButtonWidget');
 
 /**
  *
@@ -18,13 +17,18 @@ goog.require('recoil.ui.widgets.ButtonWidget');
 recoil.ui.widgets.PopupWidget = function(scope) {
     this.scope_ = scope;
     this.popupContainer_ = goog.dom.createDom('div');
-    this.displayContainer_ = goog.dom.createDom('div', {'class' : 'goog-inline-block'});
-    this.buttonContainer_ = goog.dom.createDom('div', {'class' : 'goog-inline-block'});
-    this.displayAndButtonContainer_ = goog.dom.createDom('div', {'class' : 'recoil-popup-container'});
+    this.displayContainer_ = goog.dom.createDom(
+        'div', 
+        {'class' : 'goog-inline-block goog-menu-button-caption', tabindex : 0});
+    this.buttonContainer_ = goog.dom.createDom('div', {'class' : 'goog-inline-block goog-menu-button-dropdown'});
+    this.displayAndButtonContainer_ = goog.dom.createDom('div', {'class' : 'goog-inline-block goog-menu-button'});
+    var outerBox = goog.dom.createDom('div', {'class' : 'goog-inline-block goog-menu-button-outer-box'});
+    var innerBox = goog.dom.createDom('div', {'class' : 'goog-inline-block goog-menu-button-inner-box'});
 
-
-    goog.dom.append(this.displayAndButtonContainer_, this.displayContainer_);
-    goog.dom.append(this.displayAndButtonContainer_, this.buttonContainer_);
+    goog.dom.append(this.displayAndButtonContainer_, outerBox);
+    goog.dom.append(outerBox, innerBox);
+    goog.dom.append(innerBox, this.displayContainer_);
+    goog.dom.append(innerBox, this.buttonContainer_);
 
     this.container_ = new goog.ui.Component();
     var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
@@ -34,24 +38,42 @@ recoil.ui.widgets.PopupWidget = function(scope) {
     this.container_.addChild(toControl(this.displayAndButtonContainer_), true);
     this.container_.addChild(toControl(this.popupContainer_), true);
     this.popup_ = new goog.ui.Popup(this.popupContainer_);
-    this.button_ = new recoil.ui.widgets.ButtonWidget(scope);
 
     goog.dom.setProperties(this.popupContainer_, {class: 'recoil-popup'});
 
     this.popup_.setVisible(false);
     var me = this;
-    this.buttonCallback_ = scope.getFrp().createCallback(function() {
-
+    var doPopup = function () {
         me.popup_.setVisible(false);
         me.popup_.setPinnedCorner(goog.positioning.Corner.TOP_LEFT); // button corner
         me.popup_.setMargin(new goog.math.Box(0, 0, 0, 0));
         me.popup_.setPosition(new goog.positioning.AnchoredViewportPosition(me.displayAndButtonContainer_,
-                                                                        goog.positioning.Corner.BOTTOM_LEFT));
+        goog.positioning.Corner.BOTTOM_LEFT));
 
         me.popup_.setVisible(true);
-    });
 
-    this.button_.getComponent().render(this.buttonContainer_);
+    };
+    this.displayAndButtonContainer_.onmousedown = doPopup;
+
+    goog.events.listen(this.displayAndButtonContainer_
+                       , goog.events.EventType.KEYDOWN, 
+                       function (e) {
+                               console.log(e.keyCode);
+                           if (e.keyCode === goog.events.KeyCodes.SPACE) {
+                               if (me.popup_.isVisible()) {
+                                   me.popup_.setVisible(false);
+                               }
+                               else {
+                                   doPopup();
+                               }
+                           }
+                           else if (e.keyCode === goog.events.KeyCodes.ESC) {
+                               me.popup_.setVisible(false);
+                           }
+
+                       });
+
+
     this.popup_.setHideOnEscape(true);
     this.popup_.setAutoHide(true);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
@@ -85,7 +107,6 @@ recoil.ui.widgets.PopupWidget.prototype.attachStruct = function(options) {
     this.displayWidgetB = bound.displayWidget();
     this.popupWidgetB = bound.popupWidget();
 
-    this.button_.attach('', '...', this.buttonCallback_, recoil.ui.BoolWithExplanation.TRUE);
     this.helper_.attach(this.popupWidgetB, this.displayWidgetB);
 
 };

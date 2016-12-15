@@ -1130,6 +1130,29 @@ recoil.frp.Frp.prototype.createCallback = function(func, var_dependants) {
     b.type = 'callback';
     return b;
 };
+
+
+/**
+ *
+ * Creates callback, this is basically a behaviour with only an inverse
+ * the calculate function always returns true, this differs from createCallback in that
+ * the providers don't have to be good for it to be good
+ * @param {function(...*)} func
+ * @param {...recoil.frp.Behaviour<?>} var_dependants
+ * @return {!recoil.frp.Behaviour<?>}
+ */
+recoil.frp.Frp.prototype.createGoodCallback = function(func, var_dependants) {
+    recoil.util.notNull(arguments);
+    var params = [function() {return new recoil.frp.BStatus(null);}, function(value) {return func.apply(this, arguments)}];
+    for (var i = 1; i < arguments.length; i++) {
+        params.push(arguments[i]);
+    }
+
+    var b = this.metaLiftBI.apply(this, params);
+    b.type = 'callback';
+    return b;
+};
+
 /**
  * takes input behaviours and makes a new behaviour
  * @template RT
@@ -1261,9 +1284,6 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
                 console.log(error);
                 metaResult.addError(error);
             }
-        }
-        else {
-            console.log(metaResult);
         }
         return metaResult;
     };

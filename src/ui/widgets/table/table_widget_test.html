@@ -35,6 +35,7 @@
   <div id='hideB'/>
   <div id='hideHeadersB'/>
   <div id='showB'/>
+  <div id='badB'/>
   <div id='deleteB'/>
   <div class="selected" id='clickTest'>Click Test
     </div>
@@ -138,7 +139,7 @@
 	var res = tableX.get().unfreeze();
 	res.setCellMeta([1],tblKeys.name, {cellWidgetFactory : function (scope, cellB) {
 	    var widget = new recoil.ui.widgets.LabelWidget(scope);
-	    var value = recoil.frp.table.TableCell.getValue(frp, cellB).debug("VALUE");
+	    var value = recoil.frp.table.TableCell.getValue(frp, cellB);
 	    
 	    widget.attachStruct({name : value});
 	    console.log("args", arguments);
@@ -188,6 +189,7 @@
     var hideWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var hideHeadersWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var showWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var badWidget = new recoil.ui.widgets.ButtonWidget(scope);
 
 			hideHeadersWidget.attach("", "Hide/Show Headers", frp.createCallback(
 			function() {
@@ -226,15 +228,20 @@
                     }
 	            table.set(mtable.freeze());
     }, selectedB, table));
-
-
+					
+					var oldVal = recoil.frp.BStatus.notReady();
+					badWidget.attach("", "Bad", frp.createGoodCallback(function () {
+					var v = oldVal;
+					oldVal = tableX.metaGet();
+					tableX.metaSet(v);
+					}, tableX));
     showWidget.attach("", "Show", frp.createCallback(function () {
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
     columns.add(tblKeys.count, "Count");
     columns.add(tblKeys.check, "Check");
-    columns.add(tblKeys.select, "Select");
-    columnsB.set(columns);
+    columns.addColumn(selectCol);
+    switchB.set(columns.createB(frp));
     },columnsB));
 
     tableWidget.getComponent().render($('tablediv'));
@@ -242,6 +249,7 @@
     hideWidget.getComponent().render($('hideB'));
     hideHeadersWidget.getComponent().render($('hideHeadersB'));
     showWidget.getComponent().render($('showB'));
+    badWidget.getComponent().render($('badB'));
     deleteButton.getComponent().render($('deleteB'));
 
     
