@@ -80,12 +80,26 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
 
 /**
  *
+ * @param {recoil.ui.widgets.InputWidget} me
+ * @param {Object} inputEl
+ * @private
+ */
+recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl) {
+    var res = me.converterB_.get().unconvert(inputEl.value);
+    if (!res.error) {
+        me.valueB_.set(res.value);
+        goog.dom.setProperties(inputEl, {'class': ''});
+    } else {
+        goog.dom.setProperties(inputEl, {'class': 'recoil-error'});
+    }
+};
+
+/**
+ *
  * @param {!Object| !recoil.frp.Behaviour<Object>} options
  */
 recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     var frp = this.helper_.getFrp();
-    var util = new recoil.frp.Util(frp);
-    var structs = recoil.frp.struct;
 
     var bound = recoil.ui.widgets.InputWidget.options.bind(frp, options);
 
@@ -93,31 +107,36 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.enabledB_ = bound.enabled();
     this.editableB_ = bound.editable();
     this.immediateB_ = bound.immediate();
+    this.converterB_ = bound.converter();
 
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attach(this.valueB_);
-    this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_);
-
+    this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_);
 
 
     var me = this;
+
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
         if (me.immediateB_.get()) {
-            me.valueB_.set(inputEl.value);
+            me.updateElement_(me, inputEl);
         }
-    }, this.valueB_, this.immediateB_));
+    }, this.valueB_, this.immediateB_, this.converterB_));
+
     this.blurChangeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
         if (!me.immediateB_.get()) {
-            me.valueB_.set(inputEl.value);
+            me.updateElement_(me, inputEl);
+
         }
-    }, this.valueB_, this.immediateB_));
+
+    }, this.valueB_, this.immediateB_, this.converterB_));
 
     this.enabledHelper_.attach(
         /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
         this.helper_);
 };
+
 
 /**
  *
@@ -129,7 +148,14 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
     var editable = this.editableB_.metaGet().good() || this.editableB_.get();
     this.input_.setEnabled(helper.isGood() && this.enabledB_.get().val());
     if (this.valueB_.metaGet().good()) {
-        this.input_.setValue(this.valueB_.get());
+        var t = this.converterB_.get();
+
+        // t.convert(this.valueB_.get());
+        var strVal = t.convert(this.valueB_.get());
+        if (strVal !== this.input_.getValue()) {
+            this.input_.setValue(strVal);
+        }
+
     }
     else {
         this.input_.setValue(recoil.ui.messages.NOT_READY.toString());

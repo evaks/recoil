@@ -85,3 +85,7 @@ textarea {
     margin-right: 20px;
     float: left;
 }
+
+.recoil-error {
+    color: #FF0000;
+}

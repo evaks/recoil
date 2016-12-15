@@ -10,8 +10,11 @@
         goog.require('recoil.frp.Frp');
         goog.require('recoil.ui.WidgetScope');
         goog.require('recoil.frp.Behaviour');
+        goog.require('recoil.converters.IPv4AddressConverter');
         goog.require('recoil.frp.Util');
         goog.require('recoil.frp.struct');
+        goog.require('recoil.ui.widgets.NumberWidget');
+
         goog.require('recoil.ui.WidgetHelper');
         goog.require('recoil.ui.Widget');
         goog.require('recoil.ui.widgets.InputWidget');
@@ -27,6 +30,8 @@
 <div id="input1"></div>
 <div id="input2"></div>
 <div id="enabled2"></div>
+<div id="numberInput"></div>
+
 
 <script>
     var scope = new recoil.ui.WidgetScope();
@@ -39,7 +44,10 @@
   var editableB = frp.createB(true);
   var label = new recoil.ui.widgets.LabelWidget(scope);
   var input1 = new recoil.ui.widgets.InputWidget(scope);
-  input1.attachStruct({value : val, editable : editableB, enabled : enabledB});
+  input1.attachStruct({value : val,
+      editable : editableB,
+      enabled : enabledB
+  });
   label.getComponent().render($('label1'));
   label.attach(val);
     input1.getComponent().render($('input1'));
@@ -59,6 +67,17 @@
 		     enabledB), recoil.ui.BoolWithExplanation.TRUE);
 
   input2.attach('fish',editableB,recoil.ui.BoolWithExplanation.TRUE);
+
+
+  var val2 = frp.createB([1,4,7,8]);
+  var numberInput = new recoil.ui.widgets.InputWidget(scope);
+  numberInput.attachStruct({value : val2,
+        editable : editableB,
+        enabled : enabledB,
+        immediate: true,
+        converter: new recoil.converters.IPv4AddressConverter()
+  });
+  numberInput.getComponent().render($('numberInput'));
 
 
 </script>
