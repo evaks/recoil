@@ -63,9 +63,9 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
                     selector(row.outer, true);
                 }
             }
+            me.curSelected_ = selected;
         }
 
-        me.curSelected_ = selected;
     });
 
     this.state_ = recoil.ui.widgets.table.TableWidget.emptyState_();
