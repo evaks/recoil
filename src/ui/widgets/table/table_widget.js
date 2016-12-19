@@ -968,6 +968,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
             rowComponent.cols = [];
             rowComponent.key = row.key;
             rowComponent.rowPos = row.rowPos;
+            rowComponent.pos = row.pos;
             rowComponent.keyCols = row.keyCols;
             goog.dom.insertChildAt(me.renderState_.table.inner, rowComponent.outer, me.renderState_.headerRow ? row.rowPos + 1 : row.rowPos);
 
