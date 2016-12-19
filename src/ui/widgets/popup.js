@@ -18,8 +18,8 @@ recoil.ui.widgets.PopupWidget = function(scope) {
     this.scope_ = scope;
     this.popupContainer_ = goog.dom.createDom('div');
     this.displayContainer_ = goog.dom.createDom(
-        'div', 
-        {'class' : 'goog-inline-block goog-menu-button-caption', tabindex : 0});
+        'div',
+        {'class' : 'goog-inline-block goog-menu-button-caption', tabindex: 0});
     this.buttonContainer_ = goog.dom.createDom('div', {'class' : 'goog-inline-block goog-menu-button-dropdown'});
     this.displayAndButtonContainer_ = goog.dom.createDom('div', {'class' : 'goog-inline-block goog-menu-button'});
     var outerBox = goog.dom.createDom('div', {'class' : 'goog-inline-block goog-menu-button-outer-box'});
@@ -43,7 +43,7 @@ recoil.ui.widgets.PopupWidget = function(scope) {
 
     this.popup_.setVisible(false);
     var me = this;
-    var doPopup = function () {
+    var doPopup = function() {
         me.popup_.setVisible(false);
         me.popup_.setPinnedCorner(goog.positioning.Corner.TOP_LEFT); // button corner
         me.popup_.setMargin(new goog.math.Box(0, 0, 0, 0));
@@ -56,8 +56,8 @@ recoil.ui.widgets.PopupWidget = function(scope) {
     this.displayAndButtonContainer_.onmousedown = doPopup;
 
     goog.events.listen(this.displayAndButtonContainer_
-                       , goog.events.EventType.KEYDOWN, 
-                       function (e) {
+                       , goog.events.EventType.KEYDOWN,
+                       function(e) {
                                console.log(e.keyCode);
                            if (e.keyCode === goog.events.KeyCodes.SPACE) {
                                if (me.popup_.isVisible()) {

@@ -918,10 +918,10 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
             }
             this.renderState_.errors = null;
         }
-            
+
         var table = tableB.get();
         var tableMeta = table.tableMeta;
-        console.log("table", table);
+        console.log('table', table);
         /**
          * @type {function () : recoil.ui.RenderedDecorator}
          */
@@ -982,7 +982,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
     }
     else {
-        console.log("error");
+        console.log('error');
         if (!this.renderState_.errors) {
             if (this.renderState_.table) {
 
@@ -995,7 +995,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
         helper.errors().forEach(function(error) {
             me.renderState_.errors.appendChild(
-                goog.dom.createDom('div', {class : 'error'}, goog.dom.createTextNode(error.toString())));
+                goog.dom.createDom('div', {class: 'error'}, goog.dom.createTextNode(error.toString())));
         });
 
         // display error or not ready state

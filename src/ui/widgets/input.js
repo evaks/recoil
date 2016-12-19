@@ -86,11 +86,15 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
  */
 recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl) {
     var res = me.converterB_.get().unconvert(inputEl.value);
-    if (!res.error) {
+    // did this as compiler was complaining about passing inputEl into setProperties
+    var el = goog.dom.getElement(inputEl.id);
+
+    /* todo what is the better way to do this?? */
+    if (res.error.toString() === 'Valid') {
         me.valueB_.set(res.value);
-        goog.dom.setProperties(inputEl, {'class': ''});
+        goog.dom.setProperties(el, {'class': ''});
     } else {
-        goog.dom.setProperties(inputEl, {'class': 'recoil-error'});
+        goog.dom.setProperties(el, {'class': 'recoil-error'});
     }
 };
 
