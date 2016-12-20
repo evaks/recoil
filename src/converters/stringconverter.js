@@ -21,10 +21,10 @@ recoil.converters.DefaultStringConverter = function() {
 };
 /**
  * @param {string} val
- * @return {string}
+ * @return {!{error : recoil.ui.message.Message, value : string}}
  */
 recoil.converters.DefaultStringConverter.prototype.convert = function(val) {
-    return val;
+    return {error: recoil.ui.messages.VALID, value: val};
 };
 
 /**
@@ -32,5 +32,5 @@ recoil.converters.DefaultStringConverter.prototype.convert = function(val) {
  * @return {!{error : recoil.ui.message.Message, value : string}}
  */
 recoil.converters.DefaultStringConverter.prototype.unconvert = function(val) {
-    return {error: null, value: val};
+    return {error: recoil.ui.messages.VALID, value: val};
 };

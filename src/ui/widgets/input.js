@@ -154,10 +154,14 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
     if (this.valueB_.metaGet().good()) {
         var t = this.converterB_.get();
 
-        // t.convert(this.valueB_.get());
+        var el = this.input_.getElement();
         var strVal = t.convert(this.valueB_.get());
-        if (strVal !== this.input_.getValue()) {
-            this.input_.setValue(strVal);
+
+        if (strVal.value !== this.input_.getValue()) {
+            if (strVal.error.toString() === 'Invalid') {
+                goog.dom.setProperties(el, {'class': 'recoil-error'});
+            }
+            this.input_.setValue(strVal.value);
         }
 
     }
