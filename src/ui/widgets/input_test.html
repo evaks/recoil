@@ -11,6 +11,8 @@
         goog.require('recoil.ui.WidgetScope');
         goog.require('recoil.frp.Behaviour');
         goog.require('recoil.converters.IPv4AddressConverter');
+        goog.require('recoil.converters.IPv6AddressConverter');
+
         goog.require('recoil.frp.Util');
         goog.require('recoil.frp.struct');
         goog.require('recoil.ui.widgets.NumberWidget');
@@ -69,7 +71,7 @@
   input2.attach('fish',editableB,recoil.ui.BoolWithExplanation.TRUE);
 
 
-  var val2 = frp.createB([1,4,7,1001]);
+  var val2 = frp.createB([1,4,7,100]);
   var numberInput = new recoil.ui.widgets.InputWidget(scope);
   numberInput.attachStruct({value : val2,
         editable : editableB,
@@ -79,6 +81,16 @@
   });
   numberInput.getComponent().render($('numberInput'));
 
+  var val3 = frp.createB(['2001','0000','3238','DFE1','0063','0000','0000','FEFB']);
+  var ipv6Input = new recoil.ui.widgets.InputWidget(scope);
+  ipv6Input.attachStruct({value: val3,
+      editable: editableB,
+      enabled: enabledB,
+      immediate: true,
+      converter: new recoil.converters.IPv6AddressConverter()
+  });
+
+  ipv6Input.getComponent().render($('ipv6Input'));
 
 </script>
 </body>
