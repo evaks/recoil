@@ -23,13 +23,20 @@ goog.require('recoil.ui.messages');
  * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer callback will be called with
  * @param {function(...?)} callback
+ * @param {function()} opt_detachCallback_
  * @constructor
  */
 
-recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback) {
+recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback, opt_detachCallback) {
     this.observer_ = widgetScope.getObserver();
     this.frp_ = widgetScope.getFrp();
     this.component_ = component;
+    this.detachCallback_ = function () {
+        console.log("DD", opt_detachCallback);
+        if (opt_detachCallback) {
+            opt_detachCallback.apply(obj,[]);
+        }
+    };
     if (!(callback instanceof Function)) {
         throw new Error('callback not a function');
     }
@@ -41,6 +48,7 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
                 me.frp_.attach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
             } else {
                 me.frp_.detach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
+                me.detachCallback_();
             }
         }
     };
@@ -199,6 +207,7 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
     if (hadBehaviour) {
         if (this.isAttached_) {
             this.frp_.detach(/** @type {!recoil.frp.Behaviour} */(this.attachedBehaviour_));
+            me.detachCallback_();
         }
     }
 
@@ -310,7 +319,7 @@ recoil.ui.TooltipHelper = function(widgetScope, component) {
     this.enabledB_ = null;
     this.tooltip_ = null;
     this.component_ = component;
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(widgetScope, component, this, this.update_);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(widgetScope, component, this, this.update_, this.detach_);
 };
 
 
@@ -339,6 +348,7 @@ recoil.ui.TooltipHelper.prototype.attach = function(enabledB, var_helpers) {
 recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     var tooltip = null;
     var enabled;
+    console.log("updating", helper.isAttached());
     if (helper.isGood()) {
         var reason = this.enabledB_.get().reason();
         tooltip = reason === null ? null : reason.toString();
@@ -369,6 +379,21 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     }
     if (this.component_.setEnabled) {
         this.component_.setEnabled(enabled);
+    }
+};
+
+
+/**
+ * @private
+ * @param {!recoil.ui.ComponentWidgetHelper} helper
+ */
+recoil.ui.TooltipHelper.prototype.detach_ = function() {
+        console.log("DETACH");
+
+    if (this.tooltip_) {
+        this.tooltip_.detach(this.component_.getElement());
+        this.tooltip_.dispose();
+        this.tooltip_ = null;
     }
 };
 

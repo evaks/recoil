@@ -518,7 +518,6 @@ var cellCount = 0;
 recoil.ui.widgets.table.TableWidget.prototype.createCell_ =
     function(tableMeta, row, rowMeta, columnMeta)
 {
-    console.log('cell', cellCount++);
     var cellMeta = rowMeta.cellMeta[columnMeta.key];
     var cellDecorator = this.getMetaValue(
         'cellDecorator', tableMeta, rowMeta.meta, columnMeta, cellMeta);
