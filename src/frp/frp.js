@@ -571,7 +571,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.refListeners_ = [];
     this.providers_ = providers || [];
 
-    this.loopCheck({});
+    this.quickLoopCheck_();
 };
 
 /**
@@ -587,6 +587,37 @@ recoil.frp.Behaviour.prototype.loopCheck = function(path) {
     for (var i = 0; i < this.providers_.length; i++) {
         this.providers_[i].loopCheck(path);
     }
+
+};
+
+/**
+ * loopCheck is a bit slow when it comes to large amounts of
+ * items this is a quicker version that assumes all the providers
+ * do not have any loops so the only loop that can be introduced must point to source
+ * @private
+ */
+recoil.frp.Behaviour.prototype.quickLoopCheck_ = function() {
+    var stack = [];
+    var seen = {};
+
+    for (var i = 0; i < this.providers_.length; i++) {
+        stack.push(this.providers_[i]);
+    }
+
+    while (stack.length > 0) {
+        var cur = stack.pop();
+        if (cur === this) {
+            throw new recoil.exception.LoopDetected();
+        }
+        if (seen[cur.seqStr_]) {
+            continue;
+        }
+        for (i = 0; i < cur.providers_.length; i++) {
+            stack.push(cur.providers_[i]);
+        }
+    }
+
+
 
 };
 
@@ -1443,15 +1474,17 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
 
         for (var prov = 0; prov < cur.b.providers_.length; prov++) {
             var provObj = cur.b.providers_[prov];
-            if (cur.path[provObj.seqStr_] !== undefined) {
-                throw new recoil.exception.LoopDetected();
-            }
+            // loop check seems to take a long time we shouldn't need it since
+            // the constructor of the behaviour checks anyway
+//            if (cur.path[provObj.seqStr_] !== undefined) {
+//                throw new recoil.exception.LoopDetected();
+//            }
 
-            var newPath = goog.object.clone(cur.path);
-            newPath[provObj.seqStr_] = provObj;
+//            var newPath = goog.object.clone(cur.path);
+  //          newPath[provObj.seqStr_] = provObj;
             toDo.push({
-                b: provObj,
-                path: newPath
+                b: provObj
+    //            path: newPath
             });
         }
 
@@ -1789,6 +1822,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     }
 
     this.ensureProvidersBefore_(dependant, []);
+    dependant.quickLoopCheck_();
 };
 
 /**

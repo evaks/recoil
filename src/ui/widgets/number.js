@@ -169,8 +169,8 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
             step: this.step_, min: this.min_, max: this.max_});
     var lastValid = undefined;
 
-    goog.events.listen(element
-                       , goog.events.EventType.KEYDOWN, this.keyFilter_);
+    goog.events.listen(element,
+                       goog.events.EventType.KEYDOWN, this.keyFilter_);
     goog.events.listen(element, goog.events.EventType.BLUR,
                        function() {
                            if (!element.validity.valid) {
@@ -220,6 +220,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
                            //filter stuff here
                        });
 
+   element.style['text-align'] = 'right';
     this.setElementInternal(element);
 };
 
@@ -282,6 +283,11 @@ recoil.ui.widgets.NumberWidget.getDp_ = function(num) {
 };
 
 /**
+ * @private
+ * @type {Object<string,number>}
+ */
+recoil.ui.widgets.NumberWidget.sizesMap_ = {};
+/**
  * calculates the width of the number field based on the numbers that can go
  * into it
  * @private
@@ -290,15 +296,24 @@ recoil.ui.widgets.NumberWidget.getDp_ = function(num) {
  * @return {number}
  */
 recoil.ui.widgets.NumberWidget.calcWidth_ = function(parent, str) {
-    var tmp = document.createElement('span');
-    var txt = goog.html.SafeHtml.unwrap(goog.html.SafeHtml.htmlEscape(str));
-    tmp.innerHTML = txt;
-    //        tmp.className = "input-element tmp-element";
-    goog.dom.append(parent, tmp);
-    var theWidth = tmp.getBoundingClientRect().width;
-    parent.removeChild(tmp);
+    var style = window.getComputedStyle(parent, null);
+    var font = style.getPropertyValue('font-style') + ' ' +
+            style.getPropertyValue('font-variant') + ' ' +
+            style.getPropertyValue('font-size') + ' ' +
+            style.getPropertyValue('font-family');
 
-    return theWidth;
+    var size = recoil.ui.widgets.NumberWidget.sizesMap_[font];
+    if (size === undefined) {
+        var c = document.createElement('canvas');
+        var ctx = c.getContext('2d');
+        ctx.font = font;
+        size = ctx.measureText('0').width;
+        recoil.ui.widgets.NumberWidget.sizesMap_[font] = size;
+
+    }
+    // 1 extra char for the arrows
+    return (1 + str.length) * (size);
+
 };
 
 /**

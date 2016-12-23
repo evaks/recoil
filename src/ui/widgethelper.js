@@ -191,6 +191,11 @@ recoil.ui.VisibleHelper = function(widgetScope, container, showElements, opt_hid
     this.hide_ = opt_hideElements || [];
     this.notGood_ = opt_notGoodElements || [];
     this.scope_ = widgetScope;
+    this.show_.concat(this.hide_, this.notGood_).forEach(
+        function(el) {
+            el.style.display = 'none';
+        }
+    );
 
     this.helper_ = new recoil.ui.WidgetHelper(
         widgetScope, container, this,

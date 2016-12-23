@@ -23,31 +23,45 @@ recoil.frp.VisibleObserver = function() {
 
     this.observer_ = new MutationObserver(recoil.frp.VisibleObserver.observeFunc_(this));
     this.forceReconnect_ = false;
-
+    this.removedNodes_ = new WeakMap();
+    
     if (recoil.frp.VisibleObserver.InsertionWatcher_ === null) {
-        var addRec = function(node) {
+        // maybe we should use a weak map here we can get rid of the $.recoil.watcher
+        var addRec = function(node, seen, depth) {
             var toAdds = node['$.recoil.watcher'];
+            recoil.frp.VisibleObserver.setUniqueDomId_(node);
+            if (seen[node.id]) {
+                return;
+            }
+            seen[node.id] = true;
             if (toAdds !== undefined) {
                 toAdds.forEach(function(toAdd) {
+                    
                     toAdd.observer.listen(node, toAdd.callback);
                 });
                 delete node['$.recoil.watcher'];
             }
 
-          goog.array.forEach(node.childNodes, function(child) {
-               addRec(child);
+            goog.array.forEach(node.childNodes, function(child) {
+                addRec(child, seen, depth + 1);
             });
 
         };
         recoil.frp.VisibleObserver.InsertionWatcher_ = new MutationObserver(function(mutations) {
+
+            // the mutations may have the same node more than once eliminate this since this is slow
+            var seen = {};
             mutations.forEach(function(mutation, index, array) {
                 for (var i = 0; i < mutation.addedNodes.length; i++) {
                     var node = mutation.addedNodes[i];
-
-                    if (recoil.frp.VisibleObserver.exists(node)) {
-                        addRec(node);
+                    if (!node.id || !seen[node.id]) {
+                        if (recoil.frp.VisibleObserver.exists(node)) {
+                            addRec(node,seen, 1);
+                        }
                     }
+                      
                 }
+
             });
         });
 

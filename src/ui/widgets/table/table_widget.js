@@ -507,7 +507,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getRowRemoves_ = function(newRows)
     });
     return result;
 };
-
+var cellCount = 0;
 /**
  * @private
  * @param {Object} tableMeta the relevant meta data assocatied with the table
@@ -518,6 +518,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getRowRemoves_ = function(newRows)
 recoil.ui.widgets.table.TableWidget.prototype.createCell_ =
     function(tableMeta, row, rowMeta, columnMeta)
 {
+    console.log('cell', cellCount++);
     var cellMeta = rowMeta.cellMeta[columnMeta.key];
     var cellDecorator = this.getMetaValue(
         'cellDecorator', tableMeta, rowMeta.meta, columnMeta, cellMeta);
