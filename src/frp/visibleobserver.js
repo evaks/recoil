@@ -24,7 +24,7 @@ recoil.frp.VisibleObserver = function() {
     this.observer_ = new MutationObserver(recoil.frp.VisibleObserver.observeFunc_(this));
     this.forceReconnect_ = false;
     this.removedNodes_ = new WeakMap();
-    
+
     if (recoil.frp.VisibleObserver.InsertionWatcher_ === null) {
         // maybe we should use a weak map here we can get rid of the $.recoil.watcher
         var addRec = function(node, seen, depth) {
@@ -36,7 +36,7 @@ recoil.frp.VisibleObserver = function() {
             seen[node.id] = true;
             if (toAdds !== undefined) {
                 toAdds.forEach(function(toAdd) {
-                    
+
                     toAdd.observer.listen(node, toAdd.callback);
                 });
                 delete node['$.recoil.watcher'];
@@ -56,10 +56,10 @@ recoil.frp.VisibleObserver = function() {
                     var node = mutation.addedNodes[i];
                     if (!node.id || !seen[node.id]) {
                         if (recoil.frp.VisibleObserver.exists(node)) {
-                            addRec(node,seen, 1);
+                            addRec(node, seen, 1);
                         }
                     }
-                      
+
                 }
 
             });

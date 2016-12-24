@@ -17,7 +17,7 @@ else
 fi
 
 DIR=`dirname $0`
-cd ${DIR}/..
+cd ${DIR}/../..
 
 gjslint --disable 0110,0120 `find recoil/src -name "*.js" -and -not -name "*_test.js" `
 if [ $? -ne 0 ]; then

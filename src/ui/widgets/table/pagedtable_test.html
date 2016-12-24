@@ -115,7 +115,6 @@
     //behaviours
 
     var bb = columns.createB(frp);
-    console.log("is behavior", bb instanceof recoil.frp.Behaviour);
     bb.x ='foo';
     var switchB = frp.createB(bb);
     switchB.x ='switch';

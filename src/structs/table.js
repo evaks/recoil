@@ -558,7 +558,7 @@ recoil.structs.table.MutableTable.prototype.setCell = function(keys, column, val
 recoil.structs.table.MutableTable.prototype.setCellMeta = function(keys, column, meta) {
     var cell = this.getCell(keys, column);
     if (cell === null) {
-        console.log("settin null");
+        console.log('settin null');
     }
     this.setCell(keys, column, cell.setMeta(meta));
 };

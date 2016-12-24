@@ -23,7 +23,7 @@ goog.require('recoil.ui.messages');
  * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer callback will be called with
  * @param {function(...?)} callback
- * @param {function()} opt_detachCallback_
+ * @param {function()=} opt_detachCallback
  * @constructor
  */
 
@@ -31,10 +31,9 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
     this.observer_ = widgetScope.getObserver();
     this.frp_ = widgetScope.getFrp();
     this.component_ = component;
-    this.detachCallback_ = function () {
-        console.log("DD", opt_detachCallback);
+    this.detachCallback_ = function() {
         if (opt_detachCallback) {
-            opt_detachCallback.apply(obj,[]);
+            opt_detachCallback.apply(obj, []);
         }
     };
     if (!(callback instanceof Function)) {
@@ -202,6 +201,7 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
     if (same) {
         return;
     }
+    var me = this;
 
     var hadBehaviour = this.behaviours_.length !== 0;
     if (hadBehaviour) {
@@ -211,7 +211,6 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
         }
     }
 
-    var me = this;
     this.behaviours_ = newBehaviours;
     this.attachedBehaviour_ = recoil.util.invokeOneParamAndArray(this.frp_, this.frp_.metaLiftB, this.callback_, this.behaviours_);
 
@@ -348,7 +347,6 @@ recoil.ui.TooltipHelper.prototype.attach = function(enabledB, var_helpers) {
 recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     var tooltip = null;
     var enabled;
-    console.log("updating", helper.isAttached());
     if (helper.isGood()) {
         var reason = this.enabledB_.get().reason();
         tooltip = reason === null ? null : reason.toString();
@@ -385,11 +383,8 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
 
 /**
  * @private
- * @param {!recoil.ui.ComponentWidgetHelper} helper
  */
 recoil.ui.TooltipHelper.prototype.detach_ = function() {
-        console.log("DETACH");
-
     if (this.tooltip_) {
         this.tooltip_.detach(this.component_.getElement());
         this.tooltip_.dispose();

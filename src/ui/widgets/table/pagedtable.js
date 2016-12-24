@@ -5,8 +5,6 @@
 goog.provide('recoil.ui.widgets.table.PagedTableWidget');
 goog.provide('recoil.ui.widgets.table.PagerWidget');
 
-goog.require('recoil.ui.widgets.table.TableWidget');
-
 goog.require('goog.dom.classes');
 goog.require('goog.string');
 goog.require('goog.ui.Container');
@@ -19,11 +17,12 @@ goog.require('recoil.ui.AttachableWidget');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.RenderedDecorator');
+goog.require('recoil.ui.messages');
 goog.require('recoil.ui.widgets.LabelWidget');
 goog.require('recoil.ui.widgets.TableMetaData');
 goog.require('recoil.ui.widgets.table.Column');
 goog.require('recoil.ui.widgets.table.StringColumn');
-goog.require('recoil.ui.messages');
+goog.require('recoil.ui.widgets.table.TableWidget');
 
 /**
  * @constructor
@@ -39,13 +38,13 @@ recoil.ui.widgets.table.PagedTableWidget = function(scope) {
 
     this.topPager_ = new recoil.ui.widgets.table.PagerWidget(scope);
     this.bottomPager_ = new recoil.ui.widgets.table.PagerWidget(scope);
-    
-    
+
+
     var tableDiv = goog.dom.createDom('div');
     this.tableWidget_.getComponent().render(tableDiv);
 
-    var div = goog.dom.createDom('div', {class : 'recoil-table-pager-container'});
-    
+    var div = goog.dom.createDom('div', {class: 'recoil-table-pager-container'});
+
     this.container_.getElement().appendChild(div);
     div.appendChild(this.topPager_.getComponent().getElement());
     div.appendChild(tableDiv);
@@ -53,25 +52,38 @@ recoil.ui.widgets.table.PagedTableWidget = function(scope) {
 
     var me = this;
 
-    
+
 
 };
 
 
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
 
-recoil.ui.widgets.table.PagedTableWidget.prototype.getComponent = function () {
+recoil.ui.widgets.table.PagedTableWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+/**
+ *
+ * @return {!goog.ui.Component}
+ */
+recoil.ui.widgets.table.PagedTableWidget.prototype.getComponent = function() {
     return this.container_;
 };
 
 
 /**
- * @param {recoil.frp.Behaviour<recoil.structs.table.Table> | recoil.structs.table.Table} table
- * @param {recoil.frp.Behaviour<recoil.ui.widgets.TableMetaData> |recoil.ui.widgets.TableMetaData} meta
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} table
+ * @param {!recoil.frp.Behaviour<!recoil.ui.widgets.TableMetaData> |!recoil.ui.widgets.TableMetaData} meta
+ * @param {!recoil.frp.Behaviour<!number>} page
+ * @param {!recoil.frp.Behaviour<!number>|!number} count
  */
 recoil.ui.widgets.table.PagedTableWidget.prototype.attach = function(table, meta, page, count) {
     this.tableWidget_.attach(table, meta);
-    this.topPager_.attach(page,count);
-    this.bottomPager_.attach(page,count);
+    this.topPager_.attach(page, count);
+    this.bottomPager_.attach(page, count);
 };
 
 /**
@@ -100,71 +112,72 @@ recoil.ui.widgets.table.PagerWidget = function(scope) {
     var me = this;
 
     this.first_ = goog.dom.createDom('a', {
-        class : 'first'},'\u00ab');
+        class: 'first'},'\u00ab');
     this.last_ = goog.dom.createDom('a', {
-        class : 'last'},'\u00bb');
+        class: 'last'},'\u00bb');
     this.next_ = goog.dom.createDom('a', {
-        class : 'next'},'\u203A');
+        class: 'next'},'\u203A');
     this.prev_ = goog.dom.createDom('a', {
-        class : 'previous'},'\u2039');
+        class: 'previous'},'\u2039');
 
     var selectPage = goog.dom.createDom('input', {
-        type : 'text',
-        class : 'page'
+        type: 'text',
+        class: 'page'
     });
-    
+
     var container = goog.dom.createDom('table', {
-        class : 'recoil-table-pager pagination'
+        class: 'recoil-table-pager pagination'
     });
 
     this.pageInput_ = selectPage;
-    
-    var row = goog.dom.createDom('div', {class : 'row'});
 
-    selectPage.onblur = function () {
+    var row = goog.dom.createDom('div', {class: 'row'});
+
+    selectPage.onblur = function() {
         me.scope_.getFrp().accessTrans(
-            function () {
+            function() {
                 if (me.helper_.isGood()) {
-                    var val = Number.parseInt(selectPage.value);
-                    
-                    if (val + "" === selectPage.value && val > 0 && val <= me.countB_.get()) {
+                    var val = parseInt(selectPage.value, 10);
+
+                    if (val + '' === selectPage.value && val > 0 && val <= me.countB_.get()) {
                         me.pageB_.set(val);
                     }
                 }
                 me.updateInfo_();
             }, me.pageB_, me.countB_);
-            
+
     };
-    selectPage.onfocus = function () {
+    selectPage.onfocus = function() {
         me.scope_.getFrp().accessTrans(
-            function () {
+            function() {
                 if (me.helper_.isGood()) {
                     selectPage.value = me.pageB_.get();
+                    selectPage.setSelectionRange(0, selectPage.value.length);
                 }
             }, me.pageB_, me.countB_);
     };
 
-    this.last_.onclick = function () {
+    this.last_.onclick = function() {
         me.scope_.getFrp().accessTrans(
-            function () {
+            function() {
                 if (me.helper_.isGood()) {
                     me.pageB_.set(me.countB_.get());
                 }
             }, me.pageB_, me.countB_);
     };
 
-    this.first_.onclick = function () {
+    this.first_.onclick = function() {
         me.scope_.getFrp().accessTrans(
-            function () {
+            function() {
                 if (me.helper_.isGood()) {
                     me.pageB_.set(1);
                 }
             }, me.pageB_, me.countB_);
     };
 
-    this.prev_.onclick = function () {
+    this.prev_.onclick = function() {
         me.scope_.getFrp().accessTrans(
-            function () {
+            function() {
                 if (me.helper_.isGood()) {
                     if (me.pageB_.get() > 1) {
                         me.pageB_.set(me.pageB_.get() - 1);
@@ -173,9 +186,9 @@ recoil.ui.widgets.table.PagerWidget = function(scope) {
             }, me.pageB_, me.countB_);
     };
 
-    this.next_.onclick = function () {
+    this.next_.onclick = function() {
         me.scope_.getFrp().accessTrans(
-            function () {
+            function() {
                 if (me.helper_.isGood()) {
                     if (me.pageB_.get() < me.countB_.get()) {
                         me.pageB_.set(me.pageB_.get() + 1);
@@ -196,53 +209,85 @@ recoil.ui.widgets.table.PagerWidget = function(scope) {
 };
 
 
-recoil.ui.widgets.table.PagerWidget.prototype.getComponent = function () {
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.table.PagerWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+/**
+ *
+ * @return {!goog.ui.Component}
+ */
+recoil.ui.widgets.table.PagerWidget.prototype.getComponent = function() {
     return this.container_;
 };
 
 
 /**
- * @param {!recoil.frp.Behaviour<!number>} page the page that need to be displayed, must be behaviour otherwise 
+ * @param {!recoil.frp.Behaviour<!number>} page the page that need to be displayed, must be behaviour otherwise
  8                                              we can't change the page
  * @param {!recoil.frp.Behaviour<!number> |!number} count
  */
 recoil.ui.widgets.table.PagerWidget.prototype.attach = function(page, count) {
+    var util = new recoil.frp.Util(this.scope_.getFrp());
+
     this.pageB_ = page;
-    this.countB_ = count;
-    this.helper_.attach(page, count);
+    this.countB_ = util.toBehaviour(count);
+    this.helper_.attach(page, this.countB_);
 };
 
+/***
+ * helper to mark buttons disabled
+ * @private
+ * @param {boolean} disabled
+ * @param {...Element} var_items
+ */
 recoil.ui.widgets.table.PagerWidget.prototype.disable_ = function(disabled, var_items) {
 
     for (var i = 1; i < arguments.length; i++) {
         var item = arguments[i];
         if (disabled) {
             goog.dom.classlist.add(item, 'disabled');
-            console.log("disable");
         }
         else {
             goog.dom.classlist.remove(item, 'disabled');
-            console.log("enable");
         }
     }
 };
+
+/**
+ * updates the info in the table widget
+ * @private
+ */
+
 recoil.ui.widgets.table.PagerWidget.prototype.updateInfo_ = function() {
     if (this.helper_.isGood()) {
         this.pageInput_.value = recoil.ui.messages.PAGE_X_OF_Y.resolve(
-            { x : this.pageB_.get(), y : this.countB_.get() }).toString();
+            { x: this.pageB_.get(), y: this.countB_.get() }).toString();
         var c = this.countB_.get();
         var p = this.pageB_.get();
         var enabled = c > 1;
         this.pageInput_.disabled = !enabled;
-        this.disable_(!enabled || p ===  1, this.first_, this.prev_);
-        this.disable_(!enabled || p ===  c, this.last_, this.next_);
+        this.disable_(!enabled || p === 1, this.first_, this.prev_);
+        this.disable_(!enabled || p === c, this.last_, this.next_);
         this.pageInput_.disabled = !enabled;
     }
     else {
         this.pageInput_.disabled = true;
+        this.disable_(true, this.first_, this.prev_, this.last_, this.next_);
+        this.pageInput_.value = recoil.ui.messages.PAGE_X_OF_Y.resolve(
+            { x: this.pageB_.metaGet().good() ? this.pageB_.get() : recoil.ui.messages.__UNKNOWN_VAL,
+              y: this.countB_.metaGet().good() ? this.countB_.get() : recoil.ui.messages.__UNKNOWN_VAL}).toString();
     }
 };
 
+/**
+ * updates the display in the pager widget
+ * @private
+ */
 recoil.ui.widgets.table.PagerWidget.prototype.updateState_ = function() {
     var enabled = this.helper_.isGood();
     if (this.helper_.isGood()) {

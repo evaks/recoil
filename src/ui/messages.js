@@ -32,6 +32,12 @@ recoil.ui.messages.VALID = recoil.ui.message.getParamMsg('Valid');
  */
 recoil.ui.messages.INVALID = recoil.ui.message.getParamMsg('Invalid');
 
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.__UNKNOWN_VAL = recoil.ui.message.getParamMsg('?');
+
 
 /**
  * @type {recoil.ui.message.Message}
