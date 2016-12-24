@@ -4,7 +4,7 @@
   border: 1px solid #CDCDCD;
   border-radius: 3px; }
 
-.pagination ax {
+.pagination a {
   display: table-cell;
   width: 20px;
   height: 20px;
@@ -22,26 +22,10 @@
   background-color: #f3f3f3;
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f3f3f3), color-stop(100%, lightgrey));
   background-image: -webkit-linear-gradient(#f3f3f3, lightgrey);
-  background-image: linear-gradient(#f3f3f3, lightgrey); }
+  background-image: linear-gradient(#f3f3f3, lightgrey);
+  cursor : default;
+}
 
-.pagination td {
-  width: 20px;
-  height: 20px;
-  outline: none;
-  border-right: 1px solid #CDCDCD;
-  border-left: 1px solid #CDCDCD;
-  color: #555555;
-  vertical-align: middle;
-  text-align: center;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 16px;
-  font-family: Times, 'Times New Roman', Georgia, Palatino;
-  /* ATTN: need a better font stack */
-  background-color: #f3f3f3;
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f3f3f3), color-stop(100%, lightgrey));
-  background-image: -webkit-linear-gradient(#f3f3f3, lightgrey);
-  background-image: linear-gradient(#f3f3f3, lightgrey); }
 
 .pagination a:hover, .pagination a:focus, .pagination a:active {
     background-color: #cecece;
@@ -55,7 +39,7 @@
     background-image: -webkit-linear-gradient(#f3f3f3, lightgrey);
     background-image: linear-gradient(#f3f3f3, lightgrey);
     color: #A8A8A8;
-    cursor: default; }
+    cursor: not-allowed; }
 
 
 table.recoil-table-pager {
@@ -68,23 +52,14 @@ input .page {
 }
 table.recoil-table-pager .page {
     width : 100%;
+    text-align : center;
 }
-.paginationx .page {
-    display: table-cell;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 20px;
-    outline: none;
-    border: solid;
-    vertical-align: middle;
-    text-align: center; }
 
 .recoil-table-pager.pagination {
  width: 100%; }
 
-.recoil-table-pager-container {display: table; border : solid}
-.recoil-table-pager-container .row { display: table-row; border :solid; }
+.recoil-table-pager-container {display: table}
+.recoil-table-pager-container .row { display: table-row }
 
 
 .recoil-table1-pager.pagination {

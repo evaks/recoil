@@ -7,6 +7,13 @@ goog.require('recoil.ui.message');
  * @final
  */
 recoil.ui.messages.AND = recoil.ui.message.getParamMsg(['first'], ' and ', ['second']);
+
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.PAGE_X_OF_Y = recoil.ui.message.getParamMsg('Page ', ['x'], ' of ', ['y']);
+
 /**
  * @type {recoil.ui.message.Message}
  * @final
