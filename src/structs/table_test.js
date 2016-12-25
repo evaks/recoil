@@ -33,10 +33,17 @@ function testOrdered () {
         assertEquals(expected[i], row.get(COL_A));
         i++;
     });
+
+    i = 0;
+    tbl.freeze().unfreeze().freeze().forEach(function (row) {
+        assertEquals(expected[i], row.get(COL_A));
+        i++;
+    });
     
     
 
 }
+
 function testAddRow() {
     var tbl = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
     var row = new recoil.structs.table.MutableTableRow();
