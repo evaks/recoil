@@ -4,6 +4,7 @@
  */
 goog.provide('recoil.ui.widgets.table.PagedTableWidget');
 goog.provide('recoil.ui.widgets.table.PagerWidget');
+goog.provide('recoil.ui.widgets.table.createNextTablePager');
 
 goog.require('goog.dom.classes');
 goog.require('goog.string');
@@ -299,4 +300,114 @@ recoil.ui.widgets.table.PagerWidget.prototype.updateState_ = function() {
         this.updateInfo_();
     }
 
+};
+
+/**
+ * a pager that takes a table with 2 extra rows
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB table to be paged, it should contain an extra row for before and after (if it exists)
+ * @param {!recoil.frp.Behaviour<Object>} keyB an object specifies to do nextcan be null - first, page: _, prev: row, next: row
+ * @param {!recoil.frp.Behaviour<!number>} countB size of a page
+ * @return {{page:!recoil.frp.Behaviour<!number>,table: !recoil.frp.Behaviour<!recoil.structs.table.Table>, count : !recoil.frp.Behaviour<!number>}}
+ */
+
+recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, countB) {
+    var frp = tableB.frp();
+
+    var memoryB = frp.createB(1);
+
+    var rememberPageB = tableB.frp().liftBI(
+        function()  {
+            return {orig: memoryB.get(), val: memoryB.get()};
+        },
+        function(val) {
+            var table = tableB.get();
+            var first = null;
+            var last = null;
+            table.forEach(function(row) {
+                first = first || row;
+                last = row;
+            });
+
+            if (val.orig + 1 === val.val) {
+                // value has increased by 1 just get the next page
+                if (table.size() > countB.get() + 1 && last) {
+                    keyB.set({next: last});
+                    memoryB.set(val.val);
+                }
+            }
+            else if (val.val === 1) {
+                // we want the first page no need for a key
+                keyB.set(null);
+                memoryB.set(val.val);
+            }
+            else if (val.orig - 1 === val.val) {
+                // went back 1 use prev
+                keyB.set({prev: first});
+                memoryB.set(val.val);
+            }
+            else {
+                // random page just get that
+                keyB.set({prev: val.val});
+                memoryB.set(val.val);
+            }
+        }, tableB, keyB, memoryB);
+
+    var pageB = frp.liftBI(
+        function() {
+            return rememberPageB.get().val;
+        },
+        function(val) {
+            rememberPageB.set({orig: rememberPageB.get().orig, val: val});
+        }, rememberPageB);
+    // this filters out the first and last row if necessary
+    var outTableB = frp.liftBI(
+        function(table, page, count) {
+            var res = table.createEmpty();
+            var row = 0;
+            table.forEach(function(row) {
+                var max = page === 1 ? count : count + 1;
+                if ((page === 1 && row === 0) || (row !== 0 && row < max)) {
+                    res.addRow(row);
+                }
+                row++;
+            });
+            return res;
+        },
+        function(val) {
+            var res = tableB.get().createEmpty();
+            var rowPos = 0;
+            var page = memoryB.get();
+            var count = countB.get();
+            // add first row used for pager
+            if (page !== 0) {
+                tableB.get().forEach(function(row) {
+                    if (rowPos === 0) {
+                        res.addRow(row);
+                    }
+                    rowPos++;
+                });
+            }
+
+            // add the data for the output rows
+            val.forEach(function(row) {
+                res.addRow(row);
+            });
+
+            rowPos = 0;
+            var max = page === 1 ? count : count + 1;
+            tableB.get().forEach(function(row) {
+                if (rowPos >= max) {
+                    res.addRow(row);
+                }
+                rowPos++;
+            });
+
+
+        }, tableB, memoryB, countB);
+
+    return {
+        table: outTableB,
+        page: pageB,
+        count: countB
+    };
 };

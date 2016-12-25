@@ -221,6 +221,19 @@ recoil.structs.table.Table.prototype.unfreeze = function() {
     });
     return res;
 };
+
+/**
+ * creates an empty mutable table with the same columns
+ * @return {recoil.structs.table.MutableTable}
+ */
+recoil.structs.table.Table.prototype.createEmpty = function() {
+    var res = new recoil.structs.table.MutableTable(this.primaryColumns_, this.otherColumns_);
+    recoil.util.object.addProps(res.meta_, this.meta_);
+    res.columnMeta_ = {};
+    recoil.util.object.addProps(res.columnMeta_, this.columnMeta_);
+    return res;
+};
+
 /**
  *
  * @param {!Array<!recoil.structs.table.ColumnKey>} primaryKeys
