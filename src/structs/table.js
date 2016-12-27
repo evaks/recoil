@@ -208,7 +208,7 @@ recoil.structs.table.Table.prototype.getPrimaryColumns = function() {
 
 /**
  * convert to a mutable table
- * @return {recoil.structs.table.MutableTable}
+ * @return {!recoil.structs.table.MutableTable}
  */
 recoil.structs.table.Table.prototype.unfreeze = function() {
     var res = new recoil.structs.table.MutableTable(this.primaryColumns_, this.otherColumns_);
@@ -271,6 +271,34 @@ recoil.structs.table.MutableTable = function(primaryKeys, otherColumns) {
     this.ordered_ = new goog.structs.AvlTree(recoil.structs.table.TableRow.positionComparator_(comparator));
 
 };
+
+
+/**
+ * @return {!Array<!recoil.structs.table.ColumnKey<*>>}
+ */
+recoil.structs.table.MutableTable.prototype.getColumns = function() {
+    return goog.array.concat(this.primaryColumns_, this.otherColumns_);
+};
+
+/**
+ * @return {!Array<!recoil.structs.table.ColumnKey<*>>}
+ */
+recoil.structs.table.MutableTable.prototype.getPrimaryColumns = function() {
+    return this.primaryColumns_;
+};
+
+/**
+ * @param {!recoil.structs.table.MutableTableRow|recoil.structs.table.TableRow} row
+ * @return {!Array<?>}
+ */
+recoil.structs.table.MutableTable.prototype.getRowKey = function(row) {
+    var res = [];
+    for (var i = 0; i < this.primaryColumns_.length; i++) {
+        res.push(row.get(this.primaryColumns_[i]));
+    }
+    return res;
+};
+
 
 
 /**
@@ -639,7 +667,7 @@ recoil.structs.table.MutableTable.prototype.get = function(keys, column) {
 
 /**
  * convert into immutable table
- * @return {recoil.structs.table.Table}
+ * @return {!recoil.structs.table.Table}
  */
 
 recoil.structs.table.MutableTable.prototype.freeze = function() {
@@ -671,7 +699,7 @@ recoil.structs.table.Table.prototype.getMeta = function() {
 /**
  * @template CT
  * @param {recoil.structs.table.ColumnKey<CT>} column
- * @return {*} +
+ * @return {!Object} +
  */
 recoil.structs.table.Table.prototype.getColumnMeta = function(column) {
     var res = this.columnMeta_[column];
@@ -1029,7 +1057,7 @@ recoil.structs.table.TableRow.createOrdered = function(pos, var_args) {
  */
 recoil.structs.table.TableRow.prototype.getRowMeta = function() {
     var cell = this.getCell(recoil.structs.table.ColumnKey.ROW_META);
-    return cell.getMeta();
+    return cell ? cell.getMeta() : {};
 };
 
 /**
@@ -1084,6 +1112,17 @@ recoil.structs.table.MutableTableRow = function(opt_position, opt_immutable) {
     }
     this.changed_ = {};
 };
+/**
+ * @param {?} that
+ * @return {boolean}
+ */
+recoil.structs.table.MutableTableRow.prototype.equals = function(that) {
+    if (!(that instanceof recoil.structs.table.MutableTableRow)) {
+        return false;
+    }
+
+    return recoil.util.object.isEqual(this.freeze(), that.freeze());
+};
 
 /**
  * @return {number|undefined}
@@ -1118,12 +1157,21 @@ recoil.structs.table.MutableTableRow.prototype.setRowMeta = function(meta) {
     }
     this.setCell(recoil.structs.table.ColumnKey.ROW_META, cell.setMeta(meta));
 };
+
+/**
+ * @param {!Object} meta
+ */
+recoil.structs.table.MutableTableRow.prototype.addRowMeta = function(meta) {
+    var newMeta = {};
+    recoil.util.object.addProps(newMeta, this.getRowMeta(), meta);
+    this.setRowMeta(meta);
+};
 /**
  * @return {!Object}
  */
 recoil.structs.table.MutableTableRow.prototype.getRowMeta = function() {
     var cell = this.getCell(recoil.structs.table.ColumnKey.ROW_META);
-    return cell.getMeta();
+    return cell ? cell.getMeta() : {};
 };
 
 /**
