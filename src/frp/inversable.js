@@ -4,7 +4,7 @@ goog.provide('recoil.frp.Inversable');
 
 /**
  * @interface
- * @template T,Input
+ * @template T,Input,Output
  * Input is the input type it is a struct that defines the inputs
  * T is the result type
  */
@@ -23,7 +23,7 @@ recoil.frp.Inversable.prototype.calculate = function(params) {
 /**
  * @param {T} val
  * @param {Input} sources
- * @return {Input} objects to set
+ * @return {Output} objects to set
  */
 
 recoil.frp.Inversable.prototype.inverse = function(val, sources) {

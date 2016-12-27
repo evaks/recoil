@@ -8,7 +8,9 @@ goog.require('recoil.structs.table.Table');
 goog.require('recoil.util.object');
 
 /**
- * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,!{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}>}
+ * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,
+ !{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table},
+ !{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}>}
  * @constructor
  * @param {!function (!recoil.structs.table.TableRow) : !Object} keyGetter1 gets the join key out of the
  *             left table

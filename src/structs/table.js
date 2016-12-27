@@ -25,12 +25,26 @@ goog.require('recoil.util.object');
  * @param {string} name
  * @param {function(T,T) : number=} opt_comparator used for key values only needed if > < = do not work and it is a primary key
  * @param {function(*) : T=} opt_castTo
+ * @param {T=} opt_default
  */
-recoil.structs.table.ColumnKey = function(name, opt_comparator, opt_castTo) {
+recoil.structs.table.ColumnKey = function(name, opt_comparator, opt_castTo, opt_default) {
     this.name_ = name;
     this.comparator_ = opt_comparator || recoil.structs.table.ColumnKey.defaultComparator_;
     this.castTo_ = opt_castTo || function(x) {return x;};
+    this.hasDefault_ = arguments.length > 3;
+    this.default_ = opt_default;
     this.id_ = recoil.structs.table.ColumnKey.nextId_.next();
+};
+/**
+ * @return {T}
+ */
+recoil.structs.table.ColumnKey.prototype.getDefault = function() {
+    return this.default_;
+};/**
+ * @return {boolean}
+ */
+recoil.structs.table.ColumnKey.prototype.hasDefault = function() {
+    return this.hasDefault_;
 };
 
 /**
@@ -224,10 +238,13 @@ recoil.structs.table.Table.prototype.unfreeze = function() {
 
 /**
  * creates an empty mutable table with the same columns
+ * @param {IArrayLike<!recoil.structs.table.ColumnKey>=} opt_extPrimaryCols
+ * @param {IArrayLike<!recoil.structs.table.ColumnKey>=} opt_extOtherCols
  * @return {recoil.structs.table.MutableTable}
  */
-recoil.structs.table.Table.prototype.createEmpty = function() {
-    var res = new recoil.structs.table.MutableTable(this.primaryColumns_, this.otherColumns_);
+recoil.structs.table.Table.prototype.createEmpty = function(opt_extPrimaryCols, opt_extOtherCols) {
+    var res = new recoil.structs.table.MutableTable(this.primaryColumns_.concat(opt_extPrimaryCols || []),
+                                                    this.otherColumns_.concat(opt_extOtherCols || []));
     recoil.util.object.addProps(res.meta_, this.meta_);
     res.columnMeta_ = {};
     recoil.util.object.addProps(res.columnMeta_, this.columnMeta_);
@@ -455,7 +472,12 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
     });
     this.otherColumns_.forEach(function(col) {
         if (!row.hasColumn(col)) {
-            throw 'missing column: ' + col.getName();
+            if (col.hasDefault()) {
+                row = row.set(col, col.getDefault());
+            }
+            else {
+                throw 'missing column: ' + col.getName();
+            }
         }
     });
 
