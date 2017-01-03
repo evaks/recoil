@@ -19,7 +19,7 @@ goog.require('recoil.util');
  * recoil.frp.TraverseDirection.
  *
  * @param {!string} name
- * @param {function(!recoil.frp.Behaviour,!Array <!recoil.frp.Behaviour>, !Array <!recoil.frp.Behaviour>, !Array <!recoil.frp.Behaviour>) : !Array<!recoil.frp.Behaviour>}
+ * @param {function(!recoil.frp.Behaviour,!Array <!recoil.frp.Behaviour>, !Array <!recoil.frp.Behaviour>, !Array <!{behaviour: !recoil.frp.Behaviour, force:boolean}>) : !Array<!recoil.frp.Behaviour>}
  *            calc
  *
  * @param {function(recoil.frp.Behaviour,recoil.frp.Behaviour):number} comparator
@@ -36,7 +36,7 @@ recoil.frp.TraverseDirection = function(name, calc, comparator) {
  * @param {!recoil.frp.Behaviour} behaviour
  * @param {!Array <!recoil.frp.Behaviour>} providers
  * @param {!Array <!recoil.frp.Behaviour>} dependents
- * @param {!Array <!recoil.frp.Behaviour>} nextItr
+ * @param {!Array <!{behaviour : !recoil.frp.Behaviour, force: boolean}>} nextItr
  * @return {!Array <!recoil.frp.Behaviour>}
  */
 recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers, dependents, nextItr) {
@@ -389,7 +389,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
      * @param {!recoil.frp.Behaviour} behaviour
      * @param {!Array <!recoil.frp.Behaviour>} providers
      * @param {!Array <!recoil.frp.Behaviour>} dependents
-     * @param {!Array <!recoil.frp.Behaviour>} nextItr things to be queue no the next iteration not this one
+     * @param {!Array <!{behaviour:!recoil.frp.Behaviour, force:boolean}>} nextItr things to be queue no the next iteration not this one
      * @return {!Array <!recoil.frp.Behaviour>}
      */
     function(behaviour, providers, dependents, nextItr) {
@@ -408,9 +408,13 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         });
         var oldDirty = getDirty(behaviour.providers_);
         var newVal;
+
         if (behaviour.dirtyDown_) {
             // do nothing here calulationg here is pointless since we need to recalc anyway
+            // but ensure we calculate it next phase
             newVal = behaviour.val_;
+            nextItr.push({behaviour: behaviour, force: true});
+
         }
         else {
             newVal = behaviour.calc_.apply(behaviour, params);
@@ -424,7 +428,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         for (var p in newDirty) {
             if (oldDirty[p] === undefined) {
                 var prov = newDirty[p];
-                nextItr.push(prov);
+                nextItr.push({behaviour: prov, force: false});
             }
         }
         var res = [];
@@ -474,7 +478,7 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
      * @param {!recoil.frp.Behaviour} behaviour
      * @param {!Array <!recoil.frp.Behaviour>} providers
      * @param {!Array <!recoil.frp.Behaviour>} dependants
-     * @param {!Array <!recoil.frp.Behaviour>} nextItr things to be queue no the next iteration not this one
+     * @param {!Array <!{behaviour:!recoil.frp.Behaviour, force:boolean}>} nextItr things to be queue no the next iteration not this one
      * @return {!Array <!recoil.frp.Behaviour>}
      */
     function(behaviour, providers, dependants, nextItr) {
@@ -1152,7 +1156,9 @@ recoil.frp.Frp.prototype.liftE = function(func, var_args) {
  */
 recoil.frp.Frp.prototype.createCallback = function(func, var_dependants) {
     recoil.util.notNull(arguments);
-    var params = [function() {return null;}, function(value) {return func.apply(this, arguments)}];
+    var params = [function() {return null;}, function(value) {
+        return func.apply(this, arguments);
+    }];
     for (var i = 1; i < arguments.length; i++) {
         params.push(arguments[i]);
     }
@@ -1600,8 +1606,12 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
         }
 
         for (d = 0; d < nextItr.length; d++) {
-            var next = pendingHeap.remove(nextItr[d]);
+
+            var next = pendingHeap.remove(nextItr[d].behaviour);
             if (next) {
+                nextPending.push(next);
+            }
+            else if (nextItr[d].force) {
                 nextPending.push(next);
             }
         }
