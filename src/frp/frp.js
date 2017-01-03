@@ -1606,13 +1606,13 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
         }
 
         for (d = 0; d < nextItr.length; d++) {
-
-            var next = pendingHeap.remove(nextItr[d].behaviour);
+            var it = nextItr[d];
+            var next = pendingHeap.remove(it.behaviour);
             if (next) {
                 nextPending.push(next);
             }
-            else if (nextItr[d].force) {
-                nextPending.push(next);
+            else if (it.force) {
+                nextPending.push(it.behaviour);
             }
         }
         prev = cur;
