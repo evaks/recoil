@@ -60,6 +60,8 @@ recoil.structs.table.Join.prototype.calculate = function(tables) {
 
     var result = new recoil.structs.table.MutableTable(pks, otherColumns);
 
+    result.setMeta(tables.left.getMeta());
+    result.addMeta(tables.right.getMeta());
     tables.left.getColumns().forEach(function(col) {
         result.setColumnMeta(col, tables.left.getColumnMeta(col));
     });

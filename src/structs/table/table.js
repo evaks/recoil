@@ -221,6 +221,13 @@ recoil.structs.table.Table.prototype.getPrimaryColumns = function() {
 };
 
 /**
+ * @return {Array<recoil.structs.table.ColumnKey>}
+ */
+recoil.structs.table.Table.prototype.getOtherColumns = function() {
+    return this.otherColumns_;
+};
+
+/**
  * convert to a mutable table
  * @return {!recoil.structs.table.MutableTable}
  */
@@ -240,7 +247,7 @@ recoil.structs.table.Table.prototype.unfreeze = function() {
  * creates an empty mutable table with the same columns
  * @param {IArrayLike<!recoil.structs.table.ColumnKey>=} opt_extPrimaryCols
  * @param {IArrayLike<!recoil.structs.table.ColumnKey>=} opt_extOtherCols
- * @return {recoil.structs.table.MutableTable}
+ * @return {!recoil.structs.table.MutableTable}
  */
 recoil.structs.table.Table.prototype.createEmpty = function(opt_extPrimaryCols, opt_extOtherCols) {
     var res = new recoil.structs.table.MutableTable(this.primaryColumns_.concat(opt_extPrimaryCols || []),
@@ -524,7 +531,7 @@ recoil.structs.table.MutableTable.prototype.makeKeys_ = function(keys) {
 
 /**
  *
- * @param {function(recoil.structs.table.TableRow,Array<*>,Object) : *} func
+ * @param {function(!recoil.structs.table.TableRow,!Array<?>,Object) : *} func
  */
 recoil.structs.table.MutableTable.prototype.forEach = function(func) {
     var me = this;
@@ -752,7 +759,7 @@ recoil.structs.table.Table.prototype.getRowMeta = function(keys, column) {
 
 /**
  *
- * @param {function(!recoil.structs.table.TableRow, Array<?>, Object) : *} func
+ * @param {function(!recoil.structs.table.TableRow, !Array<?>, Object) : *} func
  */
 
 recoil.structs.table.Table.prototype.forEach = function(func) {

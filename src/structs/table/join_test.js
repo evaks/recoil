@@ -8,7 +8,7 @@ goog.require('recoil.structs.table.ColumnKey');
 
 
 
-goog.setTestOnly('recoil.structs.TableTest');
+goog.setTestOnly('recoil.structs.table.JoinTest');
 
 var COL_A = new recoil.structs.table.ColumnKey("a");
 var COL_B = new recoil.structs.table.ColumnKey("b");
@@ -32,6 +32,8 @@ function testSimpleJoin () {
     var leftTbl = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
     var rightTbl = new recoil.structs.table.MutableTable([COL_D], [COL_E]);
 
+    leftTbl.setMeta({left:true});
+    rightTbl.setMeta({right:true});
     leftTbl.setColumnMeta(COL_B, {left : true});
     rightTbl.setColumnMeta(COL_E, {right : true});
 
@@ -56,6 +58,7 @@ function testSimpleJoin () {
     var i = 0;
     var table = testee.calculate({left : leftTbl.freeze(), right : rightTbl.freeze()});
 
+    assertObjectEquals({left: true, right: true}, table.getMeta());
     assertObjectEquals({left: true}, table.getColumnMeta(COL_B));
     assertObjectEquals({right: true}, table.getColumnMeta(COL_E));
     assertEquals(expected.length, table.size());
