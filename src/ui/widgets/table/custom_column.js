@@ -39,7 +39,7 @@ recoil.ui.widgets.table.CustomColumn.prototype.getMeta = function(curMeta) {
     var meta = {name: this.name_,
                 cellWidgetFactory: this.factory_};
 
-    goog.object.extend(meta, this.meta_, curMeta);
+    goog.object.extend(meta, curMeta);
     return meta;
 };
 
