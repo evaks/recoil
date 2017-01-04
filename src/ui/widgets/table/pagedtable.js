@@ -353,7 +353,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
                 keyB.set({page: val.val});
                 memoryB.set(val.val);
             }
-        }, tableB, keyB, memoryB);
+        }, tableB, keyB, memoryB, pageSizeB);
 
     var pageB = frp.liftBI(
         function() {
