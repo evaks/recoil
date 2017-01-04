@@ -13,9 +13,7 @@ goog.require('recoil.ui.widgets.table.Column');
  * @constructor
  * @param {recoil.structs.table.ColumnKey} key
  * @param {string} name
- * @param {function(!recoil.ui.WidgetScope,!recoil.frp.Behaviour<recoil.structs.table.TableCell): {!recoil.ui.Widget}
- * @param {number=} opt_maxChars
- * @param {boolean=} opt_editable
+ * @param {function(!recoil.ui.WidgetScope,!recoil.frp.Behaviour<recoil.structs.table.TableCell>): !recoil.ui.Widget} factory
  *
  */
 recoil.ui.widgets.table.CustomColumn = function(key, name, factory) {

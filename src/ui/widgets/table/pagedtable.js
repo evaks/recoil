@@ -365,8 +365,8 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
     return {
         table: tableB,
         page: pageB,
-        count: frp.liftB(function (size, pageSize) {
-            return Math.ceil(size/pageSize);
+        count: frp.liftB(function(size, pageSize) {
+            return Math.ceil(size / pageSize);
         }, tableSizeB, pageSizeB)
     };
 };

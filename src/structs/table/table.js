@@ -861,7 +861,6 @@ recoil.structs.table.Table.prototype.getCell = function(keys, columnKey) {
 recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable, opt_ordered) {
 
     var keys = recoil.structs.table.Table.extractKeys_(tableMeta);
-    console.log(keys);
     var tbl = new recoil.structs.table.MutableTable(keys.primaryKeys, keys.otherKeys);
 
     tbl.setMeta({'typeFactories': typeFactories});
@@ -883,7 +882,6 @@ recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable,
         i++;
 
     });
-    console.log(tbl.freeze());
    return tbl.freeze();
 };
 

@@ -33,6 +33,7 @@ recoil.frp.VisibleObserver = function() {
             if (seen[node.id]) {
                 return;
             }
+
             seen[node.id] = true;
             if (toAdds !== undefined) {
                 toAdds.forEach(function(toAdd) {
@@ -48,10 +49,10 @@ recoil.frp.VisibleObserver = function() {
 
         };
         recoil.frp.VisibleObserver.InsertionWatcher_ = new MutationObserver(function(mutations) {
-
             // the mutations may have the same node more than once eliminate this since this is slow
             var seen = {};
             mutations.forEach(function(mutation, index, array) {
+
                 for (var i = 0; i < mutation.addedNodes.length; i++) {
                     var node = mutation.addedNodes[i];
                     if (!node.id || !seen[node.id]) {
@@ -171,7 +172,7 @@ recoil.frp.VisibleObserver.prototype.findChangedNodes_ = function(mutations) {
                 }
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     });
     return found;
@@ -280,10 +281,19 @@ recoil.frp.VisibleObserver.observeFunc_ = function(me) {
                     return false;
             });
             me.observer_.disconnect();
+            //since we disconnected we may have lost some changes update the states if needed
+
+            me.states_.inOrderTraverse(function(travNode) {
+                me.updateState_(travNode);
+                return false;
+            });
+
             me.watched_.inOrderTraverse(function(travNode) {
                 me.observe_(travNode.node);
                 return false;
             });
+
+
         } else {
             // else add new watched items
             toAdd.inOrderTraverse(function(travNode) {
@@ -378,6 +388,30 @@ recoil.frp.VisibleObserver.prototype.watchForInsertion_ = function(node, callbac
         node['$.recoil.watcher'].push({observer: this, callback: callback});
     }
 };
+/**
+ * @private
+ * @param {!recoil.frp.VisibleObserver.State_} state
+ * @param {function(boolean)=} opt_callback
+ */
+recoil.frp.VisibleObserver.prototype.updateState_ = function(state, opt_callback) {
+    var wasVisible = state.visible;
+    var exists = recoil.frp.VisibleObserver.exists(state.node);
+    state.update(exists, recoil.frp.VisibleObserver.visible(state.node));
+    if (opt_callback) {
+        state.callbacks.push(opt_callback);
+    }
+    if (wasVisible === state.visible) {
+        if (opt_callback) {
+            opt_callback(state.visible);
+        }
+    } else {
+        // call all the callbacks for this node since the visible state has
+        // changed
+        state.callbacks.forEach(function(c) {
+            c(state.visible);
+        });
+    }
+};
 
 /**
  * listens to node and fires callback when its visibility has changed if the node is removed from the DOM it will no
@@ -404,18 +438,7 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
     if (state !== null) {
         // we are already watching this node so no need to watch it again just
         // add the callback to the callbacks and call it
-        var wasVisible = state.visible;
-        state.update(exists, recoil.frp.VisibleObserver.visible(node));
-        state.callbacks.push(callback);
-        if (wasVisible === state.visible) {
-            callback(state.visible);
-        } else {
-            // call all the callbacks for this node since the visible state has
-            // changed
-            state.callbacks.forEach(function(c) {
-                c(state.visible);
-            });
-        }
+        this.updateState_(state, callback);
         return;
     }
 
@@ -546,7 +569,6 @@ recoil.frp.VisibleObserver.createWatched_ = function(watching, effected) {
  * @param {Node} node
  */
 recoil.frp.VisibleObserver.prototype.observe_ = function(node) {
-
     this.observer_.observe(node, /** @type MutationObserverInit */
     ({
         attributes: true,
@@ -574,9 +596,7 @@ recoil.frp.VisibleObserver.exists = function(node) {
 recoil.frp.VisibleObserver.visible = function(node) {
    var cur = node;
     var visible = true;
-
     while (cur != null && visible) {
-
         if (cur.style) {
             visible = cur.style.display !== 'none';
         }

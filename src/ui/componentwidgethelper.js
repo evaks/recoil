@@ -36,11 +36,15 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
             opt_detachCallback.apply(obj, []);
         }
     };
+    this.debug_ = null;
     if (!(callback instanceof Function)) {
         throw new Error('callback not a function');
     }
     var me = this;
     this.listenFunc_ = function(visible) {
+        if (me.debug_) {
+            console.log('VISIBLE', me.debug_, visible);
+        }
         if (visible != me.isAttached_) {
             me.isAttached_ = visible;
             if (visible) {
@@ -85,6 +89,12 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
  */
 recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
     return this.frp_;
+};
+/**
+ * @param {!string} debug the tag to print when debugging
+ */
+recoil.ui.ComponentWidgetHelper.prototype.debug = function(debug) {
+    this.debug_ = debug;
 };
 
 /**
@@ -222,6 +232,9 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
         this.isAttached_ = false;
         if (!this.component_.getElement()) {
             this.component_.createDom();
+        }
+        if (me.debug_) {
+            console.log('listening', me.debug_);
         }
         this.observer_.listen(this.component_.getElementStrict(), this.listenFunc_);
     }

@@ -33,7 +33,7 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.number_ = new recoil.ui.widgets.NumberWidget.NumberInput();
     this.number_.createDom();
     this.number_.setEnabled(false);
-    
+
     this.container_ = toControl(this.containerDiv_);
     this.readonly_ = new recoil.ui.widgets.LabelWidget(scope);
 

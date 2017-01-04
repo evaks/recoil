@@ -15,7 +15,7 @@ goog.require('recoil.util.object');
 recoil.frp.struct.get = function(name, value, opt_default) {
     return value.frp().liftBI(function() {
         var val = value.get();
-        var res = val === null ? undefined : val[name];
+        var res = val ? undefined : val[name];
         if (res === undefined) {
             res = opt_default;
         }

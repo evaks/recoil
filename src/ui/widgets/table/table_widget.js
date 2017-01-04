@@ -921,7 +921,6 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
         var table = tableB.get();
         var tableMeta = table.tableMeta;
-        console.log('table', table);
         /**
          * @type {function () : recoil.ui.RenderedDecorator}
          */
