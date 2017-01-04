@@ -333,7 +333,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
 
             if (val.orig + 1 === val.val) {
                 // value has increased by 1 just get the next page
-                if (table.size() > pageSizeB.get() + 1 && last) {
+                if (last) {
                     keyB.set({next: last});
                     memoryB.set(val.val);
                 }
