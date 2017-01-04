@@ -362,54 +362,8 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
         function(val) {
             rememberPageB.set({orig: rememberPageB.get().orig, val: val});
         }, rememberPageB);
-    // this filters out the first and last row if necessary
-    var outTableB = frp.liftBI(
-        function(table, page, count) {
-            var res = table.createEmpty();
-            var curRow = 0;
-            table.forEach(function(row) {
-                var max = page === 1 ? count : count + 1;
-                if ((page === 1 && curRow === 0) || (curRow !== 0 && curRow < max)) {
-                    res.addRow(row);
-                }
-                curRow++;
-            });
-            return res.freeze();
-        },
-        function(val) {
-            var res = tableB.get().createEmpty();
-            var rowPos = 0;
-            var page = memoryB.get();
-            var count = pageSizeB.get();
-            // add first row used for pager
-            if (page !== 0) {
-                tableB.get().forEach(function(row) {
-                    if (rowPos === 0) {
-                        res.addRow(row);
-                    }
-                    rowPos++;
-                });
-            }
-
-            // add the data for the output rows
-            val.forEach(function(row) {
-                res.addRow(row);
-            });
-
-            rowPos = 0;
-            var max = page === 1 ? count : count + 1;
-            tableB.get().forEach(function(row) {
-                if (rowPos >= max) {
-                    res.addRow(row);
-                }
-                rowPos++;
-            });
-
-
-        }, tableB, memoryB, pageSizeB);
-
     return {
-        table: outTableB,
+        table: tableB,
         page: pageB,
         count: frp.liftB(function (size, pageSize) {
             return Math.ceil(size/pageSize);
