@@ -31,7 +31,8 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.containerDiv_ = goog.dom.createDom('div');
     var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
     this.number_ = new recoil.ui.widgets.NumberWidget.NumberInput();
-
+    this.number_.setEnabled(false);
+    
     this.container_ = toControl(this.containerDiv_);
     this.readonly_ = new recoil.ui.widgets.LabelWidget(scope);
 
@@ -372,7 +373,6 @@ recoil.ui.widgets.NumberWidget.prototype.updateValue_ = function(helper) {
     if (helper.isGood()) {
         this.number_.setValue(this.valueB_.get());
     }
-
 };
 
 /**
