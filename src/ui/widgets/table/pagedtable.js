@@ -312,7 +312,7 @@ recoil.ui.widgets.table.PagerWidget.prototype.updateState_ = function() {
 
 recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
     var frp = tableB.frp();
-    var util = new recoil.frp.Util(this.scope_.getFrp());
+    var util = new recoil.frp.Util(tableB.frp());
     var countB = util.toBehaviour(count);
     var memoryB = frp.createB(1);
 
