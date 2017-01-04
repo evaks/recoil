@@ -364,13 +364,13 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
     var outTableB = frp.liftBI(
         function(table, page, count) {
             var res = table.createEmpty();
-            var row = 0;
+            var curRow = 0;
             table.forEach(function(row) {
                 var max = page === 1 ? count : count + 1;
-                if ((page === 1 && row === 0) || (row !== 0 && row < max)) {
+                if ((page === 1 && curRow === 0) || (curRow !== 0 && curRow < max)) {
                     res.addRow(row);
                 }
-                row++;
+                curRow++;
             });
             return res.freeze();
         },
