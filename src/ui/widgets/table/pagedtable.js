@@ -306,14 +306,16 @@ recoil.ui.widgets.table.PagerWidget.prototype.updateState_ = function() {
  * a pager that takes a table with 2 extra rows
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB table to be paged, it should contain an extra row for before and after (if it exists)
  * @param {!recoil.frp.Behaviour<Object>} keyB an object specifies to do nextcan be null - first, page: _, prev: row, next: row
- * @param {!recoil.frp.Behaviour<!number>|!number} count size of a page
+ * @param {!recoil.frp.Behaviour<!number>|!number} pageSize size of a page
+ * @param {!recoil.frp.Behaviour<!number>|!number} tableSize size of the entire table
  * @return {{page:!recoil.frp.Behaviour<!number>,table: !recoil.frp.Behaviour<!recoil.structs.table.Table>, count : !recoil.frp.Behaviour<!number>}}
  */
 
-recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
+recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, tableSize) {
     var frp = tableB.frp();
     var util = new recoil.frp.Util(tableB.frp());
-    var countB = util.toBehaviour(count);
+    var pageSizeB = util.toBehaviour(pageSize);
+    var tableSizeB = util.toBehaviour(tableSize);
     var memoryB = frp.createB(1);
 
     var rememberPageB = tableB.frp().liftBI(
@@ -331,7 +333,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
 
             if (val.orig + 1 === val.val) {
                 // value has increased by 1 just get the next page
-                if (table.size() > countB.get() + 1 && last) {
+                if (table.size() > pageSizeB.get() + 1 && last) {
                     keyB.set({next: last});
                     memoryB.set(val.val);
                 }
@@ -348,7 +350,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
             }
             else {
                 // random page just get that
-                keyB.set({prev: val.val});
+                keyB.set({page: val.val});
                 memoryB.set(val.val);
             }
         }, tableB, keyB, memoryB);
@@ -378,7 +380,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
             var res = tableB.get().createEmpty();
             var rowPos = 0;
             var page = memoryB.get();
-            var count = countB.get();
+            var count = pageSizeB.get();
             // add first row used for pager
             if (page !== 0) {
                 tableB.get().forEach(function(row) {
@@ -404,11 +406,13 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
             });
 
 
-        }, tableB, memoryB, countB);
+        }, tableB, memoryB, pageSizeB);
 
     return {
         table: outTableB,
         page: pageB,
-        count: countB
+        count: frp.liftB(function (size, pageSize) {
+            return Math.ceil(size/pageSize);
+        }, tableSizeB, pageSizeB);
     };
 };
