@@ -31,6 +31,7 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.containerDiv_ = goog.dom.createDom('div');
     var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
     this.number_ = new recoil.ui.widgets.NumberWidget.NumberInput();
+    this.number_.createDom();
     this.number_.setEnabled(false);
     
     this.container_ = toControl(this.containerDiv_);
