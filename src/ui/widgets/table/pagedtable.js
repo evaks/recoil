@@ -372,7 +372,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
                 }
                 row++;
             });
-            return res;
+            return res.freeze();
         },
         function(val) {
             var res = tableB.get().createEmpty();
