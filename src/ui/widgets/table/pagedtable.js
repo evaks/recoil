@@ -306,13 +306,14 @@ recoil.ui.widgets.table.PagerWidget.prototype.updateState_ = function() {
  * a pager that takes a table with 2 extra rows
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB table to be paged, it should contain an extra row for before and after (if it exists)
  * @param {!recoil.frp.Behaviour<Object>} keyB an object specifies to do nextcan be null - first, page: _, prev: row, next: row
- * @param {!recoil.frp.Behaviour<!number>} countB size of a page
+ * @param {!recoil.frp.Behaviour<!number>|!number} count size of a page
  * @return {{page:!recoil.frp.Behaviour<!number>,table: !recoil.frp.Behaviour<!recoil.structs.table.Table>, count : !recoil.frp.Behaviour<!number>}}
  */
 
-recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, countB) {
+recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, count) {
     var frp = tableB.frp();
-
+    var util = new recoil.frp.Util(this.scope_.getFrp());
+    var countB = util.toBehaviour(count);
     var memoryB = frp.createB(1);
 
     var rememberPageB = tableB.frp().liftBI(
