@@ -1940,5 +1940,5 @@ recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
             }
         }
     });
-    console.log('Detach Watching = ', this.watching_);
+    //    console.log('Detach Watching = ', this.watching_);
 };
