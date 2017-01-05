@@ -1,6 +1,7 @@
 goog.provide('recoil.ui.widgets.InputWidget');
 
 goog.require('goog.dom');
+goog.require('goog.dom.classlist');
 goog.require('goog.events');
 goog.require('goog.events.InputHandler');
 goog.require('goog.ui.Component');
@@ -73,6 +74,7 @@ recoil.ui.widgets.InputWidget.prototype.attach = function(value, enabled) {
 recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
     'value',
     {
+        classes: [],
         immediate: false, // if false changes will not propogate untill blur
         converter: new recoil.converters.DefaultStringConverter()
     }
@@ -89,12 +91,11 @@ recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl) {
     // did this as compiler was complaining about passing inputEl into setProperties
     var el = goog.dom.getElement(inputEl.id);
 
-    /* todo what is the better way to do this?? */
-    if (res.error.toString() === 'Valid') {
+    if (!res.error) {
         me.valueB_.set(res.value);
-        goog.dom.setProperties(el, {'class': ''});
+        goog.dom.classlist.remove(el, 'recoil-error');
     } else {
-        goog.dom.setProperties(el, {'class': 'recoil-error'});
+        goog.dom.classlist.add(el, 'recoil-error');
     }
 };
 
@@ -106,16 +107,16 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     var frp = this.helper_.getFrp();
 
     var bound = recoil.ui.widgets.InputWidget.options.bind(frp, options);
-
+    this.curClasses_ = [];
     this.valueB_ = bound.value();
     this.enabledB_ = bound.enabled();
     this.editableB_ = bound.editable();
     this.immediateB_ = bound.immediate();
     this.converterB_ = bound.converter();
-
+    this.classesB_ = bound.classes();
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attach(this.valueB_);
-    this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_);
+    this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_, this.classesB_);
 
 
     var me = this;
@@ -151,19 +152,19 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 
     var editable = this.editableB_.metaGet().good() || this.editableB_.get();
     this.input_.setEnabled(helper.isGood() && this.enabledB_.get().val());
+
+                       //recoil.ui.ComponentWidgetHelper.updateClasses
+    this.curClasses_ = recoil.ui.ComponentWidgetHelper.updateClasses(this.input_.getElement(), this.classesB_, this.curClasses_);
+
     if (this.valueB_.metaGet().good()) {
         var t = this.converterB_.get();
 
         var el = this.input_.getElement();
         var strVal = t.convert(this.valueB_.get());
 
-        if (strVal.value !== this.input_.getValue()) {
-            if (strVal.error.toString() === 'Invalid') {
-                goog.dom.setProperties(el, {'class': 'recoil-error'});
-            }
-            this.input_.setValue(strVal.value);
+        if (strVal !== this.input_.getValue()) {
+            this.input_.setValue(strVal);
         }
-
     }
     else {
         this.input_.setValue(recoil.ui.messages.NOT_READY.toString());

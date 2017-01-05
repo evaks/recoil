@@ -13,7 +13,7 @@ recoil.converters.IPv4AddressConverter = function() {
 
 /**
  * @param {recoil.types.IPv4Address} val
- * @return {!{error : recoil.ui.message.Message, value : string}}
+ * @return {!string}
  */
 recoil.converters.IPv4AddressConverter.prototype.convert = function(val) {
 
@@ -23,12 +23,7 @@ recoil.converters.IPv4AddressConverter.prototype.convert = function(val) {
         res += '.' + val[i];
     }
 
-    if (!this.isIPAddressValid_(val)) {
-        return {error: recoil.ui.messages.INVALID, value: res};
-    }
-
-    return {error: recoil.ui.messages.VALID, value: res};
-
+    return res;
 };
 
 /**
@@ -58,7 +53,7 @@ recoil.converters.IPv4AddressConverter.prototype.unconvert = function(val) {
         }
     }
 
-    return {error: err, value: res};
+    return {error: null, value: res};
 };
 
 /**

@@ -83,6 +83,29 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
      */
     this.isAttached_ = false;
 };
+/**
+ * updates the classes on an elemnt it will remove all old classes that are in cur classes but not
+ * in classesB
+ * @param {Element} element the element to update the class list for
+ * @param {!recoil.frp.Behaviour<!Array<!string>>} classesB the behaviour that stores the classes in
+ * @param {!Array<!string>} curClasses
+ * @return {!Array<!string>} the new classes
+ */
+recoil.ui.ComponentWidgetHelper.updateClasses = function(element, classesB, curClasses) {
+    var newClasses = classesB.metaGet().good() ? classesB.get() : [];
+        newClasses.forEach(function(cls) {
+        if (curClasses.indexOf(cls) === -1) {
+            goog.dom.classlist.add(element, cls);
+        }
+    });
+    curClasses.forEach(function(cls) {
+        if (newClasses.indexOf(cls) === -1) {
+            goog.dom.classlist.add(element, cls);
+        }
+    });
+
+    return newClasses;
+};
 
 /**
  * @return {!recoil.frp.Frp}
