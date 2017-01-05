@@ -9,6 +9,7 @@ goog.require('goog.events.PasteHandler');
 goog.require('goog.html.SafeHtml');
 goog.require('goog.ui.Component');
 goog.require('goog.ui.Tooltip');
+goog.require('recoil.frp.Array');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
@@ -262,7 +263,9 @@ recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
     {
         min: 0,
         max: Number.MAX_SAFE_INTEGER,
-        step: 1
+        step: 1,
+        readonlyFormatter : null,
+        classes : []
     }
 );
 
@@ -326,6 +329,7 @@ recoil.ui.widgets.NumberWidget.calcWidth_ = function(parent, str) {
 recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var frp = this.valueHelper_.getFrp();
     var util = new recoil.frp.Util(frp);
+    var arrUtil = new recoil.frp.Array(frp);
     var bound = recoil.ui.widgets.NumberWidget.options.bind(frp, options);
 
     this.valueB_ = bound.value();
@@ -334,15 +338,19 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.stepB_ = bound.step();
     this.editableB_ = bound.editable();
     this.enabledB_ = bound.enabled();
-
-    this.formatterB_ = frp.liftB(function(min, step) {
+    this.classesB_ = bound.classes();
+    
+    this.formatterB_ = frp.liftB(function(min, step, fmt) {
+        if (fmt) {
+            return fmt;
+        }
         var dp = Math.max(
             recoil.ui.widgets.NumberWidget.getDp_(min),
             recoil.ui.widgets.NumberWidget.getDp_(step));
         return function(v) {
             return v.toLocaleString(undefined, {minimumFractionDigits: dp});
         };
-    }, this.minB_, this.stepB_);
+    }, this.minB_, this.stepB_, bound.readonlyFormatter());
 
     this.valueHelper_.attach(this.valueB_);
 
@@ -350,7 +358,8 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_,
-                                 formatter: this.formatterB_
+                                 formatter: this.formatterB_,
+                                 classes: arrUtil.append(this.classesB_,['recoil-number'])
                                 });
 
 

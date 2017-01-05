@@ -27,6 +27,7 @@ recoil.ui.widgets.InputWidget = function(scope) {
     this.readonlyDiv_ = goog.dom.createDom('div');
     this.containerDiv_ = goog.dom.createDom('div');
     var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
+    this.curClasses_ = [];
 
     goog.dom.append(this.containerDiv_, this.editableDiv_);
     goog.dom.append(this.containerDiv_, this.readonlyDiv_);
@@ -109,7 +110,6 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     var frp = this.helper_.getFrp();
 
     var bound = recoil.ui.widgets.InputWidget.options.bind(frp, options);
-    this.curClasses_ = [];
     this.valueB_ = bound.value();
     this.enabledB_ = bound.enabled();
     this.editableB_ = bound.editable();
@@ -139,7 +139,6 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     };
     this.blurChangeHelper_.listen(this.scope_.getFrp().createCallback(/** @type {function (...?): ?}*/ (blurListener), this.valueB_, this.immediateB_, this.converterB_));
     this.keyPressHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
-        console.log(v.keyCode);
          if (!me.immediateB_.get()) {
              if (v.keyCode === goog.events.KeyCodes.ENTER) {
                  blurListener(v);

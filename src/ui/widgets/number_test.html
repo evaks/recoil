@@ -18,6 +18,7 @@
         goog.require('recoil.ui.widgets.CheckboxWidget');
     </script>
     <link rel="stylesheet" href="../css/demo.css">
+    <link rel="stylesheet" href="../css/number.css">
     <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">
     <!--<link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">-->
 </head>
@@ -39,7 +40,7 @@
   var editableB = frp.createB(true);
   var label = new recoil.ui.widgets.LabelWidget(scope);
   var input1 = new recoil.ui.widgets.NumberWidget(scope);
-  input1.attachStruct({value : val, editable : editableB, max: 100, enabled : enabledB, step : 0.1});
+  input1.attachStruct({value : val, editable : editableB, max: 100, enabled : enabledB, step : 0.1, readonlyFormatter : function (v) {return "xx " + v}});
   label.getComponent().render($('label1'));
   label.attachStruct({name : val, formatter : function (v) {
       return ""+ v;
