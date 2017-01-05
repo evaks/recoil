@@ -34,3 +34,4 @@ recoil.converters.DefaultStringConverter.prototype.convert = function(val) {
 recoil.converters.DefaultStringConverter.prototype.unconvert = function(val) {
     return {error: null, value: val};
 };
+
