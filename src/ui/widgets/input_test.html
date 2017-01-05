@@ -46,7 +46,7 @@
   var input1 = new recoil.ui.widgets.InputWidget(scope);
   input1.attachStruct({value : val,
       editable : editableB,
-      enabled : enabledB, immediate: true
+      enabled : enabledB, immediate: false
   });
   label.getComponent().render($('label1'));
   label.attach(val);

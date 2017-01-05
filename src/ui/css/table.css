@@ -46,6 +46,14 @@ table.recoil-table-pager {
     padding: 0px;
     border-spacing: 0px;
 }
+
+.recoil-expand-box {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width:100%
+}
+
 input .page {
     box-sizing : box-border;
     width : 100%;

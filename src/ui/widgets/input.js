@@ -4,6 +4,7 @@ goog.require('goog.dom');
 goog.require('goog.dom.classlist');
 goog.require('goog.events');
 goog.require('goog.events.InputHandler');
+goog.require('goog.events.KeyCodes');
 goog.require('goog.ui.Component');
 goog.require('recoil.converters.DefaultStringConverter');
 goog.require('recoil.frp.Util');
@@ -39,6 +40,7 @@ recoil.ui.widgets.InputWidget = function(scope) {
 
     this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.editableDiv_], [this.readonlyDiv_]);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.InputHandler.EventType.INPUT);
+    this.keyPressHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.KEYDOWN);
     this.blurChangeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.BLUR);
     this.input_.setEnabled(false);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.input_);
@@ -128,12 +130,28 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
         }
     }, this.valueB_, this.immediateB_, this.converterB_));
 
-    this.blurChangeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
+    var blurListener = function(v) {
         var inputEl = v.target;
         if (!me.immediateB_.get()) {
             me.updateElement_(me, inputEl);
 
         }
+    };
+    this.blurChangeHelper_.listen(this.scope_.getFrp().createCallback(/** @type {function (...?): ?}*/ (blurListener), this.valueB_, this.immediateB_, this.converterB_));
+    this.keyPressHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
+        console.log(v.keyCode);
+         if (!me.immediateB_.get()) {
+             if (v.keyCode === goog.events.KeyCodes.ENTER) {
+                 blurListener(v);
+             }
+             else if (v.keyCode === goog.events.KeyCodes.ESC) {
+                 if (me.valueB_.metaGet().good() && me.converterB_.metaGet().good()) {
+                     var t = me.converterB_.get();
+                     var strVal = t.convert(me.valueB_.get());
+                     me.input_.setValue(strVal);
+                 }
+             }
+         }
 
     }, this.valueB_, this.immediateB_, this.converterB_));
 
@@ -156,7 +174,7 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
                        //recoil.ui.ComponentWidgetHelper.updateClasses
     this.curClasses_ = recoil.ui.ComponentWidgetHelper.updateClasses(this.input_.getElement(), this.classesB_, this.curClasses_);
 
-    if (this.valueB_.metaGet().good()) {
+    if (this.valueB_.metaGet().good() && this.converterB_.metaGet().good()) {
         var t = this.converterB_.get();
 
         var el = this.input_.getElement();
