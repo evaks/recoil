@@ -23,24 +23,35 @@ goog.require('recoil.ui.messages');
  * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer callback will be called with
  * @param {function(...?)} callback
+ * @param {function()=} opt_detachCallback
  * @constructor
  */
 
-recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback) {
+recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback, opt_detachCallback) {
     this.observer_ = widgetScope.getObserver();
     this.frp_ = widgetScope.getFrp();
     this.component_ = component;
+    this.detachCallback_ = function() {
+        if (opt_detachCallback) {
+            opt_detachCallback.apply(obj, []);
+        }
+    };
+    this.debug_ = null;
     if (!(callback instanceof Function)) {
         throw new Error('callback not a function');
     }
     var me = this;
     this.listenFunc_ = function(visible) {
+        if (me.debug_) {
+            console.log('VISIBLE', me.debug_, visible);
+        }
         if (visible != me.isAttached_) {
             me.isAttached_ = visible;
             if (visible) {
                 me.frp_.attach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
             } else {
                 me.frp_.detach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
+                me.detachCallback_();
             }
         }
     };
@@ -72,12 +83,41 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
      */
     this.isAttached_ = false;
 };
+/**
+ * updates the classes on an elemnt it will remove all old classes that are in cur classes but not
+ * in classesB
+ * @param {Element} element the element to update the class list for
+ * @param {!recoil.frp.Behaviour<!Array<!string>>} classesB the behaviour that stores the classes in
+ * @param {!Array<!string>} curClasses
+ * @return {!Array<!string>} the new classes
+ */
+recoil.ui.ComponentWidgetHelper.updateClasses = function(element, classesB, curClasses) {
+    var newClasses = classesB.metaGet().good() ? classesB.get() : [];
+        newClasses.forEach(function(cls) {
+        if (curClasses.indexOf(cls) === -1) {
+            goog.dom.classlist.add(element, cls);
+        }
+    });
+    curClasses.forEach(function(cls) {
+        if (newClasses.indexOf(cls) === -1) {
+            goog.dom.classlist.add(element, cls);
+        }
+    });
+
+    return newClasses;
+};
 
 /**
  * @return {!recoil.frp.Frp}
  */
 recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
     return this.frp_;
+};
+/**
+ * @param {!string} debug the tag to print when debugging
+ */
+recoil.ui.ComponentWidgetHelper.prototype.debug = function(debug) {
+    this.debug_ = debug;
 };
 
 /**
@@ -194,15 +234,16 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
     if (same) {
         return;
     }
+    var me = this;
 
     var hadBehaviour = this.behaviours_.length !== 0;
     if (hadBehaviour) {
         if (this.isAttached_) {
             this.frp_.detach(/** @type {!recoil.frp.Behaviour} */(this.attachedBehaviour_));
+            me.detachCallback_();
         }
     }
 
-    var me = this;
     this.behaviours_ = newBehaviours;
     this.attachedBehaviour_ = recoil.util.invokeOneParamAndArray(this.frp_, this.frp_.metaLiftB, this.callback_, this.behaviours_);
 
@@ -214,6 +255,9 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
         this.isAttached_ = false;
         if (!this.component_.getElement()) {
             this.component_.createDom();
+        }
+        if (me.debug_) {
+            console.log('listening', me.debug_);
         }
         this.observer_.listen(this.component_.getElementStrict(), this.listenFunc_);
     }
@@ -249,6 +293,9 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         break;
     case goog.events.EventType.BLUR:
     case goog.events.EventType.FOCUS:
+    case goog.events.EventType.KEYPRESS:
+    case goog.events.EventType.KEYDOWN:
+    case goog.events.EventType.KEYUP:
         this.handler_ = comp.getElement();
         break;
     case goog.ui.Component.EventType.ACTION: //goog.events.EventType.ACTION:
@@ -258,7 +305,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         this.handler_ = new goog.events.InputHandler(comp.getElement());
         break;
     default:
-        throw new Error('Unsupported Event Type');
+        throw new Error('Unsupported Event Type ' + type);
     }
 
     var me = this;
@@ -310,7 +357,7 @@ recoil.ui.TooltipHelper = function(widgetScope, component) {
     this.enabledB_ = null;
     this.tooltip_ = null;
     this.component_ = component;
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(widgetScope, component, this, this.update_);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(widgetScope, component, this, this.update_, this.detach_);
 };
 
 
@@ -369,6 +416,18 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     }
     if (this.component_.setEnabled) {
         this.component_.setEnabled(enabled);
+    }
+};
+
+
+/**
+ * @private
+ */
+recoil.ui.TooltipHelper.prototype.detach_ = function() {
+    if (this.tooltip_) {
+        this.tooltip_.detach(this.component_.getElement());
+        this.tooltip_.dispose();
+        this.tooltip_ = null;
     }
 };
 

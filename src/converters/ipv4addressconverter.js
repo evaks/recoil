@@ -1,5 +1,6 @@
 goog.provide('recoil.converters.IPv4AddressConverter');
 
+//goog.require('recoil.structs.IPv4Address');
 goog.require('recoil.types');
 goog.require('recoil.ui.message.Message');
 
@@ -34,17 +35,24 @@ recoil.converters.IPv4AddressConverter.prototype.unconvert = function(val) {
      * @type recoil.types.IPv4Address
      */
     var res = [];
-    var parts = val; //.split('.');
+    var parts = val.split('.');
 
-    for (var i = 0; i < parts.length; i++) {
-        if (this.checkIPAddressValid_(parts)) {
+    var err = new recoil.ui.message.Message([]);
+    var num = 0;
+
+    var partsLen = parts.length;
+
+    for (var i = 0; i < partsLen; i++) {
+        // num = parseInt(parts[i], 10);
+        if (this.isIPAddressValid_(parts)) {
+            err = recoil.ui.messages.VALID;
             res.push(parseInt(parts[i], 10));
         } else {
             return {error: recoil.ui.messages.INVALID, value: []};
         }
     }
 
-    return {error: recoil.ui.messages.VALID, value: res};
+    return {error: null, value: res};
 };
 
 /**
@@ -54,7 +62,7 @@ recoil.converters.IPv4AddressConverter.prototype.unconvert = function(val) {
  * @private
  *
  */
-recoil.converters.IPv4AddressConverter.prototype.checkIPAddressValid_ = function(address) {
+recoil.converters.IPv4AddressConverter.prototype.isIPAddressValid_ = function(address) {
 
     var num = 0;
     var addressLen = address.length;

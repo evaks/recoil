@@ -38,34 +38,53 @@ recoil.frp.Util.prototype.toBehaviour = function(value, opt_default) {
 /**
  * converts an object with attributes that are behaviours
  * to a list of behaviours
- * @param {!Object<string,!recoil.frp.Behaviour>} struct
+ * @param {!Object<string,?>} struct
  * @return {!Array<recoil.frp.Behaviour>}
  */
 recoil.frp.Util.prototype.structToBehaviours = function(struct) {
     var res = [];
     for (var key in struct) {
         if (struct.hasOwnProperty(key)) {
-            res.push(struct[key]);
+            res.push(this.toBehaviour(struct[key]));
         }
     }
     return res;
 };
 
 /**
+ * @private
+ * @param {!Object<string,*>} struct
+ * @return {!Object<string,*>} struct
+ */
+recoil.frp.Util.resolveStruct_ = function(struct) {
+    var res = {};
+    for (var k in struct) {
+        if (struct.hasOwnProperty(k)) {
+            res[k] = struct[k] instanceof recoil.frp.Behaviour ? struct[k].get() : struct[k];
+        }
+    }
+    return res;
+};
+/**
  * like liftBI but takes structure of behaviours
  *
  * @template T
- * @param {function () : T} calc the calculate function, note no parameters
+ * @param {function (?) : T} calc the calculate function, note no parameters
  *                               are passed because the order cannot be ensured
  * @param {function (T)} inv the inverse function
- * @param {!Object<string,!recoil.frp.Behaviour>} behaviours
+ * @param {!Object<string,*>} struct
+ * @param {...!recoil.frp.Behaviour} var_behaviours
  * @return {!recoil.frp.Behaviour<T>}
  */
-recoil.frp.Util.prototype.structLiftBI = function(calc, inv, behaviours) {
+recoil.frp.Util.prototype.structLiftBI = function(calc, inv, struct, var_behaviours) {
+    var extra = [];
+    for (var i = 3; i < arguments.length; i++) {
+        extra.push(arguments[i]);
+    }
     return this.frp_.liftBI.apply(this.frp_, [
         function() {
-            return calc();
-        }, inv].concat(this.structToBehaviours(behaviours)));
+            return calc(recoil.frp.Util.resolveStruct_(struct));
+        }, inv].concat(this.structToBehaviours(struct)).concat(extra));
 };
 
 /**
@@ -74,14 +93,19 @@ recoil.frp.Util.prototype.structLiftBI = function(calc, inv, behaviours) {
  * @template T
  * @param {function (...) : T} calc the calculate function, note no parameters
  *                               are passed because the order cannot be ensured
- * @param {!Object<string,!recoil.frp.Behaviour>} behaviours
+ * @param {!Object<string,*>} struct
+ * @param {...!recoil.frp.Behaviour} var_behaviours
  * @return {!recoil.frp.Behaviour<T>}
  */
-recoil.frp.Util.prototype.structLiftB = function(calc, behaviours) {
+recoil.frp.Util.prototype.structLiftB = function(calc, struct, var_behaviours) {
+    var extra = [];
+    for (var i = 2; i < arguments.length; i++) {
+        extra.push(arguments[i]);
+    }
     return this.frp_.liftB.apply(this.frp_, [
         function() {
-            return calc();
-        }].concat(this.structToBehaviours(behaviours)));
+            return calc(recoil.frp.Util.resolveStruct_(struct));
+        }].concat(this.structToBehaviours(struct)).concat(extra));
 };
 /**
  * like liftBI but takes list of behaviours

@@ -7,6 +7,13 @@ goog.require('recoil.ui.message');
  * @final
  */
 recoil.ui.messages.AND = recoil.ui.message.getParamMsg(['first'], ' and ', ['second']);
+
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.PAGE_X_OF_Y = recoil.ui.message.getParamMsg('Page ', ['x'], ' of ', ['y']);
+
 /**
  * @type {recoil.ui.message.Message}
  * @final
@@ -24,6 +31,18 @@ recoil.ui.messages.VALID = recoil.ui.message.getParamMsg('Valid');
  * @final
  */
 recoil.ui.messages.INVALID = recoil.ui.message.getParamMsg('Invalid');
+
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.INVALID_VALUE = recoil.ui.message.getParamMsg('Invalid Value');
+
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.__UNKNOWN_VAL = recoil.ui.message.getParamMsg('?');
 
 
 /**

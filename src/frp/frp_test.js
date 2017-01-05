@@ -509,6 +509,7 @@ function testSwitchBUp() {
     assertEquals(0, tm.watching());
 }
 
+    
 function testAttachDetach() {
 
     var frp = new recoil.frp.Frp();

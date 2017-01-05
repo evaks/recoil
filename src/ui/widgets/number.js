@@ -9,6 +9,7 @@ goog.require('goog.events.PasteHandler');
 goog.require('goog.html.SafeHtml');
 goog.require('goog.ui.Component');
 goog.require('goog.ui.Tooltip');
+goog.require('recoil.frp.Array');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
@@ -31,6 +32,8 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.containerDiv_ = goog.dom.createDom('div');
     var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
     this.number_ = new recoil.ui.widgets.NumberWidget.NumberInput();
+    this.number_.createDom();
+    this.number_.setEnabled(false);
 
     this.container_ = toControl(this.containerDiv_);
     this.readonly_ = new recoil.ui.widgets.LabelWidget(scope);
@@ -169,8 +172,8 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
             step: this.step_, min: this.min_, max: this.max_});
     var lastValid = undefined;
 
-    goog.events.listen(element
-                       , goog.events.EventType.KEYDOWN, this.keyFilter_);
+    goog.events.listen(element,
+                       goog.events.EventType.KEYDOWN, this.keyFilter_);
     goog.events.listen(element, goog.events.EventType.BLUR,
                        function() {
                            if (!element.validity.valid) {
@@ -220,6 +223,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
                            //filter stuff here
                        });
 
+   element.style['text-align'] = 'right';
     this.setElementInternal(element);
 };
 
@@ -259,7 +263,9 @@ recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
     {
         min: 0,
         max: Number.MAX_SAFE_INTEGER,
-        step: 1
+        step: 1,
+        readonlyFormatter : null,
+        classes : []
     }
 );
 
@@ -282,6 +288,11 @@ recoil.ui.widgets.NumberWidget.getDp_ = function(num) {
 };
 
 /**
+ * @private
+ * @type {Object<string,number>}
+ */
+recoil.ui.widgets.NumberWidget.sizesMap_ = {};
+/**
  * calculates the width of the number field based on the numbers that can go
  * into it
  * @private
@@ -290,15 +301,24 @@ recoil.ui.widgets.NumberWidget.getDp_ = function(num) {
  * @return {number}
  */
 recoil.ui.widgets.NumberWidget.calcWidth_ = function(parent, str) {
-    var tmp = document.createElement('span');
-    var txt = goog.html.SafeHtml.unwrap(goog.html.SafeHtml.htmlEscape(str));
-    tmp.innerHTML = txt;
-    //        tmp.className = "input-element tmp-element";
-    goog.dom.append(parent, tmp);
-    var theWidth = tmp.getBoundingClientRect().width;
-    parent.removeChild(tmp);
+    var style = window.getComputedStyle(parent, null);
+    var font = style.getPropertyValue('font-style') + ' ' +
+            style.getPropertyValue('font-variant') + ' ' +
+            style.getPropertyValue('font-size') + ' ' +
+            style.getPropertyValue('font-family');
 
-    return theWidth;
+    var size = recoil.ui.widgets.NumberWidget.sizesMap_[font];
+    if (size === undefined) {
+        var c = document.createElement('canvas');
+        var ctx = c.getContext('2d');
+        ctx.font = font;
+        size = ctx.measureText('0').width;
+        recoil.ui.widgets.NumberWidget.sizesMap_[font] = size;
+
+    }
+    // 1 extra char for the arrows
+    return (1 + str.length) * (size);
+
 };
 
 /**
@@ -309,6 +329,7 @@ recoil.ui.widgets.NumberWidget.calcWidth_ = function(parent, str) {
 recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var frp = this.valueHelper_.getFrp();
     var util = new recoil.frp.Util(frp);
+    var arrUtil = new recoil.frp.Array(frp);
     var bound = recoil.ui.widgets.NumberWidget.options.bind(frp, options);
 
     this.valueB_ = bound.value();
@@ -317,15 +338,19 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.stepB_ = bound.step();
     this.editableB_ = bound.editable();
     this.enabledB_ = bound.enabled();
-
-    this.formatterB_ = frp.liftB(function(min, step) {
+    this.classesB_ = bound.classes();
+    
+    this.formatterB_ = frp.liftB(function(min, step, fmt) {
+        if (fmt) {
+            return fmt;
+        }
         var dp = Math.max(
             recoil.ui.widgets.NumberWidget.getDp_(min),
             recoil.ui.widgets.NumberWidget.getDp_(step));
         return function(v) {
             return v.toLocaleString(undefined, {minimumFractionDigits: dp});
         };
-    }, this.minB_, this.stepB_);
+    }, this.minB_, this.stepB_, bound.readonlyFormatter());
 
     this.valueHelper_.attach(this.valueB_);
 
@@ -333,7 +358,8 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_,
-                                 formatter: this.formatterB_
+                                 formatter: this.formatterB_,
+                                 classes: arrUtil.append(this.classesB_,['recoil-number'])
                                 });
 
 
@@ -357,7 +383,6 @@ recoil.ui.widgets.NumberWidget.prototype.updateValue_ = function(helper) {
     if (helper.isGood()) {
         this.number_.setValue(this.valueB_.get());
     }
-
 };
 
 /**

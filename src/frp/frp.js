@@ -19,7 +19,7 @@ goog.require('recoil.util');
  * recoil.frp.TraverseDirection.
  *
  * @param {!string} name
- * @param {function(!recoil.frp.Behaviour,!Array <!recoil.frp.Behaviour>, !Array <!recoil.frp.Behaviour>, !Array <!recoil.frp.Behaviour>) : !Array<!recoil.frp.Behaviour>}
+ * @param {function(!recoil.frp.Behaviour,!Array <!recoil.frp.Behaviour>, !Array <!recoil.frp.Behaviour>, !Array <!{behaviour: !recoil.frp.Behaviour, force:boolean}>) : !Array<!recoil.frp.Behaviour>}
  *            calc
  *
  * @param {function(recoil.frp.Behaviour,recoil.frp.Behaviour):number} comparator
@@ -36,7 +36,7 @@ recoil.frp.TraverseDirection = function(name, calc, comparator) {
  * @param {!recoil.frp.Behaviour} behaviour
  * @param {!Array <!recoil.frp.Behaviour>} providers
  * @param {!Array <!recoil.frp.Behaviour>} dependents
- * @param {!Array <!recoil.frp.Behaviour>} nextItr
+ * @param {!Array <!{behaviour : !recoil.frp.Behaviour, force: boolean}>} nextItr
  * @return {!Array <!recoil.frp.Behaviour>}
  */
 recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers, dependents, nextItr) {
@@ -389,7 +389,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
      * @param {!recoil.frp.Behaviour} behaviour
      * @param {!Array <!recoil.frp.Behaviour>} providers
      * @param {!Array <!recoil.frp.Behaviour>} dependents
-     * @param {!Array <!recoil.frp.Behaviour>} nextItr things to be queue no the next iteration not this one
+     * @param {!Array <!{behaviour:!recoil.frp.Behaviour, force:boolean}>} nextItr things to be queue no the next iteration not this one
      * @return {!Array <!recoil.frp.Behaviour>}
      */
     function(behaviour, providers, dependents, nextItr) {
@@ -408,9 +408,13 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         });
         var oldDirty = getDirty(behaviour.providers_);
         var newVal;
+
         if (behaviour.dirtyDown_) {
             // do nothing here calulationg here is pointless since we need to recalc anyway
+            // but ensure we calculate it next phase
             newVal = behaviour.val_;
+            nextItr.push({behaviour: behaviour, force: true});
+
         }
         else {
             newVal = behaviour.calc_.apply(behaviour, params);
@@ -424,7 +428,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         for (var p in newDirty) {
             if (oldDirty[p] === undefined) {
                 var prov = newDirty[p];
-                nextItr.push(prov);
+                nextItr.push({behaviour: prov, force: false});
             }
         }
         var res = [];
@@ -474,7 +478,7 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
      * @param {!recoil.frp.Behaviour} behaviour
      * @param {!Array <!recoil.frp.Behaviour>} providers
      * @param {!Array <!recoil.frp.Behaviour>} dependants
-     * @param {!Array <!recoil.frp.Behaviour>} nextItr things to be queue no the next iteration not this one
+     * @param {!Array <!{behaviour:!recoil.frp.Behaviour, force:boolean}>} nextItr things to be queue no the next iteration not this one
      * @return {!Array <!recoil.frp.Behaviour>}
      */
     function(behaviour, providers, dependants, nextItr) {
@@ -571,7 +575,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.refListeners_ = [];
     this.providers_ = providers || [];
 
-    this.loopCheck({});
+    this.quickLoopCheck_();
 };
 
 /**
@@ -587,6 +591,37 @@ recoil.frp.Behaviour.prototype.loopCheck = function(path) {
     for (var i = 0; i < this.providers_.length; i++) {
         this.providers_[i].loopCheck(path);
     }
+
+};
+
+/**
+ * loopCheck is a bit slow when it comes to large amounts of
+ * items this is a quicker version that assumes all the providers
+ * do not have any loops so the only loop that can be introduced must point to source
+ * @private
+ */
+recoil.frp.Behaviour.prototype.quickLoopCheck_ = function() {
+    var stack = [];
+    var seen = {};
+
+    for (var i = 0; i < this.providers_.length; i++) {
+        stack.push(this.providers_[i]);
+    }
+
+    while (stack.length > 0) {
+        var cur = stack.pop();
+        if (cur === this) {
+            throw new recoil.exception.LoopDetected();
+        }
+        if (seen[cur.seqStr_]) {
+            continue;
+        }
+        for (i = 0; i < cur.providers_.length; i++) {
+            stack.push(cur.providers_[i]);
+        }
+    }
+
+
 
 };
 
@@ -1121,7 +1156,9 @@ recoil.frp.Frp.prototype.liftE = function(func, var_args) {
  */
 recoil.frp.Frp.prototype.createCallback = function(func, var_dependants) {
     recoil.util.notNull(arguments);
-    var params = [function() {return null;}, function(value) {return func.apply(this, arguments)}];
+    var params = [function() {return null;}, function(value) {
+        return func.apply(this, arguments);
+    }];
     for (var i = 1; i < arguments.length; i++) {
         params.push(arguments[i]);
     }
@@ -1443,15 +1480,17 @@ recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
 
         for (var prov = 0; prov < cur.b.providers_.length; prov++) {
             var provObj = cur.b.providers_[prov];
-            if (cur.path[provObj.seqStr_] !== undefined) {
-                throw new recoil.exception.LoopDetected();
-            }
+            // loop check seems to take a long time we shouldn't need it since
+            // the constructor of the behaviour checks anyway
+//            if (cur.path[provObj.seqStr_] !== undefined) {
+//                throw new recoil.exception.LoopDetected();
+//            }
 
-            var newPath = goog.object.clone(cur.path);
-            newPath[provObj.seqStr_] = provObj;
+//            var newPath = goog.object.clone(cur.path);
+  //          newPath[provObj.seqStr_] = provObj;
             toDo.push({
-                b: provObj,
-                path: newPath
+                b: provObj
+    //            path: newPath
             });
         }
 
@@ -1567,9 +1606,13 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
         }
 
         for (d = 0; d < nextItr.length; d++) {
-            var next = pendingHeap.remove(nextItr[d]);
+            var it = nextItr[d];
+            var next = pendingHeap.remove(it.behaviour);
             if (next) {
                 nextPending.push(next);
+            }
+            else if (it.force) {
+                nextPending.push(it.behaviour);
             }
         }
         prev = cur;
@@ -1789,6 +1832,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     }
 
     this.ensureProvidersBefore_(dependant, []);
+    dependant.quickLoopCheck_();
 };
 
 /**
@@ -1896,5 +1940,5 @@ recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
             }
         }
     });
-    console.log('Detach Watching = ', this.watching_);
+    //    console.log('Detach Watching = ', this.watching_);
 };

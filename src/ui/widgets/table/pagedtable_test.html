@@ -1,0 +1,267 @@
+    <html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<title>recoil.ui.widgets.TableWidget</title>
+<script src="../../../../../closure-library/closure/goog/base.js"></script>
+<script src="../../../../../my-deps.js"></script>
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/checkbox.css">
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/menubutton.css">
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/menu.css">
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/menuitem.css">
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/menuseparator.css">
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/flatmenubutton.css">
+<link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/common.css">
+<link rel="stylesheet" href="../../css/table.css">
+
+<script>
+  goog.require('recoil.frp.Frp');
+  goog.require('recoil.ui.widgets.table.PagedTableWidget');
+  goog.require('recoil.ui.widgets.TableMetaData');
+  goog.require('recoil.ui.widgets.ButtonWidget');
+  goog.require('recoil.ui.BoolWithExplanation');
+  goog.require('recoil.ui.WidgetScope');
+  goog.require('recoil.ui.widgets.table.StringColumn');
+  goog.require('recoil.ui.widgets.table.NumberColumn');
+  goog.require('recoil.ui.widgets.table.BooleanColumn');
+  goog.require('recoil.ui.widgets.table.SelectColumn');
+  goog.require('recoil.structs.table.ColumnKey');
+
+</script>
+<style>
+  .recoil_table_selected {background-color:green;}
+</style>
+
+<body>
+  <input type='number' id='num' size='2'/>
+  <div id='tablediv'/>
+  <div id='addB'/>
+  <div id='hideB'/>
+  <div id='hideHeadersB'/>
+  <div id='showB'/>
+  <div id='badB'/>
+  <div id='deleteB'/>
+  <div class="selected" id='clickTest'>Click Test
+    </div>
+  TODO <br/>all decorators<br/>
+  hide/show headers <br/>
+  cell renderers<br/>
+  
+  <script>
+
+
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+    var toSet = frp.createCallback(
+    function(e) {console.log("event",e);});
+    
+    
+    recoil.ui.events.listen($('clickTest'), goog.events.EventType.CLICK,
+    toSet);
+    
+    frp.tm().attach(toSet);
+
+    var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
+    var enabledItems =
+            [new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+                new recoil.ui.BoolWithExplanation(false, undefined, recoil.ui.messages.INVALID)];
+
+    var opt_renderer = function (val, errored, enabled) {
+
+        return recoil.ui.widgets.SelectorWidget.RENDERER(val.a, errored, enabled);
+    };
+
+
+    var rawTable = [];
+
+    for (var i = 0; i < 3; i++) {
+			rawTable.push({id: i, name: "row " + i, count:i, check: true, select: {a: 'one'}});
+    }
+    
+    var tblKeys = {
+    id : new recoil.structs.table.ColumnKey("id_"),
+    name : new recoil.structs.table.ColumnKey("name_"),
+    count: new recoil.structs.table.ColumnKey("count_"),
+    check :  new recoil.structs.table.ColumnKey("check_"),
+    select : new recoil.structs.table.ColumnKey("select_")
+    };
+
+    var rawTableMeta = {
+    name : { type : "string", length : 20, key : tblKeys.name},
+    id : { type : "int", primary : 0, key : tblKeys.id},
+    count : { type: "int", min : 1, max:100, key: tblKeys.count},
+    check : { type: "bool", key: tblKeys.check},
+    select : {type: "select", renderer: opt_renderer, key: tblKeys.select, enabledItems: enabledItems}
+    };
+
+    var columns = new recoil.ui.widgets.TableMetaData();
+    columns.add(tblKeys.name, "Name");
+    var numCol = new recoil.ui.widgets.table.NumberColumn(tblKeys.count,"Count", {enabled: new recoil.ui.BoolWithExplanation(
+            true,
+            new recoil.ui.message.Message("It is good"),
+            new recoil.ui.message.Message("It is bad") )
+    });
+    columns.addColumn(numCol);
+    var boolCol = new recoil.ui.widgets.table.BooleanColumn(tblKeys.check, "Check");
+    columns.addColumn(boolCol);
+
+    var selectCol = new recoil.ui.widgets.table.SelectColumn(tblKeys.select, "Select", list);
+    columns.addColumn(selectCol);
+
+
+
+    //this is wrong we can't simply go create b because tableMetaData contain
+    //behaviours
+
+    var bb = columns.createB(frp);
+    bb.x ='foo';
+    var switchB = frp.createB(bb);
+    switchB.x ='switch';
+    console.log("is behavior", switchB instanceof recoil.frp.Behaviour);
+    var columnsB = frp.switchB(switchB);
+    
+
+
+//    var  columnsB = frp.createB(columns);
+    
+    var pageB = frp.createB(1);
+    var countB = frp.createB(10);
+
+    var typeFactories = {"int": function(meta) {
+        return new recoil.ui.widgets.table.NumberColumn(meta);
+    }, "string": function (meta) {
+        return new recoil.ui.widgets.table.StringColumn(meta);
+    }, "boolean": function (meta) {
+        return new recoil.ui.widgets.table.BooleanColumn(meta);
+    }, "select": function (meta) {
+        return new recoil.ui.widgets.table.SelectColumn(meta);
+    }};
+
+    var tableX = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
+    var table = frp.liftBI(function () {
+	var res = tableX.get().unfreeze();
+	res.setCellMeta([1],tblKeys.name, {cellWidgetFactory : function (scope, cellB) {
+	    var widget = new recoil.ui.widgets.LabelWidget(scope);
+	    var value = recoil.frp.table.TableCell.getValue(frp, cellB);
+	    
+	    widget.attachStruct({name : value});
+	    console.log("args", arguments);
+	    return widget;
+	}});
+	return res.freeze();
+    },
+			   function (t) {
+			       tableX.set(t);
+			   }, tableX);
+	
+     var tableWidget = new recoil.ui.widgets.table.PagedTableWidget(scope);
+
+    console.log('table', $('tablediv'), tableWidget.getComponent().getElement());
+
+
+    var buttonWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var deleteButton = new recoil.ui.widgets.ButtonWidget(scope);
+
+    buttonWidget.attach("", "Add Row", frp.createCallback(function () {
+    var ids = [];
+    var max = 0;
+    table.get().forEach( function(row) {
+    ids.push(row.get(tblKeys.id));
+    });
+    ids.sort();
+    for (var i = 0; i < ids.length; i++) {
+			if (max !== ids[i]) {
+			break;
+			}
+			max++;
+    }
+
+    var mtable = table.get().unfreeze();
+    var row = new recoil.structs.table.MutableTableRow();
+    row.set(tblKeys.id, max);
+    row.set(tblKeys.name, "row "+ max);
+    row.set(tblKeys.count, max);
+    row.set(tblKeys.check, false);
+    row.set(tblKeys.select, {a: 'test'});
+
+    mtable.addRow(row);
+    table.set(mtable.freeze());
+    }, table));
+    tableWidget.attach(table, columnsB, pageB, countB);
+			
+    var hideWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var hideHeadersWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var showWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var badWidget = new recoil.ui.widgets.ButtonWidget(scope);
+
+			hideHeadersWidget.attach("", "Hide/Show Headers", frp.createCallback(
+			function() {
+			var mtable =table.get().unfreeze();
+			var tmeta = mtable.getMeta();
+			if (tmeta.headerRowDecorator) {
+			delete tmeta['headerRowDecorator'];
+			}
+			else {
+			tmeta.headerRowDecorator = function () {
+			return null;
+			};
+			}
+			table.set(mtable.freeze());
+			console.log("table meta", tmeta);
+			},table));
+			
+    hideWidget.attach("", "Hide", frp.createCallback(function () {
+    var columns = new recoil.ui.widgets.TableMetaData();
+    columns.add(tblKeys.name, "Name");
+    //columns.add(tblKeys.count, "Count");
+    columns.add(tblKeys.check, "Check");
+    columns.addColumn(selectCol);
+    switchB.set(columns.createB(frp));
+    },switchB));
+
+    var selectedB = tableWidget.createSelected();
+    
+    deleteButton.attach("", "Delete", frp.createCallback(function() {
+                    console.log(selectedB.get());
+                    var selected = selectedB.get();
+                    var mtable = table.get().unfreeze();
+    
+                    for (var i = 0; i < selected.length; i++) {
+	                  mtable.removeRow(selected[i]);
+                    }
+	            table.set(mtable.freeze());
+    }, selectedB, table));
+					
+					var oldVal = recoil.frp.BStatus.notReady();
+					badWidget.attach("", "Bad", frp.createGoodCallback(function () {
+					var v = oldVal;
+					oldVal = tableX.metaGet();
+					tableX.metaSet(v);
+					}, tableX));
+    showWidget.attach("", "Show", frp.createCallback(function () {
+    var columns = new recoil.ui.widgets.TableMetaData();
+    columns.add(tblKeys.name, "Name");
+    columns.add(tblKeys.count, "Count");
+    columns.add(tblKeys.check, "Check");
+    columns.addColumn(selectCol);
+    switchB.set(columns.createB(frp));
+    },columnsB));
+
+    tableWidget.getComponent().render($('tablediv'));
+    buttonWidget.getComponent().render($('addB'));
+    hideWidget.getComponent().render($('hideB'));
+    hideHeadersWidget.getComponent().render($('hideHeadersB'));
+    showWidget.getComponent().render($('showB'));
+    badWidget.getComponent().render($('badB'));
+    deleteButton.getComponent().render($('deleteB'));
+
+    
+  </script>
+
+</body>
+
+</html>
+
+

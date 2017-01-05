@@ -49,6 +49,8 @@ recoil.ui.widgets.LabelWidget = function(scope) {
      * @private
      */
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.label_, this, this.updateState_);
+
+    this.curClasses_ = [];
 };
 
 /**
@@ -75,7 +77,8 @@ recoil.ui.widgets.LabelWidget.options = recoil.frp.Util.Options(
     {
         'name' : '',
         'enabled' : recoil.ui.BoolWithExplanation.TRUE,
-        'formatter' : recoil.ui.widgets.LabelWidget.defaultFormatter_
+        'formatter' : recoil.ui.widgets.LabelWidget.defaultFormatter_,
+        'classes' : []
     });
 
 /**
@@ -107,7 +110,8 @@ recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
     this.nameB_ = bound.name();
     this.enabledB_ = bound.enabled();
     this.formatterB_ = bound.formatter();
-    this.helper_.attach(this.nameB_, this.enabledB_, this.formatterB_);
+    this.classesB_ = bound.classes();
+    this.helper_.attach(this.nameB_, this.enabledB_, this.formatterB_, this.classesB_);
 };
 
 
@@ -127,6 +131,7 @@ recoil.ui.widgets.LabelWidget.prototype.getComponent = function() {
  * @private
  */
 recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
+    this.curClasses_ = recoil.ui.ComponentWidgetHelper.updateClasses(this.label_.getElement(), this.classesB_, this.curClasses_);
 
     if (helper.isGood()) {
         var val = this.nameB_.get();

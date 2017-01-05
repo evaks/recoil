@@ -14,5 +14,5 @@ else
 fi
 
 DIR=`dirname $0`
-cd ${DIR}/../
-${PYTHON} lib/closure-library/closure/bin/calcdeps.py -p lib/closure-library -p src/  -o deps   > my-deps.js
+cd ${DIR}/../..
+${PYTHON} closure-library/closure/bin/calcdeps.py -p closure-library -p recoil/src/  -o deps   > my-deps.js

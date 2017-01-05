@@ -1,0 +1,87 @@
+.pagination .recoil-table-pager {
+  display: table
+  width: 99%
+  border: 1px solid #CDCDCD;
+  border-radius: 3px; }
+
+.pagination a {
+  display: table-cell;
+  width: 20px;
+  height: 20px;
+  outline: none;
+  border-right: 1px solid #CDCDCD;
+  border-left: 1px solid #CDCDCD;
+  color: #555555;
+  vertical-align: middle;
+  text-align: center;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+  font-family: Times, 'Times New Roman', Georgia, Palatino;
+  /* ATTN: need a better font stack */
+  background-color: #f3f3f3;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f3f3f3), color-stop(100%, lightgrey));
+  background-image: -webkit-linear-gradient(#f3f3f3, lightgrey);
+  background-image: linear-gradient(#f3f3f3, lightgrey);
+  cursor : default;
+}
+
+
+.pagination a:hover, .pagination a:focus, .pagination a:active {
+    background-color: #cecece;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #e4e4e4), color-stop(100%, #cecece));
+    background-image: -webkit-linear-gradient(#e4e4e4, #cecece);
+    background-image: linear-gradient(#e4e4e4, #cecece); }
+
+.pagination a.disabled, .pagination a.disabled:hover, .pagination a.disabled:focus, .pagination a.disabled:active {
+    background-color: #f3f3f3;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f3f3f3), color-stop(100%, lightgrey));
+    background-image: -webkit-linear-gradient(#f3f3f3, lightgrey);
+    background-image: linear-gradient(#f3f3f3, lightgrey);
+    color: #A8A8A8;
+    cursor: not-allowed; }
+
+
+table.recoil-table-pager {
+    padding: 0px;
+    border-spacing: 0px;
+}
+
+.recoil-expand-box {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width:100%
+}
+
+input .page {
+    box-sizing : box-border;
+    width : 100%;
+}
+table.recoil-table-pager .page {
+    width : 100%;
+    text-align : center;
+}
+
+.recoil-table-pager.pagination {
+ width: 100%; }
+
+.recoil-table-pager-container {display: table}
+.recoil-table-pager-container .row { display: table-row }
+
+
+.recoil-table1-pager.pagination {
+  margin: 30px 0;
+}
+
+.recoil-table1-pager.pagination a {
+  height: 60px;
+  width: 60px;
+  font-size: 50px;
+  line-height: 50px; }
+
+.recoil-table1-pager.pagination input {
+  width: 300px;
+  height: 60px;
+  font-size: 30px; }
+

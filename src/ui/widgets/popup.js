@@ -56,7 +56,7 @@ recoil.ui.widgets.PopupWidget = function(scope) {
     this.displayAndButtonContainer_.onmousedown = doPopup;
 
     goog.events.listen(this.displayAndButtonContainer_
-                       , goog.events.EventType.KEYDOWN,
+, goog.events.EventType.KEYDOWN,
                        function(e) {
                                console.log(e.keyCode);
                            if (e.keyCode === goog.events.KeyCodes.SPACE) {

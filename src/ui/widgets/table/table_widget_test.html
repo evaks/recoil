@@ -30,6 +30,7 @@
 </style>
 
 <body>
+  <input type='number' id='num' size='2'/>
   <div id='tablediv'/>
   <div id='addB'/>
   <div id='hideB'/>
@@ -44,6 +45,8 @@
   cell renderers<br/>
   
   <script>
+
+
     var scope = new recoil.ui.WidgetScope();
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
@@ -70,10 +73,11 @@
     };
 
 
-    var rawTable = [
-    {id: 1, name: "row 1", count:2, check: true, select: {a: 'one'}},
-    {id: 2, name: "row 2", count:4, check: true, select: {a: 'one'}},
-    {id: 3, name: "row 3", count:6, check: true,  select: {a: 'one'}}];
+    var rawTable = [];
+
+    for (var i = 0; i < 50; i++) {
+			rawTable.push({id: i, name: "row " + i, count:i, check: true, select: {a: 'one'}});
+    }
     
     var tblKeys = {
     id : new recoil.structs.table.ColumnKey("id_"),
