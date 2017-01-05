@@ -298,7 +298,6 @@ recoil.db.ObjectManager.updateWithSubObjects_ = function(outer, related, stored)
         var cur = related[i];
         if (prev === undefined || prev.path !== cur.path || !recoil.util.object.isEqual(cur.parentKey, prev.parentKey)) {
             // clear any array or map for that path so we can start adding
-            console.log('reseting', i, outer);
             cur.path.reset(cur.parentKey, outer);
         }
         // Errors, should be ok since liftBI should propergate
@@ -330,8 +329,6 @@ recoil.db.ObjectManager.setSubObjects_ = function(outer, related, opt_frp) {
         }
         else {
             subVal = cur.path.get(cur.parentKey, outer.getSending(), cur.key);
-
-            console.log('setting value', cur.key, subVal, outer);
 
             if (subVal === recoil.db.error.NOT_PRESENT) {
                 cur.behaviour.metaSet(recoil.frp.BStatus.errors([subVal]));
@@ -432,7 +429,6 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
 
                 },
                 function(metaV) {
-                    console.log('INV,1');
                     if (!metaV.good()) {
                         behaviour.metaSet(metaV);
                         // TODO we may need to send the data to the database  if we
@@ -541,12 +537,10 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
  * @param {!recoil.db.DatabaseComms} coms
  */
 recoil.db.ObjectManager.prototype.unregister = function(typeKey, key, options, coms) {
-    console.log('unregistering', typeKey, key);
     var behaviours = this.queries_[typeKey.uniqueId()];
     if (!behaviours) {
         return;
     }
-    console.log('found', typeKey, key);
 
     var entity = new recoil.db.Entity(key, null, true);
     var behavioursList = behaviours.getBehaviours();
