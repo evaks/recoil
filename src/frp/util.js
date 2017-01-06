@@ -491,7 +491,7 @@ recoil.frp.Util.Options = function(var_options) {
         }, optionsB);
     };
 
-    
+
     return res;
 };
 

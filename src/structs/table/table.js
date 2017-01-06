@@ -40,7 +40,15 @@ recoil.structs.table.ColumnKey = function(name, opt_comparator, opt_castTo, opt_
  */
 recoil.structs.table.ColumnKey.prototype.getDefault = function() {
     return this.default_;
-};/**
+};
+
+/**
+ * @return {!recoil.structs.table.ColumnKey}
+ */
+recoil.structs.table.ColumnKey.prototype.clone = function() {
+    return this;
+};
+/**
  * @return {boolean}
  */
 recoil.structs.table.ColumnKey.prototype.hasDefault = function() {

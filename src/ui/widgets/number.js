@@ -264,8 +264,8 @@ recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
         min: 0,
         max: Number.MAX_SAFE_INTEGER,
         step: 1,
-        readonlyFormatter : null,
-        classes : []
+        readonlyFormatter: null,
+        classes: []
     }
 );
 
@@ -339,7 +339,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.editableB_ = bound.editable();
     this.enabledB_ = bound.enabled();
     this.classesB_ = bound.classes();
-    
+
     this.formatterB_ = frp.liftB(function(min, step, fmt) {
         if (fmt) {
             return fmt;
@@ -359,7 +359,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_,
                                  formatter: this.formatterB_,
-                                 classes: arrUtil.append(this.classesB_,['recoil-number'])
+                                 classes: arrUtil.append(this.classesB_, ['recoil-number'])
                                 });
 
 
