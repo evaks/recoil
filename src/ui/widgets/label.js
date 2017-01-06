@@ -80,6 +80,10 @@ recoil.ui.widgets.LabelWidget.options = recoil.frp.Util.Options(
         'formatter' : recoil.ui.widgets.LabelWidget.defaultFormatter_,
         'classes' : []
     });
+/**
+ * list of functions available when creating a selectorWidget
+ */
+recoil.ui.widgets.LabelWidget.prototype.options = recoil.ui.widgets.LabelWidget.options;
 
 /**
  * @param {!recoil.frp.Behaviour<string>|!string} name
