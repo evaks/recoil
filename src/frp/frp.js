@@ -584,6 +584,8 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.providers_ = providers || [];
 
     this.quickLoopCheck_();
+//    this.checkProvidersBefore_();
+
 };
 
 /**
@@ -602,6 +604,20 @@ recoil.frp.Behaviour.prototype.loopCheck = function(path) {
 
 };
 
+/**
+ * utility function to ensures all our providers are before us
+ * this is not called but may be useful for debugging purposes in the future
+ * @private
+ */
+recoil.frp.Behaviour.prototype.checkProvidersBefore_ = function() {
+    var comp = recoil.frp.Frp.Direction_.UP.heapComparator();
+    for (var i = 0; i < this.providers_.length; i++) {
+        var prov = this.providers_[i];
+        if (comp(this, prov) <= 0) {
+            throw 'provider not before';
+        }
+    }
+};
 /**
  * loopCheck is a bit slow when it comes to large amounts of
  * items this is a quicker version that assumes all the providers
@@ -1602,7 +1618,6 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
     while (cur !== undefined) {
         // calculate changed something
         var deps;
-        visited[cur.seqStr_] = cur;
         var nextItr = [];
         var accessFunc = function() {
             if (dir === recoil.frp.Frp.Direction_.UP) {
@@ -1622,6 +1637,13 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
             args.push(cur.providers_[i]);
         }
         recoil.frp.Frp.access.apply(this, args);
+        var delayed = false;
+        for (i = 0; i < nextItr.length && !delayed; i++) {
+            delayed = nextItr[i].force && nextItr[i].behaviour === cur;
+        }
+        if (!delayed) {
+            visited[cur.origSeq_] = cur;
+        }
         var d;
         for (d = 0; deps && d < deps.length; d++) {
             pendingHeap.push(deps[d]);
@@ -1766,6 +1788,7 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
 
 };
 
+
 /**
  * update the dependaniece of the behaviour
  *
@@ -1854,6 +1877,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     }
 
     this.ensureProvidersBefore_(dependant, []);
+//    dependant.checkProvidersBefore_();
     dependant.quickLoopCheck_();
 };
 
