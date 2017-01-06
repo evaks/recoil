@@ -415,6 +415,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
             // but ensure we calculate it next phase,
 
             // we have to temporaryily set value back
+            newVal = behaviour.val_;
             nextItr.push({behaviour: behaviour, force: true});
             if (behaviour.dirtyUp_) {
                 return [];
