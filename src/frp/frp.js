@@ -378,6 +378,7 @@ recoil.frp.Frp.compareSeq_ = function(a, b) {
 
 recoil.frp.Frp.Direction_ = {};
 
+
 /**
  * Up is from providers to behaviour
  *
@@ -411,10 +412,13 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
 
         if (behaviour.dirtyDown_) {
             // do nothing here calulationg here is pointless since we need to recalc anyway
-            // but ensure we calculate it next phase
-            newVal = behaviour.val_;
-            nextItr.push({behaviour: behaviour, force: true});
+            // but ensure we calculate it next phase,
 
+            // we have to temporaryily set value back
+            nextItr.push({behaviour: behaviour, force: true});
+            if (behaviour.dirtyUp_) {
+                return [];
+            }
         }
         else {
             newVal = behaviour.calc_.apply(behaviour, params);
@@ -548,9 +552,12 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
         throw 'inverse not function';
     }
 
-
+    // we have called set on this behaviour and we need to recalculate
+    // all our dependants (maybe)
     this.dirtyUp_ = false;
+    // this is value that was calculated before we set the new value
     this.dirtyUpOldValue_ = null;
+    // we have set the value via metaSet and we need to inverse calculate
     this.dirtyDown_ = false;
     this.refs_ = {};
     /**
@@ -860,9 +867,10 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
                 me.dirtyUp_ = true;
                 me.dirtyUpOldValue_ = me.val_;
             }
+
             me.dirtyDown_ = true;
             if (value === undefined) {
-                console.log('SETTING UNDEFINED');
+                console.error('SETTING UNDEFINED');
             }
             me.val_ = value;
             me.forEachManager_(function(manager) {
@@ -876,7 +884,7 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
             // and nobody is listening so just set my value
             // and calculate down
             if (value === undefined) {
-                console.log('SETTING UNDEFINED');
+                console.error('SETTING UNDEFINED');
             }
             me.val_ = value;
             if (value instanceof recoil.frp.BStatus) {
@@ -951,8 +959,7 @@ recoil.frp.Frp.prototype.createConstB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
     return new recoil.frp.Behaviour(this, metaInitial, function() {
         return metaInitial;
-    }, function(dummy) {
-    }, this.transactionManager_.nextIndex(), []);
+    }, recoil.frp.Frp.nullInvFunc_, this.transactionManager_.nextIndex(), []);
 };
 
 /**
@@ -1147,6 +1154,20 @@ recoil.frp.Frp.prototype.liftE = function(func, var_args) {
 };
 
 /**
+ * @private
+ * @return {?}
+ */
+recoil.frp.Frp.nullFunc_ = function() {
+    return null;
+};
+
+/**
+ * @private
+ */
+recoil.frp.Frp.nullInvFunc_ = function() {
+};
+
+/**
  *
  * Creates callback, this is basically a behaviour with only an inverse
  * the calculate function always returns true
@@ -1156,7 +1177,7 @@ recoil.frp.Frp.prototype.liftE = function(func, var_args) {
  */
 recoil.frp.Frp.prototype.createCallback = function(func, var_dependants) {
     recoil.util.notNull(arguments);
-    var params = [function() {return null;}, function(value) {
+    var params = [recoil.frp.Frp.nullFunc_, function(value) {
         return func.apply(this, arguments);
     }];
     for (var i = 1; i < arguments.length; i++) {

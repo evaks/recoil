@@ -643,14 +643,154 @@ function testSetDownOnUp () {
     var oneB = frp.createB(1);
     var twoB = frp.createB(2);
 
+    var count = 0;
     
-    var threeB = frp.liftB(function() {twoB.set(oneB.get()); return oneB.get();},oneB, twoB);
+    var threeB = frp.liftB(function() {count++, twoB.set(oneB.get()); return oneB.get();},oneB, twoB);
 
     tm.attach(threeB);
 
     assertEquals(1, twoB.unsafeMetaGet().get());
+    assertEquals(2, count);
 
 }
+
+
+function testSetDownOnUpNoCalc () {
+
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var oneB = frp.createB(1);
+    var twoB =  frp.createB(2);
+    var nullB = frp.liftBI(function() {return null;},function (v) {twoB.set(v);}, twoB);
+
+    var count = 0;
+    
+    var threeB = frp.liftB(function() {count++, nullB.set(oneB.get()); return oneB.get();},oneB, nullB);
+
+    tm.attach(threeB);
+
+    assertEquals(1, twoB.unsafeMetaGet().get());
+    assertEquals(1, count);
+
+}
+
+function testOnUpDirtyDown () {
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var doNothing = function (v) {return v;};
+    var doNothingInv = function (v,b) {b.set(v);};
+
+    var count = 0;
+    var count1 = 0;
+    var zeroB = frp.createB(1);
+    var oneB = frp.liftBI(
+        function (v) {
+            count1++;
+            console.log("this", this.dirtyDown_);
+            return v;
+        },
+        doNothingInv, zeroB);
+    var twoB =  frp.liftBI(doNothing, doNothingInv, oneB);
+    var threeB =  frp.liftBI(doNothing, doNothingInv, twoB);
+    var fourB =  frp.liftBI(function (v) {
+        frp.accessTrans(function () {
+            oneB.set(2);
+        }, oneB);
+        return null;
+    },doNothingInv, threeB);
+                        
+    var lastB = frp.liftB(function () {
+        count++;
+        return 2;
+    }, fourB);
+                          
+    tm.attach(lastB);
+
+    
+//    assertEquals(1,recoil.frp.Frp.DirectionC);
+    assertEquals(1,count);
+    assertEquals(2,count1);
+    assertEquals(2,lastB.unsafeMetaGet().get());
+
+    frp.accessTrans(function () {
+        fourB.set(3);
+    }, fourB);
+
+    assertEquals(1,count);
+    assertEquals(4,count1);
+
+};
+
+function testOnUpDirtyDown1 () {
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var doNothing = function (v) {return v;};
+    var doNothingInv = function (v,b) {b.set(v);};
+
+    var count = 0;
+    var count1 = 0;
+    var count2 = 0;
+    var zeroB = frp.createB(1);
+    var zero1B = frp.createB(1);
+
+    var oneB = frp.liftBI(
+        function (v) {
+            count1++;
+            return null;
+        },
+        doNothingInv, zeroB);
+
+    oneB.name = 'one';
+
+
+
+    var twoB =  frp.liftBI(doNothing, doNothingInv, oneB);
+    var threeB =  frp.liftBI(doNothing, doNothingInv, twoB);
+    var fourB =  frp.liftBI(function (v) {
+        frp.accessTrans(function () {
+            oneB.set(2);
+        }, oneB);
+        return null;
+    },doNothingInv, threeB);
+
+    var one1B = frp.liftBI(
+        function (v) {
+            count2++;
+            if (v) {
+                throw "invalid value for 1";
+            }
+            return null;
+        },
+        doNothingInv, oneB, zero1B);
+                        
+    var lastB = frp.liftB(function () {
+        count++;
+        return 2;
+    }, fourB);
+                          
+    tm.attach(lastB);
+    tm.attach(one1B);
+
+    
+//    assertEquals(1,recoil.frp.Frp.DirectionC);
+    assertEquals(1,count);
+    assertEquals(1,count2);
+    assertEquals(2,count1);
+    assertEquals(2,lastB.unsafeMetaGet().get());
+
+    frp.accessTrans(function () {
+        fourB.set(3);
+        zero1B.set(2);
+    }, fourB);
+
+    assertEquals(1,count);
+    assertEquals(4,count1);
+
+};
+
 function testSameBehaviour() {
 //    assertTrue("not implemented yet", false);
 }
