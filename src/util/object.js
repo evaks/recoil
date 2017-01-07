@@ -35,6 +35,23 @@ recoil.util.object.compare = function(a, b) {
 };
 
 /**
+ * calls compare on all arguments, returns the first non-zero result
+ *
+ * @param {!Array<!{x:*,y:*}>} values
+ * @return {!number}
+ */
+recoil.util.object.compareAll = function(values) {
+    for (var i = 0; i < values.length; i++) {
+        var res = recoil.util.object.compare(values[i].x, values[i].y);
+        if (res !== 0) {
+            return res;
+        }
+    }
+    return 0;
+};
+
+
+/**
  * a generic compare function that compares only the key
  * field in the object
  *

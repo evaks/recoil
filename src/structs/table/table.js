@@ -222,6 +222,46 @@ recoil.structs.table.Table = function(table) {
     });
 };
 /**
+ * @param {?} b
+ * @return {!number}
+ */
+recoil.structs.table.Table.prototype.compare = function(b) {
+    if (b instanceof recoil.structs.table.Table) {
+        var res = this.size() - b.size();
+        if (res !== 0) {
+            return res;
+        }
+        res = recoil.util.object.compareAll([
+            {x: this.getMeta(), y: b.getMeta()},
+            {x: this.primaryColumns_, y: b.primaryColumns_},
+            {x: this.otherColumns_, y: b.otherColumns_},
+            {x: this.ordered_, y: b.ordered_}]
+        );
+        if (res !== 0) {
+            return res;
+        }
+        var cols = this.getColumns();
+        for (var i = 0; i < cols.length; i++) {
+            var col = cols[i];
+            res = recoil.util.object.compare(this.getColumnMeta(col), b.getColumnMeta(col));
+            if (res !== 0) {
+                return res;
+            }
+        }
+
+        return 0;
+    }
+    return -1;
+};
+
+/**
+ * @param {?} a
+ * @return {!boolean}
+ */
+recoil.structs.table.Table.prototype.equals = function(a) {
+    return this.compare(a) === 0;
+};
+/**
  * @return {Array<recoil.structs.table.ColumnKey>}
  */
 recoil.structs.table.Table.prototype.getPrimaryColumns = function() {
