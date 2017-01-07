@@ -1169,6 +1169,12 @@ recoil.structs.table.TableRow.prototype.hasColumn = function(column) {
 };
 
 /**
+ * @return {!recoil.structs.table.MutableTableRow}
+ */
+recoil.structs.table.TableRow.prototype.unfreeze = function() {
+    return new recoil.structs.table.MutableTableRow(undefined, this);
+};
+/**
  * A table row that can be changed. Use this to make a row then
  * change it to a normal row
  * @constructor
@@ -1204,6 +1210,14 @@ recoil.structs.table.MutableTableRow.prototype.equals = function(that) {
  */
 recoil.structs.table.MutableTableRow.prototype.pos = function() {
     return this.pos_;
+};
+
+
+/**
+ * @param {number|undefined} pos
+ */
+recoil.structs.table.MutableTableRow.prototype.setPos = function(pos) {
+    this.pos_ = pos;
 };
 
 /**
