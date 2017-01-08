@@ -240,6 +240,8 @@ recoil.structs.table.Table.prototype.compare = function(b) {
         if (res !== 0) {
             return res;
         }
+        //ok we don't compare lengths since we already compared the primary and other columns
+        //however it might be good if we ignore order of other columns
         var cols = this.getColumns();
         for (var i = 0; i < cols.length; i++) {
             var col = cols[i];
