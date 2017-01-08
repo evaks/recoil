@@ -438,7 +438,6 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
                 }
             });
         });  // table.forEach
-
         return info;
 
     }, tableB);
@@ -802,16 +801,32 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
         }
     }
 
-    // remove the columns from each row
     renderState.rows.inOrderTraverse(function(row) {
         var newRow = table.rowMeta.findFirst(row);
+        var rowDecorator = me.getMetaValue('rowDecorator', tableMeta, newRow.meta);
+        if (rowDecorator !== row.decorator) {
+            var newRowDec = rowDecorator();
+            // clone otherwize removeChildren will change this
+            var children = goog.array.clone(goog.dom.getChildren(row.inner));
+            goog.dom.removeChildren(row.inner);
+            children.forEach(function (child) {
+                newRowDec.inner.appendChild(child);
+            });
+            recoil.ui.events.listen(newRowDec.outer, goog.events.EventType.CLICK,
+                                    me.rowClickEvent_, undefined, row.key);
+            goog.dom.insertSiblingAfter(newRowDec.outer, row.outer);
+            goog.dom.removeNode(row.outer);
+
+            row.inner = newRowDec.inner;
+            row.outer = newRowDec.outer;
+            row.decorator = newRowDec.decorator;
+        }
         for (var i = 0; i < table.columnMeta.length; i++) {
             var columnMeta = table.columnMeta[i];
             var cellMeta = newRow.cellMeta[columnMeta.key];
             var oldRenderInfo = row.cols[i];
             var decorator = me.getMetaValue('cellDecorator', tableMeta, newRow.meta, columnMeta, cellMeta);
             var factory = me.getMetaValue('cellWidgetFactory', tableMeta, newRow.meta, columnMeta, cellMeta);
-
             row.cols[i] = me.replaceWidgetAndDecorator_(decorator, factory, oldRenderInfo, row.inner, i);
         }
     });
