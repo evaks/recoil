@@ -417,6 +417,7 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
             // we have to temporaryily set value back
             newVal = behaviour.val_;
             nextItr.push({behaviour: behaviour, force: true});
+
             if (behaviour.dirtyUp_) {
                 return [];
             }
@@ -496,8 +497,19 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
             for (var i = 0; i < behaviour.providers_.length; i++) {
                 args.push(behaviour.providers_[i]);
             }
-
-            behaviour.inv_.apply(behaviour, args);
+            try {
+                behaviour.inv_.apply(behaviour, args);
+            }
+            catch (e) {
+                if (false) {
+                    // do it again so we can see which function was doing it
+                    try {
+                        behaviour.inv_.apply(behaviour, args);
+                    }
+                    catch(e) {}
+                }
+                console.error("error setting", e);
+            }
             var newDirty = getDirty(behaviour.providers_);
 
             var id;
@@ -588,6 +600,12 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
 
 };
 
+/**
+ * @return {!boolean}
+ */
+recoil.frp.Behaviour.prototype.good = function() {
+    return this.metaGet().good();
+};
 /**
  * @param {Object<string,recoil.frp.Behaviour>} path
  */
@@ -1039,7 +1057,6 @@ recoil.frp.Frp.accessList = function(callback, behaviours) {
     }
 };
 
-var xxxx = null;
 /**
  *
  * @template T
