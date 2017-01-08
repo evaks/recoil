@@ -30,6 +30,19 @@ var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 asyncTestCase.stepTimeout = 5000;
 var shared = {};
 
+function waitFor(test, start) {
+    start = start || new Date().getTime();
+    setTimeout(function () {
+        if (test()) {
+            asyncTestCase.continueTesting();
+        }
+        else {
+            if (new Date().getTime() < start + asyncTestCase.stepTimeout) {
+                waitFor(test);
+            }
+        }
+    }, 10);
+}
 function testOrderChange01() {
     shared = {
         container : goog.dom.createDom('div', {id: 'foo'}),
@@ -297,29 +310,42 @@ function testColumnChange02() {
 
     },shared.columnsB);
 
+    waitFor(function () {
+        return findVal('V5');
+    });
+    shared.th = {
+        id : id,
+        v1 : v1,
+        v2 : v2,
+        v3 : v3
+    };
+    asyncTestCase.waitForAsync('check column added');
+}
+
+function testColumnChange03() {
     shared.v5 = findVal('V5');
     assertEquals(shared.id , findVal('ID'));
     assertEquals(shared.v1 , findVal('V1'));
     assertEquals(shared.v2 , findVal('V2'));
     assertEquals(shared.v3 , findVal('V3'));
 
-    assertEquals(id,getAncestor(shared.id,'TH'));
-    assertEquals(v1,getAncestor(shared.v1,'TH'));
-    assertEquals(v2,getAncestor(shared.v2,'TH'));
-    assertEquals(v3,getAncestor(shared.v3,'TH'));
+    assertEquals(shared.th.id,getAncestor(shared.id,'TH'));
+    assertEquals(shared.th.v1,getAncestor(shared.v1,'TH'));
+    assertEquals(shared.th.v2,getAncestor(shared.v2,'TH'));
+    assertEquals(shared.th.v3,getAncestor(shared.v3,'TH'));
     var v5 = getAncestor(shared.v5,'TH');
 
-    assertTrue("add order correct 1",goog.dom.getNextElementSibling(id) === v1);
-    assertTrue("add order correct 2",goog.dom.getNextElementSibling(v1) === v3);
-    assertTrue("add order correct 3",goog.dom.getNextElementSibling(v3) === v5);
-    assertTrue("add order correct 3",goog.dom.getNextElementSibling(v5) === v2);
+    assertTrue("add order correct 1",goog.dom.getNextElementSibling(shared.th.id) === shared.th.v1);
+    assertTrue("add order correct 2",goog.dom.getNextElementSibling(shared.th.v1) === shared.th.v3);
+    assertTrue("add order correct 3",goog.dom.getNextElementSibling(shared.th.v3) === v5);
+    assertTrue("add order correct 3",goog.dom.getNextElementSibling(v5) === shared.th.v2);
     
     document.body.removeChild(shared.container);
     asyncTestCase.waitForAsync('test remove table');
 }
 
 
-function testColumnChange03() {
+function testColumnChange04() {
     var frp = shared.scope.getFrp();
     assertEquals(0,frp.tm().watching());
     shared = {};
