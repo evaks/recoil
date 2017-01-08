@@ -809,7 +809,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
             // clone otherwize removeChildren will change this
             var children = goog.array.clone(goog.dom.getChildren(row.inner));
             goog.dom.removeChildren(row.inner);
-            children.forEach(function (child) {
+            children.forEach(function(child) {
                 newRowDec.inner.appendChild(child);
             });
             recoil.ui.events.listen(newRowDec.outer, goog.events.EventType.CLICK,

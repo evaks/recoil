@@ -506,9 +506,9 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
                     try {
                         behaviour.inv_.apply(behaviour, args);
                     }
-                    catch(e) {}
+                    catch (e) {}
                 }
-                console.error("error setting", e);
+                console.error('error setting', e);
             }
             var newDirty = getDirty(behaviour.providers_);
 
