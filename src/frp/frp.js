@@ -439,12 +439,12 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         var res = [];
         if (behaviour.dirtyUp_ && recoil.util.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
             if (behaviour.dirtyUpOldValue_ === undefined) {
-                console.log('SETTING UNDEFINED 2');
+                console.error('SETTING UNDEFINED 2');
             }
             behaviour.val_ = behaviour.dirtyUpOldValue_;
         } else if (behaviour.dirtyUp_ || !recoil.util.isEqual(oldVal, newVal)) {
             if (newVal === undefined) {
-                console.log('SETTING UNDEFINED 2');
+                console.error('SETTING UNDEFINED 2');
             }
             behaviour.val_ = newVal;
             res = dependents;
@@ -1356,7 +1356,6 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
                 }
             }
             catch (error) {
-                console.log(error);
                 metaResult.addError(error);
             }
         }
