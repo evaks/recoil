@@ -8,7 +8,7 @@ goog.require('recoil.db.Path');
 function testArray() {
     var obj = {a:[1,2,3]};
 
-    var path = new recoil.db.Path(['a','[]']);
+    var path = new recoil.db.Path(['a','[#]']);
 
     var check = [];
 
@@ -63,7 +63,7 @@ function testAll() {
 
     var obj = {a: [avl1, avl2]};
 
-    var path = new recoil.db.Path(['a','[]','[map]','v','[obj]']);
+    var path = new recoil.db.Path(['a','[#]','[map]','v','[obj]']);
 
     var check = [];
 

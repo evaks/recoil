@@ -331,7 +331,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
             var table = tableB.get();
             var first = null;
             var last = null;
-            
+
             table.forEach(function(row) {
                 first = first || row;
                 last = row;
