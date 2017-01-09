@@ -501,13 +501,6 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
                 behaviour.inv_.apply(behaviour, args);
             }
             catch (e) {
-                if (false) {
-                    // do it again so we can see which function was doing it
-                    try {
-                        behaviour.inv_.apply(behaviour, args);
-                    }
-                    catch (e) {}
-                }
                 console.error('error setting', e);
             }
             var newDirty = getDirty(behaviour.providers_);
@@ -706,7 +699,43 @@ recoil.frp.Behaviour.prototype.frp = function() {
 recoil.frp.Behaviour.prototype.refListen = function(callback) {
     this.refListeners_.push(callback);
 };
+/**
+ * @private
+ * @return {!recoil.frp.TransactionManager}
+ */
+recoil.frp.Behaviour.prototype.getTm_ = function() {
+    return this.frp_.transactionManager_;
+};
+/**
+ * @private
+ * @param {!boolean} hasRef
+ */
+recoil.frp.Behaviour.prototype.fireRefListeners_ = function(hasRef) {
+    var tm = this.getTm_();
+    if (tm && tm.todoRefs_) {
+        var myTodo = tm.todoRefs_[this.origSeq_];
+        if (myTodo) {
+            myTodo.end = hasRef;
+        }
+        else {
+            tm.todoRefs_[this.origSeq_] = {b: this, start: hasRef, end: hasRef};
+        }
+        return;
+    }
+    // since we can't get rid of a
+    var len = this.refListeners_.length;
+    for (var l = 0; l < this.refListeners_.length; l++) {
+        // only fire if hasRef === this.hasRef()
+        // if we commiting a transaction then we should really schedule this
+        // do this by putting it in a map and firing at the end if  hasRef === this.hasRef()
+        // also stop this from being re-entrant
+        this.refListeners_[l](hasRef);
+    }
+    if (len !== this.refListeners_.length) {
+        console.error('ref length changed');
+    }
 
+};
 
 /**
  * increases the reference count
@@ -727,17 +756,13 @@ recoil.frp.Behaviour.prototype.addRef = function(manager, opt_count) {
             count: count
         };
         if (!hadRefs) {
-            for (var l = 0; l < this.refListeners_.length; l++) {
-                this.refListeners_[l](true);
-            }
+            this.fireRefListeners_(true);
         }
         return true;
     } else {
         this.refs_[manager.id_].count += count;
         if (!hadRefs) {
-            for (var l = 0; l < this.refListeners_.length; l++) {
-                this.refListeners_[l](true);
-            }
+            this.fireRefListeners_(true);
         }
 
         return false;
@@ -762,9 +787,7 @@ recoil.frp.Behaviour.prototype.removeRef = function(manager, opt_count) {
     } else if (curRefs.count === count) {
         delete this.refs_[manager.id_];
         if (!this.hasRefs()) {
-            for (var l = 0; l < this.refListeners_.length; l++) {
-                this.refListeners_[l](false);
-            }
+            this.fireRefListeners_(false);
         }
         return true;
     } else {
@@ -1498,7 +1521,32 @@ recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
     } finally {
         try {
             if (this.level_ === 1) {
-                this.propagateAll_();
+                var seen = true;
+                while (seen) {
+                    seen = false;
+                    this.todoRefs_ = {};
+                    var todo;
+                    try {
+                        this.propagateAll_();
+                    }
+                    finally {
+                        todo = this.todoRefs_;
+                        this.todoRefs_ = undefined;
+                    }
+                    for (var k in todo) {
+                        seen = true;
+                        var ref = todo[k];
+                        if (ref.start === ref.end) {
+                            try {
+                                ref.b.fireRefListeners_(ref.start);
+                            }
+                            catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    }
+                }
+
             }
         } finally {
             this.level_--;
