@@ -323,9 +323,15 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
             return {orig: memoryB.get(), val: memoryB.get()};
         },
         function(val) {
+            // allow setting of value it table is not good, changing the page will probaly cause this
+            if (!tableB.good()) {
+                memoryB.set(val.val);
+                return;
+            }
             var table = tableB.get();
             var first = null;
             var last = null;
+            
             table.forEach(function(row) {
                 first = first || row;
                 last = row;
@@ -360,7 +366,12 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
             return rememberPageB.get().val;
         },
         function(val) {
-            rememberPageB.set({orig: rememberPageB.get().orig, val: val});
+            if (rememberPageB.get() === null) {
+                rememberPageB.set({orig: null, val: val});
+            }
+            else {
+                rememberPageB.set({orig: rememberPageB.get().orig, val: val});
+            }
         }, rememberPageB);
     return {
         table: tableB,
