@@ -841,7 +841,7 @@ recoil.structs.table.Table.prototype.getColumns = function() {
 /**
  * this ensures the sort order
  *
- * @param {function(recoil.structs.table.ColumnKey,Object) : *} func
+ * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
  */
 
 recoil.structs.table.Table.prototype.forEachPlacedColumn = function(func) {
@@ -1308,6 +1308,35 @@ recoil.structs.table.MutableTableRow.prototype.set = function(columnKey, val) {
 
     this.setCell(columnKey, old.setValue(columnKey.castTo(val)));
 };
+
+/**
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} columnKey
+ * @param {!Object} val the data of the cell
+ */
+
+recoil.structs.table.MutableTableRow.prototype.setCellMeta = function(columnKey, val) {
+    var old = this.getCell(columnKey);
+    if (old === null) {
+        old = new recoil.structs.table.TableCell(undefined);
+    }
+
+    this.setCell(columnKey, old.setMeta(val));
+};
+/**
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} columnKey
+ * @param {!Object} val the data of the cell
+ */
+
+recoil.structs.table.MutableTableRow.prototype.addCellMeta = function(columnKey, val) {
+    var old = this.getCell(columnKey);
+    if (old === null) {
+        old = new recoil.structs.table.TableCell(undefined);
+    }
+
+    this.setCell(columnKey, old.addMeta(val));
+};
 /**
  *
  * @template T
@@ -1343,6 +1372,17 @@ recoil.structs.table.TableCell.prototype.getValue = function() {
  */
 recoil.structs.table.TableCell.prototype.setMeta = function(meta) {
     return new recoil.structs.table.TableCell(this.value_, meta);
+};
+
+/**
+ * returns a new cell with the meta data set
+ * @param {!Object} meta
+ * @return {!recoil.structs.table.TableCell<T>}
+ */
+recoil.structs.table.TableCell.prototype.addMeta = function(meta) {
+    var newMeta = goog.object.clone(this.getMeta());
+    recoil.util.object.addProps(newMeta, meta);
+    return new recoil.structs.table.TableCell(this.value_, newMeta);
 };
 
 /**

@@ -599,6 +599,15 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
 recoil.frp.Behaviour.prototype.good = function() {
     return this.metaGet().good();
 };
+
+/**
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Behaviour.prototype.clone = function() {
+    return this;
+};
+
+
 /**
  * @param {Object<string,recoil.frp.Behaviour>} path
  */

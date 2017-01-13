@@ -723,6 +723,11 @@ function testOnUpDirtyDown () {
 
 };
 
+function testBehaviourClone () {
+    var frp = new recoil.frp.Frp();
+    var b = frp.createB(null);
+    assertTrue(b === recoil.util.object.clone(b));
+}
 function testOnUpDirtyDown1 () {
     var frp = new recoil.frp.Frp();
     var tm = frp.tm();

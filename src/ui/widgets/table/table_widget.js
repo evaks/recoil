@@ -180,6 +180,10 @@ recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var
     if (val !== undefined) {
         return val;
     }
+    val = recoil.ui.widgets.table.TableWidget['default' + goog.string.toTitleCase(value)];
+    if (val !== undefined) {
+        return val;
+    }
 
     return recoil.ui.widgets.table.TableWidget['default' + goog.string.toTitleCase(value) + '_'];
 };
@@ -254,13 +258,12 @@ recoil.ui.widgets.table.TableWidget.defaultCellDecorator_ = function() {
 /**
  * the default decorator for making header cells
  * @final
- * @private
  * @return {recoil.ui.RenderedDecorator}
  */
 
-recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator_ = function() {
+recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator = function() {
     return new recoil.ui.RenderedDecorator(
-        recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator_,
+        recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator,
         goog.dom.createDom('th'));
 };
 
