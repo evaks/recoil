@@ -20,6 +20,10 @@ EXE=`which $0`
 DIR=`dirname $EXE`
 cd ${DIR}/../..
 
+function genDepends {
+    ${PYTHON} closure-library/closure/bin/calcdeps.py -p closure-library -p recoil/src/  -o deps   > my-deps.js
+}
+genDepends
 
 #generate the test cases
 
