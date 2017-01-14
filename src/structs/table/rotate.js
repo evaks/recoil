@@ -5,8 +5,8 @@ goog.require('goog.structs.AvlTree');
 goog.require('recoil.frp.Inversable');
 goog.require('recoil.structs.table.ColumnKey');
 goog.require('recoil.structs.table.Table');
+goog.require('recoil.ui.widgets.table.TableWidget');
 goog.require('recoil.util.object');
-
 /**
  * this rotates the table so that the column are rows and th rows are columns
  * it is best that all meta data is applied before rotation, so that the Correct Meta data and name
@@ -54,6 +54,7 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
             cached = {key: pk, col: new recoil.structs.table.ColumnKey('' + pk)};
         }
         cached.row = row;
+        otherCols.push(cached.col);
         newCached.add(cached);
     });
     me.cachedColKeys_ = newCached;
@@ -83,24 +84,26 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
     var pos = 0;
     // now add the data to the table
     table.forEachPlacedColumn(function(col, meta) {
-        var newRow = new recoil.structs.table.MutableTableRow(pos);
-        newRow.set(me.primaryKey_, col);
+        if (pos > 0) {
+            var newRow = new recoil.structs.table.MutableTableRow(pos);
+            newRow.set(me.primaryKey_, col);
 
-        newRow.set(me.nameKey_, table.getColumnMeta(col).name);
-        newRow.setCellMeta(me.nameKey_, table.getColumnMeta(col));
-        var colMappings = [];
+            newRow.set(me.nameKey_, table.getColumnMeta(col).name);
+            newRow.setCellMeta(me.nameKey_, table.getColumnMeta(col));
+            var colMappings = [];
 
-        table.forEach(function(row, pk) {
-            var cached = me.cachedColKeys_.findFirst({key: pk});
+            table.forEach(function(row, pk) {
+                var cached = me.cachedColKeys_.findFirst({key: pk});
 
-            newRow.set(cached.col, {name: row.get(col)});
-            newRow.setCellMeta(cached.col, meta);
-            newRow.addCellMeta(cached.col, row.getCell(col).getMeta());
-            colMappings.push({srcPk: pk, destCol: cached.col});
+                newRow.set(cached.col, row.get(col));
+                newRow.setCellMeta(cached.col, meta);
+                newRow.addCellMeta(cached.col, row.getCell(col).getMeta());
+                colMappings.push({srcPk: pk, destCol: cached.col});
 
-        });
-        newRow.set(me.colMapKey_, colMappings);
-        result.addRow(newRow);
+            });
+            newRow.set(me.colMapKey_, colMappings);
+            result.addRow(newRow);
+        }
         pos++;
     });
 
@@ -108,7 +111,7 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
 };
 
 /**
- * for now we do not handl adding new rows, that would be like adding a new
+ * for now we do not handle adding new rows, that would be like adding a new
  * column, or adding new columns
  *
  * @param {!recoil.structs.table.Table} table
@@ -122,9 +125,12 @@ recoil.structs.table.Rotate.prototype.inverse = function(table, sources) {
     table.forEach(function(row) {
         var destCol = row.get(me.primaryKey_);
         var rowMappings = row.get(me.colMapKey_);
-        rowMappings.forEach(function(mapping) {
-            dest.set(mapping.srcPk, destCol, row.get(mapping.destCol));
-        });
+        // this is because the first row will not have a mapping
+        if (rowMappings) {
+            rowMappings.forEach(function(mapping) {
+                dest.set(mapping.srcPk, destCol, row.get(mapping.destCol));
+            });
+        }
 
     });
     return {table: dest.freeze()};
