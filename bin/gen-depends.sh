@@ -12,7 +12,7 @@ if [ "$MAJOR" -gt 2 ] ; then
 else
        PYTHON=python
 fi
-
-DIR=`dirname $0`
+EXE=`which $0`
+DIR=`dirname $EXE`
 cd ${DIR}/../..
 ${PYTHON} closure-library/closure/bin/calcdeps.py -p closure-library -p recoil/src/  -o deps   > my-deps.js

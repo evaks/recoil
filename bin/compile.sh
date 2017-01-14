@@ -16,13 +16,47 @@ else
     fi
 fi
 
-DIR=`dirname $0`
+EXE=`which $0`
+DIR=`dirname $EXE`
 cd ${DIR}/../..
 
-gjslint --disable 0110,0120 `find recoil/src -name "*.js" -and -not -name "*_test.js" `
+
+#generate the test cases
+
+function genTests {
+    cd recoil
+
+    OUT=alltests.js;
+
+    echo 'var _allTests = [' > $OUT 
+    find src/ -name "*_test.html" -and -not -name "*_manual_test.html" | sed  "s/^/  '/" | sed "s/$/',/" >> $OUT
+    echo '];' >> $OUT 
+    echo '' >> $OUT 
+    
+    echo "if (typeof module !== 'undefined' && module.exports) {" >> $OUT
+    echo "  module.exports = _allTests;" >> $OUT
+    echo "}" >> $OUT
+    cd ..
+}
+
+function lintFix {
+    fixjsstyle --disable 0110,0120 `find recoil/src/ -name "*.js" -and -not -name "*_test.js" `  > /dev/null
+
+    #on windows this adds cr
+    which cygpath && find recoil/src/ -name "*.js" -and -not -name "*_test.js" -exec sed -i 's/\r//' {} \; 
+}
+
+genTests
+
+gjslint --disable 0110,0120 `find recoil/src -name "*.js" -and -not -name "*_test.js" ` > /dev/null
 if [ $? -ne 0 ]; then
-    echo Error Occured in Lint stopping compile
-    exit 2
+    #we got an error try running lint fix on it first
+    lintFix
+    gjslint --disable 0110,0120 `find recoil/src -name "*.js" -and -not -name "*_test.js" `
+    if [ $? -ne 0 ]; then
+	echo Error Occured in Lint stopping compile
+	exit 2
+    fi
 fi
 
 
