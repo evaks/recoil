@@ -6,6 +6,6 @@ goog.provide('recoil.types');
 recoil.types.IPv4Address;
 
 /**
- * @typedef {!Array<!string>}
+ * @typedef {!Array<!number>}
  */
 recoil.types.IPv6Address;

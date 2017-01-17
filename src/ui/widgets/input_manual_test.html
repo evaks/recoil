@@ -81,13 +81,16 @@
   });
   numberInput.getComponent().render($('numberInput'));
 
-  var val3 = frp.createB(['2001','0000','3238','DFE1','0063','0000','0000','FEFB']);
+//    var val3 = frp.createB([0, 0x38, 0xE1, 0x0063, 0, 0, 0xFEF, 0xf]);
+    var val3 = frp.createB([1,0,0, 0, 2, 1, 0xd, 1]);
+
   var ipv6Input = new recoil.ui.widgets.InputWidget(scope);
   ipv6Input.attachStruct({value: val3,
       editable: editableB,
       enabled: enabledB,
       immediate: true,
-      converter: new recoil.converters.IPv6AddressConverter()
+      converter: new recoil.converters.IPv6AddressConverter(true, true, false),
+      classes: ['ipv6-textfield']
   });
 
   ipv6Input.getComponent().render($('ipv6Input'));

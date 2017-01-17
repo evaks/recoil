@@ -79,8 +79,7 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
     {
         classes: [],
         immediate: false, // if false changes will not propogate untill blur
-        converter: new recoil.converters.DefaultStringConverter(),
-        className: ''
+        converter: new recoil.converters.DefaultStringConverter()
     }
 );
 
@@ -91,7 +90,7 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
  * @private
  */
 recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl) {
-    var res = me.converterB_.get().convert(inputEl.value);
+    var res = me.converterB_.get().unconvert(inputEl.value);
     var el = goog.dom.getElement(inputEl.id);
 
     if (!res.error) {
@@ -134,6 +133,16 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
         var inputEl = v.target;
         if (!me.immediateB_.get()) {
             me.updateElement_(me, inputEl);
+
+        }
+        else {
+            frp.accessTrans(function () {
+                if (me.converterB_.metaGet().good() && me.valueB_.metaGet().good()) {
+                    var t = me.converterB_.get();
+                    var strVal = t.convert(me.valueB_.get());
+                    me.input_.setValue(strVal);
+                }
+            }, me.converterB_, me.valueB_);
 
         }
     };
@@ -180,8 +189,11 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
         var t = this.converterB_.get();
         var strVal = t.convert(this.valueB_.get());
 
-        if (strVal !== this.input_.getValue()) {
-            this.input_.setValue(strVal);
+        if (document.activeElement !== this.input_.getElement()) {
+
+            if (strVal !== this.input_.getValue()) {
+                this.input_.setValue(strVal);
+            }
         }
     }
     else {

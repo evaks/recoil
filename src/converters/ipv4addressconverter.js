@@ -1,6 +1,5 @@
 goog.provide('recoil.converters.IPv4AddressConverter');
 
-//goog.require('recoil.structs.IPv4Address');
 goog.require('recoil.types');
 goog.require('recoil.ui.message.Message');
 
@@ -43,36 +42,14 @@ recoil.converters.IPv4AddressConverter.prototype.unconvert = function(val) {
     var partsLen = parts.length;
 
     for (var i = 0; i < partsLen; i++) {
-        // num = parseInt(parts[i], 10);
-        if (this.isIPAddressValid_(parts)) {
+        num = (typeof (parts[i]) === 'string') ? parseInt(parts[i], 10) : parts[i];
+        if (partsLen !== 4 || isNaN(num) || num > 255 || num <= -1) {
+            return {error: recoil.ui.messages.INVALID, value: []};
+        } else {
             err = recoil.ui.messages.VALID;
             res.push(parseInt(parts[i], 10));
-        } else {
-            return {error: recoil.ui.messages.INVALID, value: []};
         }
     }
 
     return {error: null, value: res};
-};
-
-/**
- *
- * @param {!Array<?>} address
- * @return {boolean}
- * @private
- *
- */
-recoil.converters.IPv4AddressConverter.prototype.isIPAddressValid_ = function(address) {
-
-    var num = 0;
-    var addressLen = address.length;
-
-    for (var i = 0; i < addressLen; i++) {
-        num = (typeof (address[i]) === 'string') ? parseInt(address[i], 10) : address[i];
-        if (addressLen !== 4 || isNaN(num) || num > 255 || num <= -1) {
-            return false;
-        }
-    }
-
-    return true;
 };
