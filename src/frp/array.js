@@ -29,7 +29,7 @@ recoil.frp.Array.prototype.isEmpty = function(array) {
  * @return {!recoil.frp.Behaviour<!Array<?>>}
  */
 recoil.frp.Array.prototype.append = function(array1, array2) {
-    return this.frp_.liftB(function(arr1,arr2) {
+    return this.frp_.liftB(function(arr1, arr2) {
         return arr1.concat(arr2);
     }, this.util_.toBehaviour(array1), this.util_.toBehaviour(array2));
 };

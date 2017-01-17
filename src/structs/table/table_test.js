@@ -1,4 +1,4 @@
-goog.provide('recoil.structs.TableTest');
+goog.provide('recoil.structs.table.TableTest');
 
 goog.require('goog.testing.jsunit');
 goog.require('recoil.structs.table.Table');

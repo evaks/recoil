@@ -17,9 +17,6 @@ var COL_D = new recoil.structs.table.ColumnKey("d");
 var COL_E = new recoil.structs.table.ColumnKey("e");
 
 
-function odd(row) {
-    return row.get(COL_B) % 2 == 1;
-}
 function testSet() {
     var tbl = new recoil.structs.table.MutableTable([COL_A], [COL_B, COL_C]);
 
@@ -94,25 +91,16 @@ function testDelete () {
 
     var testee = new recoil.structs.table.MapColumns();
     
-    var expected = [1,3];
+    var mappings = [{from :COL_A, to:COL_D},{from :COL_C, to: COL_E}];
     var i = 0;
-    var table = testee.calculate({table : tbl.freeze(), filter : odd});
-
-    assertEquals(expected.length, table.size());
-
-    table.forEach(function (row) {
-        assertEquals(expected[i], row.get(COL_A));
-        assertEquals(expected[i], row.get(COL_B));
-        assertEquals(expected[i], row.get(COL_C));
-        i++;
-    });
+    var table = testee.calculate({table : tbl.freeze(), mappings : mappings});
 
     var mtable = table.unfreeze();
     mtable.removeRow([3]);
 
-    var orig = testee.inverse(mtable.freeze(),{table : tbl.freeze(), filter: odd});
+    var orig = testee.inverse(mtable.freeze(),{table : tbl.freeze(), mappings: mappings});
 
-    expected = [1,2,4];
+    var expected = [1,2,4];
     i = 0;
     assertEquals(expected.length, orig.table.size());
     orig.table.forEach(function (row) {
@@ -125,6 +113,8 @@ function testDelete () {
 }
 
 function testInsert () {
+    var mappings = [{from :COL_A, to:COL_D},{from :COL_C, to: COL_E}];
+
     var tbl = new recoil.structs.table.MutableTable([COL_A], [COL_B, COL_C]);
 
     [1,2,3,4].forEach(function (val) {
@@ -135,31 +125,21 @@ function testInsert () {
         tbl.addRow(row);
     });
 
-    var testee = new recoil.structs.table.Filter();
+    var testee = new recoil.structs.table.MapColumns();
     
     var expected = [1,3];
     var i = 0;
-    var table = testee.calculate({table : tbl.freeze(), filter : odd});
-
-    assertEquals(expected.length, table.size());
-
-    table.forEach(function (row) {
-        assertEquals(expected[i], row.get(COL_A));
-        assertEquals(expected[i], row.get(COL_B));
-        assertEquals(expected[i], row.get(COL_C));
-        i++;
-    });
-
+    var table = testee.calculate({table : tbl.freeze(), mappings : mappings});
     var mtable = table.unfreeze();
 
     var row = new recoil.structs.table.MutableTableRow();
-    row.set(COL_A, 5);
+    row.set(COL_D, 5);
     row.set(COL_B, 5);
-    row.set(COL_C, 5);
+    row.set(COL_E, 5);
     mtable.addRow(row);
 
 
-    var orig = testee.inverse(mtable.freeze(),{table : tbl.freeze(), filter: odd});
+    var orig = testee.inverse(mtable.freeze(),{table : tbl.freeze(), mappings: mappings});
 
     expected = [1,2,3,4,5];
     i = 0;

@@ -1,6 +1,6 @@
 .pagination .recoil-table-pager {
   display: table
-  width: 99%
+  width: 100%
   border: 1px solid #CDCDCD;
   border-radius: 3px; }
 
@@ -59,7 +59,7 @@ input .page {
     width : 100%;
 }
 table.recoil-table-pager .page {
-    width : 100%;
+    width : 99%;
     text-align : center;
 }
 

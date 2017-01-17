@@ -40,7 +40,15 @@ recoil.structs.table.ColumnKey = function(name, opt_comparator, opt_castTo, opt_
  */
 recoil.structs.table.ColumnKey.prototype.getDefault = function() {
     return this.default_;
-};/**
+};
+
+/**
+ * @return {!recoil.structs.table.ColumnKey}
+ */
+recoil.structs.table.ColumnKey.prototype.clone = function() {
+    return this;
+};
+/**
  * @return {boolean}
  */
 recoil.structs.table.ColumnKey.prototype.hasDefault = function() {
@@ -212,6 +220,48 @@ recoil.structs.table.Table = function(table) {
         me.rows_.add(x);
         me.ordered_.add(x);
     });
+};
+/**
+ * @param {?} b
+ * @return {!number}
+ */
+recoil.structs.table.Table.prototype.compare = function(b) {
+    if (b instanceof recoil.structs.table.Table) {
+        var res = this.size() - b.size();
+        if (res !== 0) {
+            return res;
+        }
+        res = recoil.util.object.compareAll([
+            {x: this.getMeta(), y: b.getMeta()},
+            {x: this.primaryColumns_, y: b.primaryColumns_},
+            {x: this.otherColumns_, y: b.otherColumns_},
+            {x: this.ordered_, y: b.ordered_}]
+        );
+        if (res !== 0) {
+            return res;
+        }
+        //ok we don't compare lengths since we already compared the primary and other columns
+        //however it might be good if we ignore order of other columns
+        var cols = this.getColumns();
+        for (var i = 0; i < cols.length; i++) {
+            var col = cols[i];
+            res = recoil.util.object.compare(this.getColumnMeta(col), b.getColumnMeta(col));
+            if (res !== 0) {
+                return res;
+            }
+        }
+
+        return 0;
+    }
+    return -1;
+};
+
+/**
+ * @param {?} a
+ * @return {!boolean}
+ */
+recoil.structs.table.Table.prototype.equals = function(a) {
+    return this.compare(a) === 0;
 };
 /**
  * @return {Array<recoil.structs.table.ColumnKey>}
@@ -791,7 +841,7 @@ recoil.structs.table.Table.prototype.getColumns = function() {
 /**
  * this ensures the sort order
  *
- * @param {function(recoil.structs.table.ColumnKey,Object) : *} func
+ * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
  */
 
 recoil.structs.table.Table.prototype.forEachPlacedColumn = function(func) {
@@ -1121,6 +1171,12 @@ recoil.structs.table.TableRow.prototype.hasColumn = function(column) {
 };
 
 /**
+ * @return {!recoil.structs.table.MutableTableRow}
+ */
+recoil.structs.table.TableRow.prototype.unfreeze = function() {
+    return new recoil.structs.table.MutableTableRow(undefined, this);
+};
+/**
  * A table row that can be changed. Use this to make a row then
  * change it to a normal row
  * @constructor
@@ -1156,6 +1212,14 @@ recoil.structs.table.MutableTableRow.prototype.equals = function(that) {
  */
 recoil.structs.table.MutableTableRow.prototype.pos = function() {
     return this.pos_;
+};
+
+
+/**
+ * @param {number|undefined} pos
+ */
+recoil.structs.table.MutableTableRow.prototype.setPos = function(pos) {
+    this.pos_ = pos;
 };
 
 /**
@@ -1244,6 +1308,35 @@ recoil.structs.table.MutableTableRow.prototype.set = function(columnKey, val) {
 
     this.setCell(columnKey, old.setValue(columnKey.castTo(val)));
 };
+
+/**
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} columnKey
+ * @param {!Object} val the data of the cell
+ */
+
+recoil.structs.table.MutableTableRow.prototype.setCellMeta = function(columnKey, val) {
+    var old = this.getCell(columnKey);
+    if (old === null) {
+        old = new recoil.structs.table.TableCell(undefined);
+    }
+
+    this.setCell(columnKey, old.setMeta(val));
+};
+/**
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} columnKey
+ * @param {!Object} val the data of the cell
+ */
+
+recoil.structs.table.MutableTableRow.prototype.addCellMeta = function(columnKey, val) {
+    var old = this.getCell(columnKey);
+    if (old === null) {
+        old = new recoil.structs.table.TableCell(undefined);
+    }
+
+    this.setCell(columnKey, old.addMeta(val));
+};
 /**
  *
  * @template T
@@ -1279,6 +1372,17 @@ recoil.structs.table.TableCell.prototype.getValue = function() {
  */
 recoil.structs.table.TableCell.prototype.setMeta = function(meta) {
     return new recoil.structs.table.TableCell(this.value_, meta);
+};
+
+/**
+ * returns a new cell with the meta data set
+ * @param {!Object} meta
+ * @return {!recoil.structs.table.TableCell<T>}
+ */
+recoil.structs.table.TableCell.prototype.addMeta = function(meta) {
+    var newMeta = goog.object.clone(this.getMeta());
+    recoil.util.object.addProps(newMeta, meta);
+    return new recoil.structs.table.TableCell(this.value_, newMeta);
 };
 
 /**

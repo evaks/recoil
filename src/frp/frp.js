@@ -378,6 +378,7 @@ recoil.frp.Frp.compareSeq_ = function(a, b) {
 
 recoil.frp.Frp.Direction_ = {};
 
+
 /**
  * Up is from providers to behaviour
  *
@@ -411,10 +412,15 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
 
         if (behaviour.dirtyDown_) {
             // do nothing here calulationg here is pointless since we need to recalc anyway
-            // but ensure we calculate it next phase
+            // but ensure we calculate it next phase,
+
+            // we have to temporaryily set value back
             newVal = behaviour.val_;
             nextItr.push({behaviour: behaviour, force: true});
 
+            if (behaviour.dirtyUp_) {
+                return [];
+            }
         }
         else {
             newVal = behaviour.calc_.apply(behaviour, params);
@@ -434,12 +440,12 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         var res = [];
         if (behaviour.dirtyUp_ && recoil.util.isEqual(behaviour.dirtyUpOldValue_, newVal)) {
             if (behaviour.dirtyUpOldValue_ === undefined) {
-                console.log('SETTING UNDEFINED 2');
+                console.error('SETTING UNDEFINED 2');
             }
             behaviour.val_ = behaviour.dirtyUpOldValue_;
         } else if (behaviour.dirtyUp_ || !recoil.util.isEqual(oldVal, newVal)) {
             if (newVal === undefined) {
-                console.log('SETTING UNDEFINED 2');
+                console.error('SETTING UNDEFINED 2');
             }
             behaviour.val_ = newVal;
             res = dependents;
@@ -491,8 +497,12 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
             for (var i = 0; i < behaviour.providers_.length; i++) {
                 args.push(behaviour.providers_[i]);
             }
-
-            behaviour.inv_.apply(behaviour, args);
+            try {
+                behaviour.inv_.apply(behaviour, args);
+            }
+            catch (e) {
+                console.error('error setting', e);
+            }
             var newDirty = getDirty(behaviour.providers_);
 
             var id;
@@ -548,9 +558,12 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
         throw 'inverse not function';
     }
 
-
+    // we have called set on this behaviour and we need to recalculate
+    // all our dependants (maybe)
     this.dirtyUp_ = false;
+    // this is value that was calculated before we set the new value
     this.dirtyUpOldValue_ = null;
+    // we have set the value via metaSet and we need to inverse calculate
     this.dirtyDown_ = false;
     this.refs_ = {};
     /**
@@ -576,7 +589,24 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.providers_ = providers || [];
 
     this.quickLoopCheck_();
+//    this.checkProvidersBefore_();
+
 };
+
+/**
+ * @return {!boolean}
+ */
+recoil.frp.Behaviour.prototype.good = function() {
+    return this.metaGet().good();
+};
+
+/**
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Behaviour.prototype.clone = function() {
+    return this;
+};
+
 
 /**
  * @param {Object<string,recoil.frp.Behaviour>} path
@@ -594,6 +624,20 @@ recoil.frp.Behaviour.prototype.loopCheck = function(path) {
 
 };
 
+/**
+ * utility function to ensures all our providers are before us
+ * this is not called but may be useful for debugging purposes in the future
+ * @private
+ */
+recoil.frp.Behaviour.prototype.checkProvidersBefore_ = function() {
+    var comp = recoil.frp.Frp.Direction_.UP.heapComparator();
+    for (var i = 0; i < this.providers_.length; i++) {
+        var prov = this.providers_[i];
+        if (comp(this, prov) <= 0) {
+            throw 'provider not before';
+        }
+    }
+};
 /**
  * loopCheck is a bit slow when it comes to large amounts of
  * items this is a quicker version that assumes all the providers
@@ -664,7 +708,43 @@ recoil.frp.Behaviour.prototype.frp = function() {
 recoil.frp.Behaviour.prototype.refListen = function(callback) {
     this.refListeners_.push(callback);
 };
+/**
+ * @private
+ * @return {!recoil.frp.TransactionManager}
+ */
+recoil.frp.Behaviour.prototype.getTm_ = function() {
+    return this.frp_.transactionManager_;
+};
+/**
+ * @private
+ * @param {!boolean} hasRef
+ */
+recoil.frp.Behaviour.prototype.fireRefListeners_ = function(hasRef) {
+    var tm = this.getTm_();
+    if (tm && tm.todoRefs_) {
+        var myTodo = tm.todoRefs_[this.origSeq_];
+        if (myTodo) {
+            myTodo.end = hasRef;
+        }
+        else {
+            tm.todoRefs_[this.origSeq_] = {b: this, start: hasRef, end: hasRef};
+        }
+        return;
+    }
+    // since we can't get rid of a
+    var len = this.refListeners_.length;
+    for (var l = 0; l < this.refListeners_.length; l++) {
+        // only fire if hasRef === this.hasRef()
+        // if we commiting a transaction then we should really schedule this
+        // do this by putting it in a map and firing at the end if  hasRef === this.hasRef()
+        // also stop this from being re-entrant
+        this.refListeners_[l](hasRef);
+    }
+    if (len !== this.refListeners_.length) {
+        console.error('ref length changed');
+    }
 
+};
 
 /**
  * increases the reference count
@@ -685,17 +765,13 @@ recoil.frp.Behaviour.prototype.addRef = function(manager, opt_count) {
             count: count
         };
         if (!hadRefs) {
-            for (var l = 0; l < this.refListeners_.length; l++) {
-                this.refListeners_[l](true);
-            }
+            this.fireRefListeners_(true);
         }
         return true;
     } else {
         this.refs_[manager.id_].count += count;
         if (!hadRefs) {
-            for (var l = 0; l < this.refListeners_.length; l++) {
-                this.refListeners_[l](true);
-            }
+            this.fireRefListeners_(true);
         }
 
         return false;
@@ -720,9 +796,7 @@ recoil.frp.Behaviour.prototype.removeRef = function(manager, opt_count) {
     } else if (curRefs.count === count) {
         delete this.refs_[manager.id_];
         if (!this.hasRefs()) {
-            for (var l = 0; l < this.refListeners_.length; l++) {
-                this.refListeners_[l](false);
-            }
+            this.fireRefListeners_(false);
         }
         return true;
     } else {
@@ -860,9 +934,10 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
                 me.dirtyUp_ = true;
                 me.dirtyUpOldValue_ = me.val_;
             }
+
             me.dirtyDown_ = true;
             if (value === undefined) {
-                console.log('SETTING UNDEFINED');
+                console.error('SETTING UNDEFINED');
             }
             me.val_ = value;
             me.forEachManager_(function(manager) {
@@ -876,7 +951,7 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
             // and nobody is listening so just set my value
             // and calculate down
             if (value === undefined) {
-                console.log('SETTING UNDEFINED');
+                console.error('SETTING UNDEFINED');
             }
             me.val_ = value;
             if (value instanceof recoil.frp.BStatus) {
@@ -951,8 +1026,7 @@ recoil.frp.Frp.prototype.createConstB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
     return new recoil.frp.Behaviour(this, metaInitial, function() {
         return metaInitial;
-    }, function(dummy) {
-    }, this.transactionManager_.nextIndex(), []);
+    }, recoil.frp.Frp.nullInvFunc_, this.transactionManager_.nextIndex(), []);
 };
 
 /**
@@ -1015,7 +1089,6 @@ recoil.frp.Frp.accessList = function(callback, behaviours) {
     }
 };
 
-var xxxx = null;
 /**
  *
  * @template T
@@ -1147,6 +1220,20 @@ recoil.frp.Frp.prototype.liftE = function(func, var_args) {
 };
 
 /**
+ * @private
+ * @return {?}
+ */
+recoil.frp.Frp.nullFunc_ = function() {
+    return null;
+};
+
+/**
+ * @private
+ */
+recoil.frp.Frp.nullInvFunc_ = function() {
+};
+
+/**
  *
  * Creates callback, this is basically a behaviour with only an inverse
  * the calculate function always returns true
@@ -1156,7 +1243,7 @@ recoil.frp.Frp.prototype.liftE = function(func, var_args) {
  */
 recoil.frp.Frp.prototype.createCallback = function(func, var_dependants) {
     recoil.util.notNull(arguments);
-    var params = [function() {return null;}, function(value) {
+    var params = [recoil.frp.Frp.nullFunc_, function(value) {
         return func.apply(this, arguments);
     }];
     for (var i = 1; i < arguments.length; i++) {
@@ -1318,7 +1405,6 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
                 }
             }
             catch (error) {
-                console.log(error);
                 metaResult.addError(error);
             }
         }
@@ -1444,7 +1530,32 @@ recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
     } finally {
         try {
             if (this.level_ === 1) {
-                this.propagateAll_();
+                var seen = true;
+                while (seen) {
+                    seen = false;
+                    this.todoRefs_ = {};
+                    var todo;
+                    try {
+                        this.propagateAll_();
+                    }
+                    finally {
+                        todo = this.todoRefs_;
+                        this.todoRefs_ = undefined;
+                    }
+                    for (var k in todo) {
+                        seen = true;
+                        var ref = todo[k];
+                        if (ref.start === ref.end) {
+                            try {
+                                ref.b.fireRefListeners_(ref.start);
+                            }
+                            catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    }
+                }
+
             }
         } finally {
             this.level_--;
@@ -1580,7 +1691,6 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
     while (cur !== undefined) {
         // calculate changed something
         var deps;
-        visited[cur.seqStr_] = cur;
         var nextItr = [];
         var accessFunc = function() {
             if (dir === recoil.frp.Frp.Direction_.UP) {
@@ -1600,6 +1710,13 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
             args.push(cur.providers_[i]);
         }
         recoil.frp.Frp.access.apply(this, args);
+        var delayed = false;
+        for (i = 0; i < nextItr.length && !delayed; i++) {
+            delayed = nextItr[i].force && nextItr[i].behaviour === cur;
+        }
+        if (!delayed) {
+            visited[cur.origSeq_] = cur;
+        }
         var d;
         for (d = 0; deps && d < deps.length; d++) {
             pendingHeap.push(deps[d]);
@@ -1744,6 +1861,7 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
 
 };
 
+
 /**
  * update the dependaniece of the behaviour
  *
@@ -1832,6 +1950,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     }
 
     this.ensureProvidersBefore_(dependant, []);
+//    dependant.checkProvidersBefore_();
     dependant.quickLoopCheck_();
 };
 

@@ -35,6 +35,23 @@ recoil.util.object.compare = function(a, b) {
 };
 
 /**
+ * calls compare on all arguments, returns the first non-zero result
+ *
+ * @param {!Array<!{x:*,y:*}>} values
+ * @return {!number}
+ */
+recoil.util.object.compareAll = function(values) {
+    for (var i = 0; i < values.length; i++) {
+        var res = recoil.util.object.compare(values[i].x, values[i].y);
+        if (res !== 0) {
+            return res;
+        }
+    }
+    return 0;
+};
+
+
+/**
  * a generic compare function that compares only the key
  * field in the object
  *
@@ -134,7 +151,7 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
     }
 
     // if 1 and only 1 of a and b is an array
-    if (goog.isArrayLike(a) != goog.isArrayLike(b)) {
+    if ((a instanceof Array) != (b instanceof Array)) {
         if (goog.isArrayLike(a)) {
             return 1;
         }
@@ -144,7 +161,7 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
     var newAPath = goog.array.concat(aPath, [a]);
     var newBPath = goog.array.concat(bPath, [b]);
 
-    if (goog.isArrayLike(a)) {
+    if (a instanceof Array) {
 
         return goog.array.compare3(/** @type {!IArrayLike} */
             (a), /** @type {!IArrayLike} */
@@ -265,7 +282,7 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
         return recoil.util.object.isEqualDebug_(b.equals(a), debugPath);
     }
 
-    if (goog.isArrayLike(a) != goog.isArrayLike(b)) {
+    if ((a instanceof Array) != (b instanceof Array)) {
 
         return recoil.util.object.isEqualDebug_(false, debugPath);
     }
@@ -274,7 +291,7 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
     var newBPath = goog.array.concat(bPath, [b]);
 
 
-    if (goog.isArrayLike(a)) {
+    if (a instanceof Array) {
         var idx = 0;
 
         return goog.array.equals(/** @type {IArrayLike} */

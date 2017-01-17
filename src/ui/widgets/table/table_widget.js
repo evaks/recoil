@@ -19,6 +19,27 @@ goog.require('recoil.ui.widgets.table.StringColumn');
 
 
 /**
+ * @typedef {{key:!Array, rowPos:!number, keyCols: !Array<!recoil.structs.table.ColumnKey>,cellMeta:Object<string,Object>}}
+ */
+recoil.ui.widgets.table.RowAndCellMeta_;
+
+/**
+ * @typedef {goog.structs.AvlTree<recoil.ui.widgets.table.RowAndCellMeta_>}
+ */
+recoil.ui.widgets.table.RowAndCellMetaMap_;
+
+/**
+ * @typedef {{rowMeta:!recoil.ui.widgets.table.RowAndCellMetaMap_, columnMeta:!Array<{key:!recoil.structs.table.ColumnKey}>, tableMeta:Object}}
+ */
+recoil.ui.widgets.table.TableInfo_;
+
+/**
+ * @typedef {{rows:goog.structs.AvlTree,headerCols:Array, headerRow:Object}}
+ */
+recoil.ui.widgets.table.RenderState_;
+
+
+/**
  * @constructor
  * @param {!recoil.ui.WidgetScope} scope
  * @implements recoil.ui.AttachableWidget
@@ -67,8 +88,9 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
         }
 
     });
-
+    // the state the current table we are displaying (only the important stuff)
     this.state_ = recoil.ui.widgets.table.TableWidget.emptyState_();
+    // information on what we are currently rendering
     this.renderState_ = {
         rows: new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_),
         headerCols: []
@@ -113,19 +135,8 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
 };
 
 /**
- * @private
- * @constructor
- */
-
-recoil.ui.widgets.table.TableWidget.LayoutState_ = function() {
-    this.rowMeta = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_);
-    this.columnMeta = [];
-    this.tableMeta = {};
-};
-
-/**
  * creates an empty state
- * @return {Object}
+ * @return {recoil.ui.widgets.table.TableInfo_}
  * @private
  */
 recoil.ui.widgets.table.TableWidget.emptyState_ = function() {
@@ -166,6 +177,10 @@ recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var
     }
     val = recoil.util.object.getByParts(this.scope_, 'recoil', 'ui', 'widgets', 'table', 'TableWidget', value);
 
+    if (val !== undefined) {
+        return val;
+    }
+    val = recoil.ui.widgets.table.TableWidget['default' + goog.string.toTitleCase(value)];
     if (val !== undefined) {
         return val;
     }
@@ -243,13 +258,12 @@ recoil.ui.widgets.table.TableWidget.defaultCellDecorator_ = function() {
 /**
  * the default decorator for making header cells
  * @final
- * @private
  * @return {recoil.ui.RenderedDecorator}
  */
 
-recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator_ = function() {
+recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator = function() {
     return new recoil.ui.RenderedDecorator(
-        recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator_,
+        recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator,
         goog.dom.createDom('th'));
 };
 
@@ -274,21 +288,26 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_ =
     };
 
 /**
+ * compares the rows based on its position
+ * @private
+ * @param {!recoil.ui.widgets.table.RowAndCellMeta_} x
+ * @param {!recoil.ui.widgets.table.RowAndCellMeta_} y
+ * @return {!number}
+ */
+recoil.ui.widgets.table.TableWidget.rowMetaPosCompare_ = function(x, y) {
+    return x.rowPos - y.rowPos;
+};
+
+/**
  * utility function to compare rows in meta data
  * TODO we don't have the position in here so we will loose the row ordering
  * @private
- * @param {Object} x
- * @param {Object} y
- * @return {number}
+ * @param {!recoil.ui.widgets.table.RowAndCellMeta_} x
+ * @param {!recoil.ui.widgets.table.RowAndCellMeta_} y
+ * @return {!number}
  */
 recoil.ui.widgets.table.TableWidget.rowMetaCompare_ = function(x, y) {
-    var res = 0;
-    if (x.pos !== y.pos) {
-        if (x.pos === undefined || y.pos === undefined) {
-            return x.pos === undefined ? -1 : 1;
-        }
-        return x.pos - y.pos;
-    }
+    var res;
 
     for (var i = 0; i < x.key.length; i++) {
         res = x.keyCols[i].compare(x.key[i], y.key[i]);
@@ -344,6 +363,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
         var primaryColumns = table.getPrimaryColumns();
         var rowAndColumnFields = ['cellWidgetFactory', 'cellDecorator'];
 
+        var pos = 0;
         table.forEach(function(row, rowKey, tableRowMeta) {
             var rowMeta = {};
             recoil.ui.widgets.table.TableWidget.copyMeta(
@@ -352,11 +372,12 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
                     ['rowSelector']),
                 [tableRowMeta, rowMeta], [tableMeta, info.tableMeta]);
             var rowAndCellMeta = {key: rowKey,
-                                  pos: row.pos(),
+                                  rowPos: pos,
                                   keyCols: table.getKeyColumns(),
                                   meta: rowMeta,
                                   cellMeta: {}};
             info.rowMeta.add(rowAndCellMeta);
+            pos++;
         });  // table.forEach
 
         return info;
@@ -370,7 +391,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
  *
  * @private
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB
- * @return {!recoil.frp.Behaviour<!Object>}
+ * @return {!recoil.frp.Behaviour<!recoil.ui.widgets.table.TableInfo_>}
  */
 recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(tableB) {
     var frp = this.scope_.getFrp();
@@ -395,7 +416,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
             info.columnMeta.push(myInfo);
         });
 
-
+        var curPos = 0;
         table.forEach(function(row, rowKey, tableRowMeta) {
             var rowMeta = {};
             recoil.ui.widgets.table.TableWidget.copyMeta(
@@ -404,7 +425,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
                     ['rowDecorator']),
                 [tableRowMeta, rowMeta], [tableMeta, info.tableMeta]);
             var rowAndCellMeta = {key: rowKey,
-                                  pos: row.pos(),
+                                  rowPos: curPos++,
                                   keyCols: table.getKeyColumns(),
                                   meta: rowMeta,
                                   cellMeta: {}};
@@ -420,7 +441,6 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
                 }
             });
         });  // table.forEach
-
         return info;
 
     }, tableB);
@@ -428,8 +448,8 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
 
 /**
  * @private
- * @param {Array<Object>} newColumnInfo the relevant meta data for the colun
- * @return {Object} an object containing the pos the position to delete,
+ * @param {Array<!{key:!recoil.structs.table.ColumnKey}>} newColumnInfo the relevant meta data for the colun
+ * @return {!Array<!{pos:!number, meta:!{key:!recoil.structs.table.ColumnKey}}>} an object containing the pos the position to delete,
  *       and the meta information for that column
  */
 recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves_ = function(newColumnInfo) {
@@ -460,8 +480,8 @@ recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves_ = function(newCo
  * all new columns have been added
  *
  * @private
- * @param {Array<Object>} newColumnInfo the column meta data of the new table
- * @return {Array<number>}
+ * @param {!Array<!{key:!recoil.structs.table.ColumnKey}>} newColumnInfo the column meta data of the new table
+ * @return {!Array<!number>} this is a map the index is to the value is from
  */
 recoil.ui.widgets.table.TableWidget.prototype.getColumnMoves_ = function(newColumnInfo) {
     var delColumns = [];
@@ -471,8 +491,8 @@ recoil.ui.widgets.table.TableWidget.prototype.getColumnMoves_ = function(newColu
     var result = [];
 
     var i = 0;
+
     for (i = 0; i < curColumnInfo.length; i++) {
-        curColumnInfo[newColumnInfo[i].key] = newColumnInfo[i];
         curPositions[curColumnInfo[i].key] = i;
     }
 
@@ -492,8 +512,8 @@ recoil.ui.widgets.table.TableWidget.prototype.getColumnMoves_ = function(newColu
  * since whe should delete the old cols before calling this
  *
  * @private
- * @param {goog.structs.AvlTree} newRows the new rows that are going to be in the table
- * @return {goog.structs.AvlTree} the rows to remove
+ * @param {!recoil.ui.widgets.table.RowAndCellMetaMap_} newRows the new rows that are going to be in the table
+ * @return {!recoil.ui.widgets.table.RowAndCellMetaMap_} the rows to remove
  *
  */
 recoil.ui.widgets.table.TableWidget.prototype.getRowRemoves_ = function(newRows) {
@@ -564,7 +584,7 @@ recoil.ui.widgets.table.TableWidget.prototype.addRowColumns_ = function(columns,
 /**
  * add any headers to the table specified by columns
  * @private
- * @param {Array<Object>} columns array of relevant meta data to be added
+ * @param {!Array<{key:!recoil.structs.table.ColumnKey}>} columns array of relevant meta data to be added
  * @param {Object} tableMeta
  */
 recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ =
@@ -598,8 +618,60 @@ recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ =
 };
 
 /**
+ * assumes there are no row in the current table that do not exist
  * @private
- * @param {Object} table all the relevant meta data for the table
+ * @param {!recoil.ui.widgets.table.RowAndCellMetaMap_} orderedRows the new rows that are sorted it the order they need to be displayed
+ */
+recoil.ui.widgets.table.TableWidget.prototype.doRowMoves_ = function(orderedRows) {
+    var renderState = this.renderState_;
+    // get a list of rendered rows in its current order
+    // this is currently sorted just on pk
+    // remove
+    var curSorted = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaPosCompare_);
+    var seen = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_);
+
+    renderState.rows.inOrderTraverse(function(row) {
+        curSorted.add(row);
+
+    });
+
+    var curRowList = [];
+    curSorted.inOrderTraverse(function(row) {
+        curRowList.push(row);
+    });
+
+    var srcPos = 0;
+    var destPos = 0;
+    orderedRows.inOrderTraverse(function(row) {
+        var needed = renderState.rows.findFirst(row);
+        // skip if it doesn't exist yet
+        if (needed) {
+            // skip rows that we have already done
+            var currentRow = curRowList[srcPos];
+            // this shouldn't result in an infinte loop because
+            // all previous rows have been seen so if we are
+            // doing a row it must also have been unseen I hope
+            while (seen.findFirst(currentRow)) {
+                srcPos++;
+                currentRow = curRowList[srcPos];
+            }
+
+            if (recoil.ui.widgets.table.TableWidget.rowMetaCompare_(currentRow, needed) !== 0) {
+                //move needed to before the current row
+                if (!goog.dom.removeNode(needed.outer)) {
+                    throw 'node does not exits';
+                }
+                goog.dom.insertSiblingBefore(needed.outer, currentRow.outer);
+            }
+            needed.rowPos = destPos;
+            seen.add(needed);
+        }
+        destPos++;
+    });
+};
+/**
+ * @private
+ * @param {!recoil.ui.widgets.table.TableInfo_} table all the relevant meta data for the table
  *
  */
 recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
@@ -613,7 +685,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
         if (renderRow) {
             renderState.table.inner.removeChild(renderRow.outer);
         }
-        state.rowMeta.remove({key: key});
+        state.rowMeta.remove(key);//TODO watch this it changed from {key:x}
     });
 
     // remove the header rows if any
@@ -732,16 +804,32 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
         }
     }
 
-    // remove the columns from each row
     renderState.rows.inOrderTraverse(function(row) {
         var newRow = table.rowMeta.findFirst(row);
+        var rowDecorator = me.getMetaValue('rowDecorator', tableMeta, newRow.meta);
+        if (rowDecorator !== row.decorator) {
+            var newRowDec = rowDecorator();
+            // clone otherwize removeChildren will change this
+            var children = goog.array.clone(goog.dom.getChildren(row.inner));
+            goog.dom.removeChildren(row.inner);
+            children.forEach(function(child) {
+                newRowDec.inner.appendChild(child);
+            });
+            recoil.ui.events.listen(newRowDec.outer, goog.events.EventType.CLICK,
+                                    me.rowClickEvent_, undefined, row.key);
+            goog.dom.insertSiblingAfter(newRowDec.outer, row.outer);
+            goog.dom.removeNode(row.outer);
+
+            row.inner = newRowDec.inner;
+            row.outer = newRowDec.outer;
+            row.decorator = newRowDec.decorator;
+        }
         for (var i = 0; i < table.columnMeta.length; i++) {
             var columnMeta = table.columnMeta[i];
             var cellMeta = newRow.cellMeta[columnMeta.key];
             var oldRenderInfo = row.cols[i];
             var decorator = me.getMetaValue('cellDecorator', tableMeta, newRow.meta, columnMeta, cellMeta);
             var factory = me.getMetaValue('cellWidgetFactory', tableMeta, newRow.meta, columnMeta, cellMeta);
-
             row.cols[i] = me.replaceWidgetAndDecorator_(decorator, factory, oldRenderInfo, row.inner, i);
         }
     });
@@ -750,8 +838,8 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
 /**
  * get columns that didn't exist but now do
  * @private
- * @param {Array<Object>} columnMeta
- * @return {Array<Object>}
+ * @param {!Array<!{key:!recoil.structs.table.ColumnKey}>} columnMeta
+ * @return {!Array<!{key:!recoil.structs.table.ColumnKey}>}
  */
 recoil.ui.widgets.table.TableWidget.prototype.getAddedColumns_ = function(columnMeta) {
     var oldColumns = this.state_.columnMeta;
@@ -774,7 +862,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getAddedColumns_ = function(column
 };
 /**
  * @private
- * @param {Object} table table meta data
+ * @param {!recoil.ui.widgets.table.TableInfo_} table table meta data
  *
  */
 recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds_ = function(table) {
@@ -825,7 +913,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds_ = function(table) {
 
 /**
  * @private
- * @param {Object} table table meta data
+ * @param {!recoil.ui.widgets.table.TableInfo_} table table meta data
  */
 recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves_ = function(table) {
     var movedColumns = this.getColumnMoves_(table.columnMeta);
@@ -874,20 +962,20 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves_ = function(table) {
 };
 /**
  * @private
- * @param {goog.structs.AvlTree<Object>} rowMeta
+ * @param {goog.structs.AvlTree<Object>} sortedRowMeta
  * @return {goog.structs.AvlTree<Object>} rowmeta and the position it should be inserted
  */
-recoil.ui.widgets.table.TableWidget.prototype.getNewRows_ = function(rowMeta) {
+recoil.ui.widgets.table.TableWidget.prototype.getNewRows_ = function(sortedRowMeta) {
 
     var me = this;
     var state = this.state_;
-    var result = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaCompare_);
+    var result = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaPosCompare_);
+
     var pos = 0;
 
-    rowMeta.inOrderTraverse(function(row) {
+    sortedRowMeta.inOrderTraverse(function(row) {
         if (!state.rowMeta.findFirst(row)) {
             var newRow = goog.object.clone(row);
-            newRow.rowPos = pos;
             result.add(newRow);
         }
         pos++;
@@ -902,7 +990,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getNewRows_ = function(rowMeta) {
  * unless the useful parts have changed
  * @private
  * @param {recoil.ui.ComponentWidgetHelper} helper
- * @param {recoil.frp.Behaviour<Object>} tableB meta data associated with table
+ * @param {!recoil.frp.Behaviour<!recoil.ui.widgets.table.TableInfo_>} tableB meta data associated with table
  */
 recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, tableB) {
     var me = this;
@@ -943,8 +1031,13 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         }
         this.renderState_.table.decorator = tableDecorator;
 
+        var sortedRowMeta = new goog.structs.AvlTree(recoil.ui.widgets.table.TableWidget.rowMetaPosCompare_);
+        table.rowMeta.inOrderTraverse(function(row) {
+            sortedRowMeta.add(row);
+        });
 
         this.doRemoves_(table);
+        this.doRowMoves_(sortedRowMeta);
         this.doColumnAdds_(table);
         this.doColumnMoves_(table);
         // all the columns are in the right position, update the decorators and stuff so they
@@ -954,9 +1047,9 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         // at this point every existing cell has the correct behaviour
         // now all we have to do is add th new rows
 
-        var newRows = this.getNewRows_(table.rowMeta);
+        var sortedNewRows = this.getNewRows_(sortedRowMeta);
 
-        newRows.inOrderTraverse(function(row) {
+        sortedNewRows.inOrderTraverse(function(row) {
 
             // do this in order of the columns defined in the meta data
             var rowDecorator = me.getMetaValue('rowDecorator', tableMeta, row.meta);
@@ -967,7 +1060,6 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
             rowComponent.cols = [];
             rowComponent.key = row.key;
             rowComponent.rowPos = row.rowPos;
-            rowComponent.pos = row.pos;
             rowComponent.keyCols = row.keyCols;
             goog.dom.insertChildAt(me.renderState_.table.inner, rowComponent.outer, me.renderState_.headerRow ? row.rowPos + 1 : row.rowPos);
 
