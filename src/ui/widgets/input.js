@@ -136,7 +136,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
         }
         else {
-            frp.accessTrans(function () {
+            frp.accessTrans(function() {
                 if (me.converterB_.metaGet().good() && me.valueB_.metaGet().good()) {
                     var t = me.converterB_.get();
                     var strVal = t.convert(me.valueB_.get());

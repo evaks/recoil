@@ -9,7 +9,7 @@ goog.require('recoil.ui.message.Message');
  * @param {!boolean} stripLeadingZeros
  * @param {!boolean} ipV4 whether or not to display ipv4 segment to user
  * @constructor
- * @implements {recoil.converters.TypeConverter<T, string>}
+ * @implements {recoil.converters.TypeConverter<recoil.types.IPv6Address, string>}
  */
 recoil.converters.IPv6AddressConverter = function(removeZeroSeq, stripLeadingZeros, ipV4) {
     this.removeZeroSeq_ = removeZeroSeq;
@@ -32,7 +32,7 @@ recoil.converters.IPv6AddressConverter.prototype.convert = function(val) {
 
     var maxLen = undefined;
     var maxLenStart = undefined;
-    var curLen  = 0;
+    var curLen = 0;
     var curStart;
 
     for (var i = 0; i < val.length; i++) {
@@ -40,7 +40,7 @@ recoil.converters.IPv6AddressConverter.prototype.convert = function(val) {
 
 
         if (!this.stripLeadingZeros_) {
-            part = ("0000" + part).substr(part.length);
+            part = ('0000' + part).substr(part.length);
         }
         if (val[i] === 0) {
             if (curStart === undefined) {
@@ -65,17 +65,17 @@ recoil.converters.IPv6AddressConverter.prototype.convert = function(val) {
     var res = [];
     var i = 0;
     while (i < parts.length) {
-        if (i === maxLenStart && this.removeZeroSeq_  && maxLen > 1) {
-            res.push(i === 0 ? "::" : ":");
-            i+= maxLen;
+        if (i === maxLenStart && this.removeZeroSeq_ && maxLen > 1) {
+            res.push(i === 0 ? '::' : ':');
+            i += maxLen;
         }
         else {
-            res.push( i === 7 ? parts[i] : parts[i] + ":");
+            res.push(i === 7 ? parts[i] : parts[i] + ':');
             i++;
         }
     }
 
-    return res.join("");
+    return res.join('');
 };
 
 /**
@@ -103,9 +103,9 @@ recoil.converters.IPv6AddressConverter.prototype.unconvert = function(val) {
 
     if (parts.length > 0) {
         if (parts[parts.length - 1].indexOf('.') !== -1) {
-            var res = new recoil.converters.IPv4AddressConverter().unconvert(parts[parts.length -1]);
+            var res = new recoil.converters.IPv4AddressConverter().unconvert(parts[parts.length - 1]);
             if (res.error) {
-                ret.push(res);
+                return {error: res.error, value: null};
             }
             ipV4Parts = [res.value[0] << 8 | res.value[1], res.value[2] << 8 | res.value[3]];
         }
@@ -113,7 +113,7 @@ recoil.converters.IPv6AddressConverter.prototype.unconvert = function(val) {
     }
 
     var requiredLen = ipV4Parts.length > 0 ? 6 : 8;
-    if (ipV4Parts.length > 0 ) {
+    if (ipV4Parts.length > 0) {
         parts.pop();
     }
 
@@ -124,28 +124,28 @@ recoil.converters.IPv6AddressConverter.prototype.unconvert = function(val) {
     var allPositions = [];
 
 
-    for (var i = 0 ;  i < parts.length; i++) {
+    for (var i = 0; i < parts.length; i++) {
         var p = parts[i];
-        if(p.length > 4) {
+        if (p.length > 4) {
             return {error: recoil.ui.messages.INVALID, value: []};
         }
 
         var value = parseInt(p, 16);
-        if(value === 0) {
+        if (value === 0) {
             currCount++;
             currPos.push(i);
 
-        } else{
+        } else {
             currCount = 0;
             currPos = [];
         }
 
-        if(currCount > longestCount) {
+        if (currCount > longestCount) {
             longestCount = currCount;
             startPos = 0;
         }
 
-        if(currPos.length > 0) {
+        if (currPos.length > 0) {
             goog.array.insert(allPositions, currPos);
         }
 
@@ -163,33 +163,6 @@ recoil.converters.IPv6AddressConverter.prototype.unconvert = function(val) {
     // ret.splice(allPositionsCopy[0][0], allPositionsCopy[0].length, "", "");
 
     console.log('longest', longestCount, 'startPos', startPos, 'allPositions', allPositions);
-    return {error: null, value : ret.concat(ipV4Parts)};
-
-};
-
-/**
- *
- * @param {!array} arr
- * @private
- */
-recoil.converters.IPv6AddressConverter.prototype.findLongest_ = function (arr) {
-    var curr = 0;
-    var longest = 0;
-
-    console.log('longest', longest);
-};
-
-/**
- *
- * @param {!string} val
- * @return {string}
- * @private
- */
-recoil.converters.IPv6AddressConverter.prototype.stripLeadingZeros_ = function (val) {
-    if(val.length > 0) {
-        return goog.string.lastComponent(val, '0');
-    }
-
-
+    return {error: null, value: ret.concat(ipV4Parts)};
 
 };
