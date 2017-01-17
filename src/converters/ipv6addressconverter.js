@@ -24,12 +24,6 @@ recoil.converters.IPv6AddressConverter = function(removeZeroSeq, stripLeadingZer
 recoil.converters.IPv6AddressConverter.prototype.convert = function(val) {
     var parts = [];
 
-    var currCount = 0;
-    var longestCount = 0;
-    var startPos = 0;
-    var currPos = [];
-    var allPositions = [];
-
     var maxLen = undefined;
     var maxLenStart = undefined;
     var curLen = 0;
@@ -117,52 +111,27 @@ recoil.converters.IPv6AddressConverter.prototype.unconvert = function(val) {
         parts.pop();
     }
 
-    var currCount = 0;
-    var longestCount = 0;
-    var startPos = 0;
-    var currPos = [];
-    var allPositions = [];
-
-
     for (var i = 0; i < parts.length; i++) {
+
+        if (parts[i] === '') {
+            goog.array.removeAt(parts, i);
+            while (parts.length !== 8) {
+                goog.array.insertAt(parts, '0', i);
+            }
+        }
+
         var p = parts[i];
+
         if (p.length > 4) {
             return {error: recoil.ui.messages.INVALID, value: []};
         }
 
         var value = parseInt(p, 16);
-        if (value === 0) {
-            currCount++;
-            currPos.push(i);
-
-        } else {
-            currCount = 0;
-            currPos = [];
-        }
-
-        if (currCount > longestCount) {
-            longestCount = currCount;
-            startPos = 0;
-        }
-
-        if (currPos.length > 0) {
-            goog.array.insert(allPositions, currPos);
-        }
 
         ret.push(value);
+
     }
 
-    // var allPositionsCopy = allPositions;
-    //
-    // goog.array.sort(allPositionsCopy, function (a, b) {
-    //     return b.length - a.length;
-    // });
-
-    // goog.array.splice(ret, allPositionsCopy[0].length, allPositionsCopy[0][0], "", "");
-
-    // ret.splice(allPositionsCopy[0][0], allPositionsCopy[0].length, "", "");
-
-    console.log('longest', longestCount, 'startPos', startPos, 'allPositions', allPositions);
     return {error: null, value: ret.concat(ipV4Parts)};
 
 };
