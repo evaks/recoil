@@ -141,6 +141,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                     var t = me.converterB_.get();
                     var strVal = t.convert(me.valueB_.get());
                     me.input_.setValue(strVal);
+                    me.updateElement_(me, inputEl);
                 }
             }, me.converterB_, me.valueB_);
 

@@ -42,6 +42,12 @@ recoil.converters.IPv4AddressConverter.prototype.unconvert = function(val) {
     var partsLen = parts.length;
 
     for (var i = 0; i < partsLen; i++) {
+
+        if (!parts[i].match(/^[0-9]*$/)) {
+            return {error: recoil.ui.messages.INVALID_CHARACTER, value: []};
+        }
+
+
         num = (typeof (parts[i]) === 'string') ? parseInt(parts[i], 10) : parts[i];
         if (partsLen !== 4 || isNaN(num) || num > 255 || num <= -1) {
             return {error: recoil.ui.messages.INVALID, value: []};

@@ -1,7 +1,10 @@
 goog.provide('recoil.converters.IPv6AddressConverter');
 
+goog.require('recoil.converters.IPv4AddressConverter');
 goog.require('recoil.types');
 goog.require('recoil.ui.message.Message');
+goog.require('recoil.ui.messages');
+
 
 /**
  *
@@ -111,25 +114,50 @@ recoil.converters.IPv6AddressConverter.prototype.unconvert = function(val) {
         parts.pop();
     }
 
-    for (var i = 0; i < parts.length; i++) {
+    if (parts.length < 2) {
+        return {error: recoil.ui.messages.INVALID_LENGTH, value: []};
+    }
 
-        if (parts[i] === '') {
-            goog.array.removeAt(parts, i);
-            while (parts.length !== 8) {
-                goog.array.insertAt(parts, '0', i);
-            }
+    var requiresBlank = false;
+    if (parts[0] === '') {
+        requiresBlank = true;
+        parts.shift();
+    }
+
+    if (requiredLen === 8 && parts[parts.length - 1] === '') {
+        requiresBlank = true;
+        parts.pop();
+    }
+
+    var hasBlank = false;
+    for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+
+        if (part.length > 4) {
+            return {error: recoil.ui.messages.INVALID_LENGTH, value: []};
         }
 
-        var p = parts[i];
+        if (!part.match(/^[a-fA-F0-9]*$/)) {
+            return {error: recoil.ui.messages.INVALID_CHARACTER, value: []};
+        }
 
-        if (p.length > 4) {
+        if (part === '' && hasBlank) {
             return {error: recoil.ui.messages.INVALID, value: []};
         }
 
-        var value = parseInt(p, 16);
-
-        ret.push(value);
-
+        if (part === '') {
+            hasBlank = true;
+            ret.push(0);
+            for (var j = parts.length; j < requiredLen; j++) {
+               ret.push(0);
+            }
+        }
+        else {
+            ret.push(parseInt(part, 16));
+        }
+    }
+    if ((requiresBlank && !hasBlank) || requiredLen !== ret.length) {
+        return {error: recoil.ui.messages.INVALID, value: []};
     }
 
     return {error: null, value: ret.concat(ipV4Parts)};
