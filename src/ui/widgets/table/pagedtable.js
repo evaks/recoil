@@ -133,7 +133,7 @@ recoil.ui.widgets.table.PagerWidget = function(scope) {
 
     this.pageInput_ = selectPage;
 
-    goog.events.listen(this.pageInput_, goog.events.EventType.KEYDOWN, function (e) {
+    goog.events.listen(this.pageInput_, goog.events.EventType.KEYDOWN, function(e) {
         if (e.keyCode === goog.events.KeyCodes.ENTER) {
             selectPage.blur();
         }
