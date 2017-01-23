@@ -61,6 +61,8 @@ input .page {
 table.recoil-table-pager .page {
     width : 99%;
     text-align : center;
+    border: inset 3px;
+    background: url('../../images/edit.png') no-repeat right;
 }
 
 .recoil-table-pager.pagination {

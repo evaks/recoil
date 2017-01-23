@@ -121,6 +121,7 @@ recoil.ui.widgets.table.PagerWidget = function(scope) {
     this.prev_ = goog.dom.createDom('a', {
         class: 'previous'},'\u2039');
 
+
     var selectPage = goog.dom.createDom('input', {
         type: 'text',
         class: 'page'
@@ -131,6 +132,12 @@ recoil.ui.widgets.table.PagerWidget = function(scope) {
     });
 
     this.pageInput_ = selectPage;
+
+    goog.events.listen(this.pageInput_, goog.events.EventType.KEYDOWN, function (e) {
+        if (e.keyCode === goog.events.KeyCodes.ENTER) {
+            selectPage.blur();
+        }
+    });
 
     var row = goog.dom.createDom('div', {class: 'row'});
 
