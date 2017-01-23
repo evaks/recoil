@@ -78,8 +78,10 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
     'value',
     {
         classes: [],
-        immediate: false, // if false changes will not propogate untill blur
-        converter: new recoil.converters.DefaultStringConverter()
+        immediate: false, // if false changes will not propogate until blur
+        converter: new recoil.converters.DefaultStringConverter(),
+        maxLength: undefined,
+        charValidator: function() {}
     }
 );
 
@@ -114,26 +116,31 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.editableB_ = bound.editable();
     this.immediateB_ = bound.immediate();
     this.converterB_ = bound.converter();
+    this.maxLengthB_ = bound.maxLength();
+    this.charValidatorB_ = bound.charValidator();
     this.classesB_ = bound.classes();
+
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attach(this.valueB_);
-    this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_, this.classesB_);
+    this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_,
+        this.maxLengthB_, this.charValidatorB_, this.classesB_);
 
 
     var me = this;
 
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-        if (me.immediateB_.get()) {
-            me.updateElement_(me, inputEl);
-        }
+        me.updateElement_(me, inputEl);
     }, this.valueB_, this.immediateB_, this.converterB_));
 
     var blurListener = function(v) {
         var inputEl = v.target;
         if (!me.immediateB_.get()) {
-            me.updateElement_(me, inputEl);
+            var t = me.converterB_.get();
+            var strVal = t.convert(me.valueB_.get());
+            me.input_.setValue(strVal);
 
+            me.updateElement_(me, inputEl);
         }
         else {
             frp.accessTrans(function() {
@@ -144,7 +151,6 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                     me.updateElement_(me, inputEl);
                 }
             }, me.converterB_, me.valueB_);
-
         }
     };
 
@@ -152,8 +158,11 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
         /** @type {function (...?): ?}*/ (blurListener), this.valueB_, this.immediateB_, this.converterB_));
 
     this.keyPressHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
-         if (!me.immediateB_.get()) {
-             if (v.keyCode === goog.events.KeyCodes.ENTER) {
+
+
+        if (!me.immediateB_.get()) {
+
+            if (v.keyCode === goog.events.KeyCodes.ENTER) {
                  blurListener(v);
              }
              else if (v.keyCode === goog.events.KeyCodes.ESC) {
@@ -161,11 +170,40 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                      var t = me.converterB_.get();
                      var strVal = t.convert(me.valueB_.get());
                      me.input_.setValue(strVal);
+                     me.updateElement_(me, v.target);
                  }
              }
-         }
 
-    }, this.valueB_, this.immediateB_, this.converterB_));
+
+        }
+
+        var bevent = v.getBrowserEvent();
+        var ch = bevent.key !== undefined ? bevent.key : bevent.char;
+
+        if (me.charValidatorB_.get()(ch) !== undefined) {
+            // Allow: backspace, delete, tab, escape, enter and .
+            if (goog.array.contains([116, 46, 40, 8, 9, 27, 13, 110, 190], v.keyCode) ||
+                // Allow: Ctrl+A
+                (v.keyCode == 65 && v.ctrlKey === true) ||
+                // Allow: Ctrl+C
+                (v.keyCode == 67 && v.ctrlKey === true) ||
+                // Allow: Ctrl+C
+                (v.keyCode == 86 && v.ctrlKey === true) ||
+                // Allow: Ctrl+X
+                (v.keyCode == 88 && v.ctrlKey === true) ||
+                // Allow: home, end, left, right
+                (v.keyCode >= 35 && v.keyCode <= 39)) {
+                // let it happen, don't do anything
+                return;
+            }
+
+            if (!me.charValidatorB_.get()(ch)) {
+                v.preventDefault();
+            }
+
+        }
+
+    }, this.valueB_, this.immediateB_, this.converterB_, this.charValidatorB_));
 
     this.enabledHelper_.attach(
         /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
@@ -183,7 +221,16 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
     var editable = this.editableB_.metaGet().good() || this.editableB_.get();
     this.input_.setEnabled(helper.isGood() && this.enabledB_.get().val());
 
-                       //recoil.ui.ComponentWidgetHelper.updateClasses
+    var el = this.input_.getElement();
+    if (this.maxLengthB_.metaGet().good()) {
+        if (this.maxLengthB_.get() !== undefined) {
+            el.maxLength = this.maxLengthB_.get();
+        } else {
+            el.maxLength = 524288; // the default for an input field
+        }
+    }
+
+
     this.curClasses_ = recoil.ui.ComponentWidgetHelper.updateClasses(this.input_.getElement(), this.classesB_, this.curClasses_);
 
     if (this.valueB_.metaGet().good() && this.converterB_.metaGet().good()) {

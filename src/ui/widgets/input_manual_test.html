@@ -12,6 +12,7 @@
         goog.require('recoil.frp.Behaviour');
         goog.require('recoil.converters.IPv4AddressConverter');
         goog.require('recoil.converters.IPv6AddressConverter');
+        goog.require('recoil.converters.IPAddressConverter');
 
         goog.require('recoil.frp.Util');
         goog.require('recoil.frp.struct');
@@ -33,6 +34,7 @@
 <div id="input2"></div>
 <div id="enabled2"></div>
 <div id="numberInput"></div>
+<div id="ipInput"></div>
 
 
 <script>
@@ -71,29 +73,52 @@
   input2.attach('fish',editableB,recoil.ui.BoolWithExplanation.TRUE);
 
 
-  var val2 = frp.createB([1,4,7,100]);
+  var val2 = frp.createB({type: 'ipv4-address', value: [1,4,7,100]});
   var numberInput = new recoil.ui.widgets.InputWidget(scope);
   numberInput.attachStruct({value : val2,
         editable : editableB,
         enabled : enabledB,
         immediate: true,
-        converter: new recoil.converters.IPv4AddressConverter()
+        converter: new recoil.converters.IPAddressConverter(),
+        maxLength: 15,
+        charValidator: function (c) {
+            return (c >= '0' && c <= '9');
+        }
   });
   numberInput.getComponent().render($('numberInput'));
 
 //    var val3 = frp.createB([0, 0x38, 0xE1, 0x0063, 0, 0, 0xFEF, 0xf]);
-    var val3 = frp.createB([1,0,0, 0, 2, 1, 0xd, 1]);
+    var val3 = frp.createB({type:'ipv6-address', value:[1,0x99999,0, 0, 2, 1, 0xd, 1]});
 
   var ipv6Input = new recoil.ui.widgets.InputWidget(scope);
   ipv6Input.attachStruct({value: val3,
       editable: editableB,
       enabled: enabledB,
-      immediate: true,
-      converter: new recoil.converters.IPv6AddressConverter(true, false, false),
+      immediate: false,
+      maxLength: 45,
+      charValidator: function (c) {
+            return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+      },
+      converter: new recoil.converters.IPAddressConverter(),
       classes: ['ipv6-textfield']
   });
 
   ipv6Input.getComponent().render($('ipv6Input'));
+
+  var ipInput = new recoil.ui.widgets.InputWidget(scope);
+  ipInput.attachStruct({value : val3,
+      editable : editableB,
+      enabled : enabledB,
+      immediate: true,
+      converter: new recoil.converters.IPAddressConverter(),
+      classes: ['ipv6-textfield'],
+      maxLength: 45,
+      charValidator: function (c) {
+          return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+      }
+  });
+
+  ipInput.getComponent().render($('ipInput'));
 
 </script>
 </body>
