@@ -1,5 +1,7 @@
 goog.provide('recoil.converters.IPAddressConverter');
 
+goog.require('recoil.converters.IPv4AddressConverter');
+goog.require('recoil.converters.IPv6AddressConverter');
 goog.require('recoil.types');
 goog.require('recoil.types.IPAddress');
 goog.require('recoil.types.IPAddressType');
@@ -14,7 +16,12 @@ goog.require('recoil.ui.message.Message');
 recoil.converters.IPAddressConverter = function() {
 
 };
-
+/**
+ *
+ * @param {!string} c
+ * @return {boolean}
+ */
+recoil.converters.IPAddressConverter.charValidator = recoil.converters.IPv6AddressConverter.charValidator;
 
 /**
  * @param {recoil.types.IPAddress} val

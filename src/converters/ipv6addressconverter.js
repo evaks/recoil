@@ -21,6 +21,16 @@ recoil.converters.IPv6AddressConverter = function(removeZeroSeq, stripLeadingZer
 };
 
 /**
+ *
+ * @param {!string} c
+ * @return {boolean}
+ */
+recoil.converters.IPv6AddressConverter.charValidator = function(c) {
+    return (c >= '0' && c <= '9') || c === ':' || c === '.' || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
+};
+
+
+/**
  * @param {recoil.types.IPv6Address} val
  * @return {!string}
  */

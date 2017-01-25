@@ -27,7 +27,8 @@ recoil.ui.util.StandardOptions = function(var_options) {
     var args = [{
         editable: true,
         tooltip: recoil.ui.messages.BLANK,
-        enabled: recoil.ui.BoolWithExplanation.TRUE}];
+        enabled: recoil.ui.BoolWithExplanation.TRUE,
+        spellcheck: true}];
 
     for (var i = 0; i < arguments.length; i++) {
         args.push(arguments[i]);

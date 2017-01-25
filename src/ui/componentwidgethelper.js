@@ -292,6 +292,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         this.handler_ = comp;
         break;
     case goog.events.EventType.BLUR:
+    case goog.events.EventType.PASTE:
     case goog.events.EventType.FOCUS:
     case goog.events.EventType.KEYPRESS:
     case goog.events.EventType.KEYDOWN:

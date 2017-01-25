@@ -73,22 +73,20 @@
   input2.attach('fish',editableB,recoil.ui.BoolWithExplanation.TRUE);
 
 
-  var val2 = frp.createB({type: 'ipv4-address', value: [1,4,7,100]});
+  var val2 = frp.createB([1,4,7,100]);
   var numberInput = new recoil.ui.widgets.InputWidget(scope);
   numberInput.attachStruct({value : val2,
         editable : editableB,
         enabled : enabledB,
         immediate: true,
-        converter: new recoil.converters.IPAddressConverter(),
-        maxLength: 15,
-        charValidator: function (c) {
-            return (c >= '0' && c <= '9');
-        }
+        charValidator: recoil.converters.IPv4AddressConverter.charValidator,
+        converter: new recoil.converters.IPv4AddressConverter(),
+        maxLength: 15
   });
   numberInput.getComponent().render($('numberInput'));
 
 //    var val3 = frp.createB([0, 0x38, 0xE1, 0x0063, 0, 0, 0xFEF, 0xf]);
-    var val3 = frp.createB({type:'ipv6-address', value:[1,0x99999,0, 0, 2, 1, 0xd, 1]});
+    var val3 = frp.createB({type:'ipv6-address', value:[1,0x99999,0, 0x9876, 2, 1, 0xd, 1]});
 
   var ipv6Input = new recoil.ui.widgets.InputWidget(scope);
   ipv6Input.attachStruct({value: val3,
@@ -96,11 +94,10 @@
       enabled: enabledB,
       immediate: false,
       maxLength: 45,
-      charValidator: function (c) {
-            return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-      },
+      charValidator: recoil.converters.IPAddressConverter.charValidator,
       converter: new recoil.converters.IPAddressConverter(),
-      classes: ['ipv6-textfield']
+      classes: ['ipv6-textfield'],
+      spellcheck: false
   });
 
   ipv6Input.getComponent().render($('ipv6Input'));
@@ -110,12 +107,10 @@
       editable : editableB,
       enabled : enabledB,
       immediate: true,
+      charValidator: recoil.converters.IPAddressConverter.charValidator,
       converter: new recoil.converters.IPAddressConverter(),
       classes: ['ipv6-textfield'],
-      maxLength: 45,
-      charValidator: function (c) {
-          return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
-      }
+      maxLength: 45
   });
 
   ipInput.getComponent().render($('ipInput'));
