@@ -115,18 +115,18 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
  *
  * note this is a bidirectional behaviour, so setting it will change the selection
  *
- * @return {recoil.frp.Behaviour<Array<Array<Object>>>}
+ * @return {!recoil.frp.Behaviour<!Array<!Array<Object>>>}
  */
 recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
 
     return this.scope_.getFrp().liftBI(
         function(selected, table) {
             var res = [];
-                selected.forEach(function(key) {
-                    if (table.getRow(key) !== null) {
-                        res.push(key);
-                    }
-                });
+            selected.forEach(function(key) {
+                if (table.getRow(key) !== null) {
+                    res.push(key);
+                }
+            });
             return res;
         },
         function(selected) {
@@ -1110,8 +1110,8 @@ recoil.ui.widgets.table.TableWidget.prototype.attachStruct = function(table) {
     this.renderInfoB_ = this.createRenderInfo_(this.tableB_);
     this.helper_.attach(this.renderInfoB_);
     this.selectionHelper_.attach(this.selected_, this.createSelectInfo_(this.tableB_));
-
 };
+
 /**
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} table
  * @param {!recoil.frp.Behaviour<!recoil.ui.widgets.TableMetaData> |!recoil.ui.widgets.TableMetaData} meta

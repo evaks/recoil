@@ -580,6 +580,20 @@ recoil.structs.table.MutableTable.prototype.makeKeys_ = function(keys) {
 };
 
 /**
+ * returns an array of keys for the row
+ * @param {!recoil.structs.table.TableRow} row
+ * @return {!Array<?>}
+ */
+recoil.structs.table.MutableTable.prototype.getRowKeys = function(row) {
+    var keys = [];
+
+    for (var i = 0; i < this.primaryColumns_.length; i++) {
+        keys.push(row.get(this.primaryColumns_[i]));
+    }
+    return keys;
+};
+
+/**
  *
  * @param {function(!recoil.structs.table.TableRow,!Array<?>,Object) : *} func
  */
@@ -594,12 +608,7 @@ recoil.structs.table.MutableTable.prototype.forEach = function(func) {
     });
 
     list.forEach(function(row) {
-        var keys = [];
-
-        for (var i = 0; i < me.primaryColumns_.length; i++) {
-            keys.push(row.get(me.primaryColumns_[i]));
-        }
-        return func(row, keys, row.getMeta());
+        return func(row, me.getRowKeys(row), row.getMeta());
     });
     //var table = this.freeze();
     //table.forEach(func);
@@ -806,6 +815,19 @@ recoil.structs.table.Table.prototype.getRowMeta = function(keys, column) {
     return row.getMeta();
 };
 
+/**
+ * returns an array of keys for the row
+ * @param {!recoil.structs.table.TableRow} row
+ * @return {!Array<?>}
+ */
+recoil.structs.table.Table.prototype.getRowKeys = function(row) {
+    var keys = [];
+
+    for (var i = 0; i < this.primaryColumns_.length; i++) {
+        keys.push(row.get(this.primaryColumns_[i]));
+    }
+    return keys;
+};
 
 /**
  *
@@ -815,11 +837,7 @@ recoil.structs.table.Table.prototype.getRowMeta = function(keys, column) {
 recoil.structs.table.Table.prototype.forEach = function(func) {
     var me = this;
     this.ordered_.inOrderTraverse(function(row) {
-        var keys = [];
-        for (var i = 0; i < me.primaryColumns_.length; i++) {
-            keys.push(row.get(me.primaryColumns_[i]));
-        }
-        return func(row, keys, row.getMeta());
+        return func(row, me.getRowKeys(row), row.getMeta());
     });
 };
 

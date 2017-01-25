@@ -47,7 +47,7 @@ function lintFix {
     fixjsstyle --disable 0110,0120 `find recoil/src/ -name "*.js" -and -not -name "*_test.js" `  > /dev/null
 
     #on windows this adds cr
-    which cygpath && find recoil/src/ -name "*.js" -and -not -name "*_test.js" -exec sed -i 's/\r//' {} \; 
+    which cygpath > /dev/null && find recoil/src/ -name "*.js" -and -not -name "*_test.js" -exec sed -i 's/\r//' {} \; 
 }
 
 genTests

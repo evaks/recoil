@@ -163,7 +163,7 @@
     var buttonWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var deleteButton = new recoil.ui.widgets.ButtonWidget(scope);
 
-    buttonWidget.attach("", "Add Row", frp.createCallback(function () {
+    buttonWidget.attach("Add Row", frp.createCallback(function () {
     var ids = [];
     var max = 0;
     table.get().forEach( function(row) {
@@ -195,7 +195,7 @@
     var showWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var badWidget = new recoil.ui.widgets.ButtonWidget(scope);
 
-			hideHeadersWidget.attach("", "Hide/Show Headers", frp.createCallback(
+			hideHeadersWidget.attach("Hide/Show Headers", frp.createCallback(
 			function() {
 			var mtable =table.get().unfreeze();
 			var tmeta = mtable.getMeta();
@@ -211,7 +211,7 @@
 			console.log("table meta", tmeta);
 			},table));
 			
-    hideWidget.attach("", "Hide", frp.createCallback(function () {
+    hideWidget.attach("Hide", frp.createCallback(function () {
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
     //columns.add(tblKeys.count, "Count");
@@ -222,7 +222,7 @@
 
     var selectedB = tableWidget.createSelected();
     
-    deleteButton.attach("", "Delete", frp.createCallback(function() {
+    deleteButton.attach("Delete", frp.createCallback(function() {
                     console.log(selectedB.get());
                     var selected = selectedB.get();
                     var mtable = table.get().unfreeze();
@@ -234,12 +234,12 @@
     }, selectedB, table));
 					
 					var oldVal = recoil.frp.BStatus.notReady();
-					badWidget.attach("", "Bad", frp.createGoodCallback(function () {
+					badWidget.attach("Bad", frp.createGoodCallback(function () {
 					var v = oldVal;
 					oldVal = tableX.metaGet();
 					tableX.metaSet(v);
 					}, tableX));
-    showWidget.attach("", "Show", frp.createCallback(function () {
+    showWidget.attach("Show", frp.createCallback(function () {
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
     columns.add(tblKeys.count, "Count");
