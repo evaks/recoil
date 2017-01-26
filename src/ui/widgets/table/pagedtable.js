@@ -93,7 +93,7 @@ recoil.ui.widgets.table.PagedTableWidget.prototype.attach = function(table, meta
  *
  * note this is a bidirectional behaviour, so setting it will change the selection
  *
- * @return {recoil.frp.Behaviour<Array<Array<Object>>>}
+ * @return {!recoil.frp.Behaviour<!Array<!Array<Object>>>}
  */
 recoil.ui.widgets.table.PagedTableWidget.prototype.createSelected = function() {
     return this.tableWidget_.createSelected();

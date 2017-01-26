@@ -54,22 +54,19 @@ recoil.ui.widgets.ButtonWidget.prototype.getComponent = function() {
 //};
 
 /**
- *
- * @param {recoil.frp.Behaviour<!string>|!string} nameB the name on the label
  * @param {recoil.frp.Behaviour<!string>|!string} textB
  * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} enabledB
  */
-recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbackB, enabledB) {
+recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, enabledB) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
 
-    this.nameB_ = util.toBehaviour(nameB);
     this.textB_ = util.toBehaviour(textB);
     this.callbackB_ = util.toBehaviour(callbackB);
     this.enabledB = util.toBehaviour(enabledB);
 
-    this.helper_.attach(this.nameB_, this.textB_, this.callbackB_, this.enabledB);
+    this.helper_.attach(this.textB_, this.callbackB_, this.enabledB);
 
     var me = this;
     this.changeHelper_.listen(this.callbackB_);
@@ -78,12 +75,12 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(nameB, textB, callbac
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
- * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {recoil.frp.Behaviour<!string>} textB
+ * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplanation>} enabledB
  * @private
  */
-recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, callbackB, textB, enabledB) {
+recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, textB, callbackB, enabledB) {
     if (this.button_) {
         this.button_.setEnabled(helper.isGood());
         if (helper.isGood()) {
