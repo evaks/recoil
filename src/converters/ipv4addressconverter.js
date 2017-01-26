@@ -1,7 +1,7 @@
 goog.provide('recoil.converters.IPv4AddressConverter');
 
 goog.require('recoil.types');
-goog.require('recoil.ui.message.Message');
+goog.require('recoil.ui.messages');
 
 /**
  * @constructor
@@ -15,7 +15,7 @@ recoil.converters.IPv4AddressConverter = function() {
  * @param {!string} c
  * @return {boolean}
  */
-recoil.converters.IPv4AddressConverter.charValidator = function (c) {
+recoil.converters.IPv4AddressConverter.charValidator = function(c) {
     return (c >= '0' && c <= '9') || c === '.';
 };
 

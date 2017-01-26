@@ -22,6 +22,12 @@ recoil.converters.IPv6AddressConverter = function(removeZeroSeq, stripLeadingZer
 
 /**
  *
+ * @type {number}
+ */
+recoil.converters.IPv6AddressConverter.maxLength = 45;
+
+/**
+ *
  * @param {!string} c
  * @return {boolean}
  */

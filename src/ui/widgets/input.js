@@ -83,6 +83,7 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
         immediate: false, // if false changes will not propogate until blur
         converter: new recoil.converters.DefaultStringConverter(),
         maxLength: undefined,
+        displayLength: undefined,
         charValidator: function() {return true;}
     }
 );
@@ -119,6 +120,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.immediateB_ = bound.immediate();
     this.converterB_ = bound.converter();
     this.maxLengthB_ = bound.maxLength();
+    this.displayLengthB_ = bound.displayLength();
     this.charValidatorB_ = bound.charValidator();
     this.classesB_ = bound.classes();
     this.spellcheckB_ = bound.spellcheck();
@@ -126,7 +128,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attach(this.valueB_);
     this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_,
-        this.maxLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_);
+        this.maxLengthB_, this.displayLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_);
 
 
     var me = this;
@@ -176,8 +178,6 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                      me.updateElement_(me, v.target);
                  }
              }
-
-
         }
 
         var bevent = v.getBrowserEvent();
@@ -219,7 +219,8 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                     cleanTxt += txt[i];
                 }
             }
-            //                           txt = txt.replace(/[^0-9.+]/g, 'F');
+
+            // txt = txt.replace(/[^0-9.+]/g, 'F');
             if (cleanTxt != txt) {
                 if (cleanTxt === '') {
                     v.preventDefault();
@@ -228,17 +229,20 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                     var orig = inputEl.value;
                     var before = orig.substr(0, inputEl.selectionStart);
                     var after = orig.substr(inputEl.selectionEnd);
-                    var lengthRemaining = me.maxLengthB_.get() - (before + after).length;
-                    var allowedText = cleanTxt.substr(0, lengthRemaining);
-                    var selPos = inputEl.selectionStart + allowedText.length;
+                    var maxLen = me.maxLengthB_.get();
+                    if (maxLen !== undefined && maxLen > 0) {
+                        var lengthRemaining = me.maxLengthB_.get() - (before + after).length;
+                        cleanTxt = cleanTxt.substr(0, lengthRemaining);
+                    }
 
-                    inputEl.value = before + allowedText + after;
+                    var selPos = inputEl.selectionStart + cleanTxt.length;
+
+                    inputEl.value = before + cleanTxt + after;
 
                     inputEl.selectionStart = selPos;
                     inputEl.selectionEnd = selPos;
                     me.updateElement_(me, v.target);
                     v.preventDefault();
-
                 }
             }
         }
@@ -263,14 +267,17 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
     this.input_.setEnabled(helper.isGood() && this.enabledB_.get().val());
 
     var el = this.input_.getElement();
-    if (this.maxLengthB_.metaGet().good()) {
-        if (this.maxLengthB_.get() !== undefined) {
-            el.maxLength = this.maxLengthB_.get();
-        } else {
-            el.maxLength = 524288; // the default for an input field
-        }
+    var maxLength = this.maxLengthB_.metaGet().good() ? this.maxLengthB_.get() : undefined;
+    var displayLength = this.displayLengthB_.metaGet().good() ? this.displayLengthB_.get() : undefined;
+    if (maxLength !== undefined) {
+        el.maxLength = maxLength;
+    } else if (el.maxLength !== undefined) {
+        delete el.maxLength;
     }
 
+    if (displayLength === undefined) {
+        displayLength = maxLength;
+    }
 
     if (this.spellcheckB_.metaGet().good()) {
         el.spellcheck = false;
@@ -287,6 +294,13 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
             if (strVal !== this.input_.getValue()) {
                 this.input_.setValue(strVal);
             }
+        }
+
+        if (displayLength === undefined) {
+            delete this.input_.getContentElement().style.width;
+        }
+        else {
+            this.input_.getContentElement().style.width = displayLength + 'em';
         }
     }
     else {

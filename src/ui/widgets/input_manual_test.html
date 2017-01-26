@@ -81,7 +81,7 @@
         immediate: true,
         charValidator: recoil.converters.IPv4AddressConverter.charValidator,
         converter: new recoil.converters.IPv4AddressConverter(),
-        maxLength: 15
+        displayLength: 8
   });
   numberInput.getComponent().render($('numberInput'));
 
@@ -93,11 +93,11 @@
       editable: editableB,
       enabled: enabledB,
       immediate: false,
-      maxLength: 45,
       charValidator: recoil.converters.IPAddressConverter.charValidator,
       converter: new recoil.converters.IPAddressConverter(),
-      classes: ['ipv6-textfield'],
-      spellcheck: false
+      spellcheck: false,
+      displayLength: 28,
+      maxLength:45
   });
 
   ipv6Input.getComponent().render($('ipv6Input'));
@@ -109,8 +109,7 @@
       immediate: true,
       charValidator: recoil.converters.IPAddressConverter.charValidator,
       converter: new recoil.converters.IPAddressConverter(),
-      classes: ['ipv6-textfield'],
-      maxLength: 45
+      displayLength: 28
   });
 
   ipInput.getComponent().render($('ipInput'));
