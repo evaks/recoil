@@ -50,8 +50,8 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
             if (visible) {
                 me.frp_.attach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
             } else {
-                me.frp_.detach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
                 me.detachCallback_();
+                me.frp_.detach(/** @type {!recoil.frp.Behaviour} */(me.attachedBehaviour_));
             }
         }
     };

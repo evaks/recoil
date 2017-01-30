@@ -72,7 +72,9 @@ recoil.ui.widgets.PopupWidget = function(scope) {
                            }
 
                        });
-
+    goog.events.listen(this.popup_.getElement(), goog.events.EventType.BLUR, function(e) {
+        console.log('bluring popup');
+    });
 
     this.popup_.setHideOnEscape(true);
     this.popup_.setAutoHide(true);

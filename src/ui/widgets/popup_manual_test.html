@@ -16,6 +16,7 @@ See the COPYING file for details.
       goog.require('recoil.frp.Frp');
       goog.require('recoil.ui.WidgetScope');
       goog.require('recoil.ui.widgets.InputWidget');
+      goog.require('recoil.ui.widgets.NumberWidget');
       goog.require('recoil.ui.widgets.LabelWidget');
       goog.require('recoil.ui.widgets.PopupWidget');
       goog.require('recoil.ui.widgets.RadioWidget');
@@ -103,6 +104,7 @@ See the COPYING file for details.
   var display = new recoil.ui.widgets.LabelWidget(scope);
   var timeWidget = new recoil.ui.widgets.LabelWidget(scope);
   var popupEntry = new recoil.ui.widgets.InputWidget(scope);
+//  var popupEntry = new recoil.ui.widgets.NumberWidget(scope);
   var display1 = new recoil.ui.widgets.InputWidget(scope);
   var dt = new recoil.ui.widgets.DateWidget(scope);
 
@@ -115,7 +117,7 @@ See the COPYING file for details.
 
   timeWidget.attach(frp.liftB(function (v) {return "" + new Date(v)}, recoil.frp.util.timeB(frp)));
   display1.attach(value);
-  popupEntry.attach(value);
+  popupEntry.attachStruct({value:value, immediate:false});
 
 //  var opts = recoil.ui.widgets.options;
   

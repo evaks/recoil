@@ -45,7 +45,7 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.readonly_.getComponent().render(this.readonlyDiv_);
     this.number_.render(this.editableDiv_);
 
-    this.valueHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateValue_);
+    this.valueHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateValue_, this.detach_);
     this.configHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateConfig_);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.number_, goog.events.EventType.BLUR);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.number_);
@@ -53,6 +53,30 @@ recoil.ui.widgets.NumberWidget = function(scope) {
 
 };
 
+/**
+ * if not immediate we need to put data back before we detach
+ * @private
+ */
+recoil.ui.widgets.NumberWidget.prototype.detach_ = function() {
+    var frp = this.valueHelper_.getFrp();
+    var me = this;
+    frp.accessTrans(function() {
+
+        if (me.valueB_.good()) {
+            console.log('detaching');
+            try {
+                var element = me.number_.getElement();
+                var val = parseFloat(element.value);
+                if (element.validity.valid && element.value !== '') {
+                    me.valueB_.set(val);
+                }
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }
+    }, me.valueB_);
+};
 /**
  * all widgets should not allow themselves to be flatterned
  *

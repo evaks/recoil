@@ -37,7 +37,7 @@ recoil.ui.widgets.InputWidget = function(scope) {
     this.input_ = new goog.ui.LabelInput();
     this.readonly_.getComponent().render(this.readonlyDiv_);
     this.input_.render(this.editableDiv_);
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.input_, this, this.updateState_);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.input_, this, this.updateState_, this.detach_);
 
     this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.editableDiv_], [this.readonlyDiv_]);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.InputHandler.EventType.INPUT);
@@ -92,18 +92,33 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
  *
  * @param {recoil.ui.widgets.InputWidget} me
  * @param {Object} inputEl
+ * @param {boolean} setVal
  * @private
  */
-recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl) {
+recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal) {
     var res = me.converterB_.get().unconvert(inputEl.value);
     var el = goog.dom.getElement(inputEl.id);
-
     if (!res.error) {
-        me.valueB_.set(res.value);
+        if (setVal) {
+            me.valueB_.set(res.value);
+        }
         goog.dom.classlist.remove(el, 'recoil-error');
     } else {
         goog.dom.classlist.add(el, 'recoil-error');
     }
+};
+/**
+ * if not immediate we need to put data back before we detach
+ * @private
+ */
+recoil.ui.widgets.InputWidget.prototype.detach_ = function() {
+    var frp = this.helper_.getFrp();
+    var me = this;
+    frp.accessTrans(function() {
+        if (me.immediateB_.good() && me.converterB_.good() && me.valueB_.good() && !me.immediateB_.get()) {
+            me.updateElement_(me, me.input_.getElement(), true);
+        }
+    }, me.immediateB_, me.converterB_, me.valueB_);
 };
 
 /**
@@ -135,17 +150,13 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-        me.updateElement_(me, inputEl);
+        me.updateElement_(me, inputEl, me.immediateB_.get());
     }, this.valueB_, this.immediateB_, this.converterB_));
 
     var blurListener = function(v) {
         var inputEl = v.target;
         if (!me.immediateB_.get()) {
-            var t = me.converterB_.get();
-            var strVal = t.convert(me.valueB_.get());
-            me.input_.setValue(strVal);
-
-            me.updateElement_(me, inputEl);
+            me.updateElement_(me, inputEl, true);
         }
         else {
             frp.accessTrans(function() {
@@ -153,7 +164,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                     var t = me.converterB_.get();
                     var strVal = t.convert(me.valueB_.get());
                     me.input_.setValue(strVal);
-                    me.updateElement_(me, inputEl);
+                    me.updateElement_(me, inputEl, false);
                 }
             }, me.converterB_, me.valueB_);
         }
@@ -175,7 +186,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                      var t = me.converterB_.get();
                      var strVal = t.convert(me.valueB_.get());
                      me.input_.setValue(strVal);
-                     me.updateElement_(me, v.target);
+                     me.updateElement_(me, v.target, true);
                  }
              }
         }
@@ -241,14 +252,14 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
                     inputEl.selectionStart = selPos;
                     inputEl.selectionEnd = selPos;
-                    me.updateElement_(me, v.target);
+                    me.updateElement_(me, v.target, me.immediateB_.get());
                     v.preventDefault();
                 }
             }
         }
 
 
-    }, this.valueB_, this.converterB_, this.charValidatorB_, this.maxLengthB_));
+    }, this.valueB_, this.converterB_, this.charValidatorB_, this.maxLengthB_, this.immediateB_));
 
     this.enabledHelper_.attach(
         /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
