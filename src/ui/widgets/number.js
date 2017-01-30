@@ -176,7 +176,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
                        goog.events.EventType.KEYDOWN, this.keyFilter_);
     goog.events.listen(element, goog.events.EventType.BLUR,
                        function() {
-                           if (!element.validity.valid) {
+                           if (!element.validity.valid || element.value === '') {
                                if (lastValid !== undefined) {
                                    element.value = lastValid;
                                }
@@ -185,7 +185,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
                        });
     goog.events.listen(element, goog.events.EventType.FOCUS,
                        function() {
-                           if (element.validity.valid) {
+                           if (element.validity.valid && element.value !== '') {
                                lastValid = element.value;
                            }
 
