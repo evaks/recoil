@@ -91,13 +91,13 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
 /**
  *
  * @param {recoil.ui.widgets.InputWidget} me
- * @param {Object} inputEl
+ * @param {Element} inputEl
  * @param {boolean} setVal
  * @private
  */
 recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal) {
     var res = me.converterB_.get().unconvert(inputEl.value);
-    var el = goog.dom.getElement(inputEl.id);
+    var el = inputEl;
     if (!res.error) {
         if (setVal) {
             me.valueB_.set(res.value);

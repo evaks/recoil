@@ -350,3 +350,12 @@ function testColumnChange04() {
     assertEquals(0,frp.tm().watching());
     shared = {};
 }
+
+function testGetSelectedBeforeAttach() {
+    var scope = new recoil.ui.WidgetScope();    
+    var frp = scope.getFrp();
+    var tableWidget = new recoil.ui.widgets.table.TableWidget(scope);
+
+    tableWidget.createSelected();
+    
+};

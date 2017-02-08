@@ -97,6 +97,9 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     };
     this.curSelected_ = [];
     this.selected_ = this.scope_.getFrp().createB([]);
+    // this will keep the current table in it, it will allow us to get selected before
+    // we have attached a table
+    this.tableBB_ = this.scope_.getFrp().createNotReadyB();
     this.rowClickEvent_ = scope.getFrp().createCallback(function(e, selectedB) {
         var oldSelected = selectedB.get();
         if (!goog.array.find(oldSelected, function(x) {
@@ -118,8 +121,8 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
  * @return {!recoil.frp.Behaviour<!Array<!Array<Object>>>}
  */
 recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
-
-    return this.scope_.getFrp().liftBI(
+    var frp = this.scope_.getFrp();
+    return frp.liftBI(
         function(selected, table) {
             var res = [];
             selected.forEach(function(key) {
@@ -131,7 +134,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
         },
         function(selected) {
             this.selected_.set(selected);
-        }, this.selected_, this.tableB_);
+        }, this.selected_, frp.switchB(this.tableBB_));
 };
 
 /**
@@ -1107,6 +1110,11 @@ recoil.ui.widgets.table.TableWidget.prototype.getComponent = function() {
 recoil.ui.widgets.table.TableWidget.prototype.attachStruct = function(table) {
     var util = new recoil.frp.Util(this.scope_.getFrp());
     this.tableB_ = util.toBehaviour(table);
+    var me = this;
+    this.scope_.getFrp().accessTrans(
+        function() {
+            me.tableBB_.set(me.tableB_);
+        }, me.tableBB_);
     this.renderInfoB_ = this.createRenderInfo_(this.tableB_);
     this.helper_.attach(this.renderInfoB_);
     this.selectionHelper_.attach(this.selected_, this.createSelectInfo_(this.tableB_));
