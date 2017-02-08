@@ -1,4 +1,5 @@
 goog.provide('recoil.converters.DefaultStringConverter');
+goog.provide('recoil.converters.MinLength');
 goog.provide('recoil.converters.RegExp');
 goog.provide('recoil.converters.StringConverter');
 
@@ -64,5 +65,34 @@ recoil.converters.RegExp.prototype.unconvert = function(val) {
         return {error: null, value: val};
     }
     return {error: recoil.ui.messages.INVALID, value: ''};
+};
+
+
+/**
+ * @constructor
+ * @implements {recoil.converters.StringConverter<string>}
+ * @param {!number} len
+ */
+
+recoil.converters.MinLength = function(len) {
+    this.len_ = len;
+};
+/**
+ * @param {string} val
+ * @return {string}
+ */
+recoil.converters.MinLength.prototype.convert = function(val) {
+    return val;
+};
+
+/**
+ * @param {string} val
+ * @return {!{error : recoil.ui.message.Message, value : string}}
+ */
+recoil.converters.MinLength.prototype.unconvert = function(val) {
+    if (val && val.length >= this.len_) {
+        return {error: null, value: val};
+    }
+    return {error: recoil.ui.messages.MUST_BE_AT_LEAST_0_CHARACTORS.resolve({n: this.len_}), value: ''};
 };
 
