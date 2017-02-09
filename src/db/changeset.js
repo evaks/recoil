@@ -75,6 +75,17 @@ recoil.db.ChangeSet.Schema.prototype.isKeyedList = function(path) {
 };
 
 /**
+ * converts a path into an absolute path this solve
+ * so you can have different paths for the same thing
+ *
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Schema.prototype.absolute = function(path) {
+
+};
+
+/**
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} obj
  * @return {!recoil.db.ChangeSet.Path}
@@ -106,6 +117,48 @@ recoil.db.ChangeSet.Path.prototype.append = function(part, opt_params) {
     return new recoil.db.ChangeSet.Path(
         this.path_.concat(part), this.params_.concat(opt_params || []));
 };
+
+/**
+ * @param {!string|!Array<!string>} part
+ * @param {!Array<?>=} opt_params
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.prepend = function(part, opt_params) {
+    part = typeof(part) === 'string' ? [part] : part;
+    return new recoil.db.ChangeSet.Path(
+        part.concat(this.path_), (opt_params || []).concat(this.params_));
+};
+
+/**
+ * @param {!number} parts
+ * @param {!number} params
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.removeFront = function(parts, params) {
+    return new recoil.db.ChangeSet.Path(
+        this.path_.slice(parts), this.params_.slice(params));
+};
+
+/**
+ * converts a path to an object that can be turned into json
+ * @return {!Object}
+ */
+recoil.db.ChangeSet.Path.prototype.serialize = function() {
+    return {parts: this.path_, params: this.params_};
+};
+
+
+/**
+ * converts a path to an object that can be turned into json
+ * @param {!Object} obj
+ * @return {!Object}
+ */
+recoil.db.ChangeSet.Path.deserialize = function(obj) {
+    return new recoil.db.ChangeSet.Path(obj.parts, obj.params);
+};
+
+
+
 
 /**
  * @return {!string}
@@ -234,7 +287,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, schema, opt_changes) {
 
     if (schema.isLeaf(path)) {
         if (!recoil.util.object.isEqual(oldObj, newObj)) {
-            changes.changes.push(new recoil.db.ChangeSet.Set(path, oldObj, newObj));
+            changes.changes.push(new recoil.db.ChangeSet.Set(schema.absolute(path), oldObj, newObj));
         }
         return changes;
     }
@@ -244,13 +297,13 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, schema, opt_changes) {
     }
 
     if (newObj === null || newObj === undefined) {
-        changes.changes.push(new recoil.db.ChangeSet.Delete(path));
+        changes.changes.push(new recoil.db.ChangeSet.Delete(schema.absolute(path)));
         return changes;
     }
     var subChanges = changes;
     if (oldObj === null || oldObj === undefined) {
         subChanges = {changes: [], errors: changes.errors};
-        changes.changes.push(new recoil.db.ChangeSet.Add(path, subChanges.changes));
+        changes.changes.push(new recoil.db.ChangeSet.Add(schema.absolute(path), subChanges.changes));
     }
     else if (schema.isKeyedList(path)) {
         var needed = [];
@@ -264,7 +317,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, schema, opt_changes) {
             var newKey = schema.createKeyPath(path, newChild);
 
             if (newChild === null && oldChild !== null) {
-                changes.changes.push(new recoil.db.ChangeSet.Delete(oldKey));
+                changes.changes.push(new recoil.db.ChangeSet.Delete(schema.absolute(oldKey)));
             }
             else if (oldChild !== null && newChild !== null) {
                 used.push(oldKey);
@@ -289,7 +342,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, schema, opt_changes) {
                     if (info.removeKey) {
                         recoil.db.ChangeSet.diff(oldObj[info.idx], newObj[info.idx], info.key, schema,
                                                  deps);
-                        changes.changes.push(new recoil.db.ChangeSet.Move(info.removeKey, info.key, deps.changes));
+                        changes.changes.push(new recoil.db.ChangeSet.Move(schema.absolute(info.removeKey), schema.absolute(info.key), deps.changes));
                         recoil.db.ChangeSet.removePath(info.removeKey, used);
                     }
                     else {
@@ -300,7 +353,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, schema, opt_changes) {
             });
             if (needed.length === newNeeded.length) {
                 needed.forEach(function(info) {
-                    changes.errors.push(new recoil.db.ChangeSet.DupPk(info.key));
+                    changes.errors.push(new recoil.db.ChangeSet.DupPk(schema.absolute(info.key)));
                 });
                 break;
             }

@@ -95,6 +95,9 @@ var schema = {
         });
         return path.addKeys(keyValues);
     },
+    absolute : function (path) {
+        return path.prepend(['test']);
+    },
         
     isKeyedList: function (path) {
         var keys = [];
@@ -152,11 +155,12 @@ function testDiffChange() {
     var testee = recoil.db.ChangeSet;
 
     var path = new testee.Path('/obj1');
+    var outPath = new testee.Path('/test/obj1');
     // basic set
     var changes = testee.diff({a:1}, {a:2},
                               path,
                               schema);
-    assertObjectEquals({changes: [new testee.Set(path.append('a'), 1, 2)], errors: []},changes);
+    assertObjectEquals({changes: [new testee.Set(outPath.append('a'), 1, 2)], errors: []},changes);
 
     // set inside sub object
     changes = testee.diff({a:1, b: {c:1}}, {a:2, b: {c:2}},
@@ -164,8 +168,8 @@ function testDiffChange() {
                           schema);
     
     assertSameObjects([
-        new testee.Set(path.append(['b','c']), 1, 2),
-        new testee.Set(path.append('a'), 1, 2),
+        new testee.Set(outPath.append(['b','c']), 1, 2),
+        new testee.Set(outPath.append('a'), 1, 2),
     ],changes.changes);
 
     assertObjectEquals([], changes.errors);
@@ -178,10 +182,11 @@ function testDiffInsert() {
     var testee = recoil.db.ChangeSet;
 
     var path = new testee.Path('/obj1');
+    var outPath = new testee.Path('/test/obj1');
     var changes = testee.diff({a:1}, {a:1, b: {c: 3}},
                               path,
                               schema);
-    assertObjectEquals({changes: [new testee.Add(path.append('b'), [new testee.Set(path.append(['b','c']), null, 3)])], errors :[]},changes);
+    assertObjectEquals({changes: [new testee.Add(outPath.append('b'), [new testee.Set(outPath.append(['b','c']), null, 3)])], errors :[]},changes);
 
 
 }
@@ -191,10 +196,11 @@ function testDiffDelete() {
     var testee = recoil.db.ChangeSet;
 
     var path = new testee.Path('/obj1');
+    var outPath = new testee.Path('/test/obj1');
     var changes = testee.diff({a:1, b: {c: 3}}, {a:1},
                               path,
                               schema);
-    assertObjectEquals({changes: [new testee.Delete(path.append('b'))], errors:[]},changes);
+    assertObjectEquals({changes: [new testee.Delete(outPath.append('b'))], errors:[]},changes);
 }
 
 function testDiffKeyMove() {
@@ -203,23 +209,25 @@ function testDiffKeyMove() {
     var testee = recoil.db.ChangeSet;
 
     var path = new testee.Path('/key1');
+    var outPath = new testee.Path('/test/key1');
+
     var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{k:2, v:1}, {k:3, v:2},{k:4, v:3}],
                               path,
                               schema);
     assertObjectEquals({changes: [
-        new testee.Move(path.addKeys([3]),path.addKeys([4]),[]),
-        new testee.Move(path.addKeys([2]),path.addKeys([3]),[]),
-        new testee.Move(path.addKeys([1]),path.addKeys([2]),[])
+        new testee.Move(outPath.addKeys([3]),outPath.addKeys([4]),[]),
+        new testee.Move(outPath.addKeys([2]),outPath.addKeys([3]),[]),
+        new testee.Move(outPath.addKeys([1]),outPath.addKeys([2]),[])
     ], errors: []},changes);
 
     changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{k:2, v:10}, {k:3, v:2},{k:4, v:3}],
                           path,
                           schema);
     assertObjectEquals({changes: [
-        new testee.Move(path.addKeys([3]),path.addKeys([4]),[]),
-        new testee.Move(path.addKeys([2]),path.addKeys([3]),[]),
-        new testee.Move(path.addKeys([1]),path.addKeys([2]),[ 
-            new testee.Set(path.addKeys([2]).append('v'), 1, 10)]
+        new testee.Move(outPath.addKeys([3]),outPath.addKeys([4]),[]),
+        new testee.Move(outPath.addKeys([2]),outPath.addKeys([3]),[]),
+        new testee.Move(outPath.addKeys([1]),outPath.addKeys([2]),[ 
+            new testee.Set(outPath.addKeys([2]).append('v'), 1, 10)]
         )
     ], errors:[]},changes);
                               // check loop
@@ -231,14 +239,16 @@ function testDiffKeyMoveLoop() {
     var testee = recoil.db.ChangeSet;
 
     var path = new testee.Path('/key1');
+    var outPath = new testee.Path('/test/key1');
+
     var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{k:2, v:1}, {k:3, v:2},{k:1, v:3}],
                               path,
                               schema);
 
     assertSameObjects([
-        new testee.DupPk(path.addKeys([1])),
-        new testee.DupPk(path.addKeys([2])),
-        new testee.DupPk(path.addKeys([3]))], changes.errors);
+        new testee.DupPk(outPath.addKeys([1])),
+        new testee.DupPk(outPath.addKeys([2])),
+        new testee.DupPk(outPath.addKeys([3]))], changes.errors);
         
     assertObjectEquals([],changes.changes);
 }
@@ -248,13 +258,15 @@ function testDiffKeyInsert() {
     var testee = recoil.db.ChangeSet;
 
     var path = new testee.Path('/key1');
+    var outPath = new testee.Path('/test/key1');
+
     var changes = testee.diff([],[{k:1, v:1}],
                               path,
                               schema);
 
     assertObjectEquals({changes: [
-        new testee.Add(path.addKeys([1]), [
-            new testee.Set(path.addKeys([1]).append('v'), null, 1)])], errors: []}
+        new testee.Add(outPath.addKeys([1]), [
+            new testee.Set(outPath.addKeys([1]).append('v'), null, 1)])], errors: []}
                        , changes);
 }
 
@@ -262,11 +274,21 @@ function testDiffKeyRemove() {
     var testee = recoil.db.ChangeSet;
 
     var path = new testee.Path('/key1');
+    var outPath = new testee.Path('/test/key1');
+    
     var changes = testee.diff([{k:1, v:1}],[],
                               path,
                               schema);
 
     assertObjectEquals({changes: [
-        new testee.Delete(path.addKeys([1]))], errors: []}
+        new testee.Delete(outPath.addKeys([1]))], errors: []}
                        , changes);
+}
+
+
+function testSerialize () {
+    var testee = recoil.db.ChangeSet;
+    var path = new testee.Path('/a/b/c', [2]);
+    assertObjectEquals({parts:['a','b','c'], params:[2]},path.serialize());
+    assertObjectEquals(path, testee.Path.deserialize(path.serialize()));
 }
