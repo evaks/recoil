@@ -6,14 +6,78 @@ goog.provide('recoil.db.ChangeSet.Move');
 goog.provide('recoil.db.ChangeSet.Path');
 goog.provide('recoil.db.ChangeSet.Set');
 
+goog.require('goog.structs.AvlTree');
 goog.require('recoil.util.object');
 
 /**
  * @constructor
+ * @param {!recoil.db.ChangeSet.Schema} schema
  */
-recoil.db.ChangeSet = function() {
+recoil.db.ChangeSet = function(schema) {
+    this.schema_ = schema;
+    this.orig_ = {};
 };
 
+/**
+ * @param {!recoil.db.ChangeSet.Path} rootPath
+ * @param {!Object} object
+ */
+recoil.db.ChangeSet.prototype.set = function(rootPath, object) {
+    var parts = rootPath.parts();
+    var keys = rootPath.keys();
+    var curPath = new recoil.db.ChangeSet.Path([], []);
+    var cur = this.orig_;
+    for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+
+        if (!cur.children) {
+            cur.children = {};
+        }
+        if (cur.children[part] === undefined) {
+            cur.children[part] = {};
+        }
+        var c = cur.children[part];
+
+        curPath = curPath.append(part);
+        var curKeys = this.schema_.keys(curPath);
+
+        if (curKeys.length > 0 && (keys.length > 0 || i + 1 < parts.length)) {
+            // we are using up the keys
+            if (curKeys.length > keys.length) {
+                throw 'not enough keys';
+            }
+
+            var thisKey = keys.slice(0, curKeys.length);
+            keys.splice(0, curKeys.length);
+
+            // create a map of keys if it does not exist
+
+            if (!c.keys) {
+                c.keys = new goog.structs.AvlTree(recoil.util.object.compareKey);
+            }
+
+            cur = c.keys.find({key: thisKey});
+
+            if (!cur) {
+                cur = {key: thisKey};
+                c.keys.add(cur);
+            }
+
+        }
+        else {
+            cur = c;
+        }
+
+    }
+
+    cur.value = object;
+};
+/**
+ * @param {!Array<recoil.db.ChangeSet.Change>} changes
+ */
+recoil.db.ChangeSet.prototype.applyChanges = function(changes) {
+
+};
 
 /**
  * @interface
@@ -53,6 +117,7 @@ recoil.db.ChangeSet.Schema.prototype.children = function(path) {
 };
 
 /**
+ * returns a list of keys at the path level not parent keys
  * @param {recoil.db.ChangeSet.Path} path
  * @return {!Array<!string>} keys
  */
@@ -179,7 +244,7 @@ recoil.db.ChangeSet.Path.prototype.addKeys = function(params) {
  * @return {!Array<?>}
  */
 recoil.db.ChangeSet.Path.prototype.keys = function() {
-    return this.params_;
+    return this.params_.slice(0);
 };
 
 
@@ -187,7 +252,7 @@ recoil.db.ChangeSet.Path.prototype.keys = function() {
  * @return {!Array<!string>}
  */
 recoil.db.ChangeSet.Path.prototype.parts = function() {
-    return this.path_;
+    return this.path_.slice(0);
 };
 /**
  * @constructor
