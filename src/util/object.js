@@ -220,7 +220,20 @@ recoil.util.object.isEqual = function(a, b) {
 
     return recoil.util.object.isEqual.isEqualRec_(a, b, [], [], []);
 };
-
+/**
+ * finds an element, if it does not exist inserts it into
+ * the AvlTree and returns it
+ * @param {T} val
+ * @return {T}
+ */
+goog.structs.AvlTree.prototype.safeFind = function(val) {
+    var res = this.findFirst(val);
+    if (res === null) {
+        this.add(val);
+        return val;
+    }
+    return res;
+};
 /**
  * @param {?} other
  * @return {!boolean}

@@ -264,14 +264,14 @@ recoil.structs.table.Table.prototype.equals = function(a) {
     return this.compare(a) === 0;
 };
 /**
- * @return {Array<recoil.structs.table.ColumnKey>}
+ * @return {!Array<!recoil.structs.table.ColumnKey>}
  */
 recoil.structs.table.Table.prototype.getPrimaryColumns = function() {
     return this.primaryColumns_;
 };
 
 /**
- * @return {Array<recoil.structs.table.ColumnKey>}
+ * @return {!Array<!recoil.structs.table.ColumnKey>}
  */
 recoil.structs.table.Table.prototype.getOtherColumns = function() {
     return this.otherColumns_;
@@ -308,6 +308,91 @@ recoil.structs.table.Table.prototype.createEmpty = function(opt_extPrimaryCols, 
     return res;
 };
 
+
+
+/**
+ * creates an empty mutable table based on a table, that will a have all original columns
+ * but the primary keys will be the ones specified
+ * @param {!Array<!recoil.structs.table.ColumnKey>} primaryCols the new primary keys these can be new or existing
+ * @param {!Array<!recoil.structs.table.ColumnKey>} extOtherCols any extra columns that need to be added that are
+ *                                                                    not primary keys
+ * @return {!recoil.structs.table.MutableTable}
+ */
+recoil.structs.table.Table.prototype.createEmptyAddCols = function(primaryCols, extOtherCols) {
+    var otherColumns = [];
+    var me = this;
+    this.primaryColumns_.forEach(function(val) {
+        if (!goog.array.contains(primaryCols, val)) {
+            otherColumns.push(val);
+        }
+    });
+    this.otherColumns_.forEach(function(val) {
+        if (!goog.array.contains(primaryCols, val)) {
+            otherColumns.push(val);
+        }
+    });
+
+    extOtherCols.forEach(function(val) {
+        if (!goog.array.contains(otherColumns, val)) {
+            otherColumns.push(val);
+        }
+    });
+
+    var res = new recoil.structs.table.MutableTable(primaryCols, otherColumns);
+    recoil.util.object.addProps(res.meta_, this.meta_);
+    res.columnMeta_ = {};
+    recoil.util.object.addProps(res.columnMeta_, this.columnMeta_);
+    return res;
+};
+
+/**
+ * given that this table has primary key that is a number
+ * it will generate a mutable table row with a primary key not aready in the table
+ * also if all the existing rows have an position then the position of the new row will
+ * be the last row
+ *
+ * @param {!recoil.structs.table.MutableTable|!recoil.structs.table.MutableTable} table
+ *
+ * @return {!recoil.structs.table.MutableTableRow}
+ */
+recoil.structs.table.Table.createUniqueIntPkRow = function(table) {
+    var primaryCols = table.getPrimaryColumns();
+    if (primaryCols.length !== 1) {
+        throw 'to generate pk you must have exactly 1 primary key';
+    }
+    var res = new recoil.structs.table.MutableTableRow();
+    var pos = 0;
+    var usedPks = new goog.structs.AvlTree();
+
+    table.forEach(function(row, key) {
+        if (pos !== undefined) {
+            var rowPos = row.pos();
+            if (rowPos === undefined) {
+                pos = undefined;
+            }
+            else if (pos < rowPos) {
+                pos = rowPos + 1;
+            }
+        }
+        if (typeof(key[0]) !== 'number') {
+            throw 'cannot generate primary key on non number field';
+        }
+        usedPks.add(key[0]);
+    });
+    var curPk = 0;
+    usedPks.inOrderTraverse(function(val) {
+        if (curPk < val) {
+            return true;
+        }
+        if (curPk === val) {
+            curPk++;
+        }
+        return false;
+    });
+    res.set(primaryCols[0], curPk);
+    res.setPos(pos);
+    return res;
+};
 /**
  *
  * @param {!Array<!recoil.structs.table.ColumnKey>} primaryKeys
@@ -817,7 +902,7 @@ recoil.structs.table.Table.prototype.getRowMeta = function(keys, column) {
 
 /**
  * returns an array of keys for the row
- * @param {!recoil.structs.table.TableRow} row
+ * @param {!recoil.structs.table.TableRow|!recoil.structs.table.MutableTableRow} row
  * @return {!Array<?>}
  */
 recoil.structs.table.Table.prototype.getRowKeys = function(row) {
@@ -1062,6 +1147,17 @@ recoil.structs.table.TableRow.prototype.pos = function() {
 recoil.structs.table.TableRow.prototype.getCell = function(column) {
     var res = this.cells_[column];
     return res === undefined ? null : res;
+};
+
+/**
+ * Get the value and meta data from the cell
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @return {!Object}
+ */
+recoil.structs.table.TableRow.prototype.getCellMeta = function(column) {
+    var res = this.getCell(column);
+    return res ? res.getMeta() : {};
 };
 
 

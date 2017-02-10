@@ -8,7 +8,7 @@ goog.require('recoil.ui.widgets.TableMetaData');
 
 
 
-goog.setTestOnly('recoil.structs.table.UnionTest');
+goog.setTestOnly('recoil.structs.table.RotateTest');
 
 var COL_A = new recoil.structs.table.ColumnKey("a");
 var COL_B = new recoil.structs.table.ColumnKey("b");
