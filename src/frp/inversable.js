@@ -1,6 +1,7 @@
 goog.provide('recoil.frp.Inversable');
 
-
+goog.require('recoil.frp.Frp');
+goog.require('recoil.frp.Util');
 
 /**
  * @interface
@@ -31,19 +32,26 @@ recoil.frp.Inversable.prototype.inverse = function(val, sources) {
 
 /**
  * create a behaviour from an inversable
- * @template T, Input
+ * @template Output, Input
  * @param {!recoil.frp.Frp} frp
  * @param {!recoil.frp.Inversable} inversable
  * @param {Input} params
- * @return {Input}
+ * @return {Output}
  */
 recoil.frp.Inversable.create = function(frp, inversable, params) {
     var paramStruct = {};
+    var util = new recoil.frp.Util(frp);
+    for (var k in params) {
+        if (params.hasOwnProperty(k)) {
+            paramStruct[k] = util.toBehaviour(params[k]);
+        }
+    }
+
     var resolveStruct = function() {
         var res = {};
-        for (var k in params) {
-            if (params.hasOwnProperty(k)) {
-                res[k] = util.toBehaviour(params[k]);
+        for (var k in paramStruct) {
+            if (paramStruct.hasOwnProperty(k)) {
+                res[k] = paramStruct[k].get();
             }
         }
         return res;
@@ -60,13 +68,11 @@ recoil.frp.Inversable.create = function(frp, inversable, params) {
             }
         }
     ];
-    var util = new recoil.frp.Util(frp);
 
-    for (var k in params) {
-        if (params.hasOwnProperty(k)) {
-            paramStruct[k] = util.toBehaviour(params);
+    for (k in params) {
+        if (paramStruct.hasOwnProperty(k)) {
+            funcParams.push(paramStruct[k]);
         }
     }
-
     return frp.liftBI.apply(frp, funcParams);
 };

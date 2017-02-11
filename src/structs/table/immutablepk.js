@@ -1,5 +1,9 @@
 goog.provide('recoil.structs.table.ImmutablePk');
 
+goog.require('recoil.frp.Inversable');
+goog.require('recoil.structs.table.ColumnKey');
+goog.require('recoil.structs.table.Table');
+
 /**
  * this class provides a mechinim to take a table with multiple, mutable primary
  * keys and convert it to a table that has 1 unique number primary key that does not change
@@ -10,13 +14,14 @@ goog.provide('recoil.structs.table.ImmutablePk');
  * @implements  {recoil.frp.Inversable<!recoil.structs.table.Table,
  !{table:!recoil.structs.table.Table},
  !{table:!recoil.structs.table.Table}>}>}
+ * @param {!recoil.structs.table.ColumnKey<!Array<!number>>=} opt_dupsCol
  * @constructor
  */
 
-recoil.structs.table.ImmutablePk = function() {
+recoil.structs.table.ImmutablePk = function(opt_dupsCol) {
     this.pk_ = new recoil.structs.table.ColumnKey('$immutable.key');
     this.origPk_ = new recoil.structs.table.ColumnKey('$orig.key', undefined, undefined, /** @type Array */ (null));
-    this.DUPLICATES = new recoil.structs.table.ColumnKey('$duplicate', undefined, undefined, null);
+    this.DUPLICATES = opt_dupsCol || new recoil.structs.table.ColumnKey('$duplicate', undefined, undefined,  /** @type Array<!number> */ ([]));
     // a map from the primary key to the generated primary key
     this.pkMap_ = new goog.structs.AvlTree(recoil.util.object.compareKey);
     /**
@@ -26,6 +31,20 @@ recoil.structs.table.ImmutablePk = function() {
     this.newDups_ = [];
 };
 
+/**
+ * @type {!recoil.structs.table.ColumnKey<!Array<number>>}
+ * @final
+ */
+recoil.structs.table.ImmutablePk.DUPLICATES = new recoil.structs.table.ColumnKey('$duplicate', undefined, undefined,/** @type !Array<!number> */ ([]));
+
+/**
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB
+ * @param {!recoil.structs.table.ColumnKey<!Array<number>>=} opt_dupsCol
+ * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
+ */
+recoil.structs.table.ImmutablePk.createB = function(tableB, opt_dupsCol) {
+    return recoil.frp.Inversable.create(tableB.frp(), new recoil.structs.table.ImmutablePk(opt_dupsCol), {table: tableB});
+};
 /**
  * @param {{table:!recoil.structs.table.Table}} params
  * @return {!recoil.structs.table.Table}

@@ -4,7 +4,7 @@ goog.require('goog.testing.jsunit');
 goog.require('recoil.structs.table.ImmutablePk');
 goog.require('recoil.util');
 goog.require('recoil.structs.table.ColumnKey');
-
+goog.require('recoil.frp.Frp');
 
 
 goog.setTestOnly('recoil.structs.table.ImmutablePkTest');
@@ -63,6 +63,46 @@ var mkTable = function (rows) {
     return tbl;
 };
 
+function testCreateB() {
+    var frp = new recoil.frp.Frp();
+    
+    var tblB = frp.createB(new mkTable([2,3,4,1]).freeze());
+    var testeeB = recoil.structs.table.ImmutablePk.createB(tblB);
+    
+    frp.attach(testeeB);
+    
+
+    var expected = [
+        {a: {val: 2, meta: {cell : "a2"}}, b: {val:"b2",  meta : {cell : "b2"}}},
+        {a: {val: 3, meta: {cell : "a3"}}, b: {val:"b3",  meta : {cell : "b3"}}},
+        {a: {val: 4, meta: {cell : "a4"}}, b: {val:"b4",  meta : {cell : "b4"}}},
+        {a: {val: 1, meta: {cell : "a1"}}, b: {val:"b1",  meta : {cell : "b1"}}}
+    ];
+    frp.accessTrans(function () {
+        var table = testeeB.get();
+        assertObjectEquals({tableMeta: true}, table.getMeta());
+        var mappings = checkTable (expected, table, {});
+        var mtable = table.unfreeze();
+        mtable.removeRow([mappings[1]]);
+        testeeB.set(mtable.freeze());
+    }, testeeB);
+
+    expected = [
+        {a: {val: 2, meta: {cell : "a2"}}, b: {val:"b2",  meta : {cell : "b2"}}},
+        {a: {val: 3, meta: {cell : "a3"}}, b: {val:"b3",  meta : {cell : "b3"}}},
+        {a: {val: 4, meta: {cell : "a4"}}, b: {val:"b4",  meta : {cell : "b4"}}}
+    ];
+
+    frp.accessTrans(function () {
+        var table = testeeB.get();
+        assertObjectEquals({tableMeta: true}, table.getMeta());
+        var mappings = checkTable (expected, table, {});
+
+    }, testeeB);
+
+
+
+}
 function testImmutablePk() {
 
     var testee = new recoil.structs.table.ImmutablePk();
