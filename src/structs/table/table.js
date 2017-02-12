@@ -1004,6 +1004,25 @@ recoil.structs.table.Table.prototype.getCell = function(keys, columnKey) {
 
 
 /**
+ * gets the cell meta including the column, table and row values
+ * @template CT
+ * @param {!Array<?>} keys
+ * @param {!recoil.structs.table.ColumnKey<CT>} col
+ * @return {!Object}
+ */
+recoil.structs.table.Table.prototype.getFullCellMeta = function(keys, col) {
+    var row = this.getRow(keys);
+    if (row) {
+        var meta = {};
+        goog.object.extend(meta, this.getMeta(),
+                           row.getRowMeta(),
+                           this.getColumnMeta(col), row.getCellMeta(col));
+        return meta;
+    }
+    return this.getMeta();
+};
+
+/**
  *
  * @param {Object} typeFactories
  * @param {Object} tableMeta
@@ -1159,7 +1178,6 @@ recoil.structs.table.TableRow.prototype.getCellMeta = function(column) {
     var res = this.getCell(column);
     return res ? res.getMeta() : {};
 };
-
 
 /**
  * Get the value and meta data from the cell
