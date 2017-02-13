@@ -93,9 +93,10 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
  * @param {recoil.ui.widgets.InputWidget} me
  * @param {Element} inputEl
  * @param {boolean} setVal
+ * @param {!boolean} revert
  * @private
  */
-recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal) {
+recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal, revert) {
     var res = me.converterB_.get().unconvert(inputEl.value);
     var el = inputEl;
     if (!res.error) {
@@ -104,7 +105,14 @@ recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, s
         }
         goog.dom.classlist.remove(el, 'recoil-error');
     } else {
-        goog.dom.classlist.add(el, 'recoil-error');
+        if (revert) {
+            var strVal = me.converterB_.get().convert(me.valueB_.get());
+            me.input_.setValue(strVal);
+            goog.dom.classlist.remove(el, 'recoil-error');
+        }
+        else {
+            goog.dom.classlist.add(el, 'recoil-error');
+        }
     }
 };
 /**
@@ -116,7 +124,7 @@ recoil.ui.widgets.InputWidget.prototype.detach_ = function() {
     var me = this;
     frp.accessTrans(function() {
         if (me.immediateB_.good() && me.converterB_.good() && me.valueB_.good() && !me.immediateB_.get()) {
-            me.updateElement_(me, me.input_.getElement(), true);
+            me.updateElement_(me, me.input_.getElement(), true, true);
         }
     }, me.immediateB_, me.converterB_, me.valueB_);
 };
@@ -150,13 +158,13 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-        me.updateElement_(me, inputEl, me.immediateB_.get());
+        me.updateElement_(me, inputEl, me.immediateB_.get(), false);
     }, this.valueB_, this.immediateB_, this.converterB_));
 
     var blurListener = function(v) {
         var inputEl = v.target;
         if (!me.immediateB_.get()) {
-            me.updateElement_(me, inputEl, true);
+            me.updateElement_(me, inputEl, true, true);
         }
         else {
             frp.accessTrans(function() {
@@ -164,7 +172,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                     var t = me.converterB_.get();
                     var strVal = t.convert(me.valueB_.get());
                     me.input_.setValue(strVal);
-                    me.updateElement_(me, inputEl, false);
+                    me.updateElement_(me, inputEl, false, false);
                 }
             }, me.converterB_, me.valueB_);
         }
@@ -186,7 +194,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                      var t = me.converterB_.get();
                      var strVal = t.convert(me.valueB_.get());
                      me.input_.setValue(strVal);
-                     me.updateElement_(me, v.target, true);
+                     me.updateElement_(me, v.target, true, false);
                  }
              }
         }
@@ -252,7 +260,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
                     inputEl.selectionStart = selPos;
                     inputEl.selectionEnd = selPos;
-                    me.updateElement_(me, v.target, me.immediateB_.get());
+                    me.updateElement_(me, v.target, me.immediateB_.get(), false);
                     v.preventDefault();
                 }
             }
