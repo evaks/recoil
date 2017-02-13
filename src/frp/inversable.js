@@ -64,7 +64,7 @@ recoil.frp.Inversable.create = function(frp, inversable, params) {
         function(val) {
             var res = inversable.inverse(val, resolveStruct());
             for (var k in res) {
-                paramStruct[k].set(val);
+                paramStruct[k].set(res[k]);
             }
         }
     ];
