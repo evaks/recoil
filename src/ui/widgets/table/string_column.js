@@ -61,6 +61,12 @@ recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_ =
     widget.attachStruct(recoil.frp.struct.extend(frp, metaData, {value: value}));
     return widget;
 };
+/**
+ * @param {!recoil.ui.WidgetScope} scope
+ * @param {!recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
+ * @return {!recoil.ui.Widget}
+ */
+recoil.ui.widgets.table.StringColumn.defaultWidgetFactory = recoil.ui.widgets.table.StringColumn.defaultWidgetFactory_;
 
 /**
  * @return {recoil.structs.table.ColumnKey}
