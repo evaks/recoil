@@ -166,7 +166,10 @@ recoil.db.ChangeSet.Schema.prototype.createKeyPath = function(path, obj) {
  */
 recoil.db.ChangeSet.Path = function(path, opt_params) {
     if (typeof(path) === 'string') {
-        this.path_ = path.split('/').slice(1);
+        this.path_ = path.split('/');
+        if (this.path_.length > 0 && this.path_[0] === '') {
+            this.path_.shift();
+        }
     }
     else {
         this.path_ = path;
