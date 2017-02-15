@@ -234,6 +234,15 @@ recoil.db.ChangeSet.Path.deserialize = function(obj) {
 recoil.db.ChangeSet.Path.prototype.toString = function() {
     return '/' + this.path_.join('/') + ':' + this.params_;
 };
+
+/**
+ * @return {!string}
+ */
+recoil.db.ChangeSet.Path.prototype.pathAsString = function() {
+    return '/' + this.path_.join('/');
+};
+
+
 /**
  * @param {!Array<?>} params
  * @return {!recoil.db.ChangeSet.Path}
