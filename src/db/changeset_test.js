@@ -158,13 +158,13 @@ function testDiffChange() {
     var outPath = new testee.Path('/test/obj1');
     // basic set
     var changes = testee.diff({a:1}, {a:2},
-                              path,
+                              path,'orig',
                               schema);
     assertObjectEquals({changes: [new testee.Set(outPath.append('a'), 1, 2)], errors: []},changes);
 
     // set inside sub object
     changes = testee.diff({a:1, b: {c:1}}, {a:2, b: {c:2}},
-                          path,
+                          path,'orig',
                           schema);
     
     assertSameObjects([
@@ -184,7 +184,7 @@ function testDiffInsert() {
     var path = new testee.Path('/obj1');
     var outPath = new testee.Path('/test/obj1');
     var changes = testee.diff({a:1}, {a:1, b: {c: 3}},
-                              path,
+                              path,'orig',
                               schema);
     assertObjectEquals({changes: [new testee.Add(outPath.append('b'), [new testee.Set(outPath.append(['b','c']), null, 3)])], errors :[]},changes);
 
@@ -198,7 +198,7 @@ function testDiffDelete() {
     var path = new testee.Path('/obj1');
     var outPath = new testee.Path('/test/obj1');
     var changes = testee.diff({a:1, b: {c: 3}}, {a:1},
-                              path,
+                              path,'orig',
                               schema);
     assertObjectEquals({changes: [new testee.Delete(outPath.append('b'))], errors:[]},changes);
 }
@@ -211,8 +211,8 @@ function testDiffKeyMove() {
     var path = new testee.Path('/key1');
     var outPath = new testee.Path('/test/key1');
 
-    var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{k:2, v:1}, {k:3, v:2},{k:4, v:3}],
-                              path,
+    var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{orig:[1], k:2, v:1}, {orig:[2], k:3, v:2},{orig: [3], k:4, v:3}],
+                              path,'orig',
                               schema);
     assertObjectEquals({changes: [
         new testee.Move(outPath.addKeys([3]),outPath.addKeys([4]),[]),
@@ -220,14 +220,14 @@ function testDiffKeyMove() {
         new testee.Move(outPath.addKeys([1]),outPath.addKeys([2]),[])
     ], errors: []},changes);
 
-    changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{k:2, v:10}, {k:3, v:2},{k:4, v:3}],
-                          path,
+    changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{orig:[1],k:2, v:10}, {orig:[2],k:3, v:2},{orig:[3],k:4, v:3}],
+                          path,'orig',
                           schema);
     assertObjectEquals({changes: [
         new testee.Move(outPath.addKeys([3]),outPath.addKeys([4]),[]),
         new testee.Move(outPath.addKeys([2]),outPath.addKeys([3]),[]),
         new testee.Move(outPath.addKeys([1]),outPath.addKeys([2]),[ 
-            new testee.Set(outPath.addKeys([2]).append('v'), 1, 10)]
+            new testee.Set(outPath.addKeys([1]).append('v'), 1, 10)]
         )
     ], errors:[]},changes);
                               // check loop
@@ -241,8 +241,8 @@ function testDiffKeyMoveLoop() {
     var path = new testee.Path('/key1');
     var outPath = new testee.Path('/test/key1');
 
-    var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{k:2, v:1}, {k:3, v:2},{k:1, v:3}],
-                              path,
+    var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{orig:[1],k:2, v:1}, {orig:[2],k:3, v:2},{orig:[3],k:1, v:3}],
+                              path,'orig',
                               schema);
 
     assertSameObjects([
@@ -261,7 +261,7 @@ function testDiffKeyInsert() {
     var outPath = new testee.Path('/test/key1');
 
     var changes = testee.diff([],[{k:1, v:1}],
-                              path,
+                              path,'orig',
                               schema);
 
     assertObjectEquals({changes: [
@@ -277,7 +277,7 @@ function testDiffKeyRemove() {
     var outPath = new testee.Path('/test/key1');
     
     var changes = testee.diff([{k:1, v:1}],[],
-                              path,
+                              path,'orig',
                               schema);
 
     assertObjectEquals({changes: [
