@@ -203,6 +203,7 @@ function testDiffDelete() {
     assertObjectEquals({changes: [new testee.Delete(outPath.append('b'))], errors:[]},changes);
 }
 
+
 function testDiffKeyMove() {
 
 
@@ -231,6 +232,22 @@ function testDiffKeyMove() {
         )
     ], errors:[]},changes);
                               // check loop
+}
+
+function testDiffKeyChangeNonKey() {
+
+
+    var testee = recoil.db.ChangeSet;
+
+    var path = new testee.Path('/key1');
+    var outPath = new testee.Path('/test/key1');
+
+    var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}], [{orig:[1], k:1, v:1}, {orig:[2], k:2, v:3}],
+                              path,'orig',
+                              schema);
+    assertObjectEquals({changes: [
+        new testee.Set(outPath.addKeys([2]).append('v'),2,3)
+    ], errors: []},changes);
 }
 
 function testDiffKeyMoveLoop() {

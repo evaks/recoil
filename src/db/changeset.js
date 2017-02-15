@@ -406,6 +406,9 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
                 if (!recoil.util.object.isEqual(newKey, oldKey)) {
                     needed.push({idx: i, key: newKey, removeKey: oldKey});
                 }
+                else {
+                    recoil.db.ChangeSet.diff(oldChild, newChildEntry.row, newKey, origColumn, schema, changes);
+                }
             }
             else {
                 changes.changes.push(new recoil.db.ChangeSet.Delete(schema.absolute(oldKey)));
