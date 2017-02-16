@@ -135,17 +135,19 @@ recoil.db.ChangeSet.ValueSerializor = function() {
 };
 
 /**
+ * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
  * @return {?}
  */
-recoil.db.ChangeSet.ValueSerializor.prototype.serialize = function(val) {
+recoil.db.ChangeSet.ValueSerializor.prototype.serialize = function(path, val) {
 };
 /**
  * converts a path to an object that can be turned into json
+ * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} serialized
  * @return {?}
  */
-recoil.db.ChangeSet.ValueSerializor.prototype.deserialize = function(serialized) {
+recoil.db.ChangeSet.ValueSerializor.prototype.deserialize = function(path, serialized) {
 };
 
 
@@ -158,18 +160,20 @@ recoil.db.ChangeSet.DefaultValueSerializor = function() {
 };
 
 /**
+ * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
  * @return {?}
  */
-recoil.db.ChangeSet.DefaultValueSerializor.prototype.serialize = function(val) {
+recoil.db.ChangeSet.DefaultValueSerializor.prototype.serialize = function(path, val) {
     return val;
 };
 /**
  * converts a path to an object that can be turned into json
+ * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} serialized
  * @return {?}
  */
-recoil.db.ChangeSet.DefaultValueSerializor.prototype.deserialize = function(serialized) {
+recoil.db.ChangeSet.DefaultValueSerializor.prototype.deserialize = function(path, serialized) {
     return serialized;
 };
 
@@ -226,9 +230,10 @@ recoil.db.ChangeSet.Change.deserialize = function(object, valSerializor, opt_com
     }
 
     if (object.type === ChangeType.SET) {
+        var path = recoil.db.ChangeSet.Path.deserialize(object.path, compressor);
         return new recoil.db.ChangeSet.Set(
-            recoil.db.ChangeSet.Path.deserialize(object.path, compressor),
-            valSerializor.deserialize(object.old), valSerializor.deserialize(object.new));
+            path,
+            valSerializor.deserialize(path, object.old), valSerializor.deserialize(path, object.new));
 
     }
 
@@ -476,11 +481,11 @@ recoil.db.ChangeSet.Set.prototype.serialize = function(keepOld, valSerializor, o
     var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
     if (keepOld) {
         return {type: recoil.db.ChangeSet.Change.Type.SET, path: this.path_.serialize(compressor),
-                old: valSerializor.serialize(this.oldVal_),
-                new: valSerializor.serialize(this.newVal_)};
+                old: valSerializor.serialize(this.path_, this.oldVal_),
+                new: valSerializor.serialize(this.path_, this.newVal_)};
     }
     return {type: recoil.db.ChangeSet.Change.Type.SET, path: this.path_.serialize(compressor),
-            new: valSerializor.serialize(this.newVal_)};
+            new: valSerializor.serialize(this.path_, this.newVal_)};
 };
 
 
