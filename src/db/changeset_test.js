@@ -306,6 +306,18 @@ function testDiffKeyRemove() {
 function testSerialize () {
     var testee = recoil.db.ChangeSet;
     var path = new testee.Path('/a/b/c', [2]);
-    assertObjectEquals({parts:['a','b','c'], params:[2]},path.serialize());
-    assertObjectEquals(path, testee.Path.deserialize(path.serialize()));
+    var path2 = new testee.Path('/e/f/g', [3]);
+    var compressor = new recoil.db.ChangeSet.DefaultPathCompressor ();
+    var vser = new recoil.db.ChangeSet.DefaultValueSerializor();
+    assertObjectEquals({parts:'a/b/c', params:[2]},path.serialize(compressor));
+    assertObjectEquals(path, testee.Path.deserialize(path.serialize(compressor),compressor));
+
+    var set = new testee.Set(path, 1, 2);
+    var move = new testee.Move(path, path2, [set]);
+    var add = new testee.Add(path,[set]);
+    var del = new testee.Delete(path,[set]);
+    assertObjectEquals(move, testee.Change.deserialize(move.serialize(true, vser), vser));
+    assertObjectEquals(set, testee.Change.deserialize(set.serialize(true, vser), vser));
+    assertObjectEquals(add, testee.Change.deserialize(add.serialize(true, vser), vser));
+    assertObjectEquals(del, testee.Change.deserialize(del.serialize(true, vser), vser));
 }

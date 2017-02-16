@@ -81,10 +81,191 @@ recoil.db.ChangeSet.prototype.applyChanges = function(changes) {
 
 /**
  * @interface
+ * @template T
+ * allows paths to be compressed/decompressed
+ */
+recoil.db.ChangeSet.PathCompressor = function() {
+};
+
+/**
+ * converts a path to an object that can be turned into json
+ * @param {!Array<!string>} path
+ * @return {T}
+ */
+recoil.db.ChangeSet.PathCompressor.prototype.compress = function(path) {
+};
+/**
+ * converts a path to an object that can be turned into json
+ * @param {T} path
+ * @return {!Array<!string>}
+ */
+recoil.db.ChangeSet.PathCompressor.prototype.decompress = function(path) {
+};
+
+/**
+ * @constructor
+ * @implements {recoil.db.ChangeSet.PathCompressor<!string>}
+ */
+recoil.db.ChangeSet.DefaultPathCompressor = function() {
+};
+
+/**
+ * converts a path to an object that can be turned into json
+ * @param {!Array<string>} path
+ * @return {!string}
+ */
+recoil.db.ChangeSet.DefaultPathCompressor.prototype.compress = function(path) {
+    return path.join('/');
+};
+/**
+ * converts a path to an object that can be turned into json
+ * @param {!string} path
+ * @return {!Array<!string>}
+ */
+recoil.db.ChangeSet.DefaultPathCompressor.prototype.decompress = function(path) {
+    return path.split('/');
+};
+
+
+/**
+ * @interface
+ * allows override to serialize/deserialize values, eg buffers
+ */
+recoil.db.ChangeSet.ValueSerializor = function() {
+};
+
+/**
+ * @param {?} val
+ * @return {?}
+ */
+recoil.db.ChangeSet.ValueSerializor.prototype.serialize = function(val) {
+};
+/**
+ * converts a path to an object that can be turned into json
+ * @param {?} serialized
+ * @return {?}
+ */
+recoil.db.ChangeSet.ValueSerializor.prototype.deserialize = function(serialized) {
+};
+
+
+/**
+ * @constructor
+ * @implements {recoil.db.ChangeSet.ValueSerializor}
+ * allows override to serialize/deserialize values, eg buffers
+ */
+recoil.db.ChangeSet.DefaultValueSerializor = function() {
+};
+
+/**
+ * @param {?} val
+ * @return {?}
+ */
+recoil.db.ChangeSet.DefaultValueSerializor.prototype.serialize = function(val) {
+    return val;
+};
+/**
+ * converts a path to an object that can be turned into json
+ * @param {?} serialized
+ * @return {?}
+ */
+recoil.db.ChangeSet.DefaultValueSerializor.prototype.deserialize = function(serialized) {
+    return serialized;
+};
+
+/**
+ * @interface
  */
 recoil.db.ChangeSet.Change = function() {
 };
 
+/**
+ * converts a path to an object that can be turned into json
+ * @param {!boolean} keepOld do we need the undo information
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} opt_compressor
+ * @return {!Object}
+ */
+recoil.db.ChangeSet.Change.prototype.serialize = function(keepOld, valSerializor, opt_compressor) {
+};
+/**
+ * @enum {number}
+ */
+recoil.db.ChangeSet.Change.Type = {
+    SET: 0,
+    ADD: 1,
+    DEL: 2,
+    MOVE: 3
+};
+
+/**
+ * converts a path to an object that can be turned into json
+ * @suppress {missingProperties}
+ * @param {!Object} object
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} opt_compressor
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Change.deserialize = function(object, valSerializor, opt_compressor) {
+    var ChangeType = recoil.db.ChangeSet.Change.Type;
+    var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
+    if (object.type === ChangeType.MOVE && object.deps !== undefined) {
+        return new recoil.db.ChangeSet.Move(
+            recoil.db.ChangeSet.Path.deserialize(object.from, compressor),
+            recoil.db.ChangeSet.Path.deserialize(object.to, compressor),
+            recoil.db.ChangeSet.Change.deserializeList(object.deps, valSerializor, compressor));
+    }
+    if (object.type === ChangeType.DEL) {
+        return new recoil.db.ChangeSet.Delete(
+            recoil.db.ChangeSet.Path.deserialize(object.path, compressor));
+    }
+    if (object.type === ChangeType.ADD && object.deps) {
+        return new recoil.db.ChangeSet.Add(
+            recoil.db.ChangeSet.Path.deserialize(object.path, compressor),
+            recoil.db.ChangeSet.Change.deserializeList(object.deps, valSerializor, compressor));
+    }
+
+    if (object.type === ChangeType.SET) {
+        return new recoil.db.ChangeSet.Set(
+            recoil.db.ChangeSet.Path.deserialize(object.path, compressor),
+            valSerializor.deserialize(object.old), valSerializor.deserialize(object.new));
+
+    }
+
+
+    throw 'unrecogined change type';
+};
+
+/**
+ * converts a path to an object that can be turned into json
+ * @param {!Array<!Object>} object
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
+ * @param {!recoil.db.ChangeSet.PathCompressor} compressor
+ * @return {!Array<!recoil.db.ChangeSet.Change>}
+ */
+recoil.db.ChangeSet.Change.deserializeList = function(object, valSerializor, compressor) {
+    var res = [];
+    for (var i = 0; i < object.length; i++) {
+        res.push(recoil.db.ChangeSet.Change.deserialize(object[i], valSerializor, compressor));
+    }
+    return res;
+};
+
+/**
+ * converts a path to an object that can be turned into json
+ * @param {!Array<!recoil.db.ChangeSet.Change>} changes
+ * @param {!boolean} keepOld do we need the undo information
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
+ * @param {!recoil.db.ChangeSet.PathCompressor} compressor
+ * @return {!Array<!Object>}
+ */
+recoil.db.ChangeSet.Change.serializeList = function(changes, keepOld, valSerializor, compressor) {
+    var res = [];
+    for (var i = 0; i < changes.length; i++) {
+        res.push(changes[i].serialize(keepOld, valSerializor, compressor));
+    }
+    return res;
+};
 /**
  * @interface
  */
@@ -127,6 +308,7 @@ recoil.db.ChangeSet.Schema.prototype.keys = function(path) {
 
 /**
  * @param {recoil.db.ChangeSet.Path} path
+ * @return {!boolean}
  */
 recoil.db.ChangeSet.Schema.prototype.isLeaf = function(path) {
 
@@ -134,6 +316,7 @@ recoil.db.ChangeSet.Schema.prototype.isLeaf = function(path) {
 
 /**
  * @param {recoil.db.ChangeSet.Path} path
+ * @return {!boolean}
  */
 recoil.db.ChangeSet.Schema.prototype.isKeyedList = function(path) {
 
@@ -209,20 +392,22 @@ recoil.db.ChangeSet.Path.prototype.removeFront = function(parts, params) {
 
 /**
  * converts a path to an object that can be turned into json
+ * @param {!recoil.db.ChangeSet.PathCompressor} compressor
  * @return {!Object}
  */
-recoil.db.ChangeSet.Path.prototype.serialize = function() {
-    return {parts: this.path_, params: this.params_};
+recoil.db.ChangeSet.Path.prototype.serialize = function(compressor) {
+    return {parts: compressor.compress(this.path_), params: this.params_};
 };
 
 
 /**
  * converts a path to an object that can be turned into json
  * @param {!Object} obj
- * @return {!Object}
+ * @param {!recoil.db.ChangeSet.PathCompressor} compressor
+ * @return {!recoil.db.ChangeSet.Path}
  */
-recoil.db.ChangeSet.Path.deserialize = function(obj) {
-    return new recoil.db.ChangeSet.Path(obj.parts, obj.params);
+recoil.db.ChangeSet.Path.deserialize = function(obj, compressor) {
+    return new recoil.db.ChangeSet.Path(compressor.decompress(obj.parts), obj.params);
 };
 
 
@@ -280,6 +465,24 @@ recoil.db.ChangeSet.Set = function(path, oldVal, newVal) {
     this.newVal_ = newVal;
 };
 
+/**
+ * converts a change an object that can be turned into json
+ * @param {!boolean} keepOld do we need the undo information
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor serializor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} opt_compressor
+ * @return {!Object}
+ */
+recoil.db.ChangeSet.Set.prototype.serialize = function(keepOld, valSerializor, opt_compressor) {
+    var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
+    if (keepOld) {
+        return {type: recoil.db.ChangeSet.Change.Type.SET, path: this.path_.serialize(compressor),
+                old: valSerializor.serialize(this.oldVal_),
+                new: valSerializor.serialize(this.newVal_)};
+    }
+    return {type: recoil.db.ChangeSet.Change.Type.SET, path: this.path_.serialize(compressor),
+            new: valSerializor.serialize(this.newVal_)};
+};
+
 
 /**
  * @constructor
@@ -291,6 +494,19 @@ recoil.db.ChangeSet.Set = function(path, oldVal, newVal) {
 recoil.db.ChangeSet.Add = function(path, dependants) {
     this.path_ = path;
     this.dependants_ = dependants;
+};
+
+/**
+ * converts a change an object that can be turned into json
+ * @param {!boolean} keepOld do we need the undo information
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} opt_compressor
+ * @return {!Object}
+ */
+recoil.db.ChangeSet.Add.prototype.serialize = function(keepOld, valSerializor, opt_compressor) {
+    var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
+    return {type: recoil.db.ChangeSet.Change.Type.ADD, path: this.path_.serialize(compressor),
+            deps: recoil.db.ChangeSet.Change.serializeList(this.dependants_, keepOld, valSerializor, compressor)};
 };
 
 
@@ -305,17 +521,43 @@ recoil.db.ChangeSet.Delete = function(path) {
 };
 
 /**
+ * converts a change an object that can be turned into json
+ * @param {!boolean} keepOld do we need the undo information
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} opt_compressor
+ * @return {!Object}
+ */
+recoil.db.ChangeSet.Delete.prototype.serialize = function(keepOld, valSerializor, opt_compressor) {
+    var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
+    return {type: recoil.db.ChangeSet.Change.Type.DEL, path: this.path_.serialize(compressor)};
+};
+
+/**
  * @constructor
  * @implements {recoil.db.ChangeSet.Change}
  * @param {!recoil.db.ChangeSet.Path} oldPath
  * @param {!recoil.db.ChangeSet.Path} newPath
- * @param {!Array<recoil.db.ChangeSet.Change>} depends
+ * @param {!Array<!recoil.db.ChangeSet.Change>} depends
  */
 
 recoil.db.ChangeSet.Move = function(oldPath, newPath, depends) {
     this.oldPath_ = oldPath;
     this.newPath_ = newPath;
     this.depends_ = depends;
+};
+
+/**
+ * converts a path to an object that can be turned into json
+ * @param {!boolean} keepOld do we need the undo information
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} opt_compressor
+ * @return {!Object}
+ */
+recoil.db.ChangeSet.Move.prototype.serialize = function(keepOld, valSerializor, opt_compressor) {
+    var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
+    return {type: recoil.db.ChangeSet.Change.Type.MOVE, from: this.oldPath_.serialize(compressor),
+            to: this.newPath_.serialize(compressor),
+            deps: recoil.db.ChangeSet.Change.serializeList(this.depends_, keepOld, valSerializor, compressor)};
 };
 
 /**
@@ -353,8 +595,8 @@ recoil.db.ChangeSet.findPath = function(path, list) {
  *
  * @param {?} oldObj the old object
  * @param {?} newObj the new obj
- * @param {!string} origColumn the column key describing the original keys column
  * @param {!recoil.db.ChangeSet.Path} path the path to the object
+ * @param {!string} origColumn the column key describing the original keys column
  * @param {!recoil.db.ChangeSet.Schema} schema an interface describing all the
  *                                      object in the schema
  * @param {{changes:!Array<recoil.db.ChangeSet.Change>, errors:!Array<recoil.db.ChangeSet.Error>}=} opt_changes
@@ -387,14 +629,14 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
         var needed = [];
         var used = [];
         var origKeyToNew = new goog.structs.AvlTree(recoil.util.object.compareKey);
-        
+
         for (var i = 0; i < newObj.length; i++) {
             var origKey = newObj[i][origColumn];
             if (origKey) {
-                origKeyToNew.add({key: path.append([],origKey), row: newObj[i]});
+                origKeyToNew.add({key: path.append([], origKey), row: newObj[i]});
             }
         }
-        
+
         // do any deletes first they are not going to conflict with any existing keys
         for (i = 0; i < oldObj.length; i++) {
             var oldChild = oldObj[i];
