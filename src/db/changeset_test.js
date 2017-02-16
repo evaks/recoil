@@ -308,9 +308,35 @@ function testSerialize () {
     var path = new testee.Path('/a/b/c', [2]);
     var path2 = new testee.Path('/e/f/g', [3]);
     var compressor = new recoil.db.ChangeSet.DefaultPathCompressor ();
-    var vser = new recoil.db.ChangeSet.DefaultValueSerializor();
-    assertObjectEquals({parts:'a/b/c', params:[2]},path.serialize(compressor));
-    assertObjectEquals(path, testee.Path.deserialize(path.serialize(compressor),compressor));
+    var vser = {
+        serialize: function (path,  v) {
+            return path.pathAsString() + v;
+        },
+        deserialize: function (path, v) {
+            var p = path.pathAsString();
+            var s =  v.substr(p.length);
+            if (s.match(/^[0-9]+$/)) {
+                return parseInt(s);
+            }
+            return s;
+        },
+        serializeKeys: function (path,  v) {
+            var res = [];
+            v.forEach(function (val) {
+                res.push(vser.serialize(path,val));
+            });
+            return res;
+        },
+        deserializeKeys: function (path, v) {
+            var res = [];
+            v.forEach(function (val) {
+                res.push(vser.deserialize(path, val));
+            });
+            return res;
+        }
+    };
+    assertObjectEquals({parts:'a/b/c', params:['/a/b/c2']},path.serialize(vser, compressor));
+    assertObjectEquals(path, testee.Path.deserialize(path.serialize(vser, compressor), vser,compressor));
 
     var set = new testee.Set(path, 1, 2);
     var move = new testee.Move(path, path2, [set]);
@@ -320,4 +346,11 @@ function testSerialize () {
     assertObjectEquals(set, testee.Change.deserialize(set.serialize(true, vser), vser));
     assertObjectEquals(add, testee.Change.deserialize(add.serialize(true, vser), vser));
     assertObjectEquals(del, testee.Change.deserialize(del.serialize(true, vser), vser));
+    var res = set.serialize(true, vser);
+    assertObjectEquals({type: testee.Change.Type.SET, old: '/a/b/c1', new: '/a/b/c2',
+                        path:{parts:'a/b/c', params:['/a/b/c2']}}, res);
+
+    
+    // check it serializes keys and values
 }
+
