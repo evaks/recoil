@@ -429,6 +429,15 @@ recoil.db.ChangeSet.Path.prototype.removeFront = function(parts, params) {
     return new recoil.db.ChangeSet.Path(
         this.path_.slice(parts), this.params_.slice(params));
 };
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.parent = function() {
+    var parts = this.parts();
+    parts.pop();
+    return new recoil.db.ChangeSet.Path(
+        parts, this.params_);
+};
 
 /**
  * converts a path to an object that can be turned into json
