@@ -5,6 +5,7 @@ goog.provide('recoil.db.ChangeSet.Delete');
 goog.provide('recoil.db.ChangeSet.Move');
 goog.provide('recoil.db.ChangeSet.Path');
 goog.provide('recoil.db.ChangeSet.Set');
+goog.provide('recoil.db.ChangeSet.Schema');
 
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.util.object');
@@ -570,6 +571,18 @@ recoil.db.ChangeSet.Path.prototype.setKeys = function(keyNames, keyValues) {
 };
 
 /**
+ * just the keys of the lastItem
+ * @return {!Array<?>}
+ */
+recoil.db.ChangeSet.Path.prototype.lastKeys = function() {
+    if (this.items_.length > 0) {
+        return this.items_[this.items_.length -1].keys();
+    }
+    return [];
+};
+
+/**
+ * return all the keys for a path not just the last level
  * @return {!Array<?>}
  */
 recoil.db.ChangeSet.Path.prototype.keys = function() {
