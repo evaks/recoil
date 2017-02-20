@@ -23,13 +23,12 @@ recoil.db.ChangeSet = function(schema) {
  * @param {!Object} object
  */
 recoil.db.ChangeSet.prototype.set = function(rootPath, object) {
-    var parts = rootPath.parts();
-    var keys = rootPath.keys();
-    var curPath = new recoil.db.ChangeSet.Path([], []);
+    var items = rootPath.items();
+    var curPath = new recoil.db.ChangeSet.Path([]);
     var cur = this.orig_;
-    for (var i = 0; i < parts.length; i++) {
-        var part = parts[i];
-
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        var part = item.name();
         if (!cur.children) {
             cur.children = {};
         }
@@ -38,17 +37,16 @@ recoil.db.ChangeSet.prototype.set = function(rootPath, object) {
         }
         var c = cur.children[part];
 
-        curPath = curPath.append(part);
-        var curKeys = this.schema_.keys(curPath);
+        curPath = curPath.append(item);
+        var schemaKeys = this.schema_.keys(curPath);
+        var itemKeys = item.keys();
 
-        if (curKeys.length > 0 && (keys.length > 0 || i + 1 < parts.length)) {
+        if (schemaKeys.length > 0 && (itemKeys.length > 0 || i + 1 < items.length)) {
             // we are using up the keys
-            if (curKeys.length > keys.length) {
+            if (schemaKeys.length > itemKeys.length) {
                 throw 'not enough keys';
             }
 
-            var thisKey = keys.slice(0, curKeys.length);
-            keys.splice(0, curKeys.length);
 
             // create a map of keys if it does not exist
 
@@ -56,10 +54,10 @@ recoil.db.ChangeSet.prototype.set = function(rootPath, object) {
                 c.keys = new goog.structs.AvlTree(recoil.util.object.compareKey);
             }
 
-            cur = c.keys.find({key: thisKey});
+            cur = c.keys.find({key: itemKeys});
 
             if (!cur) {
-                cur = {key: thisKey};
+                cur = {key: itemKeys};
                 c.keys.add(cur);
             }
 
@@ -150,22 +148,6 @@ recoil.db.ChangeSet.ValueSerializor.prototype.serialize = function(path, val) {
 recoil.db.ChangeSet.ValueSerializor.prototype.deserialize = function(path, serialized) {
 };
 
-/**
- * @param {!recoil.db.ChangeSet.Path} path
- * @param {!Array<?>} val
- * @return {?}
- */
-recoil.db.ChangeSet.ValueSerializor.prototype.serializeKeys = function(path, val) {
-};
-/**
- * converts a path to an object that can be turned into json
- * @param {!recoil.db.ChangeSet.Path} path
- * @param {?} serialized
- * @return {!Array<?>}
- */
-recoil.db.ChangeSet.ValueSerializor.prototype.deserializeKeys = function(path, serialized) {
-};
-
 
 /**
  * @constructor
@@ -241,31 +223,32 @@ recoil.db.ChangeSet.Change.Type = {
  * converts a path to an object that can be turned into json
  * @suppress {missingProperties}
  * @param {!Object} object
+ * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
  * @param {!recoil.db.ChangeSet.PathCompressor=} opt_compressor
  * @return {!recoil.db.ChangeSet.Change}
  */
-recoil.db.ChangeSet.Change.deserialize = function(object, valSerializor, opt_compressor) {
+recoil.db.ChangeSet.Change.deserialize = function(object, schema, valSerializor, opt_compressor) {
     var ChangeType = recoil.db.ChangeSet.Change.Type;
     var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
     if (object.type === ChangeType.MOVE && object.deps !== undefined) {
         return new recoil.db.ChangeSet.Move(
-            recoil.db.ChangeSet.Path.deserialize(object.from, valSerializor, compressor),
-            recoil.db.ChangeSet.Path.deserialize(object.to, valSerializor, compressor),
-            recoil.db.ChangeSet.Change.deserializeList(object.deps, valSerializor, compressor));
+            recoil.db.ChangeSet.Path.deserialize(object.from, schema, valSerializor, compressor),
+            recoil.db.ChangeSet.Path.deserialize(object.to, schema, valSerializor, compressor),
+            recoil.db.ChangeSet.Change.deserializeList(object.deps, schema, valSerializor, compressor));
     }
     if (object.type === ChangeType.DEL) {
         return new recoil.db.ChangeSet.Delete(
-            recoil.db.ChangeSet.Path.deserialize(object.path, valSerializor, compressor));
+            recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor));
     }
     if (object.type === ChangeType.ADD && object.deps) {
         return new recoil.db.ChangeSet.Add(
-            recoil.db.ChangeSet.Path.deserialize(object.path, valSerializor, compressor),
-            recoil.db.ChangeSet.Change.deserializeList(object.deps, valSerializor, compressor));
+            recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor),
+            recoil.db.ChangeSet.Change.deserializeList(object.deps, schema, valSerializor, compressor));
     }
 
     if (object.type === ChangeType.SET) {
-        var path = recoil.db.ChangeSet.Path.deserialize(object.path, valSerializor, compressor);
+        var path = recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor);
         return new recoil.db.ChangeSet.Set(
             path,
             valSerializor.deserialize(path, object.old), valSerializor.deserialize(path, object.new));
@@ -279,14 +262,15 @@ recoil.db.ChangeSet.Change.deserialize = function(object, valSerializor, opt_com
 /**
  * converts a path to an object that can be turned into json
  * @param {!Array<!Object>} object
+ * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
  * @param {!recoil.db.ChangeSet.PathCompressor} compressor
  * @return {!Array<!recoil.db.ChangeSet.Change>}
  */
-recoil.db.ChangeSet.Change.deserializeList = function(object, valSerializor, compressor) {
+recoil.db.ChangeSet.Change.deserializeList = function(object, schema, valSerializor, compressor) {
     var res = [];
     for (var i = 0; i < object.length; i++) {
-        res.push(recoil.db.ChangeSet.Change.deserialize(object[i], valSerializor, compressor));
+        res.push(recoil.db.ChangeSet.Change.deserialize(object[i], schema, valSerializor, compressor));
     }
     return res;
 };
@@ -381,62 +365,123 @@ recoil.db.ChangeSet.Schema.prototype.absolute = function(path) {
 recoil.db.ChangeSet.Schema.prototype.createKeyPath = function(path, obj) {
 
 };
+/**
+ * @param {!string} name
+ * @param {!Array<!string>} keyNames the fields in the object the keys belong to
+ * @param {!Array<?>} keys
+ * @constructor
+ */
+recoil.db.ChangeSet.PathItem = function(name, keyNames, keys) {
+    this.name_ = name;
+    this.keys_ = keys;
+    this.keyNames_ = keyNames;
+};
+/**
+ * @return {!string}
+ */
+recoil.db.ChangeSet.PathItem.prototype.name = function() {
+    return this.name_;
+};
+
+/**
+ * @return {!Array<?>}
+ */
+recoil.db.ChangeSet.PathItem.prototype.keys = function() {
+    return this.keys_;
+};
+
+/**
+ * @return {!Array<?>}
+ */
+recoil.db.ChangeSet.PathItem.prototype.keyNames = function() {
+    return this.keyNames_;
+};
 
 /**
  * @constructor
- * @param {!string|!Array<!string>} path
- * @param {!Array<?>=} opt_params
+ * @param {Array<!recoil.db.ChangeSet.PathItem>} items
  */
-recoil.db.ChangeSet.Path = function(path, opt_params) {
-    if (typeof(path) === 'string') {
-        this.path_ = path.split('/');
-        if (this.path_.length > 0 && this.path_[0] === '') {
-            this.path_.shift();
-        }
-    }
-    else {
-        this.path_ = path;
-    }
-    this.params_ = opt_params || [];
-};
-/**
- * @param {!string|!Array<!string>} part
- * @param {!Array<?>=} opt_params
- * @return {!recoil.db.ChangeSet.Path}
- */
-recoil.db.ChangeSet.Path.prototype.append = function(part, opt_params) {
-    return new recoil.db.ChangeSet.Path(
-        this.path_.concat(part), this.params_.concat(opt_params || []));
+recoil.db.ChangeSet.Path = function(items) {
+    this.items_ = items.slice(0);
 };
 
 /**
- * @param {!string|!Array<!string>} part
- * @param {!Array<?>=} opt_params
+ * creates from a string no parameters are provided
+ *
+ * @param {!string} path
  * @return {!recoil.db.ChangeSet.Path}
  */
-recoil.db.ChangeSet.Path.prototype.prepend = function(part, opt_params) {
-    part = typeof(part) === 'string' ? [part] : part;
+recoil.db.ChangeSet.Path.fromString = function(path) {
+    var parts = [];
+    path.split('/').forEach(function(part) {
+        if (part !== '') {
+            parts.push(new recoil.db.ChangeSet.PathItem(part, [], []));
+        }
+    });
+    return new recoil.db.ChangeSet.Path(parts);
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.PathItem} part
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.append = function(part) {
     return new recoil.db.ChangeSet.Path(
-        part.concat(this.path_), (opt_params || []).concat(this.params_));
+        this.items_.concat(part));
+};
+
+/**
+ * @param {!string} name
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.appendName = function(name) {
+    return this.append(new recoil.db.ChangeSet.PathItem(name, [], []));
+};
+
+/**
+ * @param {!Array<!string>} names
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.appendNames = function(names) {
+    var res = this;
+    for (var i = 0; i < names.length; i++) {
+        res = res.appendName(names[i]);
+    }
+    return res;
+};
+
+
+
+/**
+ * @param {!Array<!recoil.db.ChangeSet.PathItem>} parts
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.prepend = function(parts) {
+    return new recoil.db.ChangeSet.Path(
+        parts.concat(this.items_));
 };
 
 /**
  * @param {!number} parts
- * @param {!number} params
  * @return {!recoil.db.ChangeSet.Path}
  */
-recoil.db.ChangeSet.Path.prototype.removeFront = function(parts, params) {
+recoil.db.ChangeSet.Path.prototype.removeFront = function(parts) {
     return new recoil.db.ChangeSet.Path(
-        this.path_.slice(parts), this.params_.slice(params));
+        this.items_.slice(parts));
 };
 /**
  * @return {!recoil.db.ChangeSet.Path}
  */
 recoil.db.ChangeSet.Path.prototype.parent = function() {
-    var parts = this.parts();
-    parts.pop();
+    var parts = [];
+    for (var i = 0; i < this.items_.length - 1; i++) {
+        parts.push(this.items_[i]);
+    }
+
+
     return new recoil.db.ChangeSet.Path(
-        parts, this.params_);
+        parts);
 };
 
 /**
@@ -446,21 +491,49 @@ recoil.db.ChangeSet.Path.prototype.parent = function() {
  * @return {!Object}
  */
 recoil.db.ChangeSet.Path.prototype.serialize = function(valSerializor, compressor) {
-    return {parts: compressor.compress(this.path_), params: valSerializor.serializeKeys(this, this.params_)};
+    var names = [];
+    var params = [];
+    var curPath = new recoil.db.ChangeSet.Path([]);
+    for (var i = 0; i < this.items_.length; i++) {
+        names.push(this.items_[i].name());
+        curPath = curPath.append(this.items_[i]);
+        var keys = this.items_[i].keys();
+        var keyNames = this.items_[i].keyNames();
+
+        for (var j = 0; j < keys.length; j++) {
+            var keyPath = curPath.appendName(keyNames[j]);
+            params.push(valSerializor.serialize(keyPath, keys[j]));
+        }
+    }
+    return {parts: compressor.compress(names), params: params};
 };
 
 
 /**
  * converts a path to an object that can be turned into json
  * @param {!Object} obj
+ * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
  * @param {!recoil.db.ChangeSet.PathCompressor} compressor
  * @return {!recoil.db.ChangeSet.Path}
  */
-recoil.db.ChangeSet.Path.deserialize = function(obj, valSerializor, compressor) {
+recoil.db.ChangeSet.Path.deserialize = function(obj, schema, valSerializor, compressor) {
     var parts = compressor.decompress(obj.parts);
-    var path = new recoil.db.ChangeSet.Path(parts);
-    return new recoil.db.ChangeSet.Path(parts, valSerializor.deserializeKeys(path, obj.params));
+    var curPath = new recoil.db.ChangeSet.Path([]);
+    var curKey = 0;
+    for (var i = 0; i < parts.length; i++) {
+        curPath = curPath.append(new recoil.db.ChangeSet.PathItem(parts[i], [], []));
+        var keyNames = schema.keys(curPath);
+        if (keyNames.length <= obj.params.length - curKey) {
+            var keys = [];
+            for (var j = 0; j < keyNames.length; j++) {
+                keys.push(valSerializor.deserialize(curPath.appendName(keyNames[j]), obj.params[curKey++]));
+            }
+            curPath = curPath.setKeys(keyNames, keys);
+        }
+    }
+
+    return curPath;
 };
 
 
@@ -470,31 +543,43 @@ recoil.db.ChangeSet.Path.deserialize = function(obj, valSerializor, compressor) 
  * @return {!string}
  */
 recoil.db.ChangeSet.Path.prototype.toString = function() {
-    return '/' + this.path_.join('/') + ':' + this.params_;
+    return '/' + this.parts().join('/') + ':' + this.keys();
 };
 
 /**
  * @return {!string}
  */
 recoil.db.ChangeSet.Path.prototype.pathAsString = function() {
-    return '/' + this.path_.join('/');
+
+    return '/' + this.parts().join('/');
 };
 
 
 /**
- * @param {!Array<?>} params
+ * sets the keys on the las child
+ * @param {!Array<!string>} keyNames
+ * @param {!Array<?>} keyValues
  * @return {!recoil.db.ChangeSet.Path}
  */
-recoil.db.ChangeSet.Path.prototype.addKeys = function(params) {
-    return this.append([], params);
-};
+recoil.db.ChangeSet.Path.prototype.setKeys = function(keyNames, keyValues) {
+    var newItems = this.items_.slice(0);
+    var last = newItems.pop();
+    newItems.push(new recoil.db.ChangeSet.PathItem(last.name(), keyNames, keyValues));
+    return new recoil.db.ChangeSet.Path(newItems);
 
+};
 
 /**
  * @return {!Array<?>}
  */
 recoil.db.ChangeSet.Path.prototype.keys = function() {
-    return this.params_.slice(0);
+    var params = [];
+    this.items_.forEach(function(item) {
+        item.keys().forEach(function(key) {
+            params.push(key);
+        });
+    });
+    return params;
 };
 
 
@@ -502,8 +587,20 @@ recoil.db.ChangeSet.Path.prototype.keys = function() {
  * @return {!Array<!string>}
  */
 recoil.db.ChangeSet.Path.prototype.parts = function() {
-    return this.path_.slice(0);
+    var parts = [];
+    this.items_.forEach(function(item) {
+        parts.push(item.name());
+    });
+    return parts;
 };
+
+/**
+ * @return {!Array<!recoil.db.ChangeSet.PathItem>}
+ */
+recoil.db.ChangeSet.Path.prototype.items = function() {
+    return this.items_;
+};
+
 /**
  * @constructor
  * @implements recoil.db.ChangeSet.Change
@@ -686,7 +783,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
         for (var i = 0; i < newObj.length; i++) {
             var origKey = newObj[i][origColumn];
             if (origKey) {
-                origKeyToNew.add({key: path.append([], origKey), row: newObj[i]});
+                origKeyToNew.add({key: path.setKeys(schema.keys(path), origKey), row: newObj[i]});
             }
         }
 
@@ -763,10 +860,10 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
             if (keys.indexOf(child) !== -1) {
                 return;
             }
-            var myChildren = schema.children(path.append(child));
+            var myChildren = schema.children(path.appendName(child));
             var oldV = oldObj ? oldObj[child] : null;
             var newV = newObj ? newObj[child] : null;
-            recoil.db.ChangeSet.diff(oldV, newV, path.append(child), origColumn, schema, subChanges);
+            recoil.db.ChangeSet.diff(oldV, newV, path.appendName(child), origColumn, schema, subChanges);
         });
     return changes;
 
