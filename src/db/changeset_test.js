@@ -49,6 +49,60 @@ var schema = {
                 v: {}
             },
             keys : ['k']
+        },
+
+        full: {
+            children : {
+                a: {
+                    children: {
+                        v: {},
+                        v2: {},
+                        list: {
+                            children: {
+                                k: {},
+                                v: {},
+                                v2: {}
+                            },
+                            keys: ['k']
+                        }
+                    }
+                }
+            }
+        },
+        'list-a': {
+            children: {
+                k :{},
+                v :{},
+                c : {
+                    children: {
+                        t : {}
+                    }
+                }
+                
+            },
+            keys: ['k']
+        },
+        'cont' : {
+            children: {
+                c1: {
+                    children: {
+                        c2:{}
+                    }
+                }
+            }
+        },
+        'named-a': {
+            alias : '/full/a',
+            children: {
+                v: {},
+                list: {
+                    children: {
+                        k: {},
+                        v: {}
+                    },
+                    keys: ['k']
+                }
+            }
         }
             
     },
@@ -120,6 +174,13 @@ var schema = {
         return path.setKeys(keys, keyValues);
     },
     absolute : function (path) {
+        if (path.parts()[0] === 'full' || path.parts()[0] === 'test') {
+            return path;
+        }
+        if (path.parts()[0] === 'named-a') {
+            return recoil.db.ChangeSet.Path.fromString('full/a');
+        }
+        
         return path.prepend([new recoil.db.ChangeSet.PathItem('test',[],[])]);
     },
         
@@ -240,9 +301,9 @@ function testDiffKeyMove() {
                               path,'orig',
                               schema);
     assertObjectEquals({changes: [
-        new testee.Move(outPath.setKeys(['k'],[3]),outPath.setKeys(['k'],[4]),[]),
-        new testee.Move(outPath.setKeys(['k'],[2]),outPath.setKeys(['k'],[3]),[]),
-        new testee.Move(outPath.setKeys(['k'],[1]),outPath.setKeys(['k'],[2]),[])
+        new testee.Move(outPath.setKeys(['k'],[3]),outPath.setKeys(['k'],[4])),
+        new testee.Move(outPath.setKeys(['k'],[2]),outPath.setKeys(['k'],[3])),
+        new testee.Move(outPath.setKeys(['k'],[1]),outPath.setKeys(['k'],[2]))
     ], errors: []},changes);
 
     changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{orig:[1],k:2, v:10}, {orig:[2],k:3, v:2},{orig:[3],k:4, v:3}],
@@ -251,9 +312,8 @@ function testDiffKeyMove() {
     assertObjectEquals({changes: [
         new testee.Move(outPath.setKeys(['k'],[3]),outPath.setKeys(['k'],[4]),[]),
         new testee.Move(outPath.setKeys(['k'],[2]),outPath.setKeys(['k'],[3]),[]),
-        new testee.Move(outPath.setKeys(['k'],[1]),outPath.setKeys(['k'],[2]),[ 
-            new testee.Set(outPath.setKeys(['k'],[1]).appendName('v'), 1, 10)]
-        )
+        new testee.Set(outPath.setKeys(['k'],[1]).appendName('v'), 1, 10),
+        new testee.Move(outPath.setKeys(['k'],[1]),outPath.setKeys(['k'],[2]))
     ], errors:[]},changes);
                               // check loop
 }
@@ -349,9 +409,9 @@ function testSerialize () {
     assertObjectEquals(path, testee.Path.deserialize(path.serialize(vser, compressor), schema, vser,compressor));
 
     var set = new testee.Set(path, 1, 2);
-    var move = new testee.Move(path, path2, [set]);
+    var move = new testee.Move(path, path2);
     var add = new testee.Add(path,[set]);
-    var del = new testee.Delete(path,[set]);
+    var del = new testee.Delete(path);
     assertObjectEquals(move, testee.Change.deserialize(move.serialize(true, vser), schema, vser));
     assertObjectEquals(set, testee.Change.deserialize(set.serialize(true, vser), schema, vser));
     assertObjectEquals(add, testee.Change.deserialize(add.serialize(true, vser), schema, vser));
@@ -364,3 +424,260 @@ function testSerialize () {
     // check it serializes keys and values
 }
 
+/**
+ * types of change set
+ * orig changeset when we set unapply any changes
+ * sending apply changes on send
+ * sent apply changes on getting back conformation
+ */
+function testChangeDbSet() {
+    var ns = recoil.db.ChangeSet;
+    var testee = new recoil.db.ChangeDb(schema);
+    var fullPath = ns.Path.fromString('full/a');
+    var contPath = ns.Path.fromString('cont');
+    var namedPath = ns.Path.fromString('named-a');
+    var listA = ns.Path.fromString('list-a');
+    
+    testee.set(fullPath, {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]});
+    testee.set(namedPath, {v : 10, list : [{k:1, v:10},{k:2, v:20}]});
+    testee.set(contPath, {});
+
+    assertObjectEquals({v : 10, v2: 2, list : [{k:1, v:10, v2:2},{k:2, v: 20, v2: 2}]}, testee.get(fullPath));
+    assertObjectEquals({v : 10, list : [{k:1, v:10},{k:2, v: 20}]}, testee.get(namedPath));
+    assertObjectEquals({}, testee.get(contPath));
+
+    testee.set(fullPath, {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]});
+    assertObjectEquals({v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v: 2, v2: 2}]}, testee.get(fullPath));
+    assertObjectEquals({v : 1, list : [{k:1, v:1},{k:2, v: 2}]}, testee.get(namedPath));
+
+
+    // resolve full path that does not exist
+    testee.set(listA, [{k:1, v:1}, {k:2, v:2}]);
+    assertObjectEquals([{k:1, v:1}, {k:2, v:2}], testee.get(listA));
+    testee.set(listA, [{k:1, v:10}, {k:2, v:20}]);
+    assertObjectEquals([{k:1, v:10}, {k:2, v:20}], testee.get(listA));
+    
+    // now apply some changes
+    var set = new ns.Set(listA.setKeys(['k'], [2]).appendName('v'), 20, 200);
+    var move = new ns.Move(listA.setKeys(['k'], [1]), listA.setKeys(['k'], [11]));
+    var setList = new ns.Set(listA.setKeys(['k'], [3]).appendName('v'), null, 300);
+    var addList = new ns.Add(listA.setKeys(['k'],[3]),[setList]);
+    var changes = [set, move];
+    testee.applyChanges(changes);
+    assertSameObjects([{k:11, v:10}, {k:2, v:200}], testee.get(listA));
+    testee.applyChanges([addList]);
+    assertSameObjects([{k:11, v:10}, {k:2, v:200}, {k:3,v:300}], testee.get(listA));
+
+    testee.applyChanges([new ns.Add(listA.setKeys(['k'],[3]).appendName('c'),[])]);
+    // add container in list
+
+    assertSameObjects([{k:11, v:10}, {k:2, v:200}, {k:3,v:300,c:{}}], testee.get(listA));
+
+    // add container not in list
+    testee.applyChanges([new ns.Add(contPath.appendName('c1'),[])]);
+
+    assertObjectEquals({c1:{}}, testee.get(contPath));
+
+    // delete container in list
+    testee.applyChanges([new ns.Delete(listA.setKeys(['k'],[3]).appendName('c'))]);
+    assertSameObjects([{k:11, v:10}, {k:2, v:200}, {k:3,v:300}], testee.get(listA));
+
+    // remove from list
+    testee.applyChanges([new ns.Delete(listA.setKeys(['k'],[3]))]);
+    assertSameObjects([{k:11, v:10}, {k:2, v:200}], testee.get(listA));
+
+    // remove from container
+    testee.applyChanges([new ns.Delete(contPath.appendName('c1'),[])]);
+    assertObjectEquals({}, testee.get(contPath));
+}
+
+function testMergeChanges() {
+    var ns = recoil.db.ChangeSet;
+    var testee = new recoil.db.ChangeDb(schema);
+    var fullPath = ns.Path.fromString('full/a');
+    var contPath = ns.Path.fromString('test/cont');
+    var namedPath = ns.Path.fromString('named-a');
+    var listA = ns.Path.fromString('list-a');
+    var fullListA = ns.Path.fromString('test/list-a');
+
+    // set operations
+    // Set(a), Set(a) -> Set(a)
+    assertObjectEquals(
+        [new ns.Set(fullListA.setKeys(['k'], [2]).appendName('v'), 20, 200)],
+        ns.merge(schema, [
+            new ns.Set(fullListA.setKeys(['k'], [2]).appendName('v'), 20, 100),
+            new ns.Set(fullListA.setKeys(['k'], [2]).appendName('v'), 100, 200),
+        ]));
+
+    // Move(a{1},a{2}), Set(a{2}/b) -> Set(a{1}/b},  Move(a{1},a{2}) TODO
+    assertObjectEquals(
+        [
+            new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'), 20, 200),
+            new ns.Move(fullListA.setKeys(['k'], [1]), fullListA.setKeys(['k'],[2]))
+        ],
+        ns.merge(schema,[
+            new ns.Move(fullListA.setKeys(['k'], [1]), fullListA.setKeys(['k'],[2])),
+            new ns.Set(fullListA.setKeys(['k'], [2]).appendName('v'), 20, 200)
+        ]));
+
+    
+    // multi move
+    // Set(a{1}/b),Del(a{1}) -> Del(a{1}})
+    // Set(a/b),Del(a) -> Del(a})
+    // Add(a{1}),Set(a{1}/b) -> Add(a{1},[Set(a{1}/b])
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]), [new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'),undefined, 200)])
+        ],
+        ns.merge(schema,[
+            new ns.Add(fullListA.setKeys(['k'], [1]), []),
+            new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'), undefined, 200),
+        ]));
+    // Add(a{1},[Set(a{1}/b)]),Set(a{1}/b) -> Add(a{1},[Set(a{1}/b])
+
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]), [new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'),undefined, 200)])
+        ],
+        ns.merge(schema,[
+            new ns.Add(fullListA.setKeys(['k'], [1]), [new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'),undefined, 20)]),
+            new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'), 20, 200),
+        ]));
+
+    
+    // Add(a),Set(a/b) -> Add(a,[Set(a/b])
+    
+    assertObjectEquals(
+        [
+            new ns.Add(contPath.appendName('c1'), [new ns.Set(contPath.appendName('c1').appendName('c2'),undefined, 200)])
+        ],
+        ns.merge(schema,[
+            new ns.Add(contPath.appendName('c1'),[]),
+            new ns.Set(contPath.appendNames(['c1','c2']), undefined, 200),
+        ]));
+
+    // Add(a{1},[Set(a{1}/b)]),Add(a{1}/c) -> Add(a{1},[Set(a{1}/b, ])
+
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]), [
+                new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'),undefined, 20),
+                new ns.Add(fullListA.setKeys(['k'], [1]).appendName('c'),[])
+            ])
+        ],
+        ns.merge(schema,[
+            new ns.Add(fullListA.setKeys(['k'], [1]), [new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'),undefined, 20)]),
+            new ns.Add(fullListA.setKeys(['k'], [1]).appendName('c'), []),
+        ]));
+
+    // Move(a{1},a{2}),Add(a{2},[]) -> error
+    assertThrows(function () {
+        ns.merge(schema,[
+            new ns.Move(fullListA.setKeys(['k'], [1]),fullListA.setKeys(['k'], [2])),
+            new ns.Add(fullListA.setKeys(['k'], [2]), []),
+        ]);
+    });
+
+    
+    // Move(a{1},a{2}),Add(a{2}/c,[]) -> // Add(a{1}),Move(a{1},a{2})    
+
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]).appendName('c'), []),
+            new ns.Move(fullListA.setKeys(['k'], [1]),fullListA.setKeys(['k'], [2])),
+
+        ],
+        ns.merge(schema,[
+            new ns.Move(fullListA.setKeys(['k'], [1]),fullListA.setKeys(['k'], [2])),
+            new ns.Add(fullListA.setKeys(['k'], [2]).appendName('c'), []),
+        ]));
+
+    // delete is ok we should remove it because it may clear out stuff
+
+    assertObjectEquals(
+        [
+            new ns.Delete(fullListA.setKeys(['k'], [1]), []),
+            new ns.Add(fullListA.setKeys(['k'], [1]), [])
+        ],
+        ns.merge(schema,[
+            new ns.Delete(fullListA.setKeys(['k'], [1])),
+            new ns.Add(fullListA.setKeys(['k'], [1]), []),
+        ]));
+
+
+    // deletes 
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]), []),
+        ],
+        ns.merge(schema,[
+            new ns.Add(fullListA.setKeys(['k'], [1]), [new ns.Add(fullListA.setKeys(['k'], [1]).appendName('c'),[])]),
+            new ns.Delete(fullListA.setKeys(['k'], [1]).appendName('c'))
+        ]));
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]), [new ns.Delete(fullListA.setKeys(['k'], [1]).appendName('c'))]),         
+        ],
+        ns.merge(schema,[
+            new ns.Add(fullListA.setKeys(['k'], [1]), [new ns.Set(fullListA.setKeys(['k'], [1]).appendName('c').appendName('d'),1,2)]),
+            new ns.Delete(fullListA.setKeys(['k'], [1]).appendName('c'))
+        ]));
+    
+    assertObjectEquals(
+        [
+            new ns.Delete(fullListA.setKeys(['k'], [1])),
+        ],
+        ns.merge(schema,[
+            new ns.Set(fullListA.setKeys(['k'], [1]).appendName('c'), 7, 8),
+            new ns.Delete(fullListA.setKeys(['k'], [1]))
+        ]));
+
+    // deletes and moves
+
+    assertObjectEquals(
+        [
+            new ns.Delete(fullListA.setKeys(['k'], [1])),
+        ],
+        ns.merge(schema,[
+            new ns.Move(fullListA.setKeys(['k'], [1]), fullListA.setKeys(['k'], [2])),
+            new ns.Delete(fullListA.setKeys(['k'], [2]))
+        ]));
+
+    assertObjectEquals(
+        [
+            new ns.Delete(fullListA.setKeys(['k'], [1]).appendName('c')),
+            new ns.Move(fullListA.setKeys(['k'], [1]), fullListA.setKeys(['k'], [2])),
+        ],
+        ns.merge(schema,[
+            new ns.Move(fullListA.setKeys(['k'], [1]), fullListA.setKeys(['k'], [2])),
+            new ns.Delete(fullListA.setKeys(['k'], [2]).appendName('c'))
+        ]));
+
+
+    assertObjectEquals(
+        [
+            new ns.Delete(fullListA.setKeys(['k'], [2])),
+        ],
+        ns.merge(schema,[
+            new ns.Move(fullListA.setKeys(['k'], [2]).appendName('c')
+                        .setKeys(['k'], [2]),
+                        fullListA.setKeys(['k'], [2]).appendName('c')
+                        .setKeys(['k'],[1])),
+            new ns.Delete(fullListA.setKeys(['k'], [2]))
+        ]));
+
+    // move ... move
+
+    assertObjectEquals(
+        [
+            new ns.Move(fullListA.setKeys(['k'], [1]),fullListA.setKeys(['k'], [3])),
+        ],
+        ns.merge(schema,[
+            new ns.Move(fullListA.setKeys(['k'], [1]),
+                        fullListA.setKeys(['k'], [2])),
+            new ns.Move(fullListA.setKeys(['k'], [2]),
+                        fullListA.setKeys(['k'], [3]))
+        ]));
+
+
+}

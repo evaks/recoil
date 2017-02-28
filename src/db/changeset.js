@@ -1,76 +1,88 @@
+goog.provide('recoil.db.ChangeDb');
+goog.provide('recoil.db.ChangeDbNode');
 goog.provide('recoil.db.ChangeSet');
 goog.provide('recoil.db.ChangeSet.Add');
 goog.provide('recoil.db.ChangeSet.Change');
 goog.provide('recoil.db.ChangeSet.Delete');
 goog.provide('recoil.db.ChangeSet.Move');
 goog.provide('recoil.db.ChangeSet.Path');
-goog.provide('recoil.db.ChangeSet.Set');
 goog.provide('recoil.db.ChangeSet.Schema');
+goog.provide('recoil.db.ChangeSet.Set');
 
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.util.object');
+
+
+/**
+ * @constructor
+ */
+recoil.db.ChangeSet = function() {
+};
 
 /**
  * @constructor
  * @param {!recoil.db.ChangeSet.Schema} schema
  */
-recoil.db.ChangeSet = function(schema) {
+recoil.db.ChangeDb = function(schema) {
     this.schema_ = schema;
-    this.orig_ = {};
+    this.data_ = new recoil.db.ChangeDbNode.Container();
+};
+
+/**
+ * @param {!Array<!recoil.db.ChangeSet.Change>} changes
+ */
+recoil.db.ChangeDb.prototype.applyChanges = function(changes) {
+    for (var i = 0; i < changes.length; i++) {
+        var change = changes[i];
+        change.applyToDb(this, this.schema_);
+    }
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} rootPath
+ * @param {?} val
+ */
+recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
+    var cur = this.resolve_(rootPath, true);
+    cur.set(this.schema_, rootPath, val);
+};
+
+
+/**
+ * @private
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!boolean} create
+ * @return {recoil.db.ChangeDbNode}
+ */
+recoil.db.ChangeDb.prototype.resolve_ = function(path, create) {
+    var items = this.schema_.absolute(path).items();
+    var cur = this.data_;
+
+    for (var i = 0; i < items.length && cur; i++) {
+        var item = items[i];
+        cur = cur.getChildNode(this.schema_, item, i + 1 == items.length ? path : null, create);
+        if (cur && item.keys().length > 0) {
+            cur = cur.getChildNode(this.schema_, item, i + 1 == items.length ? path : null, create);
+        }
+    }
+    return cur;
 };
 
 /**
  * @param {!recoil.db.ChangeSet.Path} rootPath
- * @param {!Object} object
+ * @return {Object}
  */
-recoil.db.ChangeSet.prototype.set = function(rootPath, object) {
-    var items = rootPath.items();
-    var curPath = new recoil.db.ChangeSet.Path([]);
-    var cur = this.orig_;
-    for (var i = 0; i < items.length; i++) {
-        var item = items[i];
-        var part = item.name();
-        if (!cur.children) {
-            cur.children = {};
-        }
-        if (cur.children[part] === undefined) {
-            cur.children[part] = {};
-        }
-        var c = cur.children[part];
-
-        curPath = curPath.append(item);
-        var schemaKeys = this.schema_.keys(curPath);
-        var itemKeys = item.keys();
-
-        if (schemaKeys.length > 0 && (itemKeys.length > 0 || i + 1 < items.length)) {
-            // we are using up the keys
-            if (schemaKeys.length > itemKeys.length) {
-                throw 'not enough keys';
-            }
+recoil.db.ChangeDb.prototype.get = function(rootPath) {
+    var fullObj = this.resolve_(rootPath, false);
 
 
-            // create a map of keys if it does not exist
-
-            if (!c.keys) {
-                c.keys = new goog.structs.AvlTree(recoil.util.object.compareKey);
-            }
-
-            cur = c.keys.find({key: itemKeys});
-
-            if (!cur) {
-                cur = {key: itemKeys};
-                c.keys.add(cur);
-            }
-
-        }
-        else {
-            cur = c;
-        }
-
+    if (fullObj === null) {
+        return null;
     }
-
-    cur.value = object;
+    return fullObj.get(this.schema_, rootPath);
 };
+
 /**
  * @param {!Array<recoil.db.ChangeSet.Change>} changes
  */
@@ -202,6 +214,38 @@ recoil.db.ChangeSet.Change = function() {
 };
 
 /**
+ * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ */
+recoil.db.ChangeSet.Change.prototype.applyToDb = function(db, schema) {};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathMap} pathChangeMap
+ * @param {recoil.db.ChangeSet.Change} pAncestor
+ * @param {!Array<!number>} maxPos
+ */
+recoil.db.ChangeSet.Change.prototype.merge = function(pathChangeMap, pAncestor, maxPos) {};
+
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Change.prototype.path = function() {};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathMap} pathMap
+ */
+recoil.db.ChangeSet.Change.prototype.sortDesendants = function(pathMap) {};
+
+/**
+ * convert all paths to absolute values and returns a copy
+ *
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Change.prototype.absolute = function(schema) {};
+
+
+/**
  * converts a path to an object that can be turned into json
  * @param {!boolean} keepOld do we need the undo information
  * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
@@ -232,17 +276,16 @@ recoil.db.ChangeSet.Change.Type = {
 recoil.db.ChangeSet.Change.deserialize = function(object, schema, valSerializor, opt_compressor) {
     var ChangeType = recoil.db.ChangeSet.Change.Type;
     var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
-    if (object.type === ChangeType.MOVE && object.deps !== undefined) {
+    if (object.type === ChangeType.MOVE) {
         return new recoil.db.ChangeSet.Move(
             recoil.db.ChangeSet.Path.deserialize(object.from, schema, valSerializor, compressor),
-            recoil.db.ChangeSet.Path.deserialize(object.to, schema, valSerializor, compressor),
-            recoil.db.ChangeSet.Change.deserializeList(object.deps, schema, valSerializor, compressor));
+            recoil.db.ChangeSet.Path.deserialize(object.to, schema, valSerializor, compressor));
     }
     if (object.type === ChangeType.DEL) {
         return new recoil.db.ChangeSet.Delete(
             recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor));
     }
-    if (object.type === ChangeType.ADD && object.deps) {
+    if (object.type === ChangeType.ADD && object.deps !== undefined) {
         return new recoil.db.ChangeSet.Add(
             recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor),
             recoil.db.ChangeSet.Change.deserializeList(object.deps, schema, valSerializor, compressor));
@@ -392,6 +435,13 @@ recoil.db.ChangeSet.PathItem.prototype.keys = function() {
 };
 
 /**
+ * @return {!recoil.db.ChangeSet.PathItem}
+ */
+recoil.db.ChangeSet.PathItem.prototype.unsetKeys = function() {
+    return new recoil.db.ChangeSet.PathItem(this.name_, [], []);
+};
+
+/**
  * @return {!Array<?>}
  */
 recoil.db.ChangeSet.PathItem.prototype.keyNames = function() {
@@ -430,6 +480,28 @@ recoil.db.ChangeSet.Path.fromString = function(path) {
 recoil.db.ChangeSet.Path.prototype.append = function(part) {
     return new recoil.db.ChangeSet.Path(
         this.items_.concat(part));
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!boolean} allowSelf
+ * @return {!boolean}
+ */
+recoil.db.ChangeSet.Path.prototype.isAncestor = function(path, allowSelf) {
+    if (this.items_.length > path.items_.length) {
+        return false;
+    }
+    if (!allowSelf && this.items_.length === path.items_.length) {
+        return false;
+    }
+
+    for (var i = 0; i < this.items_.length; i++) {
+        if (!recoil.util.object.isEqual(this.items_[i], path.items_[i])) {
+            return false;
+        }
+    }
+    return true;
 };
 
 /**
@@ -571,14 +643,39 @@ recoil.db.ChangeSet.Path.prototype.setKeys = function(keyNames, keyValues) {
 };
 
 /**
+ * unsets the keys on the las child, although right now does exactly
+ * the same setKeys([],[]) later on I may have to support lists with no keys
+ *
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.unsetKeys = function() {
+    var newItems = this.items_.slice(0);
+    var last = newItems.pop();
+    newItems.push(last.unsetKeys());
+    return new recoil.db.ChangeSet.Path(newItems);
+
+};
+
+/**
  * just the keys of the lastItem
  * @return {!Array<?>}
  */
 recoil.db.ChangeSet.Path.prototype.lastKeys = function() {
     if (this.items_.length > 0) {
-        return this.items_[this.items_.length -1].keys();
+        return this.items_[this.items_.length - 1].keys();
     }
     return [];
+};
+
+/**
+ * just the keys of the lastItem
+ * @return {!recoil.db.ChangeSet.PathItem}
+ */
+recoil.db.ChangeSet.Path.prototype.last = function() {
+    if (this.items_.length > 0) {
+        return this.items_[this.items_.length - 1];
+    }
+    throw 'path contains no items';
 };
 
 /**
@@ -628,6 +725,50 @@ recoil.db.ChangeSet.Set = function(path, oldVal, newVal) {
     this.newVal_ = newVal;
 };
 
+
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Set.prototype.path = function() {
+    return this.path_;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathMap} pathMap
+ */
+recoil.db.ChangeSet.Set.prototype.sortDesendants = function(pathMap) {
+};
+
+/**
+ * convert all paths to absolute values and returns a copy
+ *
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Set.prototype.absolute = function(schema) {
+    return new recoil.db.ChangeSet.Set(schema.absolute(this.path_), this.oldVal_, this.newVal_);
+};
+
+
+/**
+ * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ */
+recoil.db.ChangeSet.Set.prototype.applyToDb = function(db, schema) {
+    var node = db.resolve_(this.path_, false);
+    if (!node) {
+        var parent = db.resolve_(this.path_.parent(), false);
+        if (!parent) {
+            throw "set node '" + this.path_.toString() + "' does not exist";
+        }
+        node = parent.getChildNode(schema, this.path_.last(), this.path_, true);
+    }
+    if (!(node instanceof recoil.db.ChangeDbNode.Leaf)) {
+        throw "set node '" + this.path_.toString() + "' is not a leaf";
+    }
+    node.setValue(this.newVal_);
+};
+
 /**
  * converts a change an object that can be turned into json
  * @param {!boolean} keepOld do we need the undo information
@@ -658,7 +799,177 @@ recoil.db.ChangeSet.Add = function(path, dependants) {
     this.path_ = path;
     this.dependants_ = dependants;
 };
+/**
+ * invariants
+ *
+ * for all cur < added
+ *   count(set(path)) < 2;
+ *   del(path) then no add(path/...) before it
+ *   del(path) then no set(path/...) before it
+ *   del(path) then no move(_, path/...) before it
+ *   add(path)
+ */
+/**
+ * @param {!recoil.db.ChangeSet.PathMap} pathChangeMap
+ * @param {recoil.db.ChangeSet.Change} pAncestor
+ * @param {!Array<!number>} maxPos
+ */
+recoil.db.ChangeSet.Add.prototype.merge = function(pathChangeMap, pAncestor, maxPos) {
+    var me = this;
 
+    // set ... add do nothing we can't of set something before we added it
+    // add ... add if add is a ancestor add ourselves as a dependant
+    // delete ... add this add stays because this could potentually unset other values
+    // move ... add(desendant to) move to before move
+    // move ... add(desendant from)
+    // move ... add(from) that is ok
+
+    var ancestors = pathChangeMap.findAncestors(this.path_);
+    var add = null;
+    for (var i = ancestors.length - 1; i >= 0; i--) {
+        var ancestor = ancestors[i];
+        if (ancestor instanceof recoil.db.ChangeSet.Delete) {
+            break;
+        }
+        else if (ancestor instanceof recoil.db.ChangeSet.Move) {
+            // adjust path to before move
+            if (ancestor.to().isAncestor(this.path_, true)) {
+                var newPath = ancestor.beforeMovePath(this.path());
+                // we know longer paths are moved before shorter paths
+                //
+                if (recoil.util.object.isEqual(ancestor.to(), this.path_)) {
+                    throw 'add object that already exists';
+                }
+
+                var moveInfo = pathChangeMap.findChangeInfo(ancestor);
+
+
+                // we have to place the set before the move
+                new recoil.db.ChangeSet.Add(newPath, this.dependants_)
+                    .merge(pathChangeMap, pAncestor, moveInfo.pos);
+                return;
+            }
+        }
+        else if (ancestor instanceof recoil.db.ChangeSet.Add) {
+            // add this to decendants
+            add = ancestor;
+            break;
+        }
+    }
+    if (add) {
+        ancestor.addDependant(this);
+        pathChangeMap.add(this.path_, this, ancestor, maxPos);
+    }
+    else {
+        pathChangeMap.add(this.path_, this, null, maxPos);
+    }
+    this.dependants_.forEach(function(change) {
+        change.merge(pathChangeMap, me, maxPos);
+    });
+
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Change} dep
+ */
+recoil.db.ChangeSet.Add.prototype.addDependant = function(dep) {
+    for (var i = 0; i < this.dependants_.length; i++) {
+        if (dep === this.dependants_[i]) {
+            return;
+        }
+    }
+    this.dependants_.push(dep);
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Change} dep
+ */
+recoil.db.ChangeSet.Add.prototype.removeDependant = function(dep) {
+    for (var i = 0; i < this.dependants_.length; i++) {
+        if (dep === this.dependants_[i]) {
+            this.dependants_.splice(i, 1);
+            return;
+        }
+    }
+};
+
+/**
+ * convert all paths to absolute values and returns a copy
+ *
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Add.prototype.absolute = function(schema) {
+    var dependants = [];
+    this.dependants_.forEach(function(dep) {
+        dependants.push(dep.absolute(schema));
+    });
+    return new recoil.db.ChangeSet.Add(schema.absolute(this.path_), dependants);
+};
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Add.prototype.path = function() {
+    return this.path_;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathMap} pathMap
+ */
+recoil.db.ChangeSet.Add.prototype.sortDesendants = function(pathMap) {
+    var dependants = this.dependants_;
+    var toSort = [];
+    this.dependants_.forEach(function(dep) {
+        var info = pathMap.findChangeInfo(dep);
+        if (!info) {
+            throw 'unable to find change info';
+        }
+        toSort.push({pos: info.pos, change: dep});
+    });
+    goog.array.sort(toSort, recoil.db.ChangeSet.PathMap.comparePos);
+    var deps = [];
+    toSort.forEach(function(v) {
+        deps.push(v.change);
+    });
+    this.dependants_ = deps;
+};
+
+/**
+ * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ */
+recoil.db.ChangeSet.Add.prototype.applyToDb = function(db, schema) {
+    var listNode;
+    if (this.path_.lastKeys().length > 0) {
+        // this is a list node we are adding
+        listNode = db.resolve_(this.path_.unsetKeys(), false);
+        if (!listNode) {
+            throw "add node '" + this.path_.unsetKeys().toString() + "' does not exist";
+        }
+        if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
+            throw "cannot add node '" + this.path_.toString() + "' to non-list";
+        }
+
+        var newNode = new recoil.db.ChangeDbNode.Container();
+        listNode.add(this.path_.last(), newNode);
+        db.applyChanges(this.dependants_);
+        return;
+    }
+    else {
+        listNode = db.resolve_(this.path_.parent(), false);
+
+        if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
+            throw "cannot add node '" + this.path_.toString() + "' to non-container";
+        }
+        listNode = db.resolve_(this.path_, true);
+        db.applyChanges(this.dependants_);
+        return;
+    }
+
+    throw "cannot add node '" + this.path_.toString() + "' to a leaf";
+
+};
 /**
  * converts a change an object that can be turned into json
  * @param {!boolean} keepOld do we need the undo information
@@ -684,6 +995,113 @@ recoil.db.ChangeSet.Delete = function(path) {
 };
 
 /**
+ * @param {!recoil.db.ChangeSet.PathMap} pathChangeMap
+ * @param {recoil.db.ChangeSet.Change} pAncestor
+ * @param {!Array<!number>} maxPos
+ */
+recoil.db.ChangeSet.Delete.prototype.merge = function(pathChangeMap, pAncestor, maxPos) {
+
+    // find all my decendants and remove them they are not relevant
+    var relations = pathChangeMap.findRelations(this.path_, true, maxPos);
+    for (var i = relations.length - 1; i >= 0; i--) {
+        var relation = relations[i];
+        if (relation instanceof recoil.db.ChangeSet.Move) {
+            if (recoil.util.object.isEqual(this.path_, relation.to())) {
+
+                // remove
+                var moveInfo = pathChangeMap.removeChangeInfo(relation);
+                // we have to place the set before the move
+                new recoil.db.ChangeSet.Delete(relation.from())
+                    .merge(pathChangeMap, pAncestor, moveInfo.pos);
+                return;
+            }
+            else if (this.path_.isAncestor(relation.to(), false)) {
+                pathChangeMap.removeChangeInfo(relation);
+            }
+            else {
+                var newPath = relation.beforeMovePath(this.path());
+                // we know longer paths are moved before shorter paths
+                //
+                moveInfo = pathChangeMap.findChangeInfo(relation);
+                new recoil.db.ChangeSet.Delete(newPath)
+                    .merge(pathChangeMap, pAncestor, moveInfo.pos);
+                return;
+            }
+        }
+        else {
+            if (this.path_.isAncestor(relation.path(), false)) {
+                pathChangeMap.removeChangeInfo(relation);
+            }
+            else if (relation instanceof recoil.db.ChangeSet.Add) {
+                if (recoil.util.object.isEqual(this.path_, relation.path())) {
+                    pathChangeMap.removeChangeInfo(relation);
+                    return;
+                }
+                relation.addDependant(this);
+                pathChangeMap.add(this.path_, this, relation, maxPos);
+                return;
+            }
+
+        }
+    }
+    pathChangeMap.add(this.path_, this, null, maxPos);
+
+};
+/**
+ * convert all paths to absolute values and returns a copy
+ *
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Delete.prototype.absolute = function(schema) {
+    return new recoil.db.ChangeSet.Delete(schema.absolute(this.path_));
+};
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Delete.prototype.path = function() {
+    return this.path_;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathMap} pathMap
+ */
+recoil.db.ChangeSet.Delete.prototype.sortDesendants = function(pathMap) {
+};
+
+/**
+ * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ */
+recoil.db.ChangeSet.Delete.prototype.applyToDb = function(db, schema) {
+    var listNode;
+    if (this.path_.lastKeys().length > 0) {
+        // this is a list node we are deleting from
+        listNode = db.resolve_(this.path_.unsetKeys(), false);
+        if (!listNode) {
+            throw "delete node '" + this.path_.unsetKeys().toString() + "' does not exist";
+        }
+        if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
+            throw "cannot delete node '" + this.path_.toString() + "' from non-list";
+        }
+
+        listNode.remove(this.path_.last());
+        return;
+    }
+    else {
+        listNode = db.resolve_(this.path_.parent(), false);
+
+        if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
+            throw "cannot remove node '" + this.path_.toString() + "' to non-container";
+        }
+        listNode.remove(this.path_.last());
+        return;
+    }
+
+    throw "cannot remove node '" + this.path_.toString() + "' from a leaf";
+
+};
+/**
  * converts a change an object that can be turned into json
  * @param {!boolean} keepOld do we need the undo information
  * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
@@ -700,15 +1118,117 @@ recoil.db.ChangeSet.Delete.prototype.serialize = function(keepOld, valSerializor
  * @implements {recoil.db.ChangeSet.Change}
  * @param {!recoil.db.ChangeSet.Path} oldPath
  * @param {!recoil.db.ChangeSet.Path} newPath
- * @param {!Array<!recoil.db.ChangeSet.Change>} depends
  */
 
-recoil.db.ChangeSet.Move = function(oldPath, newPath, depends) {
+recoil.db.ChangeSet.Move = function(oldPath, newPath) {
     this.oldPath_ = oldPath;
     this.newPath_ = newPath;
-    this.depends_ = depends;
+};
+/**
+ * convert all paths to absolute values and returns a copy
+ *
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Move.prototype.absolute = function(schema) {
+    return new recoil.db.ChangeSet.Move(schema.absolute(this.oldPath_), schema.absolute(this.newPath_));
 };
 
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Move.prototype.beforeMovePath = function(path) {
+    var pathItems = path.items();
+    var newPathItems = this.from().items().slice(0);
+    if (newPathItems.length > pathItems.length) {
+        throw 'path must be >= move path';
+    }
+    for (var j = newPathItems.length; j < pathItems.length; j++) {
+        newPathItems.push(pathItems[j]);
+    }
+    return new recoil.db.ChangeSet.Path(newPathItems);
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathMap} pathChangeMap
+ * @param {recoil.db.ChangeSet.Change} pAncestor
+ * @param {!Array<!number>} maxPos
+ */
+recoil.db.ChangeSet.Move.prototype.merge = function(pathChangeMap, pAncestor, maxPos) {
+    //TODO implement move
+
+    // previous sets nothing to do they should be previous
+
+    // previous adds just change the add path
+
+    // previous deletes should be fine
+
+    // previous moves
+    // just add this object there is nothing that conflicts
+
+
+    var moves = pathChangeMap.findExact(this.oldPath_, recoil.db.ChangeSet.Move);
+
+    for (var i = moves.length - 1; i >= 0; i--) {
+        var move = /** @type {recoil.db.ChangeSet.Move} */ (moves[i]);
+
+        if (recoil.util.object.isEqual(move.to(), this.oldPath_)) {
+            var info = pathChangeMap.removeChangeInfo(move);
+            if (info) {
+                move.newPath_ = this.newPath_;
+                pathChangeMap.addMove(move, info.ancestor, maxPos, info.pos);
+                return;
+            }
+        }
+    }
+
+    pathChangeMap.addMove(this, pAncestor, maxPos);
+};
+
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Move.prototype.path = function() {
+    return this.oldPath_;
+};
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Move.prototype.to = function() {
+    return this.newPath_;
+};
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Move.prototype.from = function() {
+    return this.oldPath_;
+};
+/**
+ * @param {!recoil.db.ChangeSet.PathMap} pathMap
+ */
+recoil.db.ChangeSet.Move.prototype.sortDesendants = function(pathMap) {
+};
+
+/**
+ * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ */
+recoil.db.ChangeSet.Move.prototype.applyToDb = function(db, schema) {
+    var listNode = db.resolve_(this.oldPath_.unsetKeys(), false);
+    if (!listNode) {
+        throw "move node '" + this.oldPath_.unsetKeys().toString() + "' does not exist";
+    }
+    if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
+        throw "move node '" + this.oldPath_.unsetKeys().toString() + "' is not a list";
+    }
+
+    var oldNode = listNode.remove(this.oldPath_.last());
+    if (!oldNode) {
+        throw "move node '" + this.oldPath_.toString() + "' does not exist";
+    }
+    listNode.add(this.newPath_.last(), oldNode);
+};
 /**
  * converts a path to an object that can be turned into json
  * @param {!boolean} keepOld do we need the undo information
@@ -719,8 +1239,7 @@ recoil.db.ChangeSet.Move = function(oldPath, newPath, depends) {
 recoil.db.ChangeSet.Move.prototype.serialize = function(keepOld, valSerializor, opt_compressor) {
     var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
     return {type: recoil.db.ChangeSet.Change.Type.MOVE, from: this.oldPath_.serialize(valSerializor, compressor),
-            to: this.newPath_.serialize(valSerializor, compressor),
-            deps: recoil.db.ChangeSet.Change.serializeList(this.depends_, keepOld, valSerializor, compressor)};
+            to: this.newPath_.serialize(valSerializor, compressor)};
 };
 
 /**
@@ -735,6 +1254,366 @@ recoil.db.ChangeSet.removePath = function(path, list) {
             return;
         }
     }
+};
+/**
+ * @constructor
+ */
+recoil.db.ChangeSet.PathMap = function() {
+    this.root_ = new recoil.db.ChangeSet.PathMapNode_();
+    this.next_ = 0;
+    this.values_ = [];
+};
+/**
+ * @param {{pos:!Array<!number>}} x
+ * @param {{pos:!Array<!number>}} y
+ * @return {!number}
+ */
+recoil.db.ChangeSet.PathMap.comparePos = function(x, y) {
+    for (var i = 0; i < x.length && y.length; i++) {
+        var res = x[i].pos - y[i].pos;
+        if (res !== 0) {
+            return res;
+        }
+    }
+    // the longer length is smaller
+    return y.length - x.length;
+};
+/**
+ * @param {function({change:!recoil.db.ChangeSet.Change,pos:!Array<!number>,ancestor:recoil.db.ChangeSet.Change})} callback
+ */
+recoil.db.ChangeSet.PathMap.prototype.forEach = function(callback) {
+    this.root_.forEach(callback);
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Change} change
+ * @return {?{change:!recoil.db.ChangeSet.Change,pos:!Array<!number>,ancestor:recoil.db.ChangeSet.Change}}
+ */
+recoil.db.ChangeSet.PathMap.prototype.findChangeInfo = function(change) {
+    var cur = this.root_;
+    var items = change.path().items();
+    for (var i = 0; i < items.length && cur; i++) {
+        var item = items[i];
+        cur = cur.get(item);
+    }
+
+    if (cur) {
+        var values = cur.values();
+        for (i = 0; i < values.length; i++) {
+            if (values[i].change === change) {
+                return values[i];
+            }
+        }
+    }
+    return null;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?=} opt_type
+ * @return {!Array<!recoil.db.ChangeSet.Change>}
+ */
+recoil.db.ChangeSet.PathMap.prototype.findExact = function(path, opt_type) {
+    var items = path.items();
+
+    var cur = this.root_;
+
+    for (var i = 0; i < items.length && cur; i++) {
+        var item = items[i];
+        cur = cur.get(item);
+    }
+    var res = [];
+    var toSort = [];
+    if (cur) {
+        cur.values().forEach(function(val) {
+            if (opt_type === undefined || val.change instanceof opt_type) {
+                toSort.push(val);
+            }
+        });
+    }
+
+    goog.array.sort(toSort, recoil.db.ChangeSet.PathMap.comparePos);
+    toSort.forEach(function(v) {
+        res.push(v.change);
+    });
+    return res;
+
+};
+
+/**
+ * @private
+ * @param {!Array<!recoil.db.ChangeSet.PathItem>} items
+ * @param {!number} index
+ * @param {!recoil.db.ChangeSet.PathMapNode_} node
+ * @return {!boolean} if node was removed
+ */
+recoil.db.ChangeSet.PathMap.prototype.removeIfEmptyNode_ = function(items, index, node) {
+    if (index === items.length) {
+        return node.children_.getCount() === 0 && node.values().length === 0;
+    }
+
+    var item = items[index];
+    var cur = node.get(items[index]);
+
+    if (!cur) {
+        return false;
+    }
+    if (this.removeIfEmptyNode_(items, index + 1, cur)) {
+        node.children_.remove({key: item});
+        return node.values().length === 0 && node.children_.getCount() === 0;
+    }
+    return false;
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Change} change
+ * @return {?{change:!recoil.db.ChangeSet.Change,ancestor:recoil.db.ChangeSet.Change,pos:!Array<!number>}}
+ */
+recoil.db.ChangeSet.PathMap.prototype.removeChangeInfo = function(change) {
+    var me = this;
+    var removeInternal = function(path) {
+        var items = path.items();
+
+        var cur = me.root_;
+
+        for (var i = 0; i < items.length && cur; i++) {
+            var item = items[i];
+            cur = cur.get(item);
+        }
+        if (cur) {
+            var idx = undefined;
+            var removed = cur.removeChange(change);
+            if (removed) {
+                if (removed.ancestor) {
+                    removed.ancestor.removeDependant(change);
+                }
+
+                me.removeIfEmptyNode_(items, 0, me.root_);
+                return removed;
+            }
+        }
+        return null;
+    };
+
+    if (change instanceof recoil.db.ChangeSet.Move) {
+        removeInternal(change.to());
+        return removeInternal(change.from());
+    }
+
+    if (change) {
+        return removeInternal(change.path());
+    }
+    return null;
+
+};
+
+/**
+ * all changes at path level and above
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?=} opt_type
+ * @return {!Array<!recoil.db.ChangeSet.Change>}
+ */
+recoil.db.ChangeSet.PathMap.prototype.findAncestors = function(path, opt_type) {
+    var items = path.items();
+    var cur = this.root_;
+    var toSort = [];
+
+    for (var i = 0; i < items.length && cur; i++) {
+        var item = items[i];
+        cur = cur.get(item);
+        if (cur) {
+            // nothing should be at root so that is ok
+            cur.values().forEach(function(val) {
+                if (opt_type === undefined || val.change instanceof opt_type) {
+                    toSort.push({pos: val.pos, change: val.change});
+                }
+            });
+        }
+    }
+    goog.array.sort(toSort, recoil.db.ChangeSet.PathMap.comparePos);
+    var res = [];
+    toSort.forEach(function(v) {
+        res.push(v.change);
+    });
+
+    return res;
+};
+
+/**
+ * all changes at path level and above, and directly below
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!boolean} equal should we include equal
+ * @param {?Array<!number>} max the maxiumn value to return
+ * @return {!Array<!recoil.db.ChangeSet.Change>}
+ */
+recoil.db.ChangeSet.PathMap.prototype.findRelations = function(path, equal, max) {
+    var items = path.items();
+    var cur = this.root_;
+    var toSort = [];
+
+    for (var i = 0; i < items.length && cur; i++) {
+        cur.values().forEach(function(val) {
+            if (max === undefined || max === null || max.length === 0
+                || recoil.db.ChangeSet.PathMap.comparePos({pos: max}, val) <= 0) {
+                toSort.push({pos: val.pos, change: val.change});
+            }
+        });
+        var item = items[i];
+        cur = cur.get(item);
+    }
+
+    if (cur) {
+        if (equal) {
+            cur.forEach(function(val) {
+                if (max === undefined || max === null || max.length === 0
+                    || recoil.db.ChangeSet.PathMap.comparePos({pos: max}, val) <= 0) {
+                    toSort.push({pos: val.pos, change: val.change});
+                }
+            });
+        }
+        else {
+            cur.forEachDecendants(function(val) {
+                if (max === undefined || max === null || max.length === 0
+                    || recoil.db.ChangeSet.PathMap.comparePos({pos: max}, val) <= 0) {
+
+                    toSort.push({pos: val.pos, change: val.change});
+                }
+            });
+        }
+    }
+    goog.array.sort(toSort, recoil.db.ChangeSet.PathMap.comparePos);
+    var res = [];
+    toSort.forEach(function(v) {
+        res.push(v.change);
+    });
+
+    return res;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Move} change
+ * @param {recoil.db.ChangeSet.Change} ancestor
+ * @param {!Array<!number>} max
+ * @param {!Array<!number>=} opt_pos
+ */
+recoil.db.ChangeSet.PathMap.prototype.addMove = function(change, ancestor, max, opt_pos) {
+    var toItems = change.to().items();
+    var fromItems = change.from().items();
+    var cur = this.root_;
+    max = max.slice(0);
+
+
+    if (opt_pos === undefined) {
+        max.push(this.next_);
+        this.next++;
+    }
+    else {
+        max = opt_pos;
+    }
+    for (var i = 0; i < toItems.length; i++) {
+        var item = toItems[i];
+        cur = cur.create(item);
+    }
+
+    cur.values_.push({change: change, ancestor: ancestor, pos: max});
+    cur = this.root_;
+    for (i = 0; i < fromItems.length; i++) {
+        item = fromItems[i];
+        cur = cur.create(item);
+    }
+    cur.values_.push({change: change, ancestor: ancestor, pos: max, hide: true});
+
+};
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!recoil.db.ChangeSet.Change} change
+ * @param {recoil.db.ChangeSet.Change} ancestor
+ * @param {!Array<!number>} max
+ * @param {number=} opt_pos
+ */
+recoil.db.ChangeSet.PathMap.prototype.add = function(path, change, ancestor, max, opt_pos) {
+    var items = path.items();
+    var cur = this.root_;
+    max = max.slice(0);
+    var pos = opt_pos === undefined ? this.next_ : opt_pos;
+    if (opt_pos === undefined) {
+        this.next++;
+    }
+
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        cur = cur.create(item);
+    }
+    max.push(pos);
+    cur.values_.push({change: change, ancestor: ancestor, pos: max});
+};
+/**
+ * @constructor
+ * @private
+ */
+recoil.db.ChangeSet.PathMapNode_ = function() {
+    this.children_ = new goog.structs.AvlTree(recoil.util.object.compareKey);
+    this.values_ = [];
+};
+/**
+ * @param {!recoil.db.ChangeSet.Change} change
+ * @return {?{change:!recoil.db.ChangeSet.Change,ancestor:recoil.db.ChangeSet.Change,pos:!Array<!number>}}
+ */
+recoil.db.ChangeSet.PathMapNode_.prototype.removeChange = function(change) {
+    for (var i = 0; i < this.values_.length; i++) {
+        if (this.values_[i].change === change) {
+            return this.values_.splice(i, 1)[0];
+        }
+    }
+    return null;
+};
+
+/**
+ * @param {function({change:!recoil.db.ChangeSet.Change,pos:!Array<!number>,ancestor:recoil.db.ChangeSet.Change})} callback
+ */
+recoil.db.ChangeSet.PathMapNode_.prototype.forEach = function(callback) {
+    this.values_.forEach(callback);
+    this.children_.inOrderTraverse(function(node) {
+        node.value.forEach(callback);
+    });
+
+};
+
+/**
+ * @param {function({change:!recoil.db.ChangeSet.Change,pos:!Array<!number>,ancestor:recoil.db.ChangeSet.Change})} callback
+ */
+recoil.db.ChangeSet.PathMapNode_.prototype.forEachDecendants = function(callback) {
+    this.children_.inOrderTraverse(function(node) {
+        node.value.forEach(callback);
+    });
+
+};
+
+/**
+ * @return {!Array<!{change:!recoil.db.ChangeSet.Change,ancestor:recoil.db.ChangeSet.Change,pos:!Array<!number>}>}
+ */
+recoil.db.ChangeSet.PathMapNode_.prototype.values = function() {
+    return this.values_;
+};
+/**
+ * @param {!recoil.db.ChangeSet.PathItem} item
+ * @return {recoil.db.ChangeSet.PathMapNode_}
+ */
+recoil.db.ChangeSet.PathMapNode_.prototype.get = function(item) {
+    var node = this.children_.findFirst({key: item});
+    if (node) {
+        return node.value;
+    }
+    return null;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathItem} item
+ * @return {!recoil.db.ChangeSet.PathMapNode_}
+ */
+recoil.db.ChangeSet.PathMapNode_.prototype.create = function(item) {
+    return this.children_.safeFind({key: item, value: new recoil.db.ChangeSet.PathMapNode_()}).value;
 };
 
 /**
@@ -751,6 +1630,123 @@ recoil.db.ChangeSet.findPath = function(path, list) {
     return null;
 };
 
+/**
+ * if the change is a set
+ * if exists move change with our to path, make path the move from path and repeat
+ * if add , add us as dependant of the add
+ * if delete exist invalid anyway
+ *
+ * @param {!recoil.db.ChangeSet.PathMap} pathChangeMap
+ * @param {recoil.db.ChangeSet.Change} pAncestor
+ * @param {!Array<!number>} maxPos
+ */
+recoil.db.ChangeSet.Set.prototype.merge = function(pathChangeMap, pAncestor, maxPos) {
+    var sets = pathChangeMap.findExact(this.path_, recoil.db.ChangeSet.Set);
+    // if exists set change update to and stop
+    if (sets.length > 0) {
+        if (sets.length > 1) {
+            throw 'mutiple set on same key not merged correctly';
+        }
+        // should only be 1
+        sets[0].newVal_ = this.newVal_;
+    }
+    else {
+        // if exists move change with our to path, make path the move from path and repeat
+        var moves = pathChangeMap.findAncestors(this.path_);
+        var ancestor = null;
+
+        for (var j = 0; j < moves.length; j++) {
+            var move = moves[j];
+            if (move instanceof recoil.db.ChangeSet.Move) {
+                if (move.to().isAncestor(this.path_, true)) {
+                    ancestor = move;
+                    break;
+                }
+            }
+            if (move instanceof recoil.db.ChangeSet.Delete) {
+                return;
+            }
+        }
+
+        if (ancestor) {
+
+            var newPath = ancestor.beforeMovePath(this.path());
+            // we know longer paths are moved before shorter paths
+            //
+            var moveInfo = pathChangeMap.findChangeInfo(ancestor);
+
+
+            // we have to place the set before the move
+            new recoil.db.ChangeSet.Set(newPath, this.oldVal_, this.newVal_)
+                .merge(pathChangeMap, pAncestor, moveInfo.pos);
+            return;
+        }
+
+
+        var len = 0;
+        for (j = 0; j < moves.length; j++) {
+            var add = moves[j];
+            if (add instanceof recoil.db.ChangeSet.Add) {
+                if (add.path().parts().length > len) {
+                    ancestor = add;
+                }
+            }
+        }
+
+        // if add , add us as dependant of the add
+        if (ancestor) {
+            ancestor.addDependant(this);
+            pathChangeMap.add(this.path_, this, ancestor, maxPos, undefined);
+            return;
+        }
+        // just a set nothing to change
+        pathChangeMap.add(this.path_, this, pAncestor, maxPos);
+    }
+
+};
+
+/**
+ * takes a list of changes and converts it into a set of minimal changes
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!Array<!recoil.db.ChangeSet.Change>} changes
+ * @return {!Array<!recoil.db.ChangeSet.Change>}
+ */
+recoil.db.ChangeSet.merge = function(schema, changes) {
+    var pathChangeMap = new recoil.db.ChangeSet.PathMap();
+
+    for (var i = 0; i < changes.length; i++) {
+        var change = changes[i].absolute(schema);
+
+        change.merge(pathChangeMap, null, []);
+
+
+
+
+        // if the change is add just add
+
+        // if the change is a delete
+        // remove all changes sub changes
+        // if was and add of this key then do not add us
+        // if move to us change path to original
+
+        // if move
+        // if was added move all actions us and change path to dest
+        // do not add
+    }
+    var toSort = [];
+    pathChangeMap.forEach(function(change) {
+        if (!change.ancestor && !change.hide) {
+            change.change.sortDesendants(pathChangeMap);
+            toSort.push(change);
+        }
+    });
+    goog.array.sort(toSort, recoil.db.ChangeSet.PathMap.comparePos);
+    var res = [];
+    toSort.forEach(function(v) {
+        res.push(v.change);
+    });
+    return res;
+};
 /**
  * caculates a list of changes between an old an new objec
  *
@@ -838,8 +1834,8 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
                     var deps = {changes: [], errors: changes.errors};
                     if (info.removeKey) {
                         recoil.db.ChangeSet.diff(oldObj[info.idx], newObj[info.idx], info.removeKey, origColumn, schema,
-                                                 deps);
-                        changes.changes.push(new recoil.db.ChangeSet.Move(schema.absolute(info.removeKey), schema.absolute(info.key), deps.changes));
+                                                 changes);
+                        changes.changes.push(new recoil.db.ChangeSet.Move(schema.absolute(info.removeKey), schema.absolute(info.key)));
                         recoil.db.ChangeSet.removePath(info.removeKey, used);
                     }
                     else {
@@ -879,5 +1875,284 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
             recoil.db.ChangeSet.diff(oldV, newV, path.appendName(child), origColumn, schema, subChanges);
         });
     return changes;
+
+};
+
+
+/**
+ * @interface
+ */
+recoil.db.ChangeDbNode = function() {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {?}
+ */
+recoil.db.ChangeDbNode.prototype.get = function(schema, path) {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.PathItem} item the item to create or get
+ * @param {recoil.db.ChangeSet.Path} path if not null then specifies what type to create
+ *                                        otherwize creates container
+ * @param {!boolean} create create if not present
+ * @return {recoil.db.ChangeDbNode}
+ */
+recoil.db.ChangeDbNode.prototype.getChildNode = function(schema, item, path, create) {};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ */
+recoil.db.ChangeDbNode.prototype.set = function(schema, path, val) {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!recoil.db.ChangeDbNode}
+ */
+recoil.db.ChangeDbNode.create = function(schema, path) {
+    if (schema.isKeyedList(path)) {
+        return new recoil.db.ChangeDbNode.List();
+    }
+    if (schema.isLeaf(path)) {
+        return new recoil.db.ChangeDbNode.Leaf();
+    }
+    return new recoil.db.ChangeDbNode.Container();
+
+};
+/**
+ * @implements {recoil.db.ChangeDbNode}
+ * @constructor
+ */
+recoil.db.ChangeDbNode.Leaf = function() {
+    this.value_ = undefined;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ */
+recoil.db.ChangeDbNode.Leaf.prototype.set = function(schema, path, val) {
+    this.value_ = val;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {?}
+ */
+recoil.db.ChangeDbNode.Leaf.prototype.get = function(schema, path) {
+    return this.value_;
+};
+
+/**
+ * @param {?} val
+ */
+recoil.db.ChangeDbNode.Leaf.prototype.setValue = function(val) {
+    this.value_ = val;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.PathItem} item the item to create or get
+ * @param {recoil.db.ChangeSet.Path} path if not null then specifies what type to create
+ *                                        otherwize creates container
+ * @param {!boolean} create create if not present
+ * @return {recoil.db.ChangeDbNode}
+ */
+recoil.db.ChangeDbNode.Leaf.prototype.getChildNode = function(schema, item, path, create) {
+    throw 'unsupported operation, leaves have no children';
+};
+
+/**
+ * @implements {recoil.db.ChangeDbNode}
+ * @constructor
+ */
+recoil.db.ChangeDbNode.Container = function() {
+    /**
+     * @type {Object<!string,recoil.db.ChangeDbNode>}
+     * @private
+     **/
+    this.children_ = {};
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathItem} item
+ */
+recoil.db.ChangeDbNode.Container.prototype.setKeys = function(item) {
+    // update the keys in the node
+    var keys = item.keys();
+    var names = item.keyNames();
+    var children = this.children_;
+
+    for (var i = 0; i < names.length; i++) {
+        var child = names[i];
+        var val = keys[i];
+        if (!children[child]) {
+            children[child] = new recoil.db.ChangeDbNode.Leaf();
+        }
+        children[child].setValue(val);
+    }
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ */
+recoil.db.ChangeDbNode.Container.prototype.set = function(schema, path, val) {
+    var children = this.children_;
+    schema.children(path).forEach(function(child) {
+        if (val.hasOwnProperty(child)) {
+            var subPath = path.appendName(child);
+            if (!children[child]) {
+                children[child] = recoil.db.ChangeDbNode.create(schema, subPath);
+            }
+            children[child].set(schema, subPath, val[child]);
+        }
+        else {
+            delete children[child];
+        }
+    });
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.PathItem} item
+ */
+recoil.db.ChangeDbNode.Container.prototype.remove = function(item) {
+    delete this.children_[item.name()];
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {?}
+ */
+recoil.db.ChangeDbNode.Container.prototype.get = function(schema, path) {
+    var res = {};
+    var children = this.children_;
+    schema.children(path).forEach(function(child) {
+        if (children.hasOwnProperty(child)) {
+            res[child] = children[child].get(schema, path.appendName(child));
+        }
+    });
+    return res;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.PathItem} item the item to create or get
+ * @param {recoil.db.ChangeSet.Path} path if not null then specifies what type to create
+ *                                        otherwize creates container
+ * @param {!boolean} create create if not present
+ * @return {recoil.db.ChangeDbNode}
+ */
+recoil.db.ChangeDbNode.Container.prototype.getChildNode = function(schema, item, path, create) {
+    var res = this.children_[item.name()];
+    if (res) {
+        return res;
+    }
+    if (!create) {
+        return null;
+    }
+    if (path) {
+        res = recoil.db.ChangeDbNode.create(schema, path);
+    }
+    else {
+        res = new recoil.db.ChangeDbNode.Container();
+    }
+    this.children_[item.name()] = res;
+    return res;
+};
+
+/**
+ * @implements {recoil.db.ChangeDbNode}
+ * @constructor
+ */
+recoil.db.ChangeDbNode.List = function() {
+    /**
+     * @type {goog.structs.AvlTree<{key:Array,value:recoil.db.ChangeDbNode}>}
+     * @private
+     **/
+    this.keys_ = new goog.structs.AvlTree(recoil.util.object.compareKey);
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ */
+recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
+    var keys = this.keys_;
+    // we could schemas that filter nodes but not yet
+    var newKeys = new goog.structs.AvlTree(recoil.util.object.compareKey);
+
+    val.forEach(function(val) {
+        var subKey = schema.createKeyPath(path, val);
+        var newNode = keys.safeFind({key: subKey.lastKeys(), value: new recoil.db.ChangeDbNode.Container()});
+        newNode.value.set(schema, subKey, val);
+        newKeys.add(newNode);
+    });
+    this.keys_ = newKeys;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathItem} item
+ * @return {recoil.db.ChangeDbNode}
+ */
+recoil.db.ChangeDbNode.List.prototype.remove = function(item) {
+    var node = this.keys_.remove({key: item.keys(), value: null});
+    if (node) {
+        return node.value;
+    }
+    return null;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathItem} item
+ * @param {!recoil.db.ChangeDbNode} node
+ */
+recoil.db.ChangeDbNode.List.prototype.add = function(item, node) {
+    node.setKeys(item);
+    this.keys_.add({key: item.keys(), value: node});
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {?}
+ */
+recoil.db.ChangeDbNode.List.prototype.get = function(schema, path) {
+    var res = [];
+    this.keys_.inOrderTraverse(function(val) {
+        var subKey = schema.createKeyPath(path, val.value);
+        res.push(val.value.get(schema, subKey));
+    });
+    return res;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.PathItem} item the item to create or get
+ * @param {recoil.db.ChangeSet.Path} path if not null then specifies what type to create
+ *                                        otherwize creates container
+ * @param {!boolean} create create if not present
+ * @return {recoil.db.ChangeDbNode}
+ */
+recoil.db.ChangeDbNode.List.prototype.getChildNode = function(schema, item, path, create) {
+    var lookup = {key: item.keys(), value: new recoil.db.ChangeDbNode.Container()};
+    var entry = create ?
+        this.keys_.safeFind(lookup) : this.keys_.findFirst(lookup);
+    if (entry) {
+        return entry.value;
+    }
+    return null;
 
 };
