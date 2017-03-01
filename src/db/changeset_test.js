@@ -27,10 +27,18 @@ var schema = {
                             keys : ['k']
                         }
                     }
-                }
+                },
+                b1 : {}
             }
         },
-
+        a1 : {
+            alias : '/test/a',
+            children: {
+                b1 : {}
+            }
+        },
+            
+        
         e: {
             children: {
                 f: {
@@ -119,7 +127,7 @@ var schema = {
             });
         }
         
-        for (var i = 1; i < parts.length; i++) {
+        for (var i = 1; i < parts.length && cur; i++) {
             var part = parts[i];
             cur = cur.children[part];
 
@@ -137,7 +145,7 @@ var schema = {
         var keys = opt_keys || [];
         var parts = path.parts();
         var cur = schema.root;
-        for (var i = 0; i < parts.length; i++) {
+        for (var i = 0; i < parts.length && cur; i++) {
             var part = parts[i];
             cur = cur[part].children;
            
@@ -155,6 +163,9 @@ var schema = {
             return [];
         }
         return Object.keys(cur);
+    },
+    exists: function (path) {
+        return schema.meta1(path) ? true : false;
     },
     keys: function (path) {
         var meta = schema.meta1(path);
@@ -180,7 +191,18 @@ var schema = {
         if (path.parts()[0] === 'named-a') {
             return recoil.db.ChangeSet.Path.fromString('full/a');
         }
-        
+
+        var item = schema.root[path.parts()[0]];
+        if (item && item.alias) {
+            var prefix = recoil.db.ChangeSet.Path.fromString(item.alias);
+            var parts = prefix.items();
+            var pathParts = path.items();
+            for (var i = 1; i < pathParts.length; i++) {
+                parts.push(pathParts[i]);
+            }
+            
+            return new recoil.db.ChangeSet.Path(parts);
+        }
         return path.prepend([new recoil.db.ChangeSet.PathItem('test',[],[])]);
     },
         
@@ -495,6 +517,30 @@ function testChangeDbSet() {
     assertObjectEquals({b:null}, testee.get(ns.Path.fromString('a')));
 }
 
+function testPathMap() {
+    var ns = recoil.db.ChangeSet;
+    var a = ns.Path.fromString('a');
+    var ab = ns.Path.fromString('a/b');
+    var ab1 = ns.Path.fromString('a/b1');
+    var a1 = ns.Path.fromString('a1');
+    var testee = new recoil.db.PathMap(schema);
+
+    testee.put(a,1);
+    assertSameObjects([1], testee.get(a));
+    assertSameObjects([], testee.get(ab));
+    testee.put(ab,2);
+    assertSameObjects([1,2], testee.get(a));
+    assertSameObjects([2], testee.get(ab));
+    testee.put(ab1,3);
+    assertSameObjects([1,2,3], testee.get(a));
+    assertSameObjects([2], testee.get(ab));
+    assertSameObjects([1,3], testee.get(a1));
+
+    testee.remove(a);
+    assertSameObjects([2,3], testee.get(a));
+    assertSameObjects([2], testee.get(ab));
+    assertSameObjects([3], testee.get(a1));
+};
 
 function testMergeChanges() {
     var ns = recoil.db.ChangeSet;
