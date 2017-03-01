@@ -438,8 +438,8 @@ function testChangeDbSet() {
     var namedPath = ns.Path.fromString('named-a');
     var listA = ns.Path.fromString('list-a');
     
-    testee.set(fullPath, {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]});
-    testee.set(namedPath, {v : 10, list : [{k:1, v:10},{k:2, v:20}]});
+    assertObjectEquals([fullPath],testee.set(fullPath, {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]}));
+    assertSameObjects([fullPath, namedPath],testee.set(namedPath, {v : 10, list : [{k:1, v:10},{k:2, v:20}]}));
     testee.set(contPath, {});
 
     assertObjectEquals({v : 10, v2: 2, list : [{k:1, v:10, v2:2},{k:2, v: 20, v2: 2}]}, testee.get(fullPath));

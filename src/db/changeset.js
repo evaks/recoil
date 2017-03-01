@@ -26,6 +26,11 @@ recoil.db.ChangeSet = function() {
 recoil.db.ChangeDb = function(schema) {
     this.schema_ = schema;
     this.data_ = new recoil.db.ChangeDbNode.Container();
+    /**
+     * @private
+     * @type {!Array<!recoil.db.ChangeSet.Path>}
+     */
+    this.roots_ = [];
 };
 
 /**
@@ -42,10 +47,28 @@ recoil.db.ChangeDb.prototype.applyChanges = function(changes) {
 /**
  * @param {!recoil.db.ChangeSet.Path} rootPath
  * @param {?} val
+ * @return {!Array<!recoil.db.ChangeSet.Path>} returns a list of roots that have changed
  */
 recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
     var cur = this.resolve_(rootPath, true);
+    var absolutePath = this.schema_.absolute(rootPath);
     cur.set(this.schema_, rootPath, val);
+    var found = false;
+    var changed = [];
+    for (var i = 0; i < this.roots_.length; i++) {
+        var root = this.roots_[i];
+        found = found || recoil.util.object.isEqual(root, rootPath);
+        if (this.schema_.absolute(root).isAncestor(absolutePath, true)) {
+            changed.push(root);
+        }
+
+    }
+
+    if (!found) {
+        this.roots_.push(rootPath);
+        changed.push(rootPath);
+    }
+    return changed;
 };
 
 
