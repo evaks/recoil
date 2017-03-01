@@ -2025,6 +2025,8 @@ recoil.db.ChangeDbNode.Container = function() {
      * @private
      **/
     this.children_ = {};
+    this.useVal_ = false;
+    this.val_ = null;
 };
 
 /**
@@ -2053,18 +2055,24 @@ recoil.db.ChangeDbNode.Container.prototype.setKeys = function(item) {
  */
 recoil.db.ChangeDbNode.Container.prototype.set = function(schema, path, val) {
     var children = this.children_;
-    schema.children(path).forEach(function(child) {
-        if (val.hasOwnProperty(child)) {
-            var subPath = path.appendName(child);
-            if (!children[child]) {
-                children[child] = recoil.db.ChangeDbNode.create(schema, subPath);
+    if (val) {
+        this.useVal_ = false;
+        schema.children(path).forEach(function(child) {
+            if (val.hasOwnProperty(child)) {
+                var subPath = path.appendName(child);
+                if (!children[child]) {
+                    children[child] = recoil.db.ChangeDbNode.create(schema, subPath);
+                }
+                children[child].set(schema, subPath, val[child]);
             }
-            children[child].set(schema, subPath, val[child]);
-        }
-        else {
-            delete children[child];
-        }
-    });
+            else {
+                delete children[child];
+            }
+        });
+    } else {
+        this.useVal_ = true;
+        this.val_ = val;
+    }
 };
 
 
@@ -2082,6 +2090,9 @@ recoil.db.ChangeDbNode.Container.prototype.remove = function(item) {
  */
 recoil.db.ChangeDbNode.Container.prototype.get = function(schema, path) {
     var res = {};
+    if (this.useVal_) {
+        return this.val_;
+    }
     var children = this.children_;
     schema.children(path).forEach(function(child) {
         if (children.hasOwnProperty(child)) {

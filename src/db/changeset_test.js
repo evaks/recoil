@@ -442,6 +442,7 @@ function testChangeDbSet() {
     assertSameObjects([fullPath, namedPath],testee.set(namedPath, {v : 10, list : [{k:1, v:10},{k:2, v:20}]}));
     testee.set(contPath, {});
 
+    
     assertObjectEquals({v : 10, v2: 2, list : [{k:1, v:10, v2:2},{k:2, v: 20, v2: 2}]}, testee.get(fullPath));
     assertObjectEquals({v : 10, list : [{k:1, v:10},{k:2, v: 20}]}, testee.get(namedPath));
     assertObjectEquals({}, testee.get(contPath));
@@ -489,7 +490,11 @@ function testChangeDbSet() {
     // remove from container
     testee.applyChanges([new ns.Delete(contPath.appendName('c1'),[])]);
     assertObjectEquals({}, testee.get(contPath));
+
+    testee.set(ns.Path.fromString('a'),{b:null});
+    assertObjectEquals({b:null}, testee.get(ns.Path.fromString('a')));
 }
+
 
 function testMergeChanges() {
     var ns = recoil.db.ChangeSet;
