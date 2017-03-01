@@ -71,6 +71,29 @@ recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
     return changed;
 };
 
+/**
+ * @param {!recoil.db.ChangeSet.Path} rootPath
+ */
+recoil.db.ChangeDb.prototype.remove = function(rootPath) {
+    var cur = this.resolve_(rootPath, false);
+    if (!cur) {
+        return;
+    }
+    var absolutePath = this.schema_.absolute(rootPath);
+    var found = false;
+
+    for (var i = this.roots_.length - 1; i >= 0; i--) {
+        var root = this.roots_[i];
+        if (recoil.util.object.isEqual(root, rootPath)) {
+            this.roots_.splice(i, 1);
+        }
+        else if (this.schema_.absolute(root).isAncestor(absolutePath, true)) {
+            found = true;
+        }
+    }
+    // TODO remove data from the tree no other roots access it
+};
+
 
 /**
  * @private
