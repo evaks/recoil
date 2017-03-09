@@ -447,6 +447,25 @@ recoil.structs.table.MutableTable.prototype.getPrimaryColumns = function() {
 };
 
 /**
+ * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
+ */
+
+recoil.structs.table.MutableTable.prototype.forEachColumn = function(func) {
+    var cols = [];
+    var me = this;
+    var addCol = function(key) {
+        var col = me.columnMeta_[key.getId()];
+        cols.push({meta: col, key: key});
+    };
+    this.primaryColumns_.forEach(addCol);
+    this.otherColumns_.forEach(addCol);
+
+    cols.forEach(function(col) {
+        func(col.key, col.meta);
+    });
+};
+
+/**
  * @param {!recoil.structs.table.MutableTableRow|recoil.structs.table.TableRow} row
  * @return {!Array<?>}
  */
@@ -680,7 +699,8 @@ recoil.structs.table.MutableTable.prototype.getRowKeys = function(row) {
 
 /**
  *
- * @param {function(!recoil.structs.table.TableRow,!Array<?>,Object) : *} func
+ * @param {function(!recoil.structs.table.TableRow,!Array<?>,Object) : *} func the first parametr is the row the, second is \
+ *    the primary key, and the third is the rowMeta data
  */
 recoil.structs.table.MutableTable.prototype.forEach = function(func) {
     var me = this;
@@ -961,6 +981,26 @@ recoil.structs.table.Table.prototype.forEachPlacedColumn = function(func) {
     goog.array.sort(cols, function(x, y) {
         return x.meta.position - y.meta.position;
     });
+
+    cols.forEach(function(col) {
+        func(col.key, col.meta);
+    });
+};
+
+
+/**
+ * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
+ */
+
+recoil.structs.table.Table.prototype.forEachColumn = function(func) {
+    var cols = [];
+    var me = this;
+    var addCol = function(key) {
+        var col = me.columnMeta_[key.getId()];
+        cols.push({meta: col, key: key});
+    };
+    this.primaryColumns_.forEach(addCol);
+    this.otherColumns_.forEach(addCol);
 
     cols.forEach(function(col) {
         func(col.key, col.meta);

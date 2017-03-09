@@ -139,16 +139,17 @@
     }};
 
     var tableX = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
+    var wfact = function (scope, cellB) {
+	var widget = new recoil.ui.widgets.LabelWidget(scope);
+	var value = recoil.frp.table.TableCell.getValue(frp, cellB);
+	
+	widget.attachStruct({name : value});
+	console.log("args", arguments);
+	return widget;
+    }
     var table = frp.liftBI(function () {
 	var res = tableX.get().unfreeze();
-	res.setCellMeta([1],tblKeys.name, {cellWidgetFactory : function (scope, cellB) {
-	    var widget = new recoil.ui.widgets.LabelWidget(scope);
-	    var value = recoil.frp.table.TableCell.getValue(frp, cellB);
-	    
-	    widget.attachStruct({name : value});
-	    console.log("args", arguments);
-	    return widget;
-	}});
+	res.setCellMeta([1],tblKeys.name, {cellWidgetFactory : wfact});
 	return res.freeze();
     },
 			   function (t) {

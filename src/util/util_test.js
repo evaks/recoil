@@ -74,6 +74,22 @@ function testIsEqual() {
           .fromInt(1)));
     assertFalse(recoil.util.isEqual(goog.math.Long.fromInt(2), goog.math.Long
           .fromInt(1)));
+    var a = 1;
+    assertFalse(recoil.util.isEqual(function() {return a;}, function (){return 2;}));
+
+    var func = function () {};
+    assertTrue(recoil.util.isEqual(func, func));
+
+    var funcA = function () {};
+    var funcB = function () {};
+    var funcC = function () {};
+
+    funcA.equals = function (other) {
+        
+        return other === funcA || other === funcB;
+    };
+    assertTrue(recoil.util.isEqual(funcA, funcB));
+    assertFalse(recoil.util.isEqual(funcA, funcC));
 
 }
 

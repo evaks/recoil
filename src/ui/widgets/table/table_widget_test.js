@@ -43,6 +43,208 @@ function waitFor(test, start) {
         }
     }, 10);
 }
+
+function testDecoratorAndWidgetChange01() {
+    shared = {
+        container : goog.dom.createDom('div', {id: 'foo'}),
+        scope : new recoil.ui.WidgetScope()
+    };
+    var frp = shared.scope.getFrp();
+
+    var tblKeys = {
+        id : new recoil.structs.table.ColumnKey("id_"),
+        value : new recoil.structs.table.ColumnKey("value_")
+    };
+
+    var rawTableMeta = {
+        value : { type : "string", length : 20, key : tblKeys.value},
+        id : { type : "int", primary : 0, key : tblKeys.id}
+    };
+
+   var rawTable = [];
+
+    for (var i = 4; i >= 0; i--) {
+	rawTable.push({id: i, value: "row " + i});
+    }
+    
+
+    var columns = new recoil.ui.widgets.TableMetaData();
+    columns.add(tblKeys.id, "ID");
+    columns.add(tblKeys.value, "Value");
+    
+
+    shared.tableB = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable, true));
+    var tableWidget = new recoil.ui.widgets.table.TableWidget(shared.scope);
+
+    shared.tableB.refListen(function (b) {
+        console.log("referenced", b);
+        asyncTestCase.continueTesting();
+    });
+    tableWidget.getComponent().render(shared.container);
+    tableWidget.attach(shared.tableB,columns);
+
+    assertEquals(0,frp.tm().watching());
+    document.body.appendChild(shared.container);
+    asyncTestCase.waitForAsync('test show table');
+    
+}
+
+function findTdColor(color, func, val) {
+    return function () {
+        var el = func(val ? val : 'row 4');
+        if (el) {
+            while (el) {
+                if (el.nodeName === 'TD') {                    
+                    return el.style.background === color;
+                }
+                el = el.parentElement;
+            }
+            return false;
+        }
+        return false;
+    };
+}
+function testDecoratorAndWidgetChange02() {
+    var frp = shared.scope.getFrp();
+
+    var decorator = function () {
+        return new recoil.ui.RenderedDecorator(
+            decorator,
+            goog.dom.createDom('td', {style:'background:red'}));
+    };
+    frp.accessTrans(function () {
+        var mtable = shared.tableB.get().unfreeze();
+        mtable.addMeta({cellDecorator : decorator});
+        shared.tableB.set(mtable.freeze());
+    },shared.tableB);
+    waitFor(findTdColor('red', findInput));
+    asyncTestCase.waitForAsync('test show table');
+    
+};
+
+function testDecoratorAndWidgetChange03() {
+    var frp = shared.scope.getFrp();
+    // change both decorator and widget
+    var decorator = function () {
+        return new recoil.ui.RenderedDecorator(
+            decorator,
+            goog.dom.createDom('td', {style:'background:green'}));
+    };
+    var widgetFactory = function (scope, cellB) {
+        var widget = new recoil.ui.widgets.LabelWidget(scope);
+        widget.attach(recoil.frp.table.TableCell.getValue(frp, cellB));
+        return widget;
+    };
+    frp.accessTrans(function () {
+        var mtable = shared.tableB.get().unfreeze();
+        mtable.addMeta({cellDecorator : decorator});
+        mtable.forEach(function (row, key) {
+            row = row.unfreeze();
+            mtable.forEachColumn(function (col) {
+                row.addCellMeta(col,{cellWidgetFactory: widgetFactory});
+            });
+            mtable.setRow(key,row);
+        });
+        shared.tableB.set(mtable.freeze());
+    },shared.tableB);
+    waitFor(findTdColor('green', findVal));
+    asyncTestCase.waitForAsync('test show table');
+    
+};
+
+function testDecoratorAndWidgetChange04() {
+    var frp = shared.scope.getFrp();
+    // change just the widget
+
+    var widgetFactory = function (scope, cellB) {
+        var widget = new recoil.ui.widgets.LabelWidget(scope);
+        widget.attach(recoil.frp.table.TableCell.getValue(frp, cellB));
+        return widget;
+    };
+    frp.accessTrans(function () {
+        var mtable = shared.tableB.get().unfreeze();
+        mtable.forEach(function (row, key) {
+            row = row.unfreeze();
+            mtable.forEachColumn(function (col) {
+                
+                row.setCellMeta(col,{});
+            });
+            mtable.setRow(key,row);
+        });
+        shared.tableB.set(mtable.freeze());
+    },shared.tableB);
+    waitFor(findTdColor('green', findInput));
+    asyncTestCase.waitForAsync('test show table');
+    
+};
+
+function testDecoratorAndWidgetChange05() {
+    var frp = shared.scope.getFrp();
+    // change just the header widget
+
+    var widgetFactory = function (scope, cellB) {
+        var widget = new recoil.ui.widgets.LabelWidget(scope);
+        widget.attach(frp.liftB(
+            function (v) {
+                return "x" + v.getMeta().name;
+            },
+             cellB));
+        return widget;
+    };
+    frp.accessTrans(function () {
+        var mtable = shared.tableB.get().unfreeze();
+        mtable.addMeta({headerWidgetFactory: widgetFactory});
+        shared.tableB.set(mtable.freeze());
+    },shared.tableB);
+    waitFor(function () {
+        return findVal('xID');
+    });
+    asyncTestCase.waitForAsync('test show table');
+    
+};
+
+function testDecoratorAndWidgetChange06() {
+    var frp = shared.scope.getFrp();
+    // change just the header widget and renderer
+
+    var widgetFactory = function (scope, cellB) {
+        var widget = new recoil.ui.widgets.LabelWidget(scope);
+        widget.attach(frp.liftB(
+            function (v) {
+                return "y" + v.getMeta().name;
+            },
+             cellB));
+        return widget;
+    };
+    var decorator = function () {
+        return new recoil.ui.RenderedDecorator(
+            decorator,
+            goog.dom.createDom('td', {style:'background:yellow'}));
+    };
+    decorator.name = 'fred';
+    frp.accessTrans(function () {
+        var mtable = shared.tableB.get().unfreeze();
+        mtable.addMeta({headerWidgetFactory: widgetFactory});
+        mtable.addMeta({headerDecorator: decorator});
+        shared.tableB.set(mtable.freeze());
+    },shared.tableB);
+    waitFor(findTdColor('yellow', findVal, 'yID'));
+    asyncTestCase.waitForAsync('test show table');
+    
+};
+
+
+function testDecoratorAndWidgetChange07() {
+    document.body.removeChild(shared.container);
+    asyncTestCase.waitForAsync('test remove table');
+}
+
+
+function testDecoratorAndWidgetChange08() {
+    var frp = shared.scope.getFrp();
+    assertEquals(0,frp.tm().watching());
+    shared = {};
+}
 function testOrderChange01() {
     shared = {
         container : goog.dom.createDom('div', {id: 'foo'}),
@@ -94,6 +296,7 @@ function findInput(val) {
         return n.nodeName === 'INPUT' && n.value === val  && n.type === 'text';
     }) ;
 }
+
 
 function findVal(val) {
     return goog.dom.findNode(shared.container, function (n) {

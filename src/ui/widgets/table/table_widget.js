@@ -19,7 +19,7 @@ goog.require('recoil.ui.widgets.table.StringColumn');
 
 
 /**
- * @typedef {{key:!Array, rowPos:!number, keyCols: !Array<!recoil.structs.table.ColumnKey>,cellMeta:Object<string,Object>}}
+ * @typedef {{key:!Array,rowPos:!number, meta:!Object,keyCols: !Array<!recoil.structs.table.ColumnKey>,cellMeta:Object<string,Object>}}
  */
 recoil.ui.widgets.table.RowAndCellMeta_;
 
@@ -382,7 +382,6 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
             info.rowMeta.add(rowAndCellMeta);
             pos++;
         });  // table.forEach
-
         return info;
     }, tableB);
 };
@@ -399,6 +398,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
 recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(tableB) {
     var frp = this.scope_.getFrp();
     var me = this;
+    var old = undefined;
 
     return frp.liftB(function(table) {
         var info = recoil.ui.widgets.table.TableWidget.emptyState_();
@@ -413,7 +413,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
             var myInfo = {key: key};
             recoil.ui.widgets.table.TableWidget.copyMeta(
                 goog.array.concat(
-                    ['columnHeaderDecorator', 'headerWidgetFactory'],
+                    ['headerDecorator', 'headerWidgetFactory'],
                     rowAndColumnFields),
                 [tableMeta, info.tableMeta], [columnMeta, myInfo]);
             info.columnMeta.push(myInfo);
@@ -444,6 +444,10 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
                 }
             });
         });  // table.forEach
+        if (!recoil.util.object.isEqual(old, info) && old) {
+            console.log('INFO', info, recoil.util.object.isEqual(old.rowMeta, info.rowMeta));
+        }
+        old = info;
         return info;
 
     }, tableB);
@@ -535,11 +539,28 @@ var cellCount = 0;
  * @private
  * @param {Object} tableMeta the relevant meta data assocatied with the table
  * @param {recoil.ui.RenderedDecorator} row information about currently rendered row
- * @param {Object} rowMeta the relavant metadata associated with row
+ * @param {recoil.ui.widgets.table.RowAndCellMeta_} rowMeta the relavant metadata associated with row
  * @param {Object} columnMeta
  */
 recoil.ui.widgets.table.TableWidget.prototype.createCell_ =
     function(tableMeta, row, rowMeta, columnMeta)
+{
+
+    var renderInfo = this.createRenderInfoCell_(tableMeta, row.key, rowMeta, columnMeta);
+    row.inner.appendChild(renderInfo.outer);
+    row.cols.push(renderInfo);
+};
+
+/**
+ * @private
+ * @param {Object} tableMeta the relevant meta data assocatied with the table
+ * @param {!Array<?>} key information about currently rendered row
+ * @param {recoil.ui.widgets.table.RowAndCellMeta_} rowMeta the relavant metadata associated with row
+ * @param {Object} columnMeta
+ * @return {!Object}
+ */
+recoil.ui.widgets.table.TableWidget.prototype.createRenderInfoCell_ =
+    function(tableMeta, key, rowMeta, columnMeta)
 {
     var cellMeta = rowMeta.cellMeta[columnMeta.key];
     var cellDecorator = this.getMetaValue(
@@ -549,18 +570,16 @@ recoil.ui.widgets.table.TableWidget.prototype.createCell_ =
     var renderInfo = cellDecorator();
     renderInfo.decorator = cellDecorator;
     renderInfo.factory = cellFactory;
-    row.inner.appendChild(renderInfo.outer);
-    row.cols.push(renderInfo);
 
     var widget = renderInfo.factory(
         this.scope_,
         recoil.frp.table.TableCell.create(
             this.scope_.getFrp(), this.tableB_,
-            row.key, columnMeta.key));
+            key, columnMeta.key));
+//TODO    renderInfo.widget = widget;
 
     widget.getComponent().render(renderInfo.inner);
-
-
+    return renderInfo;
 };
 
 /**
@@ -615,7 +634,7 @@ recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ =
             recoil.frp.table.TableCell.createHeader(
                 me.scope_.getFrp(),
                 me.tableB_, meta.key));
-        renderInfo.widget = widget;
+//        renderInfo.widget = widget;
         widget.getComponent().render(renderInfo.inner);
     });
 };
@@ -715,31 +734,55 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
 
 /**
  * @private
- * @param {function() : Object}  decorator
- * @param {function() : recoil.ui.Widget}  factory
  * @param {Object} oldRenderInfo
- * @param {Node} parent
- * @param {number} position
+ * @param {!Element} parent
+ * @param {!number} position
+ * @param {Object} tableMeta
+ * @param {?recoil.ui.widgets.table.RowAndCellMeta_} row
+ * @param {Object} columnMeta
  * @return {Object}
  */
-recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = function(decorator, factory, oldRenderInfo, parent, position) {
-    if (decorator === oldRenderInfo.decorator && factory === oldRenderInfo.factory) {
+recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = function(oldRenderInfo, parent, position, tableMeta, row, columnMeta) {
+    var type = row ? 'cell' : 'header';
+    var cellMeta = row ? row.cellMeta[columnMeta.key] : {};
+    var rowMeta = row ? row.meta : {};
+    var decorator = this.getMetaValue(type + 'Decorator', tableMeta, rowMeta, columnMeta, cellMeta);
+    var factory = this.getMetaValue(type + 'WidgetFactory', tableMeta, rowMeta, columnMeta, cellMeta);
+
+
+    if (recoil.util.object.isEqual(decorator, oldRenderInfo.decorator)
+        && recoil.util.object.isEqual(factory, oldRenderInfo.factory)) {
         return oldRenderInfo;
     }
     var res = {};
+    var me = this;
+    var mkHeader = function() {
+        return factory(
+            me.scope_,
+            recoil.frp.table.TableCell.createHeader(
+                me.scope_.getFrp(),
+                me.tableB_, columnMeta.key));
+    };
+    if (!recoil.util.object.isEqual(decorator, oldRenderInfo.decorator)) {
 
-    if (decorator !== oldRenderInfo.decorator) {
-        res = decorator();
-        parent.removeChild(oldRenderInfo.outer);
-        oldRenderInfo.outer.removeChild(oldRenderInfo.widget.getComponent().getElement());
-
-        if (factory === oldRenderInfo.factory) {
+        if (recoil.util.object.isEqual(factory, oldRenderInfo.factory)) {
+            res = decorator();
+            this.replaceChild(parent, oldRenderInfo.outer, res.outer);
             this.moveChildren(oldRenderInfo.inner, res.inner);
-            res.widget = oldRenderInfo.widget;
+//            res.widget = oldRenderInfo.widget;
         }
         else {
-            res.widget = factory();
-            res.widget.getComponent().render(res.inner);
+            if (row) {
+                // this is a cell create it as a cell
+                res = this.createRenderInfoCell_(tableMeta, row.key, row, columnMeta);
+                this.replaceChild(parent, oldRenderInfo.outer, res.outer);
+            }
+            else {
+                res = decorator();
+                this.replaceChild(parent, oldRenderInfo.outer, res.outer);
+                var widget = mkHeader();
+                widget.getComponent().render(res.inner);
+            }
         }
         res.factory = factory;
 
@@ -747,6 +790,15 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
     else {
         res.inner = oldRenderInfo.inner;
         res.outer = oldRenderInfo.outer;
+        goog.dom.removeChildren(oldRenderInfo.inner);
+        if (row) {
+            var cell = this.createRenderInfoCell_(tableMeta, row.key, row, columnMeta);
+            this.moveChildren(cell.inner, res.inner);
+        }
+        else {
+            var header = mkHeader();
+            header.getComponent().render(res.inner);
+        }
     }
     res.decorator = decorator;
 
@@ -801,9 +853,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
 
         if (renderState.headerRow) {
             var oldRenderInfo = renderState.headerCols[i];
-            var decorator = me.getMetaValue('headerDecorator', tableMeta, meta);
-            var factory = me.getMetaValue('headerWidgetFactory', tableMeta, meta);
-            renderState.headerCols[i] = this.replaceWidgetAndDecorator_(decorator, factory, oldRenderInfo, renderState.headerRow.inner, i);
+            renderState.headerCols[i] = this.replaceWidgetAndDecorator_(oldRenderInfo, renderState.headerRow.inner, i, tableMeta, null, meta);
         }
     }
 
@@ -831,9 +881,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
             var columnMeta = table.columnMeta[i];
             var cellMeta = newRow.cellMeta[columnMeta.key];
             var oldRenderInfo = row.cols[i];
-            var decorator = me.getMetaValue('cellDecorator', tableMeta, newRow.meta, columnMeta, cellMeta);
-            var factory = me.getMetaValue('cellWidgetFactory', tableMeta, newRow.meta, columnMeta, cellMeta);
-            row.cols[i] = me.replaceWidgetAndDecorator_(decorator, factory, oldRenderInfo, row.inner, i);
+            row.cols[i] = me.replaceWidgetAndDecorator_(oldRenderInfo, row.inner, i, tableMeta, newRow, columnMeta);
         }
     });
 };

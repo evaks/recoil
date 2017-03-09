@@ -277,7 +277,7 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
     var bIndex = goog.array.indexOf(bPath, b);
 
     if (aIndex !== -1 || bIndex !== -1) {
-        return aIndex === bIndex;
+        return recoil.util.object.isEqualDebug_(aIndex === bIndex, debugPath);
     }
 
     if (a === b) {
@@ -289,12 +289,15 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
     }
 
     if (a.equals !== undefined && a.equals instanceof Function) {
-        return a.equals(b);
+        return recoil.util.object.isEqualDebug_(a.equals(b), debugPath);
     }
     if (b.equals !== undefined && b.equals instanceof Function) {
         return recoil.util.object.isEqualDebug_(b.equals(a), debugPath);
     }
 
+    if (a instanceof Function || b instanceof Function) {
+        return recoil.util.object.isEqualDebug_(false, debugPath);
+    }
     if ((a instanceof Array) != (b instanceof Array)) {
 
         return recoil.util.object.isEqualDebug_(false, debugPath);
@@ -307,14 +310,14 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
     if (a instanceof Array) {
         var idx = 0;
 
-        return goog.array.equals(/** @type {IArrayLike} */
+        return recoil.util.object.isEqualDebug_(goog.array.equals(/** @type {IArrayLike} */
             (a), /** @type {IArrayLike} */
             (b), function(a, b) {
                 var newDebugPath = goog.array.concat(debugPath, '[' + idx + ']');
 
                 return recoil.util.object.isEqual.isEqualRec_(
                     a, b, newAPath, newBPath, newDebugPath);
-            });
+            }), debugPath);
     }
 
     if (a instanceof Object || b instanceof Object) {
@@ -325,7 +328,7 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
         for (var k in a) {
             var newDebugPath = goog.array.concat(debugPath, k);
             if (!(k in b) || !recoil.util.object.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath, newDebugPath)) {
-                return false;
+                return recoil.util.object.isEqualDebug_(false, newDebugPath);
             }
         }
         for (var k in b) {
@@ -348,9 +351,9 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
  * @return {!boolean}
  */
 recoil.util.object.isEqualDebug_ = function(val, path) {
-//    if (!val) {
-//        console.log('Not Equal', path);
-//    }
+/*    if (!val) {
+        console.log('Not Equal', path);
+    }*/
     return val;
 };
 
