@@ -553,14 +553,20 @@ recoil.db.ChangeSet.Path.prototype.isAncestor = function(path, allowSelf) {
     if (this.items_.length > path.items_.length) {
         return false;
     }
-    if (!allowSelf && this.items_.length === path.items_.length) {
-        return false;
-    }
 
     for (var i = 0; i < this.items_.length; i++) {
-        if (!recoil.util.object.isEqual(this.items_[i], path.items_[i])) {
+        var myItem = this.items_[i];
+        var otherItem = path.items_[i];
+        
+        if (i + 1 === this.items_.length && myItem.keys_.length === 0 && otherItem.keys_.length > 0) {
+            return myItem.name_ === otherItem.name_;
+        }
+        else if (!recoil.util.object.isEqual(myItem, otherItem)) {
             return false;
         }
+    }
+    if (!allowSelf && this.items_.length === path.items_.length) {
+        return false;
     }
     return true;
 };
@@ -769,7 +775,7 @@ recoil.db.ChangeSet.Path.prototype.parts = function() {
  * @return {!Array<!recoil.db.ChangeSet.PathItem>}
  */
 recoil.db.ChangeSet.Path.prototype.items = function() {
-    return this.items_;
+    return this.items_.slice(0);
 };
 
 /**
