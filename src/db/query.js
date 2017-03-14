@@ -188,7 +188,7 @@ recoil.db.QueryScope.mkWhere = function(exp) {
 
     var args = ['obj'];
     exp = exp.trim();
-    if (exp.startsWith('function')) {
+    if (goog.string.startsWith(exp, 'function')) {
 
         args.push("'use strict'; return (" + exp + ')();');
     }

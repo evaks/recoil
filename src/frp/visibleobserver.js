@@ -584,7 +584,7 @@ recoil.frp.VisibleObserver.prototype.observe_ = function(node) {
  * @return {boolean}
  */
 recoil.frp.VisibleObserver.exists = function(node) {
-    return goog.dom.getDocument().contains(node);
+    return goog.dom.contains(goog.dom.getDocument(), node);
 };
 
 /**

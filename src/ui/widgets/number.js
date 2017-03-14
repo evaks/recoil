@@ -286,7 +286,7 @@ recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
     'value',
     {
         min: 0,
-        max: Number.MAX_SAFE_INTEGER,
+        max: Number.MAX_SAFE_INTEGER || 9007199254740991,
         step: 1,
         readonlyFormatter: null,
         classes: []

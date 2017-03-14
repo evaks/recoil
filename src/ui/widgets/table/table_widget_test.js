@@ -92,13 +92,12 @@ function testDecoratorAndWidgetChange01() {
 function findTdColor(color, func, val) {
     return function () {
         var el = func(val ? val : 'row 4');
-        console.log("finding color", color, el);
         if (el) {
             while (el) {
-                if (el.nodeName === 'TD') {                    
-                    return el.style.background === color || el.style.background.startsWith(color);
+                if (el.nodeName === 'TD') {
+                    return el.style.background === color || goog.string.startsWith(el.style.background,color);
                 }
-                el = el.parentElement;
+                el = goog.dom.getParentElement(el);
             }
             return false;
         }

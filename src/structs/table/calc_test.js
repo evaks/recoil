@@ -2,6 +2,7 @@ goog.provide('recoil.structs.table.CalcTest');
 
 goog.require('goog.testing.jsunit');
 goog.require('recoil.structs.table.CalcTable');
+goog.require('goog.string');
 
 goog.setTestOnly('recoil.structs.table.CalcTest');
 
@@ -19,7 +20,7 @@ function makeTable(raw) {
 
     var row = raw[0];
     for (var k in row) {
-        if (k.endsWith('_p')) {
+        if (goog.string.endsWith(k,'_p')) {
             pks.push(COLS[k]);
         }
         else {

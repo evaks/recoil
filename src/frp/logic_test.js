@@ -36,7 +36,7 @@ function testAnd () {
 
     assertEquals(false, testeeB.unsafeMetaGet().get());
 
-    assertThrows (() => {recoil.frp.logic.and(false, true, true);});
+    assertThrows (function (){recoil.frp.logic.and(false, true, true);});
 }
 
 
@@ -74,7 +74,7 @@ function testOr () {
     assertEquals(true, testeeB.unsafeMetaGet().get());
     assertEquals(false, testee2B.unsafeMetaGet().get());
 
-    assertThrows (() => {recoil.frp.logic.or(false, true, true);});
+    assertThrows (function (){recoil.frp.logic.or(false, true, true);});
 }
 
 
@@ -109,7 +109,7 @@ function testAndShortCircuit () {
 
     assertEquals(false, testeeB.unsafeMetaGet().get());
 
-    assertThrows (() => {recoil.frp.logic.sc.and(false, true, true);});
+    assertThrows (function () {recoil.frp.logic.sc.and(false, true, true);});
 }
 
 
@@ -144,7 +144,7 @@ function testOrShortCircuit () {
     assertEquals(false, testeeB.unsafeMetaGet().ready());
     assertEquals(true, testee2B.unsafeMetaGet().get());
 
-    assertThrows (() => {recoil.frp.logic.sc.or(false, true, true);});
+    assertThrows (function () {recoil.frp.logic.sc.or(false, true, true);});
 }
 
 
@@ -194,7 +194,7 @@ function testEquals () {
     assertEquals(true, testee2B.unsafeMetaGet().get());
 
 
-    assertThrows (() => {recoil.frp.logic.equals(1,1);});
+    assertThrows (function () {recoil.frp.logic.equals(1,1);});
     
 }
 
@@ -245,6 +245,6 @@ function testNotEquals () {
     assertEquals(false, testee2B.unsafeMetaGet().get());
 
 
-    assertThrows (() => {recoil.frp.logic.notEquals(1,1);});
+    assertThrows (function () {recoil.frp.logic.notEquals(1,1);});
     
 }
