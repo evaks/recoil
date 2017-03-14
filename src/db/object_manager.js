@@ -163,7 +163,6 @@ recoil.db.SendInfo.prototype.isToplevel = function() {
  */
 recoil.db.SendInfo.prototype.setRead = function(value, toplevel) {
     var res = new recoil.db.SendInfo(value, toplevel);
-    res.sending_ = this.sending_;
     return res;
 };
 

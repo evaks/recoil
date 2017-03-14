@@ -419,8 +419,11 @@ recoil.db.ChangeSet.Schema.prototype.children = function(path) {
 
 
 /**
+ * this is used to filter out items that may exist in the aboslute path
+ * but not in the named path
+ *
  * @param {recoil.db.ChangeSet.Path} path
- * @return {!boolean} the children
+ * @return {!boolean} true if the path exist for this path
  */
 recoil.db.ChangeSet.Schema.prototype.exists = function(path) {
 
@@ -557,7 +560,7 @@ recoil.db.ChangeSet.Path.prototype.isAncestor = function(path, allowSelf) {
     for (var i = 0; i < this.items_.length; i++) {
         var myItem = this.items_[i];
         var otherItem = path.items_[i];
-        
+
         if (i + 1 === this.items_.length && myItem.keys_.length === 0 && otherItem.keys_.length > 0) {
             return myItem.name_ === otherItem.name_;
         }

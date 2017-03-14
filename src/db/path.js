@@ -1,8 +1,8 @@
 goog.provide('recoil.db.Path');
 goog.provide('recoil.db.PathItem');
 
+goog.require('goog.string');
 goog.require('goog.structs.AvlTree');
-
 /**
  * @interface
  */
@@ -53,8 +53,8 @@ recoil.db.Path = function(parts) {
 
     for (var i = 0; i < parts.length; i++) {
         var part = parts[i];
-        if (part.startsWith && part.endsWith && part.substring) {
-            if (part.startsWith('[') && part.endsWith(']')) {
+        if (goog.isString(part)) {
+            if (goog.string.startsWith(part, '[') && goog.string.endsWith(part, ']')) {
                 var cleanPath = part.substring(1, part.length - 1);
                 var keyParts = /** @type Array<?string> */(cleanPath.split(' '));
                 var type = recoil.db.PathItem.FACTORY[keyParts[0]];

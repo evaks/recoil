@@ -20,6 +20,7 @@ goog.provide('recoil.db.expr.True');
 goog.provide('recoil.db.expr.Value');
 goog.provide('recoil.db.expr.Where');
 
+goog.require('goog.string');
 
 /**
  * @interface
@@ -48,8 +49,8 @@ recoil.db.QueryScope = function(map) {
  */
 recoil.db.QueryScope.stripQuotes_ = function(str) {
     if (str.length > 1
-        && ((str.startsWith("'") && str.endsWith("'"))
-            || (str.startsWith('\"') && str.endsWith('\"')))) {
+        && ((goog.string.startsWith(str, "'") && goog.string.endsWith(str, "'"))
+            || (goog.string.startsWith(str, '\"') && goog.string.endsWith(str, '\"')))) {
 
         return str.substring(1, str.length - 1);
     }

@@ -1,6 +1,7 @@
 goog.provide('recoil.frp.Util');
 goog.provide('recoil.frp.util');
 
+goog.require('goog.string');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.struct');
@@ -381,7 +382,7 @@ recoil.frp.Util.Options = function(var_options) {
         name = name.trim();
 
         var startIndex = name.indexOf('(');
-        if (startIndex !== -1 || name.endsWith(')')) {
+        if (startIndex !== -1 || goog.string.endsWith(name, ')')) {
 
             var prefix = name.substring(0, startIndex).trim();
             var params = name.substring(startIndex + 1, name.length - 1);

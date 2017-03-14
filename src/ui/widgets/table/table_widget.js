@@ -1125,7 +1125,6 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
     }
     else {
-        console.log('error');
         if (!this.renderState_.errors) {
             if (this.renderState_.table) {
 
