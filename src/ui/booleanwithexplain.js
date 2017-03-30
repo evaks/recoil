@@ -56,6 +56,36 @@ recoil.ui.BoolWithExplanation.prototype.reason = function() {
     return this.val_ ? this.true_ : this.false_;
 };
 
+/**
+ * @param {!recoil.frp.Behaviour<!boolean>} valB the boolean value
+ * @param {(!recoil.frp.Behaviour<!recoil.ui.message.Message>|!recoil.ui.message.Message)=} opt_true the message to display if true
+ * @param {(!recoil.frp.Behaviour<!recoil.ui.message.Message>|!recoil.ui.message.Message)=} opt_false the message to display if false
+ * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
+ */
+recoil.ui.BoolWithExplanation.createB = function(valB, opt_true, opt_false) {
+    var frp = valB.frp();
+    var util = new recoil.frp.Util(frp);
+    return valB.frp().liftB(function(val, trueVal, falseVal) {
+        return new recoil.ui.BoolWithExplanation(val, trueVal, falseVal);
+    }, valB, util.toBehaviour(opt_true), util.toBehaviour(opt_false));
+};
+/**
+ * @param {!recoil.frp.Behaviour<!boolean>} valB the boolean value
+ * @param {(!recoil.frp.Behaviour<!recoil.ui.message.Message>|!recoil.ui.message.Message)=} trueM the message to display if true
+ * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
+ */
+recoil.ui.BoolWithExplanation.createTrueB = function(valB, trueM) {
+    return recoil.ui.BoolWithExplanation.createB(valB, trueM);
+};
+
+/**
+ * @param {!recoil.frp.Behaviour<!boolean>} valB the boolean value
+ * @param {(!recoil.frp.Behaviour<!recoil.ui.message.Message>|!recoil.ui.message.Message)=} falseM the message to display if false
+ * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
+ */
+recoil.ui.BoolWithExplanation.createFalseB = function(valB, falseM) {
+    return recoil.ui.BoolWithExplanation.createB(valB, undefined, falseM);
+};
 
 /**
  *
