@@ -1868,13 +1868,13 @@ recoil.db.ChangeSet.merge = function(schema, changes) {
  * @param {?} oldObj the old object
  * @param {?} newObj the new obj
  * @param {!recoil.db.ChangeSet.Path} path the path to the object
- * @param {!string} origColumn the column key describing the original keys column
+ * @param {!string} pkColumn the column key a unique immutable key for each object, only used for arrays of objects
  * @param {!recoil.db.ChangeSet.Schema} schema an interface describing all the
  *                                      object in the schema
  * @param {{changes:!Array<recoil.db.ChangeSet.Change>, errors:!Array<recoil.db.ChangeSet.Error>}=} opt_changes
  * @return {!{changes:!Array<recoil.db.ChangeSet.Change>, errors:!Array<recoil.db.ChangeSet.Error>}}
  */
-recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, opt_changes) {
+recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_changes) {
     var changes = opt_changes === undefined ? {changes: [], errors: []} : opt_changes;
 
     if (schema.isLeaf(path)) {
@@ -1900,28 +1900,29 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
     else if (schema.isKeyedList(path)) {
         var needed = [];
         var used = [];
-        var origKeyToNew = new goog.structs.AvlTree(recoil.util.object.compareKey);
+        var newRowMap = {};
+        var oldRowMap = {};
 
         for (var i = 0; i < newObj.length; i++) {
-            var origKey = newObj[i][origColumn];
-            if (origKey) {
-                origKeyToNew.add({key: path.setKeys(schema.keys(path), origKey), row: newObj[i]});
-            }
+            var origKey = newObj[i][pkColumn];
+            newRowMap[origKey] = newObj[i];
         }
 
         // do any deletes first they are not going to conflict with any existing keys
         for (i = 0; i < oldObj.length; i++) {
             var oldChild = oldObj[i];
             var oldKey = schema.createKeyPath(path, oldChild);
-            var newChildEntry = origKeyToNew.findFirst({key: oldKey});
+            var oldPk = oldChild[pkColumn];
+            oldRowMap[oldPk] = oldChild;
+            var newChildEntry = newRowMap[oldPk];
             if (newChildEntry) {
-                var newKey = schema.createKeyPath(path, newChildEntry.row);
+                var newKey = schema.createKeyPath(path, newChildEntry);
                 used.push(oldKey);
                 if (!recoil.util.object.isEqual(newKey, oldKey)) {
                     needed.push({idx: i, key: newKey, removeKey: oldKey});
                 }
                 else {
-                    recoil.db.ChangeSet.diff(oldChild, newChildEntry.row, newKey, origColumn, schema, changes);
+                    recoil.db.ChangeSet.diff(oldChild, newChildEntry, newKey, pkColumn, schema, changes);
                 }
             }
             else {
@@ -1930,7 +1931,8 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
         }
         for (i = 0; i < newObj.length; i++) {
             var newChild = newObj[i];
-            if (!newChild[origColumn]) {
+            // this is a new item
+            if (!oldRowMap[newChild[pkColumn]]) {
                 newKey = schema.createKeyPath(path, newChild);
                 needed.push({idx: i, key: newKey});
             }
@@ -1946,13 +1948,13 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
                 else {
                     var deps = {changes: [], errors: changes.errors};
                     if (info.removeKey) {
-                        recoil.db.ChangeSet.diff(oldObj[info.idx], newObj[info.idx], info.removeKey, origColumn, schema,
+                        recoil.db.ChangeSet.diff(oldObj[info.idx], newObj[info.idx], info.removeKey, pkColumn, schema,
                                                  changes);
                         changes.changes.push(new recoil.db.ChangeSet.Move(schema.absolute(info.removeKey), schema.absolute(info.key)));
                         recoil.db.ChangeSet.removePath(info.removeKey, used);
                     }
                     else {
-                        recoil.db.ChangeSet.diff(null, newObj[info.idx], info.key, origColumn, schema, changes);
+                        recoil.db.ChangeSet.diff(null, newObj[info.idx], info.key, pkColumn, schema, changes);
                     }
                     used.push(info.key);
                 }
@@ -1985,7 +1987,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, origColumn, schema, op
             var myChildren = schema.children(path.appendName(child));
             var oldV = oldObj ? oldObj[child] : null;
             var newV = newObj ? newObj[child] : null;
-            recoil.db.ChangeSet.diff(oldV, newV, path.appendName(child), origColumn, schema, subChanges);
+            recoil.db.ChangeSet.diff(oldV, newV, path.appendName(child), pkColumn, schema, subChanges);
         });
     return changes;
 

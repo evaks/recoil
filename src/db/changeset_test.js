@@ -319,7 +319,8 @@ function testDiffKeyMove() {
     var path = testee.Path.fromString('/key1');
     var outPath = testee.Path.fromString('/test/key1');
 
-    var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{orig:[1], k:2, v:1}, {orig:[2], k:3, v:2},{orig: [3], k:4, v:3}],
+    var changes = testee.diff([{orig:11, k:1, v:1}, {orig:12, k:2, v:2}, {orig:13, k:3, v:3}],
+                              [{orig:11, k:2, v:1}, {orig:12, k:3, v:2}, {orig:13, k:4, v:3}],
                               path,'orig',
                               schema);
     assertObjectEquals({changes: [
@@ -328,7 +329,8 @@ function testDiffKeyMove() {
         new testee.Move(outPath.setKeys(['k'],[1]),outPath.setKeys(['k'],[2]))
     ], errors: []},changes);
 
-    changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{orig:[1],k:2, v:10}, {orig:[2],k:3, v:2},{orig:[3],k:4, v:3}],
+    changes = testee.diff([{orig:11, k:1, v:1},  {orig:12, k:2, v:2}, {orig:13, k:3, v:3}],
+                          [{orig:11, k:2, v:10}, {orig:12, k:3, v:2}, {orig:13 ,k:4, v:3}],
                           path,'orig',
                           schema);
     assertObjectEquals({changes: [
@@ -348,7 +350,7 @@ function testDiffKeyChangeNonKey() {
     var path = testee.Path.fromString('/key1');
     var outPath = testee.Path.fromString('/test/key1');
 
-    var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}], [{orig:[1], k:1, v:1}, {orig:[2], k:2, v:3}],
+    var changes = testee.diff([{orig:'1', k:1, v: 1}, {orig: '2',k:2, v: 2}], [{orig:'1', k:1, v:1}, {orig:'2', k:2, v:3}],
                               path,'orig',
                               schema);
     assertObjectEquals({changes: [
@@ -364,7 +366,9 @@ function testDiffKeyMoveLoop() {
     var path = testee.Path.fromString('/key1');
     var outPath = testee.Path.fromString('/test/key1');
 
-    var changes = testee.diff([{k:1, v: 1}, {k:2, v: 2}, {k:3, v:3}], [{orig:[1],k:2, v:1}, {orig:[2],k:3, v:2},{orig:[3],k:1, v:3}],
+    var changes = testee.diff(
+        [{orig:11,k:1, v:1}, {orig:12, k:2, v:2}, {orig:13,k:3, v:3}],
+        [{orig:11,k:2, v:1}, {orig:12, k:3, v:2}, {orig:13,k:1, v:3}],
                               path,'orig',
                               schema);
 
@@ -383,7 +387,7 @@ function testDiffKeyInsert() {
     var path = testee.Path.fromString('/key1');
     var outPath = testee.Path.fromString('/test/key1');
 
-    var changes = testee.diff([],[{k:1, v:1}],
+    var changes = testee.diff([],[{orig: '1', k:1, v:1}],
                               path,'orig',
                               schema);
 
@@ -399,7 +403,7 @@ function testDiffKeyRemove() {
     var path = testee.Path.fromString('/key1');
     var outPath = testee.Path.fromString('/test/key1');
     
-    var changes = testee.diff([{k:1, v:1}],[],
+    var changes = testee.diff([{orig:11, k:1, v:1}],[],
                               path,'orig',
                               schema);
 

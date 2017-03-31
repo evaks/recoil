@@ -26,19 +26,35 @@ goog.require('recoil.util.object');
  * @param {function(T,T) : number=} opt_comparator used for key values only needed if > < = do not work and it is a primary key
  * @param {function(*) : T=} opt_castTo
  * @param {T=} opt_default
+ * @param {function():T=} opt_defaultFunc
  */
-recoil.structs.table.ColumnKey = function(name, opt_comparator, opt_castTo, opt_default) {
+recoil.structs.table.ColumnKey = function(name, opt_comparator, opt_castTo, opt_default, opt_defaultFunc) {
     this.name_ = name;
     this.comparator_ = opt_comparator || recoil.structs.table.ColumnKey.defaultComparator_;
     this.castTo_ = opt_castTo || function(x) {return x;};
     this.hasDefault_ = arguments.length > 3;
     this.default_ = opt_default;
+    this.defaultFunc_ = opt_defaultFunc;
     this.id_ = recoil.structs.table.ColumnKey.nextId_.next();
+};
+
+/**
+ * @param {string} name
+ * @return {!recoil.structs.table.ColumnKey<!string>}
+ */
+recoil.structs.table.ColumnKey.createUnique = function(name) {
+    var seq = new recoil.util.Sequence();
+    return new recoil.structs.table.ColumnKey(name, undefined, undefined, '', function() {
+        return seq.next();
+    });
 };
 /**
  * @return {T}
  */
 recoil.structs.table.ColumnKey.prototype.getDefault = function() {
+    if (goog.isFunction(this.defaultFunc_)) {
+        return this.defaultFunc_();
+    }
     return this.default_;
 };
 
@@ -628,7 +644,12 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
     }
     this.primaryColumns_.forEach(function(col) {
         if (!row.hasColumn(col)) {
-            missingKeys.push(col);
+            if (col.hasDefault()) {
+                row = row.set(col, col.getDefault());
+            }
+            else {
+                missingKeys.push(col);
+            }
         }
     });
     this.otherColumns_.forEach(function(col) {

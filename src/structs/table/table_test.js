@@ -14,8 +14,23 @@ var COL_C = new recoil.structs.table.ColumnKey("c");
 var COL_D = new recoil.structs.table.ColumnKey("d", function (x, y) {
    return  y - x;
 });
+var COL_AUTO = recoil.structs.table.ColumnKey.createUnique("auto");
 
+function testAutoKey() {
+    var tbl = new recoil.structs.table.MutableTable([COL_AUTO], []);
+    var row = new recoil.structs.table.MutableTableRow();
 
+    tbl.addRow(row);
+    tbl.addRow(row);
+    var i = 1;
+    assertEquals(2,tbl.size());
+    tbl.forEach(function (r) {
+        var val = r.get(COL_AUTO);
+        assertEquals(""+ i,val);
+        i++;
+    });
+    
+};
 function testOrdered () {
     var tbl = new recoil.structs.table.MutableTable([COL_A], []);
     var row = new recoil.structs.table.MutableTableRow(1);
