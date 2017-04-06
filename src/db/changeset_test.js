@@ -31,6 +31,27 @@ var schema = {
                 b1 : {}
             }
         },
+        adel: {
+            children: {
+                b: {
+                    children : {
+                        c: {
+                            keys : ['k'],
+                            children: {
+                                k : {},
+                                d: {
+                                    children : {
+                                        e: {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                b1 : {}
+            }
+        },
+
         a1 : {
             alias : '/test/a',
             children: {
@@ -307,7 +328,7 @@ function testDiffDelete() {
     var changes = testee.diff({a:1, b: {c: 3}}, {a:1},
                               path,'orig',
                               schema);
-    assertObjectEquals({changes: [new testee.Delete(outPath.appendName('b'))], errors:[]},changes);
+    assertObjectEquals({changes: [new testee.Delete(outPath.appendName('b'),{c:3})], errors:[]},changes);
 }
 
 
@@ -408,14 +429,14 @@ function testDiffKeyRemove() {
                               schema);
 
     assertObjectEquals({changes: [
-        new testee.Delete(outPath.setKeys(['k'],[1]))], errors: []}
+        new testee.Delete(outPath.setKeys(['k'],[1]),{orig:11, v:1})], errors: []}
                        , changes);
 }
-
 
 function testSerialize () {
     var testee = recoil.db.ChangeSet;
     var path = testee.Path.fromString('/a/b/c').setKeys(['k'], [2]);
+    var delPath = testee.Path.fromString('/adel/b/c');
     var path2 = testee.Path.fromString('/e/f/g').setKeys(['k'], [3]);
     var compressor = new recoil.db.ChangeSet.DefaultPathCompressor ();
     var vser = {
@@ -437,15 +458,21 @@ function testSerialize () {
     var set = new testee.Set(path, 1, 2);
     var move = new testee.Move(path, path2);
     var add = new testee.Add(path,[set]);
-    var del = new testee.Delete(path);
-    assertObjectEquals(move, testee.Change.deserialize(move.serialize(true, vser), schema, vser));
-    assertObjectEquals(set, testee.Change.deserialize(set.serialize(true, vser), schema, vser));
-    assertObjectEquals(add, testee.Change.deserialize(add.serialize(true, vser), schema, vser));
-    assertObjectEquals(del, testee.Change.deserialize(del.serialize(true, vser), schema, vser));
-    var res = set.serialize(true, vser);
+    var del = new testee.Delete(delPath, [{k:1, d: {e: 'x0', e1: '1'}}]);
+    assertObjectEquals(move, testee.Change.deserialize(move.serialize(true, schema, vser), schema, vser));
+    assertObjectEquals(set, testee.Change.deserialize(set.serialize(true, schema, vser), schema, vser));
+    assertObjectEquals(add, testee.Change.deserialize(add.serialize(true, schema, vser), schema, vser));
+    assertObjectEquals(del, testee.Change.deserialize(del.serialize(true, schema, vser), schema, vser));
+    var res = set.serialize(true, schema, vser);
     assertObjectEquals({type: testee.Change.Type.SET, old: '/a/b/c1', new: '/a/b/c2',
                         path:{parts:'a/b/c', params:['/a/b/c/k2']}}, res);
 
+    res = del.serialize(true, schema, vser);
+    assertObjectEquals({type: testee.Change.Type.DEL, path: '/adel/b/c',
+                        orig: [{k:'/adel/b/c/k1', d: { e: '/adel/b/c/d/ex0', e1: '1'}}],
+                        path:{parts:'adel/b/c', params:[]}}, res);
+    del = new testee.Delete(delPath.setKeys(['k'],[1]), {k:1, d: {e: 'x0', e1: '1'}});
+    
     
     // check it serializes keys and values
 }
@@ -651,11 +678,11 @@ function testMergeChanges() {
 
     assertObjectEquals(
         [
-            new ns.Delete(fullListA.setKeys(['k'], [1]), []),
+            new ns.Delete(fullListA.setKeys(['k'], [1]), {x:1}),
             new ns.Add(fullListA.setKeys(['k'], [1]), [])
         ],
         ns.merge(schema,[
-            new ns.Delete(fullListA.setKeys(['k'], [1])),
+            new ns.Delete(fullListA.setKeys(['k'], [1]),{x:1}),
             new ns.Add(fullListA.setKeys(['k'], [1]), []),
         ]));
 
