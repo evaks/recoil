@@ -214,11 +214,12 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
  *
  * @param {?} a
  * @param {?} b
+ * @param {Object=} opt_ignore a map of fields to ignore
  * @return {!boolean}
  */
-recoil.util.object.isEqual = function(a, b) {
+recoil.util.object.isEqual = function(a, b, opt_ignore) {
 
-    return recoil.util.object.isEqual.isEqualRec_(a, b, [], [], []);
+    return recoil.util.object.isEqual.isEqualRec_(a, b, [], [], [], opt_ignore || {});
 };
 /**
  * finds an element, if it does not exist inserts it into
@@ -267,9 +268,10 @@ goog.structs.AvlTree.prototype.equals = function(other) {
  * @param {!Array<Object>} aPath
  * @param {!Array<Object>} bPath
  * @param {!Array<!string>} debugPath
+ * @param {!Object} ignore
  * @return {!boolean}
  */
-recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath) {
+recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath, ignore) {
 
     // check for loops
 
@@ -316,7 +318,7 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
                 var newDebugPath = goog.array.concat(debugPath, '[' + idx + ']');
 
                 return recoil.util.object.isEqual.isEqualRec_(
-                    a, b, newAPath, newBPath, newDebugPath);
+                    a, b, newAPath, newBPath, newDebugPath, ignore);
             }), debugPath);
     }
 
@@ -326,12 +328,18 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath)
         }
 
         for (var k in a) {
+            if (ignore[k]) {
+                continue;
+            }
             var newDebugPath = goog.array.concat(debugPath, k);
-            if (!(k in b) || !recoil.util.object.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath, newDebugPath)) {
+            if (!(k in b) || !recoil.util.object.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath, newDebugPath, ignore)) {
                 return recoil.util.object.isEqualDebug_(false, newDebugPath);
             }
         }
-        for (var k in b) {
+        for (k in b) {
+            if (ignore[k]) {
+                continue;
+            }
             if (!(k in a)) {
                 newDebugPath = goog.array.concat(debugPath, k);
                 return recoil.util.object.isEqualDebug_(false, newDebugPath);
