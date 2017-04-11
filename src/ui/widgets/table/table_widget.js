@@ -1136,8 +1136,13 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         goog.dom.removeChildren(this.renderState_.errors);
 
         helper.errors().forEach(function(error) {
+            var div = goog.dom.createDom('div', {class: 'error'}, goog.dom.createTextNode(error.toString()));
+            div.onclick = function () {
+                console.error("Error was", error);
+            };
             me.renderState_.errors.appendChild(
-                goog.dom.createDom('div', {class: 'error'}, goog.dom.createTextNode(error.toString())));
+                div);
+            
         });
 
         // display error or not ready state
