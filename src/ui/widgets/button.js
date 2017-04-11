@@ -31,7 +31,7 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
     this.button_ = new goog.ui.Button();
     this.button_.setEnabled(false);
     this.button_.setContent('??');
-
+    this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.button_);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_);
 
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.button_, goog.ui.Component.EventType.ACTION);
@@ -64,10 +64,12 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, ena
 
     this.textB_ = util.toBehaviour(textB);
     this.callbackB_ = util.toBehaviour(callbackB);
-    this.enabledB = util.toBehaviour(enabledB);
+    this.enabledB_ = util.toBehaviour(enabledB);
 
-    this.helper_.attach(this.textB_, this.callbackB_, this.enabledB);
-
+    this.helper_.attach(this.textB_, this.callbackB_, this.enabledB_);
+    this.enabledHelper_.attach(
+        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
+        this.helper_);
     var me = this;
     this.changeHelper_.listen(this.callbackB_);
 };
@@ -82,13 +84,9 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, ena
  */
 recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, textB, callbackB, enabledB) {
     if (this.button_) {
-        this.button_.setEnabled(helper.isGood());
-        if (helper.isGood()) {
+        if (textB.good()) {
           this.button_.setContent(textB.get());
-          //this.button_.setEnabled(enabledB.get());
-
         }
-
     }
 };
 

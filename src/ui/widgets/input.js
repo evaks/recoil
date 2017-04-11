@@ -148,18 +148,18 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.classesB_ = bound.classes();
     this.spellcheckB_ = bound.spellcheck();
 
-    var formatterB = frp.liftB(function (converter) {
-        var func = function (val) {
+    var formatterB = frp.liftB(function(converter) {
+        var func = function(val) {
             return converter.convert(val);
         };
         func.converter = converter;
-        func.equals =  function(other) {
+        func.equals = function(other) {
             return other && recoil.util.object.isEqual(other.converter, converter);
         };
         return func;
     }, this.converterB_);
     this.readonlyHelper_.attach(this.editableB_);
-    this.readonly_.attachStruct({name:this.valueB_, formatter: formatterB});
+    this.readonly_.attachStruct({name: this.valueB_, formatter: formatterB});
     this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_,
         this.maxLengthB_, this.displayLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_);
 
