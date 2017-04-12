@@ -2361,6 +2361,7 @@ recoil.db.ChangeDbNode.Container.prototype.getChildNode = function(schema, item,
         res = new recoil.db.ChangeDbNode.Container();
     }
     this.children_[item.name()] = res;
+    this.useVal_ = false;
     return res;
 };
 
