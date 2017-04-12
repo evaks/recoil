@@ -418,6 +418,29 @@ function testDiffKeyInsert() {
                        , changes);
 }
 
+function testDiffSubKeyInsert() {
+    var testee = recoil.db.ChangeSet;
+
+    var path = testee.Path.fromString('/key1');
+    var outPath = testee.Path.fromString('/test/key1');
+
+    var changes = testee.diff(null,[{orig: '1', k:1, v:1}],
+                              path,'orig',
+                              schema);
+
+    assertObjectEquals({changes: [
+        new testee.Add(outPath.setKeys(['k'],[1]), [
+            new testee.Set(outPath.setKeys(['k'],[1]).appendName('v'), null, 1)])], errors: []}
+                       , changes);
+
+    changes = testee.diff([{orig: '1', k:1, v:1}],null,
+                              path,'orig',
+                          schema);
+    assertObjectEquals({changes: [
+        new testee.Delete(outPath.setKeys(['k'],[1]), {orig: '1', v:1})], errors: []}, changes);
+
+}
+
 function testDiffKeyRemove() {
     var testee = recoil.db.ChangeSet;
 

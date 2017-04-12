@@ -2034,7 +2034,15 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
     if ((oldObj === null || oldObj === undefined) && (newObj == null || newObj === undefined)) {
         return changes;
     }
-
+    if (schema.isKeyedList(path)) {
+        // if the item is null and a list assume it is a list
+        if (oldObj === null || oldObj === undefined) {
+            oldObj = [];
+        }
+        if (newObj === null || newObj === undefined) {
+            newObj = [];
+        }
+    }
     if (newObj === null || newObj === undefined) {
         var cloned = goog.object.clone(oldObj);
         path.last().keyNames().forEach(function(k) {
@@ -2044,6 +2052,8 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
         return changes;
     }
     var subChanges = changes;
+
+        
     if (oldObj === null || oldObj === undefined) {
         subChanges = {changes: [], errors: changes.errors};
         changes.changes.push(new recoil.db.ChangeSet.Add(schema.absolute(path), subChanges.changes));
