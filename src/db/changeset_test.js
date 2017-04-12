@@ -302,6 +302,20 @@ function testDiffChange() {
 
     assertObjectEquals([], changes.errors);
 
+    changes = testee.diff({a:null}, {},
+                          path,'orig',
+                          schema);
+    
+    assertSameObjects([],[],changes.changes);
+
+    changes = testee.diff({a:undefined}, {a:null},
+                          path,'orig',
+                          schema);
+    
+    assertSameObjects([],[],changes.changes);
+
+    assertObjectEquals([], changes.errors);
+
 
 }
 

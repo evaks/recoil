@@ -1138,7 +1138,7 @@ recoil.db.ChangeSet.Add.prototype.applyToDb = function(db, schema) {
     var listNode;
     if (this.path_.lastKeys().length > 0) {
         // this is a list node we are adding
-        listNode = db.resolve_(this.path_.unsetKeys(), false);
+        listNode = db.resolve_(this.path_.unsetKeys(), true);
         if (!listNode) {
             throw "add node '" + this.path_.unsetKeys().toString() + "' does not exist";
         }
@@ -2025,6 +2025,12 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
     var changes = opt_changes === undefined ? {changes: [], errors: []} : opt_changes;
 
     if (schema.isLeaf(path)) {
+        if (oldObj === undefined || oldObj === null) {
+            if (newObj === undefined || newObj === null) {
+                // these are considered the same
+                return changes;
+            }
+        }
         if (!recoil.util.object.isEqual(oldObj, newObj)) {
             changes.changes.push(new recoil.db.ChangeSet.Set(schema.absolute(path), oldObj, newObj));
         }
