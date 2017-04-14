@@ -27,46 +27,70 @@ recoil.frp.VisibleObserver = function() {
 
     if (recoil.frp.VisibleObserver.InsertionWatcher_ === null) {
         // maybe we should use a weak map here we can get rid of the $.recoil.watcher
+        /**
+
+         */
+
         var addRec = function(node, seen, depth) {
-            var toAdds = node['$.recoil.watcher'];
+            var listeners = node['$.recoil.watcher.listeners'];
+            
             recoil.frp.VisibleObserver.setUniqueDomId_(node);
+
             if (seen[node.id]) {
                 return;
             }
-
-            seen[node.id] = true;
-            if (toAdds !== undefined) {
-                toAdds.forEach(function(toAdd) {
-
-                    toAdd.observer.listen(node, toAdd.callback);
-                });
-                delete node['$.recoil.watcher'];
-            }
-
+            seen[node.id] = listeners || [];
+            // do the children first so we chan see if we need to listen
+            
             goog.array.forEach(node.childNodes, function(child) {
-                addRec(child, seen, depth + 1);
+                addRec(child, seen, depth + 1, listeners);
             });
 
         };
+        var listen = function (listener) {
+            listener.observer.listen_(listener.node, listener.callback);
+        };
+        var unlisten = function (listener) {
+            // TODO maybe all at once so we don't have to detach more than once
+            listener.observer.unlisten_(listener.node, listener.callback);
+        };
         recoil.frp.VisibleObserver.InsertionWatcher_ = new MutationObserver(function(mutations) {
             // the mutations may have the same node more than once eliminate this since this is slow
-            var seen = {};
-            mutations.forEach(function(mutation, index, array) {
+            var added = {};
+            var removed = {};
 
-                for (var i = 0; i < mutation.addedNodes.length; i++) {
-                    var node = mutation.addedNodes[i];
+            var doMutation = function (seen) {
+                return function (node) {
                     if (!node.id || !seen[node.id]) {
                         if (recoil.frp.VisibleObserver.exists(node)) {
                             addRec(node, seen, 1);
                         }
-                    }
+                    }           
+                };
+            };
 
-                }
 
+            var addDoMutation = doMutation(added);
+            var removeDoMutation = doMutation(removed);
+            
+            mutations.forEach(function(mutation, index, array) {
+                goog.array.forEach(addDoMutation);
             });
+
+            mutations.forEach(function(mutation, index, array) {
+                goog.array.forEach(removeDoMutation);
+            });
+
+            for (var id in added) {
+                added[id].forEach(listen);
+            }
+            for (id in removed) {
+                added[id].forEach(listen);
+            }
+
         });
 
-        recoil.frp.VisibleObserver.InsertionWatcher_.observe(goog.dom.getDocument(), {childList: true, subtree: true});
+        recoil.frp.VisibleObserver.InsertionWatcher_.observe(goog.dom.getDocument().body, {childList: true, subtree: true});
 
      }
 
