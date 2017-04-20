@@ -34,6 +34,21 @@ recoil.db.ChangeDb = function(schema) {
 };
 
 /**
+ * replaces this db with the src db
+ * @param {!recoil.db.ChangeDb} srcDb
+ */
+recoil.db.ChangeDb.prototype.replaceDb = function(srcDb) {
+    this.schema_ = srcDb.schema_;
+    this.data_ = recoil.util.object.clone(srcDb.data_);
+    this.roots_ = goog.array.clone(srcDb.roots_);
+
+    var replaceDbRec = function(src, dst) {
+
+    };
+
+};
+
+/**
  * @param {!Array<!recoil.db.ChangeSet.Change>} changes
  */
 recoil.db.ChangeDb.prototype.applyChanges = function(changes) {
@@ -629,6 +644,14 @@ recoil.db.ChangeSet.Path.fromString = function(path) {
 recoil.db.ChangeSet.Path.prototype.append = function(part) {
     return new recoil.db.ChangeSet.Path(
         this.items_.concat(part));
+};
+
+/**
+ * since paths are immutable it is more effecient to just return itself
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.clone = function() {
+    return this;
 };
 
 
@@ -2059,7 +2082,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
     }
     var subChanges = changes;
 
-        
+
     if (oldObj === null || oldObj === undefined) {
         subChanges = {changes: [], errors: changes.errors};
         changes.changes.push(new recoil.db.ChangeSet.Add(schema.absolute(path), subChanges.changes));

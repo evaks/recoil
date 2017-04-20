@@ -585,6 +585,32 @@ function testChangeDbSet() {
     assertObjectEquals({b:null}, testee.get(ns.Path.fromString('a')));
 }
 
+
+function testChangeDbReplace() {
+    var ns = recoil.db.ChangeSet;
+    var testee1 = new recoil.db.ChangeDb(schema);
+    var testee2 = new recoil.db.ChangeDb(schema);
+    
+    var fullPath = ns.Path.fromString('full/a');
+    var obj1 =  {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]};
+    var obj3 =  {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]};
+    var obj2 =  {v : 1, v2: 2, list : [{k:1, v:11, v2:2},{k:2, v:2, v2: 2}]};
+    var key1Path = fullPath.appendName('list').setKeys(['k'],[1]);
+    var v1Path = key1Path.appendName('v');
+    
+    
+    assertObjectEquals([fullPath],testee1.set(fullPath,obj1));
+    assertObjectEquals(obj1, testee1.get(fullPath));
+    assertObjectEquals(null, testee2.get(fullPath));
+    testee2.replaceDb(testee1);
+    assertObjectEquals(obj1, testee2.get(fullPath));
+    testee2.applyChanges([new ns.Set(v1Path, 1, 11)]);
+    assertObjectEquals(obj1, testee1.get(fullPath));
+    assertObjectEquals(obj3, testee1.get(fullPath));
+    assertObjectEquals(obj2, testee2.get(fullPath));
+
+}
+
 function testPathMap() {
     var ns = recoil.db.ChangeSet;
     var a = ns.Path.fromString('a');
