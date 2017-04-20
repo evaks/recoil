@@ -36,16 +36,13 @@ recoil.db.ChangeDb = function(schema) {
 /**
  * replaces this db with the src db
  * @param {!recoil.db.ChangeDb} srcDb
+ * @return  {!Array<!recoil.db.ChangeSet.Path>}
  */
 recoil.db.ChangeDb.prototype.replaceDb = function(srcDb) {
     this.schema_ = srcDb.schema_;
     this.data_ = recoil.util.object.clone(srcDb.data_);
     this.roots_ = goog.array.clone(srcDb.roots_);
-
-    var replaceDbRec = function(src, dst) {
-
-    };
-
+    return this.roots_;
 };
 
 /**
