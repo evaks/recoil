@@ -28,24 +28,33 @@ recoil.frp.VisibleObserver = function() {
     if (recoil.frp.VisibleObserver.InsertionWatcher_ === null) {
         // maybe we should use a weak map here we can get rid of the $.recoil.watcher
         /**
-
+         * @param {} node the node we are traversing
+         * @param {Object<string,Array<{observer:recoil.frp.VisibleObserver,node:Node,callback:function(boolean)}>>} observed map items we want to listen to
+         * @param {Object<string,Object<string,Node>>} effected map id -> 
          */
 
-        var addRec = function(node, seen, depth) {
+        var addRec = function(node, observed, effected, depth) {
             var listeners = node['$.recoil.watcher.listeners'];
             
             recoil.frp.VisibleObserver.setUniqueDomId_(node);
 
-            if (seen[node.id]) {
-                return;
+            if (observed[node.id]) {
+                // we have done this already
+                return effected[node.id];
             }
-            seen[node.id] = listeners || [];
+            observed[node.id] = listeners || [];
             // do the children first so we chan see if we need to listen
-            
+
+            var subEffected = {};
             goog.array.forEach(node.childNodes, function(child) {
-                addRec(child, seen, depth + 1, listeners);
+                goog.object.extend(subEffected, addRec(child, observed, effected, depth + 1));
             });
 
+            if (listeners.length > 0) {
+                subEffected[node.id] = node;
+            }
+            effected[node.id] = subEffected;
+            return subEffected;
         };
         var listen = function (listener) {
             listener.observer.listen_(listener.node, listener.callback);
@@ -57,36 +66,77 @@ recoil.frp.VisibleObserver = function() {
         recoil.frp.VisibleObserver.InsertionWatcher_ = new MutationObserver(function(mutations) {
             // the mutations may have the same node more than once eliminate this since this is slow
             var added = {};
+            var addedEffected = {};
             var removed = {};
+            var removedEffected;
 
-            var doMutation = function (seen) {
+            var doMutation = function (seen, effected, exists) {
                 return function (node) {
                     if (!node.id || !seen[node.id]) {
-                        if (recoil.frp.VisibleObserver.exists(node)) {
-                            addRec(node, seen, 1);
+                        if (recoil.frp.VisibleObserver.exists(node) === exists) {
+                            addRec(node, seen, effected, 1);
                         }
                     }           
                 };
             };
 
 
-            var addDoMutation = doMutation(added);
-            var removeDoMutation = doMutation(removed);
-            
+            var addDoMutation = doMutation(added, addedEffected, true);
+            var removeDoMutation = doMutation(removed, removedEffected, false);
+
             mutations.forEach(function(mutation, index, array) {
                 goog.array.forEach(addDoMutation);
+                
             });
 
+            var removedFrom = {};
+
+            // if we do the removes first we can use the removed node effected
+            // and remove them but what about if we add then remove wouldn't that go funny
+            
             mutations.forEach(function(mutation, index, array) {
-                goog.array.forEach(removeDoMutation);
+                if (mutation.removedNodes.length > 0) {
+                    if (mutation.target.id !== undefined && stateEffected[mutation.target.id]) {
+                        goog.array.forEach(mutation.removedNodes,removeDoMutation);
+                        if (removedFrom[mutation.target.id]) {
+                            removedFrom[mutation.target.id]= {node : 
+                    }
+                    
+                removedx;
             });
 
+
+            recoil.frp.VisibleObserver.forEachTopLevel(addedEffected, function (node) {
+                var cur = goog.dom.getParentElement(node);
+                while (cur != null) {
+                    recoil.frp.VisibleObserver.setUniqueDomId_(cur);
+                    goog.object.extend(stateEffected[cur.id], addedEffected[node.id]);
+                    cur = goog.dom.getParentElement(cur);
+                }
+            });
+
+            // we cannot simply go up the parents of removed items, we need to use the target of the mutations
+            
+            forEachTopLevel(removedEffected, function (node) {
+                var cur = goog.dom.getParentElement(node);
+                while (cur != null) {
+                    recoil.frp.VisibleObserver.setUniqueDomId_(cur);
+                    unextend(stateEffected[cur.id], addedEffected[node.id]);
+                    cur = goog.dom.getParentElement(cur);
+                }
+            });
+
+            
             for (var id in added) {
                 added[id].forEach(listen);
             }
+
+            
+            xxx;
             for (id in removed) {
-                added[id].forEach(listen);
+                removed[id].forEach(unlisten);
             }
+            
 
         });
 
@@ -94,6 +144,20 @@ recoil.frp.VisibleObserver = function() {
 
      }
 
+};
+
+/**
+ * @param {Object<string,{node: Node, map:Object<string,Node>>}} nodeMap
+ */
+recoil.frp.VisibleObserver.forEachTopLevel = function (nodeMap, callback) {
+    for (var key in nodeMap) {
+        var val = nodeMap[key];
+        var parent = goog.dom.getParentElement(val.node);
+
+        if (!parent || parent.id === undefined || !nodeMap[parent.id]) {
+            callback(val);
+        }
+    }
 };
 /**
  * @private
@@ -450,11 +514,15 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
     var ancestors = [];
     recoil.frp.VisibleObserver.setUniqueDomId_(node);
 
+    var listeners = node['$.recoil.watcher.listeners'] || [];
+
+    var info = {objserver: this, callback: callback};
+    listeners.push(info);
+    
     var exists = recoil.frp.VisibleObserver.exists(node);
 
     if (!exists) {
         callback(false);
-        this.watchForInsertion_(node, callback);
         return;
     }
     var state = this.findState_(node);
@@ -472,29 +540,21 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
         found = false;
         recoil.frp.VisibleObserver.setUniqueDomId_(cur);
         ancestors.push(cur);
-        this.watched_.inOrderTraverse(function(travNode) {
-            if (recoil.frp.VisibleObserver.WATCHED_COMPARATOR_(travNode, {
-                node: cur
-            }) === 0) {
-                travNode.effected.add({
-                    node: node
-                });
-                found = true;
-            }
-            return true;
-        }, {
-            node: cur
-        });
+        var watched = this.watched_[cur.id];
 
-        if (!found) {
-            this.watched_.add(recoil.frp.VisibleObserver.createWatched_(cur, node));
+        if (watched) {
+            watched.effected.add({node: node});
+
+        }
+        else {
+            this.watched_[cur.id] = recoil.frp.VisibleObserver.createWatched_(cur, node);
         }
         cur = goog.dom.getParentElement(/** @type Element */
         (cur));
     }
 
     state = new recoil.frp.VisibleObserver.State_(node, callback);
-    this.states_.add(state);
+    this.states_[node.id] = state;
 
     state.update(recoil.frp.VisibleObserver.exists(node), recoil.frp.VisibleObserver.visible(node));
     state.ancestors = ancestors;
