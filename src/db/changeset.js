@@ -1,4 +1,5 @@
 goog.provide('recoil.db.ChangeDb');
+goog.provide('recoil.db.ChangeDbInterface');
 goog.provide('recoil.db.ChangeDbNode');
 goog.provide('recoil.db.ChangeSet');
 goog.provide('recoil.db.ChangeSet.Add');
@@ -20,7 +21,85 @@ recoil.db.ChangeSet = function() {
 };
 
 /**
+ * @interface
+ */
+recoil.db.ChangeDbInterface = function() {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!Array<!recoil.db.ChangeSet.Path>}
+ */
+recoil.db.ChangeDbInterface.prototype.getRoots = function(path) {};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ */
+recoil.db.ChangeDbInterface.prototype.applyAdd = function(path) {};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ */
+recoil.db.ChangeDbInterface.prototype.applyDelete = function(path) {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ */
+recoil.db.ChangeDbInterface.prototype.applyMove = function(from, to) {};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ * @return {!Array<!recoil.db.ChangeSet.Path>}
+ */
+recoil.db.ChangeDbInterface.prototype.applySet = function(path, val) {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ * @return {!Array<!recoil.db.ChangeSet.Path>}
+ */
+recoil.db.ChangeDbInterface.prototype.set = function(path, val) {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {?}
+ */
+recoil.db.ChangeDbInterface.prototype.get = function(path) {};
+
+/**
+ * @param {!recoil.db.ChangeDbInterface} dbInterface
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!Array<!recoil.db.ChangeSet.Change>} changes
+ * @return {!goog.structs.AvlTree<!recoil.db.ChangeSet.Path>} set of changed roots
+ */
+recoil.db.ChangeDbInterface.applyChanges = function(dbInterface, schema, changes) {
+    var changedRoots = new goog.structs.AvlTree(recoil.util.object.compare);
+
+    for (var i = 0; i < changes.length; i++) {
+        var change = changes[i];
+
+        dbInterface.getRoots(change.path()).forEach(function(root) {
+            changedRoots.add(root);
+        });
+        if (change instanceof recoil.db.ChangeSet.Move) {
+            dbInterface.getRoots(change.to()).forEach(function(root) {
+                changedRoots.add(root);
+            });
+
+        }
+        change.applyToDb(dbInterface, schema);
+    }
+
+    return changedRoots;
+};
+
+/**
  * @constructor
+ * @implements {recoil.db.ChangeDbInterface}
  * @param {!recoil.db.ChangeSet.Schema} schema
  */
 recoil.db.ChangeDb = function(schema) {
@@ -31,6 +110,133 @@ recoil.db.ChangeDb = function(schema) {
      * @type {!Array<!recoil.db.ChangeSet.Path>}
      */
     this.roots_ = [];
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ */
+recoil.db.ChangeDb.prototype.applyAdd = function(path) {
+    var listNode;
+    if (path.lastKeys().length > 0) {
+        // this is a list node we are adding
+        listNode = this.resolve_(path.unsetKeys(), true);
+        if (!listNode) {
+            throw "add node '" + path.unsetKeys().toString() + "' does not exist";
+        }
+        if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
+            throw "cannot add node '" + path.toString() + "' to non-list";
+        }
+
+        var newNode = new recoil.db.ChangeDbNode.Container();
+        listNode.add(path.last(), newNode);
+    }
+    else {
+        listNode = this.resolve_(path.parent(), false);
+
+        if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
+            throw "cannot add node '" + path.toString() + "' to non-container";
+        }
+        listNode = this.resolve_(path, true);
+    }
+
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ */
+recoil.db.ChangeDb.prototype.applyDelete = function(path) {
+    var listNode;
+    if (path.lastKeys().length > 0) {
+        // this is a list node we are deleting from
+        listNode = this.resolve_(path.unsetKeys(), false);
+        if (!listNode) {
+            throw "delete node '" + path.unsetKeys().toString() + "' does not exist";
+        }
+        if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
+            throw "cannot delete node '" + path.toString() + "' from non-list";
+        }
+
+        listNode.remove(path.last());
+        return;
+    }
+    else {
+        listNode = this.resolve_(path.parent(), false);
+
+        if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
+            throw "cannot remove node '" + path.toString() + "' to non-container";
+        }
+        listNode.remove(path.last());
+        return;
+    }
+
+    throw "cannot remove node '" + path.toString() + "' from a leaf";
+
+
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ */
+recoil.db.ChangeDb.prototype.applyMove = function(from, to) {
+    var listNode = this.resolve_(from.unsetKeys(), false);
+    if (!listNode) {
+        throw "move node '" + from.unsetKeys().toString() + "' does not exist";
+    }
+    if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
+        throw "move node '" + from.unsetKeys().toString() + "' is not a list";
+    }
+
+    var oldNode = listNode.remove(from.last());
+    if (!oldNode) {
+        throw "move node '" + from.toString() + "' does not exist";
+    }
+    listNode.add(to.last(), oldNode);
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ * @return {!Array<!recoil.db.ChangeSet.Path>}
+ */
+recoil.db.ChangeDb.prototype.applySet = function(path, val) {
+    var node = this.resolve_(path, false);
+    if (!node) {
+        var parent = this.resolve_(path.parent(), false);
+        if (!parent) {
+            throw "set node '" + path.toString() + "' does not exist";
+        }
+        node = parent.getChildNode(this.schema_, path.last(), path, true);
+    }
+    if (!(node instanceof recoil.db.ChangeDbNode.Leaf)) {
+        throw "set node '" + path.toString() + "' is not a leaf";
+    }
+    node.setValue(val);
+
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!Array<!recoil.db.ChangeSet.Path>}
+ */
+recoil.db.ChangeDb.prototype.getRoots = function(path) {
+    var res = [];
+    var me = this;
+    var absolutePath = me.schema_.absolute(path);
+    this.roots_.forEach(function(root) {
+        var absRoot = me.schema_.absolute(root);
+        if (absRoot.isAncestor(absolutePath, true)) {
+            var suffix = absRoot.getSuffix(absolutePath);
+            if (me.schema_.exists(root.appendSuffix(suffix))) {
+                res.push(root);
+            }
+        }
+    });
+    return res;
 };
 
 /**
@@ -129,7 +335,7 @@ recoil.db.ChangeDb.prototype.resolve_ = function(path, create) {
 
 /**
  * @param {!recoil.db.ChangeSet.Path} rootPath
- * @return {Object}
+ * @return {?}
  */
 recoil.db.ChangeDb.prototype.get = function(rootPath) {
     var fullObj = this.resolve_(rootPath, false);
@@ -272,7 +478,7 @@ recoil.db.ChangeSet.Change = function() {
 };
 
 /**
- * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeDbInterface} db
  * @param {!recoil.db.ChangeSet.Schema} schema
  */
 recoil.db.ChangeSet.Change.prototype.applyToDb = function(db, schema) {};
@@ -644,6 +850,71 @@ recoil.db.ChangeSet.Path.prototype.append = function(part) {
 };
 
 /**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.appendPath = function(path) {
+    return new recoil.db.ChangeSet.Path(
+        this.items_.concat(path.items_));
+};
+/**
+ * @param {!Array<!recoil.db.ChangeSet.PathItem>} items
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.appendItems = function(items) {
+    return new recoil.db.ChangeSet.Path(
+        this.items_.concat(items));
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} prefix
+ * @return {!{keys:Array<?>, keyNames:Array<!string>, suffix:!Array<!recoil.db.ChangeSet.PathItem>}}
+ */
+recoil.db.ChangeSet.Path.prototype.getSuffix = function(prefix) {
+
+
+    // we need to get just the common part between the absolute path and the
+    // path
+
+    if (this.items_.length < prefix.items_.length) {
+        throw 'prefix is not a prefix';
+    }
+
+    for (var i = 0; i < prefix.items_.length; i++) {
+        var last = i === prefix.items_.length - 1;
+        if (last) {
+            if (this.items_[i].name_ !== prefix.items_[i].name_) {
+                throw 'prefix is not a prefix';
+            }
+        }
+        else if (!recoil.util.object.isEqual(this.items_[i], prefix.items_[i])) {
+            throw 'prefix is not a prefix';
+        }
+
+    }
+    if (prefix.items_.length > 0) {
+        var idx = prefix.items_.length - 1;
+        var item = this.items_[idx];
+        if (!recoil.util.object.isEqual(this.items_[idx], prefix.items_[idx])) {
+            return {keys: item.keys_, keyNames: item.keyNames_, suffix: this.items_.slice(prefix.items_.length)};
+        }
+    }
+
+    return {keys: null, keyNames: null, suffix: this.items_.slice(prefix.items_.length)};
+
+};
+
+
+/**
+ * @param {!{keys:Array<?>, keyNames:Array<!string>, suffix:!Array<!recoil.db.ChangeSet.PathItem>}} suffix
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.appendSuffix = function(suffix) {
+    var res = suffix.keys && suffix.keyNames ? this.setKeys(suffix.keyNames, suffix.keys) : this;
+    return res.appendItems(suffix.suffix);
+};
+
+/**
  * since paths are immutable it is more effecient to just return itself
  * @return {!recoil.db.ChangeSet.Path}
  */
@@ -791,7 +1062,15 @@ recoil.db.ChangeSet.Path.deserialize = function(obj, schema, valSerializor, comp
  * @return {!string}
  */
 recoil.db.ChangeSet.Path.prototype.toString = function() {
-    return '/' + this.parts().join('/') + ':' + this.keys();
+    var txt = [];
+    this.items().forEach(function(part) {
+        var p = part.name();
+        if (part.keys().length > 0) {
+            p += '{' + part.keys().join(',') + '}';
+        }
+        txt.push(p);
+    });
+    return '/' + txt.join('/');
 };
 
 /**
@@ -934,22 +1213,11 @@ recoil.db.ChangeSet.Set.prototype.absolute = function(schema) {
 
 
 /**
- * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeDbInterface} db
  * @param {!recoil.db.ChangeSet.Schema} schema
  */
 recoil.db.ChangeSet.Set.prototype.applyToDb = function(db, schema) {
-    var node = db.resolve_(this.path_, false);
-    if (!node) {
-        var parent = db.resolve_(this.path_.parent(), false);
-        if (!parent) {
-            throw "set node '" + this.path_.toString() + "' does not exist";
-        }
-        node = parent.getChildNode(schema, this.path_.last(), this.path_, true);
-    }
-    if (!(node instanceof recoil.db.ChangeDbNode.Leaf)) {
-        throw "set node '" + this.path_.toString() + "' is not a leaf";
-    }
-    node.setValue(this.newVal_);
+    db.applySet(this.path_, this.newVal_);
 };
 
 /**
@@ -1151,39 +1419,13 @@ recoil.db.ChangeSet.Add.prototype.sortDesendants = function(pathMap) {
 };
 
 /**
- * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeDbInterface} db
  * @param {!recoil.db.ChangeSet.Schema} schema
  */
 recoil.db.ChangeSet.Add.prototype.applyToDb = function(db, schema) {
-    var listNode;
-    if (this.path_.lastKeys().length > 0) {
-        // this is a list node we are adding
-        listNode = db.resolve_(this.path_.unsetKeys(), true);
-        if (!listNode) {
-            throw "add node '" + this.path_.unsetKeys().toString() + "' does not exist";
-        }
-        if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
-            throw "cannot add node '" + this.path_.toString() + "' to non-list";
-        }
-
-        var newNode = new recoil.db.ChangeDbNode.Container();
-        listNode.add(this.path_.last(), newNode);
-        db.applyChanges(this.dependants_);
-        return;
-    }
-    else {
-        listNode = db.resolve_(this.path_.parent(), false);
-
-        if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
-            throw "cannot add node '" + this.path_.toString() + "' to non-container";
-        }
-        listNode = db.resolve_(this.path_, true);
-        db.applyChanges(this.dependants_);
-        return;
-    }
-
-    throw "cannot add node '" + this.path_.toString() + "' to a leaf";
-
+    db.applyAdd(this.path_);
+    db.applyChanges(this.dependants_);
+    return;
 };
 /**
  * converts a change an object that can be turned into json
@@ -1306,36 +1548,11 @@ recoil.db.ChangeSet.Delete.prototype.sortDesendants = function(pathMap) {
 };
 
 /**
- * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeDbInterface} db
  * @param {!recoil.db.ChangeSet.Schema} schema
  */
 recoil.db.ChangeSet.Delete.prototype.applyToDb = function(db, schema) {
-    var listNode;
-    if (this.path_.lastKeys().length > 0) {
-        // this is a list node we are deleting from
-        listNode = db.resolve_(this.path_.unsetKeys(), false);
-        if (!listNode) {
-            throw "delete node '" + this.path_.unsetKeys().toString() + "' does not exist";
-        }
-        if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
-            throw "cannot delete node '" + this.path_.toString() + "' from non-list";
-        }
-
-        listNode.remove(this.path_.last());
-        return;
-    }
-    else {
-        listNode = db.resolve_(this.path_.parent(), false);
-
-        if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
-            throw "cannot remove node '" + this.path_.toString() + "' to non-container";
-        }
-        listNode.remove(this.path_.last());
-        return;
-    }
-
-    throw "cannot remove node '" + this.path_.toString() + "' from a leaf";
-
+    db.applyDelete(this.path_);
 };
 /**
  * converts a change an object that can be turned into json
@@ -1468,23 +1685,11 @@ recoil.db.ChangeSet.Move.prototype.sortDesendants = function(pathMap) {
 };
 
 /**
- * @param {!recoil.db.ChangeDb} db
+ * @param {!recoil.db.ChangeDbInterface} db
  * @param {!recoil.db.ChangeSet.Schema} schema
  */
 recoil.db.ChangeSet.Move.prototype.applyToDb = function(db, schema) {
-    var listNode = db.resolve_(this.oldPath_.unsetKeys(), false);
-    if (!listNode) {
-        throw "move node '" + this.oldPath_.unsetKeys().toString() + "' does not exist";
-    }
-    if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
-        throw "move node '" + this.oldPath_.unsetKeys().toString() + "' is not a list";
-    }
-
-    var oldNode = listNode.remove(this.oldPath_.last());
-    if (!oldNode) {
-        throw "move node '" + this.oldPath_.toString() + "' does not exist";
-    }
-    listNode.add(this.newPath_.last(), oldNode);
+    db.applyMove(this.oldPath_, this.newPath_);
 };
 /**
  * converts a path to an object that can be turned into json

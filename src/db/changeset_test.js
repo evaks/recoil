@@ -611,6 +611,24 @@ function testChangeDbReplace() {
 
 }
 
+function testSuffix() {
+    var ns = recoil.db.ChangeSet;
+    var a = ns.Path.fromString('a/b/c').setKeys(['f','g'],[1,2]).appendNames(['d','e']);
+    var pre = ns.Path.fromString('a/b/c');
+    var x = ns.Path.fromString('x/y');
+
+    assertObjectEquals(x.setKeys(['f','g'],[1,2]).appendNames(['d','e']),
+                       x.appendSuffix(a.getSuffix(pre)));
+
+    assertObjectEquals(x.appendNames(['d','e']),
+                       x.appendSuffix(a.getSuffix(pre.setKeys(['f','g'],[1,2]))));
+
+
+    assertObjectEquals(x.appendNames(['b']),
+                       x.appendSuffix(ns.Path.fromString('a/b').getSuffix(ns.Path.fromString('a'))));
+
+}
+    
 function testPathMap() {
     var ns = recoil.db.ChangeSet;
     var a = ns.Path.fromString('a');
