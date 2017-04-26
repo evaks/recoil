@@ -610,7 +610,28 @@ function testChangeDbReplace() {
     assertObjectEquals(obj2, testee2.get(fullPath));
 
 }
+function testPathMove() {
+    var ns = recoil.db.ChangeSet;
+    var pre1 = ns.Path.fromString('a/b/c');
+    var pre2 = ns.Path.fromString('x/y');
 
+    var pre3 = pre1.setKeys(['f','g'],[1,2]);
+    var pre4 = pre1.setKeys(['f','g'],[3,4]);
+    var a = pre3.appendNames(['d','e']);
+
+    assertObjectEquals(
+        ns.Path.fromString('x/y').setKeys(['f','g'],[1,2]).appendNames(['d','e']),
+        a.move(pre1, pre2));
+
+    assertObjectEquals(
+        pre4.appendNames(['d','e']),
+        a.move(pre3, pre4));
+
+    assertObjectEquals(
+        pre2,
+        pre1.move(pre1, pre2));
+}
+    
 function testSuffix() {
     var ns = recoil.db.ChangeSet;
     var a = ns.Path.fromString('a/b/c').setKeys(['f','g'],[1,2]).appendNames(['d','e']);

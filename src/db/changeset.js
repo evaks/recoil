@@ -848,6 +848,37 @@ recoil.db.ChangeSet.Path.prototype.append = function(part) {
 };
 
 /**
+ * if from is an ansestor if of this path changes the from part to the
+ * to part
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.move = function(from, to) {
+    if (!from.isAncestor(this, true)) {
+        return this;
+    }
+    var items = from.items_;
+    var parts = [];
+    var lastTo = null;
+    to.items_.forEach(function(item) {
+        parts.push(item);
+        lastTo = item;
+    });
+    if (items.length > 0 && lastTo) {
+        var lastFrom = items[items.length - 1];
+        var lastMe = this.items_[items.length - 1];
+        if (lastMe.keys_.length > 0 && lastFrom.keys_.length === 0) {
+            parts[parts.length - 1] = new recoil.db.ChangeSet.PathItem(lastTo.name(), lastMe.keyNames_, lastMe.keys_);
+        }
+    }
+    for (var i = from.items_.length; i < this.items_.length; i++) {
+        parts.push(this.items_[i]);
+    }
+    return new recoil.db.ChangeSet.Path(parts);
+};
+
+/**
  * @param {!recoil.db.ChangeSet.Path} path
  * @return {!recoil.db.ChangeSet.Path}
  */
