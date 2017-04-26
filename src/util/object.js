@@ -205,8 +205,11 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
     if (b instanceof Object) {
         return 1;
     }
+    if (typeof(a) === typeof(b)) {
+        return goog.array.defaultCompare(a, b);
+    }
 
-    return goog.array.defaultCompare(a, b);
+    return goog.array.defaultCompare(typeof(a), typeof(b));
 };
 
 /**
