@@ -53,7 +53,6 @@ recoil.db.ChangeDbInterface.prototype.applyMove = function(from, to) {};
 /**
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
- * @return {!Array<!recoil.db.ChangeSet.Path>}
  */
 recoil.db.ChangeDbInterface.prototype.applySet = function(path, val) {};
 
@@ -200,7 +199,6 @@ recoil.db.ChangeDb.prototype.applyMove = function(from, to) {
 /**
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
- * @return {!Array<!recoil.db.ChangeSet.Path>}
  */
 recoil.db.ChangeDb.prototype.applySet = function(path, val) {
     var node = this.resolve_(path, false);
@@ -2781,6 +2779,24 @@ recoil.db.PathMap.prototype.get = function(path) {
     var res = [];
     if (node) {
         node.getAll(this.schema_, path, res);
+    }
+    return res;
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!Array<T>}
+ */
+recoil.db.PathMap.prototype.getExact = function(path) {
+    var node = this.root_.resolve(this.schema_.absolute(path).items(), 0, false);
+    var res = [];
+    if (node) {
+        if (this.schema_.exists(path)) {
+            node.values_.forEach(function(v) {
+                res.push(v);
+            });
+        }
     }
     return res;
 };
