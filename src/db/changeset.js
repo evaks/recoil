@@ -228,7 +228,7 @@ recoil.db.ChangeDb.prototype.getRoots = function(path) {
     this.roots_.forEach(function(root) {
         var absRoot = me.schema_.absolute(root);
         if (absRoot.isAncestor(absolutePath, true)) {
-            var suffix = absRoot.getSuffix(absolutePath);
+            var suffix = absolutePath.getSuffix(absRoot);
             if (me.schema_.exists(root.appendSuffix(suffix))) {
                 res.push(root);
             }
@@ -953,6 +953,7 @@ recoil.db.ChangeSet.Path.prototype.clone = function() {
 
 
 /**
+ * check to see if this is an ancesetor if path
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {!boolean} allowSelf
  * @return {!boolean}

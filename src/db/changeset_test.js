@@ -532,7 +532,8 @@ function testChangeDbSet() {
     assertSameObjects([fullPath, namedPath],testee.set(namedPath, {v : 10, list : [{k:1, v:10},{k:2, v:20}]}));
     testee.set(contPath, {});
 
-    
+
+    assertObjectEquals([fullPath,namedPath],testee.getRoots(fullPath.appendName('v')));
     assertObjectEquals({v : 10, v2: 2, list : [{k:1, v:10, v2:2},{k:2, v: 20, v2: 2}]}, testee.get(fullPath));
     assertObjectEquals({v : 10, list : [{k:1, v:10},{k:2, v: 20}]}, testee.get(namedPath));
     assertObjectEquals({}, testee.get(contPath));
@@ -631,7 +632,7 @@ function testPathMove() {
         pre2,
         pre1.move(pre1, pre2));
 }
-    
+
 function testSuffix() {
     var ns = recoil.db.ChangeSet;
     var a = ns.Path.fromString('a/b/c').setKeys(['f','g'],[1,2]).appendNames(['d','e']);
