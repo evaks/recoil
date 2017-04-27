@@ -1454,8 +1454,7 @@ recoil.db.ChangeSet.Add.prototype.sortDesendants = function(pathMap) {
  */
 recoil.db.ChangeSet.Add.prototype.applyToDb = function(db, schema) {
     db.applyAdd(this.path_);
-    db.applyChanges(this.dependants_);
-    return;
+    recoil.db.ChangeDbInterface.applyChanges(db, schema, this.dependants_);
 };
 /**
  * converts a change an object that can be turned into json
