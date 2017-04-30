@@ -705,7 +705,33 @@ function testMergeChanges() {
             new ns.Set(fullListA.setKeys(['k'], [2]).appendName('v'), 20, 200)
         ]));
 
+
+        // Move(a{1},a{2}), Move(a{2},a{1}) -> []) TODO
+    assertObjectEquals(
+        [
+        ],
+        ns.merge(schema,[
+            new ns.Move(fullListA.setKeys(['k'], [1]), fullListA.setKeys(['k'],[2])),
+            new ns.Move(fullListA.setKeys(['k'], [2]), fullListA.setKeys(['k'],[1])),
+        ]));
+
+
+    var addKey = fullListA.setKeys(['k'], [1]);
+    var moveKey = addKey.appendName('m');
     
+    assertObjectEquals(
+        [
+            new ns.Add(addKey, [])
+            
+        ],
+        ns.merge(schema,[
+            new ns.Add(addKey, [
+                new ns.Move(moveKey.setKeys(['k'],[1]), moveKey.setKeys(['k'],[2])),
+                new ns.Move(moveKey.setKeys(['k'],[2]), moveKey.setKeys(['k'],[1])),
+            ])
+        ]));
+
+
     // multi move
     // Set(a{1}/b),Del(a{1}) -> Del(a{1}})
     // Set(a/b),Del(a) -> Del(a})

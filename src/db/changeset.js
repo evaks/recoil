@@ -487,6 +487,13 @@ recoil.db.ChangeSet.Change.prototype.applyToDb = function(db, schema) {};
  */
 recoil.db.ChangeSet.Change.prototype.changeCount = function() {};
 
+
+/**
+ * true if this change has no effect e.g. setting an value to the same value, or move to the same loc
+ * @return {!boolean}
+ */
+recoil.db.ChangeSet.Change.prototype.isNoOp = function() {};
+
 /**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
@@ -1306,6 +1313,14 @@ recoil.db.ChangeSet.Add.prototype.changeCount = function() {
 };
 
 /**
+ * true if this change has no effect
+ * @return {!boolean}
+ */
+recoil.db.ChangeSet.Add.prototype.isNoOp = function() {
+    return false;
+};
+
+/**
  * invariants
  *
  * for all cur < added
@@ -1435,8 +1450,8 @@ recoil.db.ChangeSet.Add.prototype.sortDesendants = function(pathMap) {
     var toSort = [];
     this.dependants_.forEach(function(dep) {
         var info = pathMap.findChangeInfo(dep);
-        if (!info) {
-            throw 'unable to find change info';
+        if (dep.isNoOp() || !info) {
+            return;
         }
         toSort.push({pos: info.pos, change: dep});
     });
@@ -1500,6 +1515,14 @@ recoil.db.ChangeSet.Delete.prototype.inverse = function(schema) {
  */
 recoil.db.ChangeSet.Delete.prototype.changeCount = function() {
     return 1;
+};
+
+/**
+ * true if this change has no effect
+ * @return {!boolean}
+ */
+recoil.db.ChangeSet.Delete.prototype.isNoOp = function() {
+    return false;
 };
 /**
  * @param {!recoil.db.ChangeSet.PathChangeMap} pathChangeMap
@@ -1627,6 +1650,14 @@ recoil.db.ChangeSet.Move.prototype.inverse = function(schema) {
 recoil.db.ChangeSet.Move.prototype.changeCount = function() {
     return 1;
 };
+
+/**
+ * true if this change has no effect
+ * @return {!boolean}
+ */
+recoil.db.ChangeSet.Move.prototype.isNoOp = function() {
+    return recoil.util.object.isEqual(this.oldPath_, this.newPath_);
+};
 /**
  * convert all paths to absolute values and returns a copy
  *
@@ -1680,7 +1711,9 @@ recoil.db.ChangeSet.Move.prototype.merge = function(pathChangeMap, pAncestor, ma
             var info = pathChangeMap.removeChangeInfo(move);
             if (info) {
                 move.newPath_ = this.newPath_;
-                pathChangeMap.addMove(move, info.ancestor, maxPos, info.pos);
+                if (!recoil.util.object.isEqual(move.to(), move.from())) {
+                    pathChangeMap.addMove(move, info.ancestor, maxPos, info.pos);
+                }
                 return;
             }
         }
@@ -2130,6 +2163,14 @@ recoil.db.ChangeSet.Set.prototype.changeCount = function() {
     return 1;
 };
 
+
+/**
+ * true if this change has no effect
+ * @return {!boolean}
+ */
+recoil.db.ChangeSet.Set.prototype.isNoOp = function() {
+    return recoil.util.object.isEqual(this.oldVal_, this.newVal_);
+};
 /**
  * if the change is a set
  * if exists move change with our to path, make path the move from path and repeat
@@ -2243,7 +2284,9 @@ recoil.db.ChangeSet.merge = function(schema, changes) {
     goog.array.sort(toSort, recoil.db.ChangeSet.PathChangeMap.comparePos);
     var res = [];
     toSort.forEach(function(v) {
-        res.push(v.change);
+        if (!v.change.isNoOp()) {
+            res.push(v.change);
+        }
     });
     return res;
 };
