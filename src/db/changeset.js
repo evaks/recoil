@@ -2836,6 +2836,31 @@ recoil.db.PathMap.prototype.put = function(path, value) {
     node.values_ = [value];
 };
 
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {T} value
+ */
+recoil.db.PathMap.prototype.add = function(path, value) {
+    var node = this.root_.resolve(this.schema_.absolute(path).items(), 0, true);
+    node.values_.push(value);
+};
+
+/**
+ * it will put a list, however if the list is empty it will remove the node and all
+ * parents, that are no longer required
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!Array<T>} values
+ */
+recoil.db.PathMap.prototype.putList = function(path, values) {
+    var node;
+    if (values.length === 0) {
+        this.remove(path);
+    }
+    else {
+        node = this.root_.resolve(this.schema_.absolute(path).items(), 0, true);
+        node.values_ = values;
+    }
+};
 
 /**
  * @param {!recoil.db.ChangeSet.Path} path

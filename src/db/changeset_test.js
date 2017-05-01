@@ -674,6 +674,16 @@ function testPathMap() {
     assertSameObjects([2,3], testee.get(a));
     assertSameObjects([2], testee.get(ab));
     assertSameObjects([3], testee.get(a1));
+
+    testee = new recoil.db.PathMap(schema);
+    testee.putList(a,[1,2]);
+    testee.put(ab,2);
+    assertSameObjects([1,2,2], testee.get(a));
+    testee.putList(a,[]);
+    assertSameObjects([2], testee.get(a));
+    testee.putList(ab,[]);
+    assertSameObjects([], testee.get(a));
+    
 };
 
 function testMergeChanges() {
