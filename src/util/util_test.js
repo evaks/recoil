@@ -109,6 +109,11 @@ function testCompare() {
     assertEquals(recoil.util.compare('a', 'a'), 0);
     semetricCompare(recoil.util.compare('a', 'b'), -1);
 
+    var res = recoil.util.compare('1', 1);
+    assertNotEquals(res, 0);
+    assertNotEquals( recoil.util.compare(1, '1'), 0);
+    assertNotEquals( recoil.util.compare(1, '1') > 0, res > 0);
+
     assertEquals(recoil.util.compare([1, 2, 3], [1, 2, 3]), 0);
     semetricCompare([1, 2, 3], [1, 2, 3, 4], -1);
 

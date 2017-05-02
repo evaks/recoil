@@ -441,5 +441,6 @@ recoil.ui.TooltipHelper.prototype.detach_ = function() {
 recoil.ui.ComponentWidgetHelper.elementToControl = function(el) {
     var c = new goog.ui.Control(el);
     c.setHandleMouseEvents(false);
+    c.setAllowTextSelection(true);
     return c;
 };
