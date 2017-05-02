@@ -1,29 +1,29 @@
 .pagination .recoil-table-pager {
-  display: table
-  width: 100%
-  border: 1px solid #CDCDCD;
-  border-radius: 3px; }
+    display: table;
+    width: 100%;
+    border: 1px solid #CDCDCD;
+    border-radius: 3px; }
 
 .pagination a {
-  display: table-cell;
-  width: 20px;
-  height: 20px;
-  outline: none;
-  border-right: 1px solid #CDCDCD;
-  border-left: 1px solid #CDCDCD;
-  color: #555555;
-  vertical-align: middle;
-  text-align: center;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 16px;
-  font-family: Times, 'Times New Roman', Georgia, Palatino;
-  /* ATTN: need a better font stack */
-  background-color: #f3f3f3;
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f3f3f3), color-stop(100%, lightgrey));
-  background-image: -webkit-linear-gradient(#f3f3f3, lightgrey);
-  background-image: linear-gradient(#f3f3f3, lightgrey);
-  cursor : default;
+    display: table-cell;
+    width: 20px;
+    height: 100%;
+    outline: none;
+    border-right: 1px solid #CDCDCD;
+    border-left: 1px solid #CDCDCD;
+    color: #555555;
+    vertical-align: middle;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    font-family: Times, 'Times New Roman', Georgia, Palatino;
+    /* ATTN: need a better font stack */
+    background-color: #f3f3f3;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f3f3f3), color-stop(100%, lightgrey));
+    background-image: -webkit-linear-gradient(#f3f3f3, lightgrey);
+    background-image: linear-gradient(#f3f3f3, lightgrey);
+    cursor : default;
 }
 
 
@@ -34,6 +34,7 @@
     background-image: linear-gradient(#e4e4e4, #cecece); }
 
 .pagination a.disabled, .pagination a.disabled:hover, .pagination a.disabled:focus, .pagination a.disabled:active {
+    height:100%;
     background-color: #f3f3f3;
     background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #f3f3f3), color-stop(100%, lightgrey));
     background-image: -webkit-linear-gradient(#f3f3f3, lightgrey);
@@ -43,8 +44,8 @@
 
 
 table.recoil-table-pager {
-    padding: 0px;
-    border-spacing: 0px;
+    padding: 0;
+    border-spacing: 0;
 }
 
 .recoil-expand-box {
@@ -58,32 +59,73 @@ input .page {
     box-sizing : box-border;
     width : 100%;
 }
+
 table.recoil-table-pager .page {
     width : 99%;
     text-align : center;
-    border: inset 3px;
-    background: url('../../images/edit.png') no-repeat right;
+    /*border:  3px;*/
+    background: url(../../images/edit.png) no-repeat right;
 }
 
 .recoil-table-pager.pagination {
- width: 100%; }
+    /*display: flex;*/
+    /*flex-direction:column;*/
+    margin:5px;
+    width:100%;
+}
 
-.recoil-table-pager-container {display: table}
-.recoil-table-pager-container .row { display: table-row }
+.recoil-table-pager-container {
+    display: flex;
+    flex-direction:column;
+    flex:1;
+}
+.recoil-table-pager-container .row {
+    display: table-row;
+    /*flex-direction: row;*/
+}
 
 
 .recoil-table1-pager.pagination {
-  margin: 30px 0;
+    margin: 30px 0;
 }
 
 .recoil-table1-pager.pagination a {
-  height: 60px;
-  width: 60px;
-  font-size: 50px;
-  line-height: 50px; }
+    height: 60px;
+    width: 60px;
+    font-size: 50px;
+    line-height: 50px;
+}
 
 .recoil-table1-pager.pagination input {
-  width: 300px;
-  height: 60px;
-  font-size: 30px; }
+    width: 300px;
+    height: 60px;
+    font-size: 30px;
+}
 
+.flex-display {
+    display: flex;
+    flex:1;
+    min-height: 0;
+}
+
+.flex-grow {
+    display: flex;
+    overflow: auto;
+    height:100%;
+}
+
+.flex-direction {
+    display: flex;
+    flex-direction:column;
+}
+
+#tableDiv {
+    display:flex;
+    height:100%;
+}
+
+.outerDiv {
+    display: flex;
+    flex-direction:column;
+    height:100%;
+}

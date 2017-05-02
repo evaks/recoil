@@ -27,24 +27,16 @@
 
 </script>
 <style>
+
   .recoil_table_selected {background-color:green;}
+
 </style>
 
 <body>
-  <input type='number' id='num' size='2'/>
-  <div id='tablediv'/>
-  <div id='addB'/>
-  <div id='hideB'/>
-  <div id='hideHeadersB'/>
-  <div id='showB'/>
-  <div id='badB'/>
-  <div id='deleteB'/>
-  <div class="selected" id='clickTest'>Click Test
-    </div>
-  TODO <br/>all decorators<br/>
-  hide/show headers <br/>
-  cell renderers<br/>
-  
+  <div class="outerDiv">
+      <div id='tableDiv' />
+  </div>
+  <!--TODO <br/>all decorators<br/>-->
   <script>
 
 
@@ -53,10 +45,6 @@
     var $ = goog.dom.getElement;
     var toSet = frp.createCallback(
     function(e) {console.log("event",e);});
-    
-    
-    recoil.ui.events.listen($('clickTest'), goog.events.EventType.CLICK,
-    toSet);
     
     frp.tm().attach(toSet);
 
@@ -76,7 +64,7 @@
 
     var rawTable = [];
 
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 15; i++) {
 			rawTable.push({id: i, name: "row " + i, count:i, check: true, select: {a: 'one'}});
     }
     
@@ -141,55 +129,78 @@
 
     var tableX = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
     var table = frp.liftBI(function () {
-	var res = tableX.get().unfreeze();
-	res.setCellMeta([1],tblKeys.name, {cellWidgetFactory : function (scope, cellB) {
-	    var widget = new recoil.ui.widgets.LabelWidget(scope);
-	    var value = recoil.frp.table.TableCell.getValue(frp, cellB);
-	    
-	    widget.attachStruct({name : value});
-	    console.log("args", arguments);
-	    return widget;
-	}});
-	return res.freeze();
-    },
-			   function (t) {
-			       tableX.set(t);
-			   }, tableX);
+        var res = tableX.get().unfreeze();
+        res.addMeta({headerRowDecorator: function () {return null;}});
+
+        res.setCellMeta([1],tblKeys.name, {cellWidgetFactory : function (scope, cellB) {
+            var widget = new recoil.ui.widgets.LabelWidget(scope);
+            var value = recoil.frp.table.TableCell.getValue(frp, cellB);
+
+            widget.attachStruct({name : value});
+            console.log("args", arguments);
+            return widget;
+        }});
+        return res.freeze();
+        },
+           function (t) {
+               tableX.set(t);
+           }, tableX);
 	
-     var tableWidget = new recoil.ui.widgets.table.PagedTableWidget(scope);
+    var tableWidget = new recoil.ui.widgets.table.PagedTableWidget(scope);
+
 
     console.log('table', $('tablediv'), tableWidget.getComponent().getElement());
-
 
     var buttonWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var deleteButton = new recoil.ui.widgets.ButtonWidget(scope);
 
     buttonWidget.attach("", "Add Row", frp.createCallback(function () {
-    var ids = [];
-    var max = 0;
-    table.get().forEach( function(row) {
-    ids.push(row.get(tblKeys.id));
-    });
-    ids.sort();
-    for (var i = 0; i < ids.length; i++) {
-			if (max !== ids[i]) {
-			break;
-			}
-			max++;
-    }
+        var ids = [];
+        var max = 0;
+        table.get().forEach( function(row) {
+            ids.push(row.get(tblKeys.id));
+        });
 
-    var mtable = table.get().unfreeze();
-    var row = new recoil.structs.table.MutableTableRow();
-    row.set(tblKeys.id, max);
-    row.set(tblKeys.name, "row "+ max);
-    row.set(tblKeys.count, max);
-    row.set(tblKeys.check, false);
-    row.set(tblKeys.select, {a: 'test'});
+        ids.sort();
+        for (var i = 0; i < ids.length; i++) {
+                if (max !== ids[i]) {
+                    break;
+                }
+                max++;
+        }
 
-    mtable.addRow(row);
-    table.set(mtable.freeze());
-    }, table));
-    tableWidget.attach(table, columnsB, pageB, countB);
+        var mtable = table.get().unfreeze();
+        var row = new recoil.structs.table.MutableTableRow();
+        row.set(tblKeys.id, max);
+        row.set(tblKeys.name, "row "+ max);
+        row.set(tblKeys.count, max);
+        row.set(tblKeys.check, false);
+        row.set(tblKeys.select, {a: 'test'});
+
+        mtable.addRow(row);
+        table.set(mtable.freeze());
+        },
+    table));
+
+
+    var headerTable = recoil.structs.table.Table.create(
+        typeFactories, rawTableMeta, [], true).unfreeze();
+
+    headerTable.addMeta({editable: false});
+/*
+    var headerRow = new recoil.structs.table.MutableTableRow(-1);
+
+    headerRow.set(tblKeys.id, new recoil.structs.table.TableCell(-1));
+    headerRow.set(tblKeys.name, "Name");
+    headerRow.set(tblKeys.count, "Count");
+    headerRow.set(tblKeys.check, "Check");
+    headerRow.set(tblKeys.select, "Select");
+
+    headerTable.addRow(headerRow);
+*/
+    var tableHeaderB = frp.createConstB(headerTable.freeze());
+
+    tableWidget.attach(tableHeaderB, table, columnsB, pageB, countB);
 			
     var hideWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var hideHeadersWidget = new recoil.ui.widgets.ButtonWidget(scope);
@@ -249,13 +260,7 @@
     switchB.set(columns.createB(frp));
     },columnsB));
 
-    tableWidget.getComponent().render($('tablediv'));
-    buttonWidget.getComponent().render($('addB'));
-    hideWidget.getComponent().render($('hideB'));
-    hideHeadersWidget.getComponent().render($('hideHeadersB'));
-    showWidget.getComponent().render($('showB'));
-    badWidget.getComponent().render($('badB'));
-    deleteButton.getComponent().render($('deleteB'));
+    tableWidget.getComponent().render($('tableDiv'));
 
     
   </script>

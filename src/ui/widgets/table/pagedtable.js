@@ -35,26 +35,30 @@ recoil.ui.widgets.table.PagedTableWidget = function(scope) {
     this.container_ = new goog.ui.Component();
     this.container_.createDom();
     this.tableWidget_ = new recoil.ui.widgets.table.TableWidget(scope);
+    this.headerWidget_ = new recoil.ui.widgets.table.TableWidget(scope);
 //    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
 
     this.topPager_ = new recoil.ui.widgets.table.PagerWidget(scope);
     this.bottomPager_ = new recoil.ui.widgets.table.PagerWidget(scope);
 
-
     var tableDiv = goog.dom.createDom('div');
     this.tableWidget_.getComponent().render(tableDiv);
+
+    goog.dom.classlist.add(tableDiv, 'flex-grow');
+    goog.dom.classlist.add(this.container_.getElement(), 'flex-display');
+
+    var headerDiv = goog.dom.createDom('div');
+    this.headerWidget_.getComponent().render(headerDiv);
 
     var div = goog.dom.createDom('div', {class: 'recoil-table-pager-container'});
 
     this.container_.getElement().appendChild(div);
     div.appendChild(this.topPager_.getComponent().getElement());
+    div.appendChild(headerDiv);
     div.appendChild(tableDiv);
     div.appendChild(this.bottomPager_.getComponent().getElement());
 
     var me = this;
-
-
-
 };
 
 
@@ -74,14 +78,23 @@ recoil.ui.widgets.table.PagedTableWidget.prototype.getComponent = function() {
     return this.container_;
 };
 
+/**
+ *
+ * @return {!recoil.ui.widgets.table.PagerWidget}
+ */
+recoil.ui.widgets.table.PagedTableWidget.prototype.getBottomPager = function() {
+    return this.bottomPager_;
+};
 
 /**
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} header
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} table
  * @param {!recoil.frp.Behaviour<!recoil.ui.widgets.TableMetaData> |!recoil.ui.widgets.TableMetaData} meta
  * @param {!recoil.frp.Behaviour<!number>} page
  * @param {!recoil.frp.Behaviour<!number>|!number} count
  */
-recoil.ui.widgets.table.PagedTableWidget.prototype.attach = function(table, meta, page, count) {
+recoil.ui.widgets.table.PagedTableWidget.prototype.attach = function(header, table, meta, page, count) {
+    this.headerWidget_.attach(header, meta);
     this.tableWidget_.attach(table, meta);
     this.topPager_.attach(page, count);
     this.bottomPager_.attach(page, count);
