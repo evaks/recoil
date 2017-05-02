@@ -2882,6 +2882,37 @@ recoil.db.PathMap.prototype.get = function(path) {
     return res;
 };
 
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!Array<T>}
+ */
+recoil.db.PathMap.prototype.getAnsestors = function(path) {
+    var res = [];
+    var items = this.schema_.absolute(path).items();
+    var push = function(item) {
+        // TODO check schema
+        res.push(item);
+    };
+    var cur = this.root_;
+    for (var i = 0; i < items.length && cur; i++) {
+        var item = items[i];
+        var hasParams = item.keys().length;
+        if (hasParams) {
+
+            var child = cur.resolve([item.unsetKeys()], 0, false);
+            if (child) {
+                child.values_.forEach(push);
+            }
+        }
+        cur = cur.resolve([item], 0, false);
+        if (cur) {
+            cur.values_.forEach(push);
+        }
+
+    }
+    return res;
+};
+
 
 /**
  * @param {!recoil.db.ChangeSet.Path} path

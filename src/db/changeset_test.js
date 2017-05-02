@@ -25,7 +25,8 @@ var schema = {
                     children : {
                         c: {
                             keys : ['k']
-                        }
+                        },
+                        d:{}
                     }
                 },
                 b1 : {}
@@ -654,9 +655,12 @@ function testSuffix() {
 function testPathMap() {
     var ns = recoil.db.ChangeSet;
     var a = ns.Path.fromString('a');
+    var ac = ns.Path.fromString('a/c');
     var ab = ns.Path.fromString('a/b');
+    var abc = ns.Path.fromString('a/b/d');
     var ab1 = ns.Path.fromString('a/b1');
     var a1 = ns.Path.fromString('a1');
+    var z1 = ns.Path.fromString('z1');
     var testee = new recoil.db.PathMap(schema);
 
     testee.put(a,1);
@@ -683,8 +687,22 @@ function testPathMap() {
     assertSameObjects([2], testee.get(a));
     testee.putList(ab,[]);
     assertSameObjects([], testee.get(a));
-    
-};
+
+
+    testee = new recoil.db.PathMap(schema);
+    testee.put(a,1);
+    testee.put(ab,2);
+    testee.put(abc,3);
+    testee.put(z1,10);
+    testee.put(ac,20);
+    assertSameObjects([1], testee.getAnsestors(a));
+    assertSameObjects([1,2], testee.getAnsestors(ab));
+    assertSameObjects([1,2], testee.getAnsestors(ab.setKeys(['k'],[1])));
+    testee.put(ab.setKeys(['k'],[1]),44);
+
+    assertSameObjects([1,2,44], testee.getAnsestors(ab.setKeys(['k'],[1])));
+    assertSameObjects([1,2,3], testee.getAnsestors(abc));
+}
 
 function testMergeChanges() {
     var ns = recoil.db.ChangeSet;
