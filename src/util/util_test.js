@@ -92,7 +92,19 @@ function testIsEqual() {
     assertFalse(recoil.util.isEqual(funcA, funcC));
 
 }
-
+function testToString() {
+    var obj = {};
+    obj.toString = function () {
+        return 'foo';
+    };
+    var l1 = {};
+    var l2 = {a:l1};
+    l1.a = l2;
+    assertEquals('{a:b}', recoil.util.object.toString({a:'b'}));
+    assertEquals('[{a:b},{b:c}]', recoil.util.object.toString([{a:'b'},{b:'c'}]));
+    assertEquals('[foo]', recoil.util.object.toString([obj]));
+    assertEquals('[{a:{a:<loop{1}>}}]', recoil.util.object.toString([l1]));
+}
 function semetricCompare(a, b, expected) {
 
     if (expected < 0) {

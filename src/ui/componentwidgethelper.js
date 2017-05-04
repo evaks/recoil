@@ -245,7 +245,7 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
     }
 
     this.behaviours_ = newBehaviours;
-    this.attachedBehaviour_ = recoil.util.invokeOneParamAndArray(this.frp_, this.frp_.metaLiftB, this.callback_, this.behaviours_);
+    this.attachedBehaviour_ = recoil.util.invokeOneParamAndArray(this.frp_, this.frp_.observeB, this.callback_, this.behaviours_);
 
     if (hadBehaviour) {
         if (this.isAttached_) {
@@ -291,6 +291,12 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
     case goog.ui.Component.EventType.CHANGE:
         this.handler_ = comp;
         break;
+    case recoil.ui.EventHelper.EL_CHANGE:
+        // we have to override this because sometimes its on the component sometimes its on the
+        // element
+        this.handler_ = comp.getElement();
+        this.type_ = goog.events.EventType.CHANGE;
+        break;
     case goog.events.EventType.BLUR:
     case goog.events.EventType.PASTE:
     case goog.events.EventType.FOCUS:
@@ -311,6 +317,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
 
     var me = this;
     this.func_ = function(e) {
+        console.log('EVENT', e);
         if (me.listener_) {
             me.listener_.frp().accessTrans(function() {
                 // sometimes events fire when before it is on the screen
@@ -321,6 +328,13 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
         }
     };
 };
+
+/**
+ * @final
+ * @type {string}
+ */
+recoil.ui.EventHelper.EL_CHANGE = 'el-change';
+
 
 /**
  * @param {recoil.frp.Behaviour} callback the behaviour to set with the event

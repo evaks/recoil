@@ -224,6 +224,54 @@ recoil.util.object.isEqual = function(a, b, opt_ignore) {
 
     return recoil.util.object.isEqual.isEqualRec_(a, b, [], [], [], opt_ignore || {});
 };
+
+/**
+ * compares 2 objects
+ *
+ * @param {?} obj
+ * @param {!Array<?>} opt_path
+ * @return {!string}
+ */
+recoil.util.object.toString = function(obj, opt_path) {
+    var func1 = {}.toString;
+    var func2 = [].toString;
+
+    var toStringRec = function(o, path) {
+        var index = goog.array.indexOf(path, o);
+        if (index !== -1) {
+            return '<loop{' + index + '}>';
+        }
+        if (o.toString !== undefined && o.toString !== func1 && o.toString !== func2 && o.toString instanceof Function) {
+            return o.toString(path);
+        }
+        if (o instanceof Array) {
+            var ares = [];
+            path.push(o);
+            for (var i = 0; i < o.length; i++) {
+                ares.push(toStringRec(o[i], path));
+            }
+            path.pop();
+            return '[' + ares.join(',') + ']';
+        }
+        if (o instanceof Object) {
+            var ores = [];
+            path.push(o);
+            for (var k in o) {
+                if (o.hasOwnProperty(k)) {
+                    ores.push(k + ':' + toStringRec(o[k], path));
+                }
+            }
+
+            path.pop(o);
+            return '{' + ores.join(',') + '}';
+        }
+        return '' + o;
+    };
+
+    return toStringRec(obj, opt_path || []);
+};
+
+
 /**
  * finds an element, if it does not exist inserts it into
  * the AvlTree and returns it

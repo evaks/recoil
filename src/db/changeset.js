@@ -2896,7 +2896,7 @@ recoil.db.PathMap.prototype.getAnsestors = function(path) {
     var cur = this.root_;
     for (var i = 0; i < items.length && cur; i++) {
         var item = items[i];
-        var hasParams = item.keys().length;
+        var hasParams = item.keys().length > 0;
         if (hasParams) {
 
             var child = cur.resolve([item.unsetKeys()], 0, false);

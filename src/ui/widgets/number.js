@@ -47,7 +47,7 @@ recoil.ui.widgets.NumberWidget = function(scope) {
 
     this.valueHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateValue_, this.detach_);
     this.configHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateConfig_);
-    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.number_, goog.events.EventType.BLUR);
+    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.number_, recoil.ui.EventHelper.EL_CHANGE);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.number_);
     this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.editableDiv_], [this.readonlyDiv_]);
 

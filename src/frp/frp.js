@@ -442,6 +442,15 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
             if (behaviour.dirtyUpOldValue_ === undefined) {
                 console.error('SETTING UNDEFINED 2');
             }
+            if (dependents) {
+                for (var i = 0; i < dependents.length; i++) {
+                    var d = dependents[i];
+                    if (d.notifyReset_) {
+                        res.push(d);
+                    }
+                }
+            }
+
             behaviour.val_ = behaviour.dirtyUpOldValue_;
         } else if (behaviour.dirtyUp_ || !recoil.util.isEqual(oldVal, newVal)) {
             if (newVal === undefined) {
@@ -536,6 +545,7 @@ recoil.frp.Frp.Direction_.DOWN = new recoil.frp.TraverseDirection(
 recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) {
     var me = this;
     this.frp_ = frp;
+    this.notifyReset_ = false; // notify any dependants if this changes back to the value it was after a set
     var myValue = value;
 
     if (value === undefined) {
@@ -1152,6 +1162,28 @@ recoil.frp.Frp.prototype.metaLiftB = function(func, var_args) {
         args.push(arguments[i]);
     }
     return this.metaLiftBI.apply(this, args);
+};
+
+/**
+ * similar to liftB however will be notified if object is changed back
+ * to itself
+ *
+ * @template T
+ * @param {function(...) : T} func
+ * @param {...} var_args
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Frp.prototype.observeB = function(func, var_args) {
+    var args = [];
+    args.push(func);
+    args.push(undefined);
+
+    for (var i = 1; i < arguments.length; i++) {
+        args.push(arguments[i]);
+    }
+    var res = this.metaLiftBI.apply(this, args);
+    res.notifyReset_ = true;
+    return res;
 };
 
 /**

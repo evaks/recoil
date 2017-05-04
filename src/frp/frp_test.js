@@ -531,6 +531,28 @@ function testAttachDetach() {
     tm.detach(two);
     one.set(1);
 }
+function testObserver () {
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var oneB = frp.createConstB(1);
+    var twoB = frp.liftBI(function (v) {return v;}, function (v) {oneB.set(v)}, oneB);
+
+    var val;
+    var obB = frp.observeB(function (v) {
+        val = v.get();
+    }, twoB);
+
+    
+    tm.attach(obB);
+        
+    assertEquals(1, val);
+    frp.accessTrans(function () {
+        val = 2;
+        twoB.set(2);
+    }, twoB);
+    assertEquals(1, val);
+};
 
 function testDependancyRemoved() {
     var frp = new recoil.frp.Frp();
