@@ -49,6 +49,7 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.valueHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateValue_, this.detach_);
     this.configHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateConfig_);
     this.errorHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, function() {});
+    this.validatorHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateValidator_);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.number_, recoil.ui.EventHelper.EL_CHANGE);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.number_);
     this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.editableDiv_], [this.readonlyDiv_]);
@@ -262,6 +263,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachMeta = function(value, options) {
  * min - number the miniumn value
  * max - number the maxiumn value
  * step - step size of the number
+ * validator - a function that takes a number and returns a message if it is invalid, else null
  *
  */
 recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
@@ -271,6 +273,7 @@ recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
         max: Number.MAX_SAFE_INTEGER || 9007199254740991,
         step: 1,
         outErrors: [],
+        validator: function(val) {return null;},
         readonlyFormatter: null,
         classes: []
     }
@@ -346,8 +349,9 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.editableB_ = bound.editable();
     this.enabledB_ = bound.enabled();
     this.classesB_ = bound.classes();
+    this.validatorB_ = bound.validator();
     this.outErrorsB_ = bound.outErrors();
-
+    this.hasErrors_ = false;
     this.formatterB_ = frp.liftB(function(min, step, fmt) {
         if (fmt) {
             return fmt;
@@ -360,7 +364,8 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
         };
     }, this.minB_, this.stepB_, bound.readonlyFormatter());
 
-    this.errorHelper_.attach(this.outErrorsB_);
+    this.errorHelper_.attach(this.outErrorsB_, this.validatorB_);
+    this.validatorHelper_.attach(this.validatorB_, this.minB_, this.maxB_, this.stepB_);
     this.valueHelper_.attach(this.valueB_);
 
     this.configHelper_.attach(this.minB_, this.maxB_, this.stepB_, this.enabledB_, this.formatterB_);
@@ -375,13 +380,22 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-        me.updateErrors_(inputEl, me.outErrorsB_);
 
         if (inputEl.validity.valid && inputEl.value !== '') {
-            me.valueB_.set(parseFloat(inputEl.value));
+            var val = parseFloat(inputEl.value);
+            var error = me.validatorB_.get()(val);
+            if (error) {
+                me.updateErrors_(inputEl, me.outErrorsB_, me.validatorB_);
+            }
+            else {
+                me.valueB_.set(val);
+            }
+        }
+        else {
+            me.updateErrors_(inputEl, me.outErrorsB_, me.validatorB_);
         }
 
-    }, this.valueB_, this.outErrorsB_));
+    }, this.valueB_, this.outErrorsB_, this.validatorB_));
 
     this.enabledHelper_.attach(
         /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
@@ -389,18 +403,52 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 };
 /**
  * @private
+ * @param {recoil.ui.WidgetHelper} helper
+ */
+recoil.ui.widgets.NumberWidget.prototype.updateValidator_ = function(helper) {
+    var me = this;
+    var hadErrors = this.hasErrors_;
+    if (me.updateErrors_(me.number_.getElement(), me.outErrorsB_, me.validatorB_) && hadErrors) {
+        this.scope_.getFrp().accessTrans(function() {
+            if (me.valueB_.hasRefs() && me.valueB_.good()) {
+                var element = me.number_.getElement();
+                var val = parseFloat(element.value);
+                me.valueB_.set(val);
+            }
+            return true;
+        }, this.valueB_);
+    }
+};
+/**
+ * @private
  * @param {Element} el
  * @param {!recoil.frp.Behaviour<!Array>} errorsB
+ * @param {!recoil.frp.Behaviour<!function(number):recoil.ui.message.Message>} validatorB
+ * @return {!boolean} true if no error
  */
-recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB) {
+recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, validatorB) {
     var me = this;
+    var res = false;
     if (el.validity.valid && el.value !== '') {
         this.scope_.getFrp().accessTrans(function() {
-            errorsB.set([]);
-        }, errorsB);
+            var v = parseFloat(el.value);
+            var validator = validatorB.hasRefs() && validatorB.good() ? validatorB.get() : function() {return null;};
+            var error = validator(v);
+            if (error) {
+                errorsB.set([error]);
+            }
+            else {
+                errorsB.set([]);
+                res = true;
+            }
+        }, errorsB, validatorB);
     }
     else {
         this.scope_.getFrp().accessTrans(function() {
+            if (!me.stepB_.hasRefs() || !me.minB_.hasRefs() || !me.maxB_.hasRefs() ||
+                !me.stepB_.good() || !me.minB_.good() || !me.maxB_.good()) {
+                return;
+            }
             if (me.stepB_.get() === 1) {
                 errorsB.set([recoil.ui.messages.NUMBER_NOT_IN_RANGE.resolve(
                     {
@@ -420,6 +468,17 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB) {
         }, errorsB, this.minB_, this.maxB_, this.stepB_);
 
     }
+    if (this.hasErrors_ !== !res) {
+        if (res) {
+            goog.dom.classlist.remove(el, 'recoil-error');
+        }
+        else {
+            goog.dom.classlist.add(el, 'recoil-error');
+        }
+    }
+    this.hasErrors_ = !res;
+
+    return res;
 
 };
 
@@ -431,7 +490,9 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB) {
 recoil.ui.widgets.NumberWidget.prototype.updateValue_ = function(helper) {
     if (helper.isGood()) {
         this.number_.setValue(this.valueB_.get());
-        this.updateErrors_(this.number_.getElement(), this.outErrorsB_);
+        var me = this;
+        this.updateErrors_(this.number_.getElement(), this.outErrorsB_, this.validatorB_);
+
     }
 };
 

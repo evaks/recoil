@@ -29,13 +29,23 @@ error<div id='error'/>
 <div id="input1"></div>
 <div id="input2"></div>
 <div id="enabled2"></div>
-
+<div>validate
+  <div id="validate"></div>
+</div>
 <script>
     var scope = new recoil.ui.WidgetScope();
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
 
     var val = frp.createB(7);
+    var odd = function (v) {
+       if (v % 2 == 1) {
+          return recoil.ui.message.toMessage("cannot be odd");
+       }
+      return null;
+    };
+    var all = function (v) {return null;};
+    var validatorB = frp.createB(odd);
     var errorB = frp.createB([]);
     var error = new recoil.ui.widgets.LabelWidget(scope);
     error.getComponent().render($('error'));
@@ -49,7 +59,7 @@ error.attach(frp.liftB(function (e) {
   var editableB = frp.createB(true);
   var label = new recoil.ui.widgets.LabelWidget(scope);
   var input1 = new recoil.ui.widgets.NumberWidget(scope);
-  input1.attachStruct({value : val, editable : editableB, max: 10, enabled : enabledB, step : 0.1, readonlyFormatter : function (v) {return "xx " + v},       outErrors: errorB});
+  input1.attachStruct({value : val, validator: validatorB,editable : editableB, max: 10, enabled : enabledB, step : 0.1, readonlyFormatter : function (v) {return "xx " + v},       outErrors: errorB});
   label.getComponent().render($('label1'));
   label.attachStruct({name : val, formatter : function (v) {
       return ""+ v;
@@ -58,8 +68,16 @@ error.attach(frp.liftB(function (e) {
 
     var input2 = new recoil.ui.widgets.CheckboxWidget(scope);
     var enabled = new recoil.ui.widgets.CheckboxWidget(scope);
+    var validate = new recoil.ui.widgets.CheckboxWidget(scope);
   input2.getComponent().render($('input2'));
   enabled.getComponent().render($('enabled'));
+  validate.getComponent().render($('validate'));
+  validate.attach(' ', frp.liftBI(
+    function (v) {
+         return validatorB.get() === odd;
+    }, function (v) {
+        validatorB.set(v ? odd : all);
+    }, validatorB));
   enabled.attach('x',
 		 frp.liftBI (
 		     function (v) {
