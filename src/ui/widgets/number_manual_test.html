@@ -23,6 +23,7 @@
     <!--<link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">-->
 </head>
 <body>
+error<div id='error'/>
 
 <div id="label1"></div>
 <div id="input1"></div>
@@ -35,12 +36,20 @@
     var $ = goog.dom.getElement;
 
     var val = frp.createB(7);
-
+    var errorB = frp.createB([]);
+    var error = new recoil.ui.widgets.LabelWidget(scope);
+    error.getComponent().render($('error'));
+error.attach(frp.liftB(function (e) {
+    if (e.length === 0) {
+    return 'Ok';
+    }
+       return e[0].toString();
+    },errorB));
   var enabledB = frp.createB(recoil.ui.BoolWithExplanation.TRUE);
   var editableB = frp.createB(true);
   var label = new recoil.ui.widgets.LabelWidget(scope);
   var input1 = new recoil.ui.widgets.NumberWidget(scope);
-  input1.attachStruct({value : val, editable : editableB, max: 100, enabled : enabledB, step : 0.1, readonlyFormatter : function (v) {return "xx " + v}});
+  input1.attachStruct({value : val, editable : editableB, max: 10, enabled : enabledB, step : 0.1, readonlyFormatter : function (v) {return "xx " + v},       outErrors: errorB});
   label.getComponent().render($('label1'));
   label.attachStruct({name : val, formatter : function (v) {
       return ""+ v;

@@ -5,6 +5,11 @@
     <title>input Test</title>
     <script src="../../../../closure-library/closure/goog/base.js"></script>
     <script src="../../../../my-deps.js"></script>
+    <style>
+      .recoil-error {
+      color:red;
+      }
+      </style>
     <script>
         goog.require('goog.dom');
         goog.require('recoil.frp.Frp');
@@ -29,6 +34,7 @@
 </head>
 <body>
 
+error<div id='error'/>
 <div id="label1"></div>
 <div id="input1"></div>
 <div id="input2"></div>
@@ -41,12 +47,13 @@
     var scope = new recoil.ui.WidgetScope();
     var frp = scope.getFrp();
     var $ = goog.dom.getElement;
-
+    var errorB = frp.createB([]);
     var val = frp.createB("test");
 
   var enabledB = frp.createB(recoil.ui.BoolWithExplanation.TRUE);
   var editableB = frp.createB(true);
   var label = new recoil.ui.widgets.LabelWidget(scope);
+  var error = new recoil.ui.widgets.LabelWidget(scope);
   var input1 = new recoil.ui.widgets.InputWidget(scope);
   input1.attachStruct({value : val,
       editable : editableB,
@@ -54,7 +61,14 @@
   });
   label.getComponent().render($('label1'));
   label.attach(val);
+    error.attach(frp.liftB(function (e) {
+    if (e.length === 0) {
+    return 'Ok';
+    }
+       return e[0].toString();
+    },errorB));
     input1.getComponent().render($('input1'));
+    error.getComponent().render($('error'));
 
     var input2 = new recoil.ui.widgets.CheckboxWidget(scope);
     var enabled = new recoil.ui.widgets.CheckboxWidget(scope);
@@ -93,6 +107,7 @@
       editable: editableB,
       enabled: enabledB,
       immediate: false,
+    outErrors: errorB,
       charValidator: recoil.converters.IPAddressConverter.charValidator,
       converter: new recoil.converters.IPAddressConverter(),
       spellcheck: false,

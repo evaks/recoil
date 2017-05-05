@@ -83,6 +83,7 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
         immediate: false, // if false changes will not propogate until blur
         converter: new recoil.converters.DefaultStringConverter(),
         maxLength: undefined,
+        outErrors: [],
         displayLength: undefined,
         charValidator: function() {return true;}
     }
@@ -93,26 +94,25 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
  * @param {recoil.ui.widgets.InputWidget} me
  * @param {Element} inputEl
  * @param {boolean} setVal
- * @param {!boolean} revert
  * @private
  */
-recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal, revert) {
+recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal) {
     var res = me.converterB_.get().unconvert(inputEl.value);
     var el = inputEl;
     if (!res.error) {
         if (setVal) {
             me.valueB_.set(res.value);
         }
+        me.scope_.getFrp().accessTrans(function() {
+            me.outErrorsB_.set([]);
+        }, me.outErrorsB_);
+
         goog.dom.classlist.remove(el, 'recoil-error');
     } else {
-        if (revert) {
-            var strVal = me.converterB_.get().convert(me.valueB_.get());
-            me.input_.setValue(strVal);
-            goog.dom.classlist.remove(el, 'recoil-error');
-        }
-        else {
-            goog.dom.classlist.add(el, 'recoil-error');
-        }
+        me.scope_.getFrp().accessTrans(function() {
+            me.outErrorsB_.set([res.error]);
+        }, me.outErrorsB_);
+        goog.dom.classlist.add(el, 'recoil-error');
     }
 };
 /**
@@ -124,7 +124,7 @@ recoil.ui.widgets.InputWidget.prototype.detach_ = function() {
     var me = this;
     frp.accessTrans(function() {
         if (me.immediateB_.good() && me.converterB_.good() && me.valueB_.good() && !me.immediateB_.get()) {
-            me.updateElement_(me, me.input_.getElement(), true, true);
+            me.updateElement_(me, me.input_.getElement(), true);
         }
     }, me.immediateB_, me.converterB_, me.valueB_);
 };
@@ -143,6 +143,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.immediateB_ = bound.immediate();
     this.converterB_ = bound.converter();
     this.maxLengthB_ = bound.maxLength();
+    this.outErrorsB_ = bound.outErrors();
     this.displayLengthB_ = bound.displayLength();
     this.charValidatorB_ = bound.charValidator();
     this.classesB_ = bound.classes();
@@ -161,20 +162,20 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_, formatter: formatterB});
     this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_,
-        this.maxLengthB_, this.displayLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_);
+        this.maxLengthB_, this.displayLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_, this.outErrorsB_);
 
 
     var me = this;
 
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-        me.updateElement_(me, inputEl, me.immediateB_.get(), false);
+        me.updateElement_(me, inputEl, me.immediateB_.get());
     }, this.valueB_, this.immediateB_, this.converterB_));
 
     var blurListener = function(v) {
         var inputEl = v.target;
         if (!me.immediateB_.get()) {
-            me.updateElement_(me, inputEl, true, true);
+            me.updateElement_(me, inputEl, true);
         }
         else {
             frp.accessTrans(function() {
@@ -182,7 +183,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                     var t = me.converterB_.get();
                     var strVal = t.convert(me.valueB_.get());
                     me.input_.setValue(strVal);
-                    me.updateElement_(me, inputEl, false, false);
+                    me.updateElement_(me, inputEl, false);
                 }
             }, me.converterB_, me.valueB_);
         }
@@ -195,19 +196,21 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
 
         if (!me.immediateB_.get()) {
-
             if (v.keyCode === goog.events.KeyCodes.ENTER) {
                  blurListener(v);
-             }
-             else if (v.keyCode === goog.events.KeyCodes.ESC) {
-                 if (me.valueB_.metaGet().good() && me.converterB_.metaGet().good()) {
-                     var t = me.converterB_.get();
-                     var strVal = t.convert(me.valueB_.get());
-                     me.input_.setValue(strVal);
-                     me.updateElement_(me, v.target, true, false);
-                 }
-             }
+            }
         }
+        if (v.keyCode === goog.events.KeyCodes.ESC) {
+            if (me.valueB_.metaGet().good() && me.converterB_.metaGet().good()) {
+                var t = me.converterB_.get();
+                var strVal = t.convert(me.valueB_.get());
+                me.input_.setValue(strVal);
+                me.updateElement_(me, v.target, true);
+                v.preventDefault();
+                return;
+            }
+        }
+
 
         var bevent = v.getBrowserEvent();
         var ch = bevent.key !== undefined ? bevent.key : bevent.char;
@@ -270,7 +273,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
                     inputEl.selectionStart = selPos;
                     inputEl.selectionEnd = selPos;
-                    me.updateElement_(me, v.target, me.immediateB_.get(), false);
+                    me.updateElement_(me, v.target, me.immediateB_.get());
                     v.preventDefault();
                 }
             }
@@ -319,9 +322,12 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
         var strVal = t.convert(this.valueB_.get());
 
         if (document.activeElement !== this.input_.getElement()) {
-
+            var me = this;
             if (strVal !== this.input_.getValue()) {
                 this.input_.setValue(strVal);
+                this.updateElement_(this, me.input_.getElement(), false);
+
+
             }
         }
 
