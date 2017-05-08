@@ -122,6 +122,7 @@ recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, s
 recoil.ui.widgets.InputWidget.prototype.detach_ = function() {
     var frp = this.helper_.getFrp();
     var me = this;
+    this.lastValueB_ = undefined;
     frp.accessTrans(function() {
         if (me.immediateB_.good() && me.converterB_.good() && me.valueB_.good() && !me.immediateB_.get()) {
             me.updateElement_(me, me.input_.getElement(), true);
@@ -324,9 +325,10 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
         if (document.activeElement !== this.input_.getElement()) {
             var me = this;
             if (strVal !== this.input_.getValue()) {
-                this.input_.setValue(strVal);
-                this.updateElement_(this, me.input_.getElement(), false);
-
+                if (!recoil.util.object.isEqual(this.lastValueB_, this.valueB_.metaGet())) {
+                    this.input_.setValue(strVal);
+                    this.updateElement_(this, me.input_.getElement(), false);
+                }
 
             }
         }
@@ -341,6 +343,7 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
     else {
         this.input_.setValue(recoil.ui.messages.NOT_READY.toString());
     }
+    this.lastValueB_ = this.valueB_.metaGet();
 
 };
 

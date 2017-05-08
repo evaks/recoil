@@ -318,7 +318,7 @@ goog.structs.AvlTree.prototype.equals = function(other) {
 
 /**
  * @param {?} other
- * @return {!boolean}
+ * @return {!number}
  */
 goog.structs.AvlTree.prototype.compare = function(other) {
     if (other instanceof goog.structs.AvlTree) {
