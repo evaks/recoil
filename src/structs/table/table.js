@@ -907,7 +907,7 @@ recoil.structs.table.Table.prototype.get = function(keys, columnKey) {
  * @return {!Object}
  */
 recoil.structs.table.Table.prototype.getMeta = function() {
-    return this.meta_;
+    return recoil.util.object.clone(this.meta_);
 };
 
 /**
@@ -1548,7 +1548,7 @@ recoil.structs.table.TableCell = function(value, opt_meta) {
  */
 
 recoil.structs.table.TableCell.prototype.getMeta = function() {
-    return this.meta_ === undefined ? {} : this.meta_;
+    return this.meta_ === undefined ? {} : recoil.util.object.clone(this.meta_);
 };
 
 /**

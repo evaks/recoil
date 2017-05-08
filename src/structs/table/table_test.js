@@ -59,6 +59,26 @@ function testOrdered () {
 
 }
 
+function testEquals() {
+    var tbl1 = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
+    var tbl2 = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
+    var row = new recoil.structs.table.MutableTableRow();
+    row.set(COL_A, "hello");
+    row.setCellMeta({errors:[]});
+    row.set(COL_B, "world");
+    
+    tbl1.addRow(row);
+
+    row = new recoil.structs.table.MutableTableRow();
+    row.set(COL_A, "hello");
+    row.setCellMeta(COL_A, {errors:['hi']});
+    row.set(COL_B, "world");
+
+    tbl2.addRow(row);
+    assertFalse(recoil.util.object.isEqual(tbl1.freeze(), tbl2.freeze()));
+
+}
+
 function testAddRow() {
     var tbl = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
     var row = new recoil.structs.table.MutableTableRow();

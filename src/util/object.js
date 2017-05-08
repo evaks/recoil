@@ -242,7 +242,12 @@ recoil.util.object.toString = function(obj, opt_path) {
             return '<loop{' + index + '}>';
         }
         if (o.toString !== undefined && o.toString !== func1 && o.toString !== func2 && o.toString instanceof Function) {
-            return o.toString(path);
+            try {
+                return o.toString(path);
+            }
+            catch (e) {
+                return '' + o;
+            }
         }
         if (o instanceof Array) {
             var ares = [];
@@ -309,6 +314,31 @@ goog.structs.AvlTree.prototype.equals = function(other) {
         return recoil.util.object.isEqual(myRows, otherRows);
     }
     return false;
+};
+
+/**
+ * @param {?} other
+ * @return {!boolean}
+ */
+goog.structs.AvlTree.prototype.compare = function(other) {
+    if (other instanceof goog.structs.AvlTree) {
+        var count = other.getCount();
+        if (this.getCount() != count) {
+            return this.getCount() - count;
+        }
+
+        var myRows = [];
+        var otherRows = [];
+        this.inOrderTraverse(function(row) {
+            myRows.push(row);
+        });
+
+        other.inOrderTraverse(function(row) {
+            otherRows.push(row);
+        });
+        return recoil.util.object.compare(myRows, otherRows);
+    }
+    return -1;
 };
 
 /**
