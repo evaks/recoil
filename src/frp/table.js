@@ -40,7 +40,7 @@ recoil.frp.table.TableRow.create = function(frp, tableV, keysV) {
 
 /**
  * this wil return an bidirectional table cell it will contain the meta data from the
- * cell, column, row, and table. Setting the meta data will have no effect
+ * cell, column, row, and table.
  *
  * @param {!recoil.frp.Frp} frp the frp engine
  * @param {!recoil.structs.table.Table|recoil.frp.Behaviour<!recoil.structs.table.Table>}  tableV
@@ -75,7 +75,7 @@ recoil.frp.table.TableCell.create = function(frp, tableV, keysV, columnV) {
         },
         function(val) {
             var mTable = tableB.get().unfreeze();
-            mTable.set(keysB.get(), columnB.get(), val.getValue());
+            mTable.setCell(keysB.get(), columnB.get(), val);
             tableB.set(mTable.freeze());
         }, tableB, keysB, columnB);
 };
