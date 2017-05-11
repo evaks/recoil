@@ -138,8 +138,11 @@ recoil.frp.table.TableCell.getValue = function(frp, cellB) {
  */
 
 recoil.frp.table.TableCell.getMeta = function(frp, cellB) {
-    return frp.liftB(
+    return frp.liftBI(
         function(cell) {
             return cell.getMeta();
-        }, cellB);
+        }, function(meta) {
+            cellB.set(cellB.get().setMeta(meta));
+        },
+        cellB);
 };

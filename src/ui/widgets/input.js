@@ -94,24 +94,28 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
  * @param {recoil.ui.widgets.InputWidget} me
  * @param {Element} inputEl
  * @param {boolean} setVal
+ * @param {boolean} setError
  * @private
  */
-recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal) {
+recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal, setError) {
     var res = me.converterB_.get().unconvert(inputEl.value);
     var el = inputEl;
     if (!res.error) {
         if (setVal) {
             me.valueB_.set(res.value);
         }
-        me.scope_.getFrp().accessTrans(function() {
-            me.outErrorsB_.set([]);
-        }, me.outErrorsB_);
-
+        if (setError) {
+            me.scope_.getFrp().accessTrans(function() {
+                me.outErrorsB_.set([]);
+            }, me.outErrorsB_);
+        }
         goog.dom.classlist.remove(el, 'recoil-error');
     } else {
-        me.scope_.getFrp().accessTrans(function() {
-            me.outErrorsB_.set([res.error]);
-        }, me.outErrorsB_);
+        if (setError) {
+            me.scope_.getFrp().accessTrans(function() {
+                me.outErrorsB_.set([res.error]);
+            }, me.outErrorsB_);
+        }
         goog.dom.classlist.add(el, 'recoil-error');
     }
 };
@@ -125,7 +129,7 @@ recoil.ui.widgets.InputWidget.prototype.detach_ = function() {
     this.lastValueB_ = undefined;
     frp.accessTrans(function() {
         if (me.immediateB_.good() && me.converterB_.good() && me.valueB_.good() && !me.immediateB_.get()) {
-            me.updateElement_(me, me.input_.getElement(), true);
+            me.updateElement_(me, me.input_.getElement(), true, false);
         }
     }, me.immediateB_, me.converterB_, me.valueB_);
 };
@@ -170,13 +174,13 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-        me.updateElement_(me, inputEl, me.immediateB_.get());
+        me.updateElement_(me, inputEl, me.immediateB_.get(), false);
     }, this.valueB_, this.immediateB_, this.converterB_));
 
     var blurListener = function(v) {
         var inputEl = v.target;
         if (!me.immediateB_.get()) {
-            me.updateElement_(me, inputEl, true);
+            me.updateElement_(me, inputEl, true, true);
         }
         else {
             frp.accessTrans(function() {
@@ -184,7 +188,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                     var t = me.converterB_.get();
                     var strVal = t.convert(me.valueB_.get());
                     me.input_.setValue(strVal);
-                    me.updateElement_(me, inputEl, false);
+                    me.updateElement_(me, inputEl, false, true);
                 }
             }, me.converterB_, me.valueB_);
         }
@@ -206,7 +210,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                 var t = me.converterB_.get();
                 var strVal = t.convert(me.valueB_.get());
                 me.input_.setValue(strVal);
-                me.updateElement_(me, v.target, true);
+                me.updateElement_(me, v.target, true, true);
                 v.preventDefault();
                 return;
             }
@@ -274,7 +278,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
                     inputEl.selectionStart = selPos;
                     inputEl.selectionEnd = selPos;
-                    me.updateElement_(me, v.target, me.immediateB_.get());
+                    me.updateElement_(me, v.target, me.immediateB_.get(), false);
                     v.preventDefault();
                 }
             }
@@ -327,7 +331,7 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
             if (strVal !== this.input_.getValue()) {
                 if (!recoil.util.object.isEqual(this.lastValueB_, this.valueB_.metaGet())) {
                     this.input_.setValue(strVal);
-                    this.updateElement_(this, me.input_.getElement(), false);
+                    this.updateElement_(this, me.input_.getElement(), false, false);
                 }
 
             }

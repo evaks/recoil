@@ -1431,6 +1431,18 @@ recoil.structs.table.MutableTableRow.prototype.getCell = function(column) {
     }
     return this.orig_[column];
 };
+
+
+/**
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @return {!Object}
+ */
+
+recoil.structs.table.MutableTableRow.prototype.getCellMeta = function(column) {
+    var res = this.getCell(column);
+    return res ? res.getMeta() : {};
+};
 /**
  * @param {!Object} meta
  */
