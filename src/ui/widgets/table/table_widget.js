@@ -289,6 +289,15 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_ =
         widget.attach(name, recoil.ui.BoolWithExplanation.TRUE);
         return widget;
     };
+/**
+ * the default factory form for making header widgets for header cells
+ * @final
+ * @private
+ * @param {!recoil.ui.WidgetScope} scope
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
+ * @return {recoil.ui.Widget}
+ */
+recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory = recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory;
 
 /**
  * compares the rows based on its position
