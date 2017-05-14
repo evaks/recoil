@@ -297,7 +297,7 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_ =
  * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
  */
-recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory = recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory;
+recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory = recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_;
 
 /**
  * compares the rows based on its position
