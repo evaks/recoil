@@ -162,7 +162,17 @@ function testRemoveRow() {
 
 
 }
+function testColCompare () {
+    var colA = new recoil.structs.table.ColumnKey('a');
+    var colB = new recoil.structs.table.ColumnKey('a');
 
+    assertTrue(colA.compare(colB) < 0);
+    assertTrue(colA.compare(colA) === 0 );
+    assertTrue(colB.compare(colA) > 0);
+
+    assertTrue(colB.compare("fred") === undefined);
+
+}
 function testMetaData () {
     var mTable = new recoil.structs.table.MutableTable([], [COL_A, COL_B]);
     var tblRow = recoil.structs.table.TableRow;

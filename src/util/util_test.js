@@ -160,7 +160,9 @@ function testCompare() {
     assertEquals(recoil.util.compare(loopTestA, loopTestB), 0);
 
     loopTestB.some.me = loopTestA;
-    semetricCompare(recoil.util.compare(loopTestA, loopTestB), -1);
+    semetricCompare(loopTestA, loopTestB, -1);
+    //comparing different types
+    semetricCompare( {a: 1 , b: 1}, {a: 'x' , b: 1}, -1);
 
 }
 

@@ -292,7 +292,6 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_ =
 /**
  * the default factory form for making header widgets for header cells
  * @final
- * @private
  * @param {!recoil.ui.WidgetScope} scope
  * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
  * @return {recoil.ui.Widget}
@@ -322,7 +321,7 @@ recoil.ui.widgets.table.TableWidget.rowMetaCompare_ = function(x, y) {
     var res;
 
     for (var i = 0; i < x.key.length; i++) {
-        res = x.keyCols[i].compare(x.key[i], y.key[i]);
+        res = x.keyCols[i].valCompare(x.key[i], y.key[i]);
         if (res !== 0) {
             return res;
         }

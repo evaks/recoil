@@ -143,11 +143,18 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
     if (b === null) {
         return 1;
     }
+    var res;
     if (a.compare !== undefined && a.compare instanceof Function) {
-        return a.compare(b);
+        res = a.compare(b);
+        if (res !== undefined) {
+            return -res;
+        }
     }
     if (b.compare !== undefined && b.compare instanceof Function) {
-        return -b.compare(a);
+        res = b.compare(a);
+        if (res !== undefined) {
+            return -res;
+        }
     }
 
     // if 1 and only 1 of a and b is an array
@@ -186,18 +193,23 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
         goog.array.sort(aKeys);
         goog.array.sort(bKeys);
 
-        var res = goog.array.compare3(aKeys, bKeys);
+        res = goog.array.compare3(aKeys, bKeys);
         if (res !== 0) {
             return res;
         }
+        var skiped = false;
         for (var i = 0; i < aKeys.length; i++) {
             var k = aKeys[i];
             res = recoil.util.object.compare_(a[k], b[k], newAPath, newBPath);
+            if (res === undefined) {
+                skiped = true;
+                continue;
+            }
             if (res !== 0) {
                 return res;
             }
         }
-        return 0;
+        return skiped ? undefined : 0;
     }
     if (a instanceof Object) {
         return -1;

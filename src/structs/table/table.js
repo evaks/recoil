@@ -161,8 +161,20 @@ recoil.structs.table.ColumnKey.ROW_META = new recoil.structs.table. ColumnKey('m
  * @param {T} b
  * @return {!number}
  */
-recoil.structs.table.ColumnKey.prototype.compare = function(a, b) {
+recoil.structs.table.ColumnKey.prototype.valCompare = function(a, b) {
     return this.comparator_(a, b);
+};
+
+/**
+ * compares to values for column
+ * @param {T} a
+ * @return {number|undefined}
+ */
+recoil.structs.table.ColumnKey.prototype.compare = function(a) {
+    if (a instanceof recoil.structs.table.ColumnKey) {
+        return this.id_ - a.id_;
+    }
+    return undefined;
 };
 
 /**
@@ -433,7 +445,7 @@ recoil.structs.table.MutableTable = function(primaryKeys, otherColumns) {
     var comparator = function(rowA, rowB) {
         for (var key = 0; key < me.primaryColumns_.length; key++) {
             var col = me.primaryColumns_[key];
-            var res = col.compare(rowA.get(col), rowB.get(col));
+            var res = col.valCompare(rowA.get(col), rowB.get(col));
             if (res !== 0) {
                 return res;
             }
