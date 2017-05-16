@@ -36,6 +36,7 @@ recoil.ui.widgets.LabelWidget = function(scope) {
      */
     this.label_ = new goog.ui.Control();
     this.label_.setAllowTextSelection(true);
+    this.label_.setSupportedState(goog.ui.Component.State.FOCUSED, false);
 
     /**
      *

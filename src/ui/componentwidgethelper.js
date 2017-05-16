@@ -457,3 +457,17 @@ recoil.ui.ComponentWidgetHelper.elementToControl = function(el) {
     c.setAllowTextSelection(true);
     return c;
 };
+
+/**
+ * utility to convert a element to a control, that doesn't accept focus
+ * @param {Node} el
+ * @return {!goog.ui.Control}
+ */
+recoil.ui.ComponentWidgetHelper.elementToNoFocusControl = function(el) {
+    var c = new goog.ui.Control(el);
+    c.setHandleMouseEvents(false);
+    c.setAllowTextSelection(true);
+    c.setSupportedState(goog.ui.Component.State.FOCUSED, false);
+
+    return c;
+};

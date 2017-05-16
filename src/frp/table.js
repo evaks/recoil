@@ -142,7 +142,9 @@ recoil.frp.table.TableCell.getMeta = function(frp, cellB) {
         function(cell) {
             return cell.getMeta();
         }, function(meta) {
-            cellB.set(cellB.get().setMeta(meta));
+            if (cellB.good()) {
+                cellB.set(cellB.get().setMeta(meta));
+            }
         },
         cellB);
 };

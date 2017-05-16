@@ -26,7 +26,7 @@ recoil.ui.widgets.InputWidget = function(scope) {
     this.editableDiv_ = goog.dom.createDom('div');
     this.readonlyDiv_ = goog.dom.createDom('div');
     this.containerDiv_ = goog.dom.createDom('div');
-    var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
+    var toControl = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl;
     this.curClasses_ = [];
 
     goog.dom.append(this.containerDiv_, this.editableDiv_);
