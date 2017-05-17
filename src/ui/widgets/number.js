@@ -397,8 +397,17 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 
     }, this.valueB_, this.outErrorsB_, this.validatorB_));
 
+    var toolTipB = frp.liftB(function(enabled, min, max, step) {
+        if (!enabled.val()) {
+            return enabled;
+        }
+        var info = {'min': min, max: max, step: step};
+        var message = step == 1 ? recoil.ui.messages.MIN_MAX.resolve(info)
+            : recoil.ui.messages.MIN_MAX_STEP.resolve(info);
+        return new recoil.ui.BoolWithExplanation(true, message);
+    }, this.enabledB_, this.minB_, this.maxB_, this.stepB_);
     this.enabledHelper_.attach(
-        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
+        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (toolTipB),
         this.valueHelper_, this.configHelper_);
 };
 /**

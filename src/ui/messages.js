@@ -48,6 +48,19 @@ recoil.ui.messages.NUMBER_NOT_IN_RANGE_STEP = recoil.ui.message.getParamMsg('Mus
  * @type {recoil.ui.message.Message}
  * @final
  */
+recoil.ui.messages.MIN_MAX = recoil.ui.message.getParamMsg('Min: ', ['min'], ', Max: ', ['max']);
+
+
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.MIN_MAX_STEP = recoil.ui.message.getParamMsg('Min: ', ['min'], ', Max: ', ['max'], ', Step: ', ['step']);
+
+/**
+ * @type {recoil.ui.message.Message}
+ * @final
+ */
 recoil.ui.messages.INVALID_VALUE = recoil.ui.message.getParamMsg('Invalid Value');
 
 /**
