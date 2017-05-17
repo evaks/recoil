@@ -389,6 +389,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
             }
             else {
                 me.valueB_.set(val);
+                me.updateErrors_(inputEl, me.outErrorsB_, me.validatorB_);
             }
         }
         else {
