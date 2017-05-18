@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8" http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Check list unit tests - lib.frp.VisibleObserver</title>
+<script src="../../../closure-library/closure/goog/base.js"></script>
+<script src="../../../my-deps.js"></script>
+<script>
+function doObserveTest1() {
+
+    var obs = new MutationObserver(function(mutations) {
+       console.log(mutations);
+    });
+    
+    var node = document. getElementById("ob_test");
+    var node1 = document.getElementById("ob_test1");
+    obs.observe(goog.dom.getDocument(), /** @type MutationObserverInit */
+    ({
+        attributes: true,
+	childList: true,
+	subtree: true,
+//	attributeFilter: ['style', 'hidden']
+    }));
+    
+    
+}
+
+  function doObserveTest() {
+      ob_test1.style.display = 'none';
+  }
+goog.require('recoil.frp.VisibleObserverTest');
+</script>
+</head>
+<body>
+<div id="body">
+<div>hi</div>
+<button onclick="doObserveTest()">Observer Test</button>
+</div>
+<div id="ob_test" bob="xxx" >x
+  <div id="ob_test1">y</div>
+</div>
+
+
+</body>
+</html>

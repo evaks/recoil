@@ -10,8 +10,8 @@ goog.provide('recoil.ui.TooltipHelper');
 
 goog.require('goog.events.FocusHandler');
 goog.require('goog.ui.Tooltip');
+goog.require('recoil.frp.DomObserver');
 goog.require('recoil.frp.Frp');
-goog.require('recoil.frp.VisibleObserver');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.messages');
