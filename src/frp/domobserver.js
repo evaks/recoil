@@ -16,6 +16,7 @@ recoil.frp.DomObserver = function() {
     this.observer_ = new MutationObserver(recoil.frp.DomObserver.observeFunc_(this));
     this.watchedNodes_ = new WeakMap();
     this.observer_.observe(goog.dom.getDocument(), {childList: true, subtree: true});
+    this.transFunc_ = function (f) {f()};
     if (recoil.frp.DomObserver.instance) {
         console.warn('multiple do observers');
     }
@@ -53,22 +54,31 @@ recoil.frp.DomObserver.observeFunc_ = function(me) {
                 updateAll(children[i], exists);
             }
         };
-        mutations.forEach(function(mutation, index, array) {
-            var node;
-            console.log('mutation', mutation);
-            for (var i = 0; i < mutation.addedNodes.length; i++) {
-                node = mutation.addedNodes[i];
+        me.transFunc_(function() {
+            mutations.forEach(function(mutation, index, array) {
+                var node;
+                for (var i = 0; i < mutation.addedNodes.length; i++) {
+                    node = mutation.addedNodes[i];
+                    updateAll(node, recoil.frp.DomObserver.exists(node));
+                }
+                for (i = 0; i < mutation.removedNodes.length; i++) {
+                    node = mutation.removedNodes[i];
                 updateAll(node, recoil.frp.DomObserver.exists(node));
-            }
-            for (i = 0; i < mutation.removedNodes.length; i++) {
-                node = mutation.removedNodes[i];
-                updateAll(node, recoil.frp.DomObserver.exists(node));
-            }
+                }
+            });
         });
 
 
     };
 
+};
+/**
+ * sets a function that will be used to group callbacks into 1 
+ * transaction this is for effeciency
+ * @param {!function(!function())} func
+ */
+recoil.frp.DomObserver.prototype.setTransactionFunc = function (func) {
+    this.transFunc_ = func;
 };
 
 /**
@@ -83,21 +93,22 @@ recoil.frp.DomObserver.prototype.listen = function(node, callback) {
     var exists = recoil.frp.DomObserver.exists(node);
     var entryOrig = this.watchedNodes_.get(node);
     var entry = entryOrig || {callbacks: [], state: exists};
-
+    var me = this;
     entry.callbacks.push(callback);
-
-    if (entry.state === exists) {
-        callback(exists);
-    }
-    else {
-        entry.state = exists;
-        entry.callbacks.forEach(function(cb) {
-            cb(exists);
-        });
-    }
-    if (!entryOrig) {
-        this.watchedNodes_.set(node, entry);
-    }
+    this.transFunc_(function() {
+        if (entry.state === exists) {
+            callback(exists);
+        }
+        else {
+            entry.state = exists;
+            entry.callbacks.forEach(function(cb) {
+                cb(exists);
+            });
+        }
+        if (!entryOrig) {
+            me.watchedNodes_.set(node, entry);
+        }
+    });
 };
 
 /**
