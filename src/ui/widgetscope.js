@@ -12,7 +12,7 @@ recoil.ui.WidgetScope = function(opt_frp, opt_observer) {
     this.frp_ = opt_frp || new recoil.frp.Frp();
     this.observer_ = opt_observer || recoil.frp.DomObserver.instance;
     var frp = this.frp_;
-    this.observer_.setTransactionFunc(function (callback) {
+    this.observer_.setTransactionFunc(function(callback) {
         frp.tm().doTrans(callback);
     });
 };
