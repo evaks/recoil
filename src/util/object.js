@@ -354,14 +354,19 @@ goog.structs.AvlTree.prototype.compare = function(other) {
 };
 
 /**
- * @param {!Array<!Object>=} opt_path
- * @param {!Array<!Object>=} opt_clonedPath
+ * @param {!WeakMap=} opt_used
  * @return {!goog.structs.AvlTree}
  */
-goog.structs.AvlTree.prototype.clone = function(opt_path, opt_clonedPath) {
+goog.structs.AvlTree.prototype.clone = function(opt_used) {
+    opt_used = opt_used || new WeakMap();
+    var me = opt_used.get(this);
+    if (me) {
+        return me;
+    }
     var clone = new goog.structs.AvlTree(this.comparator_);
+    opt_used.set(this, clone);
     this.inOrderTraverse(function(el) {
-        clone.add(recoil.util.object.clone(el, opt_path, opt_clonedPath));
+        clone.add(recoil.util.object.clone(el, opt_used));
     });
     return clone;
 };
@@ -523,45 +528,37 @@ recoil.util.object.getByParts = function(obj, var_parts) {
  * if there is a clone method on it it will call that instead
  * @template T
  * @param {T} obj the object to clone
- * @param {!Array<!Object>=} opt_path
- * @param {!Array<!Object>=} opt_clonedPath
+ * @param {!WeakMap=} opt_used
  * @return {T}
  */
-recoil.util.object.clone = function(obj, opt_path, opt_clonedPath) {
-    return recoil.util.object.clone.cloneRec_(obj, opt_path || [], opt_clonedPath || []);
+recoil.util.object.clone = function(obj, opt_used) {
+    return recoil.util.object.clone.cloneRec_(obj, opt_used || new WeakMap());
 };
 /**
  * @template T
  * @private
  * @param {T} obj the object to clone
- * @param {!Array<!Object>} path
- * @param {!Array<!Object>} clonedPath
+ * @param {!WeakMap} used
  * @return {T}
  */
-recoil.util.object.clone.cloneRec_ = function(obj, path, clonedPath) {
+recoil.util.object.clone.cloneRec_ = function(obj, used) {
 
     var type = goog.typeOf(obj);
     if (type == 'object' || type == 'array') {
-        var idx = goog.array.indexOf(path, obj);
-
-        if (idx !== -1) {
-            return clonedPath[idx];
+        var me = used.get(obj);
+        if (me) {
+            return me;
         }
-
         if (goog.isFunction(obj.clone)) {
-            return obj.clone(path, clonedPath);
+            return obj.clone(used);
         }
 
         var clone = type == 'array' ? [] : Object.create(Object.getPrototypeOf(obj));
-        var newPath = goog.array.clone(path);
-        var newClonedPath = goog.array.clone(clonedPath);
-        newPath.push(obj);
-        newClonedPath.push(clone);
 
-
+        used.set(obj, clone);
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
-                clone[key] = recoil.util.object.clone.cloneRec_(obj[key], newPath, newClonedPath);
+                clone[key] = recoil.util.object.clone.cloneRec_(obj[key], used);
             }
         }
 

@@ -91,6 +91,9 @@ function testIsEqual() {
     assertTrue(recoil.util.isEqual(funcA, funcB));
     assertFalse(recoil.util.isEqual(funcA, funcC));
 
+
+    
+   
 }
 function testToString() {
     var obj = {};
@@ -231,6 +234,22 @@ function testClone() {
     clone.setA(2);
     assertEquals("good get clone", 2, clone.getA());
 //    assertEquals("bad get src", 1, src.getA());
+
+
+    // test reference to same object
+    x = {};
+    var y = {a: x, b:x};
+    
+    clone = recoil.util.object.clone(y);
+    
+    assertObjectEquals(y,clone);
+
+    assertObjectEquals({},clone.a);
+    assertObjectEquals({}, clone.b);
+    
+    assertTrue(clone.a === clone.b);
+    assertTrue(clone.a !== y.a);
+    
 
 }
 // function testOptions () {
