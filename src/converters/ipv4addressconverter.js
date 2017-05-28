@@ -5,6 +5,7 @@ goog.require('recoil.ui.messages');
 
 /**
  * @constructor
+ * @template T
  * @implements {recoil.converters.TypeConverter<T, string>}
  */
 recoil.converters.IPv4AddressConverter = function() {
@@ -40,7 +41,7 @@ recoil.converters.IPv4AddressConverter.prototype.convert = function(val) {
  */
 recoil.converters.IPv4AddressConverter.prototype.unconvert = function(val) {
     /**
-     * @type recoil.types.IPv4Address
+     * @type {recoil.types.IPv4Address}
      */
     var res = [];
     var parts = val.split('.');

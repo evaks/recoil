@@ -4,6 +4,7 @@ goog.provide('recoil.ui.events');
 
 goog.require('goog.events');
 goog.require('recoil.frp.Behaviour');
+goog.require('recoil.util.Handle');
 
 /**
  * @param {EventTarget|goog.events.Listenable} src The node to listen to events on.

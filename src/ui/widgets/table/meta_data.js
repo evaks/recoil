@@ -84,7 +84,7 @@ recoil.ui.widgets.table.DefaultColumn = function(key, name) {
  */
 recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function(curMeta) {
     /**
-     * @type Object<string, *>
+     * @type {Object<string, *>}
      */
     var meta = {name: this.name_};
     goog.object.extend(meta, curMeta);

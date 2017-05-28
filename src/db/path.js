@@ -56,7 +56,7 @@ recoil.db.Path = function(parts) {
         if (goog.isString(part)) {
             if (goog.string.startsWith(part, '[') && goog.string.endsWith(part, ']')) {
                 var cleanPath = part.substring(1, part.length - 1);
-                var keyParts = /** @type Array<?string> */(cleanPath.split(' '));
+                var keyParts = /** @type {Array<?string>} */(cleanPath.split(' '));
                 var type = recoil.db.PathItem.FACTORY[keyParts[0]];
 
                 if (type) {
@@ -68,7 +68,7 @@ recoil.db.Path = function(parts) {
                 }
             }
             else {
-                this.elements_.push(new recoil.db.Path.Item(/** @type string */ (part)));
+                this.elements_.push(new recoil.db.Path.Item(/** @type {string} */ (part)));
             }
         }
         else {

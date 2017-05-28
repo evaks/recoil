@@ -72,7 +72,7 @@ recoil.structs.table.ColumnKey.prototype.hasDefault = function() {
 };
 
 /**
- * @type recoil.util.Sequence
+ * @type {!recoil.util.Sequence}
  * @private
  */
 recoil.structs.table.ColumnKey.nextId_ = new recoil.util.Sequence();
@@ -136,7 +136,7 @@ recoil.structs.table.ColumnKey.defaultComparator_ = function(a, b) {
 
 /**
  * A default column key if none is provided they will be added sequentially
- * @type !recoil.structs.table.ColumnKey<!goog.math.Long>
+ * @type {!recoil.structs.table.ColumnKey<!goog.math.Long>}
  */
 recoil.structs.table.ColumnKey.INDEX =
     new recoil.structs.table.ColumnKey(
@@ -150,7 +150,7 @@ recoil.structs.table.ColumnKey.INDEX =
 
 /**
  * A default column that is used to store meta information for the row
- * @type !recoil.structs.table.ColumnKey<*>
+ * @type {!recoil.structs.table.ColumnKey<*>}
  */
 recoil.structs.table.ColumnKey.ROW_META = new recoil.structs.table. ColumnKey('meta', undefined, undefined);
 
@@ -1572,7 +1572,7 @@ recoil.structs.table.TableCell = function(value, opt_meta) {
  */
 
 recoil.structs.table.TableCell.prototype.getMeta = function() {
-    return this.meta_ === undefined ? {} : recoil.util.object.clone(this.meta_);
+    return !this.meta_ ? {} : recoil.util.object.clone(this.meta_);
 };
 
 /**

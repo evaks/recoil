@@ -247,7 +247,7 @@ recoil.frp.EStatus.prototype.clear_ = function(dir) {
  */
 recoil.frp.BStatus = function(initial) {
     this.errors_ = [];
-    /** @type !boolean
+    /** @type {!boolean}
      @private*/
     this.ready_ = true;
     this.value_ = initial;
@@ -582,7 +582,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
      */
     this.seq_ = sequence;
     /**
-     * @type string
+     * @type {string}
      * @private
      */
     this.seqStr_ = String(sequence).toString();
@@ -1109,7 +1109,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
     var me = this;
     var res1 = this.metaLiftBI(function() {
         var switchB = this;
-        /** @type recoil.frp.Status<recoil.frp.Behaviour<recoil.frp.Behaviour>> */
+        /** @type {recoil.frp.Status<recoil.frp.Behaviour<recoil.frp.Behaviour>>} */
         var metaBb = Bb.metaGet();
         var res = new recoil.frp.BStatus(null);
         res.merge(metaBb);
@@ -1118,7 +1118,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
             if (metaBb.value_ === null || !metaBb.good()) {
                 me.transactionManager_.updateProviders_(switchB, Bb);
             } else {
-                me.transactionManager_.updateProviders_(switchB, Bb, /** @type recoil.frp.Behaviour */ (metaBb.get()));
+                me.transactionManager_.updateProviders_(switchB, Bb, /** @type {recoil.frp.Behaviour} */ (metaBb.get()));
                 res.merge(metaBb);
             }
             b = metaBb.value_;
@@ -1477,7 +1477,7 @@ recoil.frp.TransactionManager = function(frp) {
     this.dependancyMap_ = {};
     /**
      * @private
-     * @type recoil.util.Sequence
+     * @type {!recoil.util.Sequence}
      */
     this.curIndex_ = new recoil.util.Sequence();
     /**
@@ -1486,13 +1486,13 @@ recoil.frp.TransactionManager = function(frp) {
      */
     this.curIndexPrefix_ = [[]];
     /**
-     * @type number
+     * @type {number}
      * @private
      */
     this.curIndexLock_ = 0;
     this.id_ = recoil.frp.TransactionManager.nextId_.next();
     /**
-     * @type recoil.frp.Frp
+     * @type {recoil.frp.Frp}
      * @private
      */
     this.frp_ = frp;
@@ -1508,7 +1508,7 @@ recoil.frp.TransactionManager.prototype.watching = function() {
 };
 
 /**
- * @type recoil.util.Sequence
+ * @type {!recoil.util.Sequence}
  * @private
  */
 recoil.frp.TransactionManager.nextId_ = new recoil.util.Sequence();
@@ -1913,7 +1913,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
         }
     });
     var newVisited = this.visit(dependant);
-    /** @type recoil.frp.Behaviour */
+    /** @type {recoil.frp.Behaviour} */
     var b;
 
     var me = this;

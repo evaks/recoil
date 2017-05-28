@@ -29,7 +29,7 @@ recoil.db.Database.prototype.makeKey = function(values) {
  * gets an individual object from the database
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {!Array<?>=} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
@@ -60,12 +60,12 @@ recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
  * gets an individual object from the database
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {!Array<?>=} opt_primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
-recoil.db.ReadOnlyDatabase.prototype.get = function(id, primaryKeys, opt_options) {
-    return this.frp_.liftB(function(v) {return v.getStored();}, this.db_.getSendInfo(id, primaryKeys, opt_options));
+recoil.db.ReadOnlyDatabase.prototype.get = function(id, opt_primaryKeys, opt_options) {
+    return this.frp_.liftB(function(v) {return v.getStored();}, this.db_.getSendInfo(id, opt_primaryKeys || [], opt_options));
 };
 
 /**
@@ -175,12 +175,12 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
  * gets an individual object from the database
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {!Array<?>=} opt_primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
-recoil.db.ReadWriteDatabase.prototype.get = function(id, primaryKeys, opt_options)  {
-    return recoil.db.ReadWriteDatabase.showSending_(this.frp_, this.getSendInfo(id, primaryKeys, opt_options));
+recoil.db.ReadWriteDatabase.prototype.get = function(id, opt_primaryKeys, opt_options)  {
+    return recoil.db.ReadWriteDatabase.showSending_(this.frp_, this.getSendInfo(id, opt_primaryKeys || [], opt_options));
 };
 
 /**
@@ -197,7 +197,7 @@ recoil.db.DelayedDatabase = function(frp, source) {
     this.changed_ = new goog.structs.AvlTree(function(x, y) {return recoil.util.compare(x.key, y.key);});
     /**
      * @private
-     * @type !recoil.frp.Behaviour<recoil.frp.ChangeManager.Action>
+     * @type {!recoil.frp.Behaviour<recoil.frp.ChangeManager.Action>}
      */
     this.changeEvent_ = frp.createE();
 };
@@ -208,7 +208,7 @@ recoil.db.DelayedDatabase = function(frp, source) {
  * Returns a behaviour, with a value that we can get, set etc
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {!Array<?>=} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */

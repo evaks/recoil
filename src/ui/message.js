@@ -108,5 +108,5 @@ recoil.ui.message.getParamMsg = function(var_parts) {
     for (var i = 0; i < arguments.length; i++) {
         parts.push(arguments[i]);
     }
-    return new recoil.ui.message.Message(/** @type !Array<!Array<!string>| !string>)*/(parts));
+    return new recoil.ui.message.Message(/** @type {!Array<!Array<!string>|!string>}*/(parts));
 };

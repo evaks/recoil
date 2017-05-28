@@ -231,7 +231,7 @@ recoil.db.QueryOptions = function(opt_pollRate, opt_extra) {
  */
 recoil.db.Query = function(opt_expr) {
     /**
-     * @type recoil.db.QueryExp
+     * @type {recoil.db.QueryExp}
      * @private
      */
     this.expr_ = opt_expr || null;
@@ -659,7 +659,7 @@ recoil.db.Query.prototype.toExpr = function(exp) {
         return exp;
     }
     if (exp instanceof Object) {
-        return /** @type !recoil.db.QueryExp */ (exp);
+        return /** @type {!recoil.db.QueryExp} */ (exp);
     }
 
     return new recoil.db.expr.Value(exp);

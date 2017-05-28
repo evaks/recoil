@@ -33,7 +33,7 @@ recoil.db.Type.prototype.uniqueId = function() {};
 
 /**
  * @final
- * @type recoil.util.Sequence
+ * @type {!recoil.util.Sequence}
  */
 recoil.db.Type.seq = new recoil.util.Sequence();
 
@@ -120,7 +120,7 @@ recoil.db.TypePath = function(type, path) {
         this.path_ = new recoil.db.Path(path.split('/'));
     }
     else if (goog.isArrayLike(path)) {
-        this.path_ = new recoil.db.Path(/** @type !Array<!string> */(path));
+        this.path_ = new recoil.db.Path(/** @type {!Array<!string>} */(path));
     }
     else {
         this.path_ = path;

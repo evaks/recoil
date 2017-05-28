@@ -667,7 +667,7 @@ recoil.db.ChangeSet.Change.deserialize = function(object, schema, valSerializor,
  * @param {!Array<!Object>} object
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
- * @param {!recoil.db.ChangeSet.PathCompressor} compressor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} compressor
  * @return {!Array<!recoil.db.ChangeSet.Change>}
  */
 recoil.db.ChangeSet.Change.deserializeList = function(object, schema, valSerializor, compressor) {
@@ -684,7 +684,7 @@ recoil.db.ChangeSet.Change.deserializeList = function(object, schema, valSeriali
  * @param {!boolean} keepOld do we need the undo information
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
- * @param {!recoil.db.ChangeSet.PathCompressor} compressor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} compressor
  * @return {!Array<!Object>}
  */
 recoil.db.ChangeSet.Change.serializeList = function(changes, keepOld, schema, valSerializor, compressor) {

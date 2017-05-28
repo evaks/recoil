@@ -47,6 +47,7 @@ recoil.db.DatabaseComms.prototype.makeKey = function(values) {
 };
 /**
  * instruct the databse that we are no longer interested
+ * @template T
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
  * @param {*} key the key to stop
  * @param {*} options the key to stop

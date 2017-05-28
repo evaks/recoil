@@ -107,7 +107,7 @@ recoil.converters.IPv6AddressConverter.prototype.unconvert = function(val) {
     // value of each part between (inclusive) 0 and 255
 
     /**
-     * @type recoil.types.IPv6Address
+     * @type {recoil.types.IPv6Address}
      */
     var ret = [];
 

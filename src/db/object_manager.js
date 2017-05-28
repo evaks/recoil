@@ -208,7 +208,7 @@ recoil.db.TypeBehaviourInfo_.prototype.getCreateEvent = function() {
  */
 recoil.db.ObjectManager = function(frp) {
     /**
-     * @type Object<!recoil.db.Type,goog.structs.AvlTree<!recoil.db.Entity>>>
+     * @type {Object<!recoil.db.Type,goog.structs.AvlTree<!recoil.db.Entity>>}
      * @private
      */
     this.objectTypes_ = {};
@@ -374,7 +374,7 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
 
     if (oldEntity) {
         oldEntity.addRef();
-        return /** @type !recoil.frp.Behaviour */(oldEntity.behaviour());
+        return /** @type {!recoil.frp.Behaviour} */(oldEntity.behaviour());
     }
 
     var me = this;

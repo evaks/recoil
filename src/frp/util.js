@@ -498,7 +498,7 @@ recoil.frp.Util.Options = function(var_options) {
 
 /**
  * @private
- * @type recoil.frp.Behaviour<!number>
+ * @type {recoil.frp.Behaviour<!number>}
  */
 recoil.frp.util.timeB_ = null;
 /**
