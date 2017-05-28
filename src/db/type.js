@@ -50,8 +50,8 @@ recoil.db.Type.prototype.getPaths = function() {
  * a type that has a value and possibly some references to so external values
  * @param {!Array<string>} keys
  * @param {*} data arbitary data that can be used the the database to figure out what key it is
- * @param {function(*,*):!Array<*>} opt_keyGetter
- * @param {Array<!recoil.db.TypePath>?} opt_subpaths
+ * @param {function(*,*):!Array<*>=} opt_keyGetter
+ * @param {Array<!recoil.db.TypePath>=} opt_subpaths
  * @implements recoil.db.Type
  * @constructor
  */

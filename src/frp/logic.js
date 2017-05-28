@@ -119,8 +119,9 @@ recoil.frp.logic.not = function(x) {
 };
 
 /**
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)} x
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)} y note at least one parameter must be a behavior
+ * @template T
+ * @param {(!recoil.frp.Behaviour<T>|T)} x
+ * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
  * @return {!recoil.frp.Behaviour<!boolean>}
  */
 recoil.frp.logic.equal = function(x, y) {
@@ -130,8 +131,9 @@ recoil.frp.logic.equal = function(x, y) {
 };
 
 /**
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)} x
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)} y note at least one parameter must be a behavior
+ * @template T
+ * @param {(!recoil.frp.Behaviour<T>|T)} x
+ * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
  * @return {!recoil.frp.Behaviour<!boolean>}
  */
 recoil.frp.logic.notEqual = function(x, y) {

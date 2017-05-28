@@ -847,7 +847,7 @@ recoil.structs.table.MutableTable.prototype.addCellMeta = function(keys, column,
 /**
  * Sets the value and meta data for the cell
  * @param {!Array<?>} keys
- * @param {!recoil.structs.table.TableRow} row
+ * @param {!recoil.structs.table.TableRow|!recoil.structs.table.MutableTableRow} row
  */
 
 recoil.structs.table.MutableTable.prototype.setRow = function(keys, row) {
@@ -995,7 +995,7 @@ recoil.structs.table.Table.prototype.getColumns = function() {
 };
 
 /**
- * this ensures the sort order
+ * this ensures the sort order, the parameters to the function are columnkey and column meta data
  *
  * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
  */
@@ -1558,7 +1558,7 @@ recoil.structs.table.MutableTableRow.prototype.addCellMeta = function(columnKey,
  *
  * @template T
  * @param {T} value
- * @param {!Object=} opt_meta
+ * @param {Object=} opt_meta
  * @constructor
  */
 
