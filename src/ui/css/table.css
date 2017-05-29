@@ -112,6 +112,7 @@ table.recoil-table-pager .page {
     display: flex;
     overflow: auto;
     height:100%;
+    min-width:1000px;
 }
 
 .flex-direction {
