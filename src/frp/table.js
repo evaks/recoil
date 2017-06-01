@@ -42,7 +42,7 @@ recoil.frp.table.TableRow.create = function(frp, tableV, keysV) {
  * @template T
  * @param {!recoil.structs.table.TableRow|!recoil.frp.Behaviour<!recoil.structs.table.TableRow>}  row
  * @param {!recoil.structs.table.ColumnKey<T>|recoil.frp.Behaviour<!recoil.structs.table.ColumnKey<T>>} columnKey
- * @return {recoil.frp.Behaviour<T>}
+ * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.table.TableRow.get = function(row, columnKey) {
     var frp = recoil.frp.util.getFrp(arguments);

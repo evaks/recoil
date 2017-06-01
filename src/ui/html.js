@@ -79,6 +79,19 @@ recoil.ui.HtmlHelper.prototype.createClassDiv = function(classesB, opt_options, 
 
 /**
  * @param {!Node} parent
+ * @param {(Object|Array<string>|string)=} opt_options
+ * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
+ *     strings for text nodes. If one of the var_args is an array or NodeList,
+ *     its elements will be added as childNodes instead.
+ * @return {!Element}
+ */
+recoil.ui.HtmlHelper.prototype.appendDiv = function(parent, opt_options, var_args) {
+    var res = this.createDom_(1, 'div', arguments);
+    goog.dom.append(parent, res);
+    return res;
+};
+/**
+ * @param {!Node} parent
  * @param {!recoil.frp.Behaviour<string>} classesB
  * @param {(Object|Array<string>|string)=} opt_options
  * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
@@ -166,7 +179,7 @@ recoil.ui.HtmlHelper.prototype.createShowDiv = function(showB, opt_options, var_
 
 /**
  * @param {!Node} parent
- * @param {!recoil.frp.Behaviour<string>} showB
+ * @param {!recoil.frp.Behaviour<!boolean>} showB
  * @param {(Object|Array<string>|string)=} opt_options
  * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
  *     strings for text nodes. If one of the var_args is an array or NodeList,

@@ -84,3 +84,20 @@ recoil.frp.Chooser.if = function(condition, trueValue, falseValue) {
     chooser.option(true, trueValue);
     return chooser.bind();
 };
+
+
+/**
+ * this is a utility whos only purpose is to get rid of warnings
+ * if both both true and false are behaviours the compiler doesn't
+ * know if the result is a behaviour or a behaviour of a behaviour
+ * @template T
+ * @param {!recoil.frp.Behaviour<!boolean>} condition
+ * @param {!recoil.frp.Behaviour<T>} trueValue
+ * @param {!recoil.frp.Behaviour<T>} falseValue
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Chooser.ifB = function(condition, trueValue, falseValue) {
+    var chooser = new recoil.frp.Chooser(condition, falseValue);
+    chooser.option(true, trueValue);
+    return chooser.bind();
+};
