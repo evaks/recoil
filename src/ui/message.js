@@ -1,5 +1,7 @@
 goog.provide('recoil.ui.message');
+goog.provide('recoil.ui.message.BasicMessageEnum');
 goog.provide('recoil.ui.message.Message');
+goog.provide('recoil.ui.message.MessageEnum');
 
 /**
  * @constructor
@@ -21,12 +23,12 @@ recoil.ui.message.Message = function(parts) {
 /**
  * partially resolve a message some paramters may still be present, this will handle, messages inside messages
  *
- * @param {!Object} data
+ * @param {!Object=} opt_data
  * @return {!recoil.ui.message.Message}
  */
-recoil.ui.message.Message.prototype.resolve = function(data) {
+recoil.ui.message.Message.prototype.resolve = function(opt_data) {
     var res = [];
-    var unresolved = this.resolveRec_(res, data);
+    var unresolved = this.resolveRec_(res, opt_data || {});
     return new recoil.ui.message.Message(unresolved === 0 ? [res.join('')] : res);
 };
 
@@ -109,4 +111,47 @@ recoil.ui.message.getParamMsg = function(var_parts) {
         parts.push(arguments[i]);
     }
     return new recoil.ui.message.Message(/** @type {!Array<!Array<!string>|!string>}*/(parts));
+};
+
+/**
+ * @interface
+ * @template T
+ */
+
+recoil.ui.message.MessageEnum = function() {};
+
+/**
+ * @param {T} val
+ * @return {!recoil.ui.message.Message}
+ */
+
+recoil.ui.message.MessageEnum.prototype.resolve = function(val) {};
+
+
+/**
+ * @constructor
+ * @implements {recoil.ui.message.MessageEnum}
+ * @template T
+ * @param {!Object<T,recoil.ui.message.Message>} map
+ * @param {{key:!string,msg:recoil.ui.message.Message}} unknown
+ */
+
+recoil.ui.message.BasicMessageEnum = function(map, unknown) {
+    this.map_ = map;
+    this.unknown_ = unknown;
+};
+
+/**
+ * @param {T} val
+ * @return {!recoil.ui.message.Message}
+ */
+
+recoil.ui.message.BasicMessageEnum.prototype.resolve = function(val) {
+    var mesg = this.map_[val];
+    if (mesg) {
+        return mesg.resolve();
+    }
+    var vStruct = {};
+    vStruct[this.unknown_.key] = val;
+    return this.unknown_.msg.resolve(vStruct);
 };

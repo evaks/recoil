@@ -105,7 +105,9 @@ recoil.util.object.uniq = function() {
  * @param {*} b
  * @param {Array<Object>} aPath
  * @param {Array<Object>} bPath
- * @return {number}
+ * @return {number} A negative number, zero, or a positive number as the first
+ *     argument is less than, equal to, or greater than the second,
+ *     respectively.
  * @private
  */
 recoil.util.object.compare_ = function(a, b, aPath, bPath) {

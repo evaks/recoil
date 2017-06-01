@@ -248,3 +248,59 @@ function testNotEquals () {
     assertThrows (function () {recoil.frp.logic.notEquals(1,1);});
     
 }
+
+
+
+function testCompare () {
+
+    var frp = new recoil.frp.Frp();
+
+    var xB = frp.createB(1);
+    var yB = frp.createB(2);
+
+    var testeeGtB = recoil.frp.logic.gt(xB, yB);
+    var testeeGteB = recoil.frp.logic.gte(xB, yB);
+    var testeeLtB = recoil.frp.logic.lt(xB, yB);
+    var testeeLteB = recoil.frp.logic.lte(xB, yB);
+    frp.attach(testeeGtB);
+    frp.attach(testeeGteB);
+    frp.attach(testeeLtB);
+    frp.attach(testeeLteB);
+    
+    assertEquals(false, testeeGtB.unsafeMetaGet().get());
+    assertEquals(false, testeeGteB.unsafeMetaGet().get());
+    assertEquals(true, testeeLtB.unsafeMetaGet().get());
+    assertEquals(true, testeeLteB.unsafeMetaGet().get());
+
+    
+    frp.accessTrans(function () {
+        yB.set(1);
+    }, yB);
+    
+    assertEquals(false, testeeGtB.unsafeMetaGet().get());
+    assertEquals(true, testeeGteB.unsafeMetaGet().get());
+    assertEquals(false, testeeLtB.unsafeMetaGet().get());
+    assertEquals(true, testeeLteB.unsafeMetaGet().get());
+    
+
+    frp.accessTrans(function () {
+        xB.set(2);
+    }, yB);
+
+    assertEquals(true, testeeGtB.unsafeMetaGet().get());
+    assertEquals(true, testeeGteB.unsafeMetaGet().get());
+    assertEquals(false, testeeLtB.unsafeMetaGet().get());
+    assertEquals(false, testeeLteB.unsafeMetaGet().get());
+
+    // test object compare
+    frp.accessTrans(function () {
+        xB.set({a:1});
+        yB.set({a:2});
+    }, yB);
+
+    assertEquals(false, testeeGtB.unsafeMetaGet().get());
+    assertEquals(false, testeeGteB.unsafeMetaGet().get());
+    assertEquals(true, testeeLtB.unsafeMetaGet().get());
+    assertEquals(true, testeeLteB.unsafeMetaGet().get());
+    
+}

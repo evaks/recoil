@@ -18,7 +18,9 @@ recoil.util.safeFreeze = recoil.util.object.safeFreeze;
  *
  * @param {*} a
  * @param {*} b
- * @return {!number}
+ * @return {!number}  A negative number, zero, or a positive number as the first
+ *     argument is less than, equal to, or greater than the second,
+ *     respectively.
  */
 recoil.util.compare = function(a, b) {
     return recoil.util.object.compare(a, b);

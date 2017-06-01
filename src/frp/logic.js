@@ -141,4 +141,57 @@ recoil.frp.logic.notEqual = function(x, y) {
     var util = new recoil.frp.Util(frp);
     return frp.liftB(function(x, y) {return !recoil.util.object.isEqual(x, y);}, util.toBehaviour(x), util.toBehaviour(y));
 };
+/**
+ * returns true if x > y, this uses compare function so objects can be supplied
+ * @template T
+ * @param {(!recoil.frp.Behaviour<T>|T)} x
+ * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
+ * @return {!recoil.frp.Behaviour<!boolean>}
+ */
 
+recoil.frp.logic.gt = function(x, y) {
+    var frp = recoil.frp.util.getFrp(arguments);
+    var util = new recoil.frp.Util(frp);
+    return frp.liftB(function(x, y) {return recoil.util.object.compare(x, y) > 0;}, util.toBehaviour(x), util.toBehaviour(y));
+};
+/**
+ * returns true if x >= y, this uses compare function so objects can be supplied
+ * @template T
+ * @param {(!recoil.frp.Behaviour<T>|T)} x
+ * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
+ * @return {!recoil.frp.Behaviour<!boolean>}
+ */
+
+recoil.frp.logic.gte = function(x, y) {
+    var frp = recoil.frp.util.getFrp(arguments);
+    var util = new recoil.frp.Util(frp);
+    return frp.liftB(function(x, y) {return recoil.util.object.compare(x, y) >= 0;}, util.toBehaviour(x), util.toBehaviour(y));
+};
+
+/**
+ * returns true if x < y, this uses compare function so objects can be supplied
+ * @template T
+ * @param {(!recoil.frp.Behaviour<T>|T)} x
+ * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
+ * @return {!recoil.frp.Behaviour<!boolean>}
+ */
+
+recoil.frp.logic.lt = function(x, y) {
+    var frp = recoil.frp.util.getFrp(arguments);
+    var util = new recoil.frp.Util(frp);
+    return frp.liftB(function(x, y) {return recoil.util.object.compare(x, y) < 0;}, util.toBehaviour(x), util.toBehaviour(y));
+};
+
+/**
+ * returns true if x <= y, this uses compare function so objects can be supplied
+ * @template T
+ * @param {(!recoil.frp.Behaviour<T>|T)} x
+ * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
+ * @return {!recoil.frp.Behaviour<!boolean>}
+ */
+
+recoil.frp.logic.lte = function(x, y) {
+    var frp = recoil.frp.util.getFrp(arguments);
+    var util = new recoil.frp.Util(frp);
+    return frp.liftB(function(x, y) {return recoil.util.object.compare(x, y) <= 0;}, util.toBehaviour(x), util.toBehaviour(y));
+};

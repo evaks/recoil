@@ -7,6 +7,7 @@ goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.struct');
 goog.require('recoil.ui.messages');
 goog.require('recoil.util');
+goog.require('recoil.util.func');
 /**
  * @constructor
  * @param {recoil.frp.Frp} frp the frp engine to do operations on
@@ -565,4 +566,40 @@ recoil.frp.util.getFrp = function(args) {
         }
     }
     throw 'No Behaviours given';
+};
+
+/**
+ * calls the member func on the first argument, applying al the other arguments
+ * @template T
+ * techically we could make func a behaviour as well but for now I will leave it
+ * @param {!function(...):T} func
+ * @param {!IArrayLike} args
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+
+recoil.frp.util.liftMemberFunc = function(func, args) {
+    var frp = recoil.frp.util.getFrp(args);
+    return recoil.util.func.invokeOneParamAndArray(frp, frp.liftB, function(first) {
+        var args = [];
+        for (var i = 1; i < arguments.length; i++) {
+            args.push(arguments[i]);
+        }
+        return func.apply(first, args);
+    }, recoil.frp.util.toBehaviours(frp, args));
+};
+
+/**
+ * calls the me func
+ * @template T
+ * techically we could make func a behaviour as well but for now I will leave it
+ * @param {!function(...):T} func
+ * @param {!IArrayLike} args
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+
+recoil.frp.util.liftFunc = function(func, args) {
+    var frp = recoil.frp.util.getFrp(args);
+    return recoil.util.func.invokeOneParamAndArray(frp, frp.liftB, function(first) {
+        return func.apply(null, arguments);
+    }, recoil.frp.util.toBehaviours(frp, args));
 };
