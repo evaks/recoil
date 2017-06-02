@@ -20,7 +20,10 @@ recoil.util.number.decimal64ToFixed = function(val, dps) {
     var sign = long.isNegative() ? '-' : '';
     if (val.fraction_digits < 0) {
         abString += goog.string.repeat('0', val.fraction_digits);
-
+        if (dps > 0) {
+            return sign + abString + '.' + goog.string.repeat('0', dps);
+        }
+        return sign + abString;
     }
     else {
         var beforeDp = abString.substr(0, Math.max(0, abString.length - val.fraction_digits));
