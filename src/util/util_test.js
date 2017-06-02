@@ -1,6 +1,7 @@
 goog.provide('recoil.util.UtilTest');
 
 goog.require('recoil.util');
+goog.require('recoil.util.number');
 goog.require('goog.testing.jsunit');
 goog.require('goog.math');
 goog.setTestOnly('recoil.util.UtilTest');
@@ -169,6 +170,20 @@ function testCompare() {
 
 }
 
+function testDecimal64 () {
+    var toFixed = recoil.util.number.decimal64ToFixed;
+    assertEquals('0', toFixed({value: '0', fraction_digits: 2}, 0));
+    assertEquals('0.0000000000', toFixed({value: '0', fraction_digits: 2}, 10));
+    assertEquals('1.2300000000', toFixed({value: '123', fraction_digits: 2}, 10));
+    assertEquals('-1.2300000000', toFixed({value: '-123', fraction_digits: 2}, 10));
+
+    assertEquals('9.12', toFixed({value: '912345', fraction_digits: 5}, 2));
+    assertEquals('0.12', toFixed({value: '12345', fraction_digits: 5}, 2));
+    assertEquals('0.01', toFixed({value: '1234', fraction_digits: 5}, 2));
+    assertEquals('0.00', toFixed({value: '12', fraction_digits: 5}, 2));
+
+    
+};
 function testClone() {
     var O1 = function (a) {
         this.a_ = a;

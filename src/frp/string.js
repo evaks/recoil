@@ -184,3 +184,21 @@ recoil.frp.string.substr = function(str, start, opt_length) {
 recoil.frp.string.substring = function(str, start, opt_end) {
     return recoil.frp.util.liftMemberFunc(String.prototype.substring, arguments);
 };
+
+/**
+ *
+ * @param {recoil.frp.Behaviour<!string>} str
+ * @return {!recoil.frp.Behaviour<!string>}
+ */
+recoil.frp.string.toUpperCase = function(str) {
+    return recoil.frp.util.liftMemberFunc(String.prototype.toUpperCase, arguments);
+};
+
+/**
+ *
+ * @param {recoil.frp.Behaviour<!string>} str
+ * @return {!recoil.frp.Behaviour<!string>}
+ */
+recoil.frp.string.toLowerCase = function(str) {
+    return recoil.frp.util.liftMemberFunc(String.prototype.toLowerCase, arguments);
+};
