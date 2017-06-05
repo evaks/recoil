@@ -58,7 +58,7 @@ recoil.ui.HtmlHelper.prototype.append_ = function(func, args) {
     for (var i = 1; i < args.length; i++) {
         funcArgs.push(args[i]);
     }
-    var el = func.apply(this, args);
+    var el = func.apply(this, funcArgs);
     goog.dom.append(args[0], el);
     return el;
 };
