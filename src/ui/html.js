@@ -187,5 +187,5 @@ recoil.ui.HtmlHelper.prototype.createShowDiv = function(showB, opt_options, var_
  * @return {!Element}
  */
 recoil.ui.HtmlHelper.prototype.appendShowDiv = function(parent, showB, opt_options, var_args) {
-    return this.append_(this.createInnerHtmlDiv, arguments);
+    return this.append_(this.createShowDiv, arguments);
 };
