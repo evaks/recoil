@@ -159,6 +159,8 @@ recoil.ui.HtmlHelper.prototype.show = function(element, showB) {
         var show = showB.good() && showB.get();
         element.style.display = show ? orig : 'none';
     });
+    helper.attach(showB);
+
     return helper;
 };
 
