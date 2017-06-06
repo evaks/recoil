@@ -48,7 +48,8 @@ recoil.ui.HtmlHelper.prototype.createDom_ = function(skip, elType, args) {
 
 /**
  * helper function to create make an append function from a create function
- * @param {function(!recoil.frp.Behaviour<string>,(Object|Array<string>|string)=,...(Object|string|Array|NodeList)):!Element} func
+ * @template T
+ * @param {function(!recoil.frp.Behaviour<T>,(Object|Array<string>|string)=,...(Object|string|Array|NodeList)):!Element} func
  * @param {!IArrayLike} args
  * @return {!Element}
  * @private
