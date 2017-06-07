@@ -3,7 +3,9 @@ goog.provide('recoil.structs.table.MutableTable');
 goog.provide('recoil.structs.table.MutableTableRow');
 goog.provide('recoil.structs.table.Table');
 goog.provide('recoil.structs.table.TableCell');
+goog.provide('recoil.structs.table.TableInterface');
 goog.provide('recoil.structs.table.TableRow');
+goog.provide('recoil.structs.table.TableRowInterface');
 
 // TODO mutable/immutable versions of table and rows
 // a heirachy of rows
@@ -18,6 +20,41 @@ goog.require('goog.structs.AvlTree');
 goog.require('goog.structs.Collection');
 goog.require('recoil.util.Sequence');
 goog.require('recoil.util.object');
+
+/**
+ * @interface
+ */
+recoil.structs.table.TableInterface = function() {};
+
+
+/**
+ * @interface
+ */
+recoil.structs.table.TableRowInterface = function() {};
+
+
+/**
+ * Gets only the value from the cell
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @return {CT}
+ */
+
+recoil.structs.table.TableRowInterface.prototype.get = function(column) {};
+
+/**
+ * @param {!function(!string,!recoil.structs.table.TableCell)} func
+ */
+recoil.structs.table.TableRowInterface.prototype.forEachColumn = function(func) {};
+
+
+/**
+ * Get the value and meta data from the cell
+ * @template CT
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
+ * @return {recoil.structs.table.TableCell<CT>}
+ */
+recoil.structs.table.TableRowInterface.prototype.getCell = function(column) {};
 
 /**
  * @template T
@@ -231,6 +268,7 @@ recoil.structs.table.ColumnKey.comparator = function(a , b) {
  * construct a table which cannot change, provide a mutable table to get the value
  * @param {recoil.structs.table.MutableTable} table
  * @constructor
+ * @implements {recoil.structs.table.TableInterface}
  */
 recoil.structs.table.Table = function(table) {
     this.meta_ = {};
@@ -325,14 +363,42 @@ recoil.structs.table.Table.prototype.unfreeze = function() {
  * creates an empty mutable table with the same columns
  * @param {IArrayLike<!recoil.structs.table.ColumnKey>=} opt_extPrimaryCols
  * @param {IArrayLike<!recoil.structs.table.ColumnKey>=} opt_extOtherCols
+ * @param {IArrayLike<!recoil.structs.table.ColumnKey>=} opt_removeCols
  * @return {!recoil.structs.table.MutableTable}
  */
-recoil.structs.table.Table.prototype.createEmpty = function(opt_extPrimaryCols, opt_extOtherCols) {
-    var res = new recoil.structs.table.MutableTable(this.primaryColumns_.concat(opt_extPrimaryCols || []),
-                                                    this.otherColumns_.concat(opt_extOtherCols || []));
+recoil.structs.table.Table.prototype.createEmpty = function(opt_extPrimaryCols, opt_extOtherCols, opt_removeCols) {
+    var newPrimary = this.primaryColumns_.concat(opt_extPrimaryCols || []);
+    var newOther = this.otherColumns_.concat(opt_extOtherCols || []);
+    var removeMap = {};
+    if (opt_removeCols) {
+        opt_removeCols.forEach(function(c) {
+            removeMap[c] = true;
+        });
+    }
+
+    var doRemove = function(arr) {
+        for (var i = arr.length - 1; i >= 0; i--) {
+            if (removeMap[arr[i]]) {
+                arr.splice(i, 1);
+            }
+        }
+    };
+    if (opt_removeCols) {
+        doRemove(newPrimary);
+        doRemove(newOther);
+    }
+    var res = new recoil.structs.table.MutableTable(newPrimary,
+                                                    newOther);
+
     recoil.util.object.addProps(res.meta_, this.meta_);
     res.columnMeta_ = {};
     recoil.util.object.addProps(res.columnMeta_, this.columnMeta_);
+    if (opt_removeCols) {
+        opt_removeCols.forEach(function(col) {
+            delete res.columnMeta_[col];
+        });
+    }
+
     return res;
 };
 
@@ -426,6 +492,7 @@ recoil.structs.table.Table.createUniqueIntPkRow = function(table) {
  * @param {!Array<!recoil.structs.table.ColumnKey>} primaryKeys
  * @param {!Array<!recoil.structs.table.ColumnKey>} otherColumns
  * @constructor
+ * @implements {recoil.structs.table.TableInterface}
  * @template T
  *
  */
@@ -475,7 +542,7 @@ recoil.structs.table.MutableTable.prototype.getPrimaryColumns = function() {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
+ * @param {function(!string,!Object) : *} func
  */
 
 recoil.structs.table.MutableTable.prototype.forEachColumn = function(func) {
@@ -1185,6 +1252,7 @@ recoil.structs.table.Table.getColumnKeys_ = function(array) {
 /**
  * @param {!recoil.structs.table.MutableTableRow=} opt_tableRow
  * @constructor
+ * @implements {recoil.structs.table.TableRowInterface}
  */
 recoil.structs.table.TableRow = function(opt_tableRow) {
     this.cells_ = {};
@@ -1194,7 +1262,7 @@ recoil.structs.table.TableRow = function(opt_tableRow) {
             this.cells_[key] = opt_tableRow.orig_[key];
         }
 
-        for (var key in opt_tableRow.changed_) {
+        for (key in opt_tableRow.changed_) {
             this.cells_[key] = opt_tableRow.changed_[key];
         }
         this.pos_ = opt_tableRow.pos();
@@ -1233,7 +1301,7 @@ recoil.structs.table.TableRow.prototype.pos = function() {
 /**
  * Get the value and meta data from the cell
  * @template CT
- * @param {recoil.structs.table.ColumnKey<CT>} column
+ * @param {!recoil.structs.table.ColumnKey<CT>} column
  * @return {recoil.structs.table.TableCell<CT>}
  */
 recoil.structs.table.TableRow.prototype.getCell = function(column) {
@@ -1262,8 +1330,17 @@ recoil.structs.table.TableRow.prototype.getMeta = function() {
     return res === undefined ? {} : res.getMeta();
 };
 
-
-
+/**
+ * @param {!function(!string,!recoil.structs.table.TableCell)} func
+ */
+recoil.structs.table.TableRow.prototype.forEachColumn = function(func) {
+    var metaCol = recoil.structs.table.ColumnKey.ROW_META.toString();
+    for (var col in this.cells_) {
+        if (metaCol !== col) {
+            func(col, this.cells_[col]);
+        }
+    }
+};
 
 /**
  * Gets only the value from the cell
@@ -1385,6 +1462,7 @@ recoil.structs.table.TableRow.prototype.unfreeze = function() {
  * A table row that can be changed. Use this to make a row then
  * change it to a normal row
  * @constructor
+ * @implements {recoil.structs.table.TableRowInterface}
  * @param {number=} opt_position if the row is order specify this
  * @param {recoil.structs.table.TableRow=} opt_immutable
  */
@@ -1399,6 +1477,32 @@ recoil.structs.table.MutableTableRow = function(opt_position, opt_immutable) {
         this.pos_ = opt_position === undefined ? undefined : opt_position;
     }
     this.changed_ = {};
+};
+
+/**
+ * @param {!function(!string,!recoil.structs.table.TableCell)} func
+ */
+recoil.structs.table.MutableTableRow.prototype.forEachColumn = function(func) {
+    var metaCol = recoil.structs.table.ColumnKey.ROW_META.toString();
+    for (var col in this.changed_) {
+        if (metaCol !== col) {
+            func(col, this.changed_[col]);
+        }
+    }
+    for (col in this.orig_) {
+        if (metaCol !== col && !this.changed_[col]) {
+            func(col, this.orig_[col]);
+        }
+    }
+};
+/**
+ * @param {!recoil.structs.table.TableRowInterface} row
+ */
+recoil.structs.table.MutableTableRow.prototype.addColumns = function(row) {
+    var me = this;
+    row.forEachColumn(function(col, cell) {
+        me.changed_[col] = cell;
+    });
 };
 /**
  * @param {?} that
