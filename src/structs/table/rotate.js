@@ -18,23 +18,34 @@ goog.require('recoil.util.object');
  !{table:!recoil.structs.table.Table},
  !{table:!recoil.structs.table.Table}>}>}
  * @constructor
+ * @param {!boolean} firstIsHeader if true first column the column header otherwize the header is removed, and
+ *   the first column is data
+ * @param {!recoil.structs.table.ColumnKey<!recoil.structs.table.ColumnKey>=} opt_keyCol
+ * @param {!recoil.structs.table.ColumnKey<string>=} opt_nameCol
  */
 
-recoil.structs.table.Rotate = function() {
+recoil.structs.table.Rotate = function(firstIsHeader, opt_keyCol, opt_nameCol) {
+    this.firstIsHeader_ = firstIsHeader;
     /**
      * @private
      * @type {!recoil.structs.table.ColumnKey<!recoil.structs.table.ColumnKey>}
      */
-    this.primaryKey_ = new recoil.structs.table.ColumnKey('$key');
+    this.primaryKey_ = opt_keyCol || new recoil.structs.table.ColumnKey('$key');
     /**
      * @private
      * @type {!recoil.structs.table.ColumnKey<!Array<{srcPk:!Array,destCol:!recoil.structs.table.ColumnKey}>>}
      */
     this.colMapKey_ = new recoil.structs.table.ColumnKey('$colmap');
-    this.nameKey_ = new recoil.structs.table.ColumnKey('$name');
+    this.nameKey_ = opt_nameCol || new recoil.structs.table.ColumnKey('$name');
     this.cachedColKeys_ = new goog.structs.AvlTree(recoil.util.object.compareKey);
 };
 
+/**
+ * @return {recoil.ui.RenderedDecorator}
+ */
+recoil.structs.table.Rotate.emptyDecorator = function() {
+    return null;
+};
 /**
  * @param {{table:!recoil.structs.table.Table}} params
  * @return {!recoil.structs.table.Table}
@@ -61,8 +72,12 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
 
     var result = new recoil.structs.table.MutableTable([this.primaryKey_], otherCols);
     result.setMeta(table.getMeta());
+    if (!me.firstIsHeader_) {
+        result.addMeta({headerRowDecorator: recoil.structs.table.Rotate.emptyDecorator});
+    }
     // setup the column meta, for the first column it will be like a header renderer
     result.setColumnMeta(this.nameKey_, {name: '', position: 0, cellDecorator: recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator});
+
 
     // for the other column we will set the row meta data on it, and add the column name
 
@@ -70,6 +85,7 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
     table.forEach(function(row, pk) {
         var cached = me.cachedColKeys_.findFirst({key: pk});
         var first = true;
+
         table.forEachPlacedColumn(function(col, meta) {
             if (first) {
                 result.setColumnMeta(cached.col, {name: row.get(col), position: colPos++});
@@ -78,18 +94,21 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
             }
             first = false;
         });
+
     });
 
 
     var pos = 0;
     // now add the data to the table
     table.forEachPlacedColumn(function(col, meta) {
-        if (pos > 0) {
+        if (pos > 0 || !me.firstIsHeader_) {
             var newRow = new recoil.structs.table.MutableTableRow(pos);
             newRow.set(me.primaryKey_, col);
 
             newRow.set(me.nameKey_, table.getColumnMeta(col).name);
             newRow.setCellMeta(me.nameKey_, table.getColumnMeta(col));
+            newRow.addCellMeta(me.nameKey_, {type: 'string', editable: false, errors: [],
+                                             cellWidgetFactory: recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory });
             var colMappings = [];
 
             table.forEach(function(row, pk) {
