@@ -97,8 +97,8 @@ function testRotate() {
 
     [1,2,3,4].forEach(function (val) {
         assertEquals("a" + val, orig.get(["a" + val],COL_A));
-        assertEquals("b" + val, orig.get(["a" + val],COL_B));
-        assertEquals("c" + val, orig.get(["a" + val],COL_C));
+        assertEquals("b" + val + "new", orig.get(["a" + val],COL_B));
+        assertEquals("c" + val + "new", orig.get(["a" + val],COL_C));
         assertEquals("d" + val, orig.get(["a" + val],COL_D));
     });
 
@@ -187,10 +187,11 @@ function testNoHeaderRotate() {
     var orig = testee.inverse(mtable.freeze(),{table : applyTable}).table;
 
     [1,2,3,4].forEach(function (val) {
-        assertEquals("a" + val, orig.get(["a" + val],COL_A));
-        assertEquals("b" + val, orig.get(["a" + val],COL_B));
-        assertEquals("c" + val, orig.get(["a" + val],COL_C));
-        assertEquals("d" + val, orig.get(["a" + val],COL_D));
+        var key = 'a' + val + 'new';
+        assertEquals("a" + val + 'new', orig.get([key],COL_A));
+        assertEquals("b" + val + 'new', orig.get([key],COL_B));
+        assertEquals("c" + val + 'new', orig.get([key],COL_C));
+        assertEquals("d" + val, orig.get([key],COL_D));
     });
 
     
