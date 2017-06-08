@@ -57,18 +57,17 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
 
     // work out what columns we will need
     var otherCols = [this.nameKey_];
-    var newCached = new goog.structs.AvlTree(recoil.util.object.compareKey);
 
     table.forEach(function(row, pk) {
         var cached = me.cachedColKeys_.findFirst({key: pk});
         if (!cached) {
             cached = {key: pk, col: new recoil.structs.table.ColumnKey('' + pk)};
+            me.cachedColKeys_.add(cached);
         }
         cached.row = row;
         otherCols.push(cached.col);
-        newCached.add(cached);
     });
-    me.cachedColKeys_ = newCached;
+
 
     var result = new recoil.structs.table.MutableTable([this.primaryKey_], otherCols);
     result.setMeta(table.getMeta());
