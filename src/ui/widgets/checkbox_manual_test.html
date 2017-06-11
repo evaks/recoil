@@ -22,19 +22,29 @@ See the COPYING file for details.
     goog.require('recoil.ui.WidgetHelper');
     goog.require('recoil.ui.Widget');
     goog.require('recoil.ui.widgets.CheckboxWidget');
+    goog.require('recoil.ui.widgets.ButtonWidget');
 
   </script>
 
   <link rel="stylesheet" href="../css/demo.css">
+  <link rel="stylesheet" href="../css/check.css">
   <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">
 </head>
 <body>
-
+  <div id='null'/>
+  <div id='undef'/>
   <div>
-    <span id="checkbox"></span>Enable / disable</div>
+    <span id="checkbox"></span>Check 1</div>
   <br>
   <div>
-    <span id="checkbox2"></span>Enable / disable 2</div>
+    <span id="checkbox2"></span>Check 2</div>
+  <br>
+
+  <div>
+    <span id="enable"></span>Enable / disable</div>
+  <br>
+  <div>
+    <span id="editable"></span>Editable</div>
   <br>
 
   <script>
@@ -44,22 +54,51 @@ See the COPYING file for details.
     var $ = goog.dom.getElement;
 
     var val = frp.createB(true);
+    var enableSource = frp.createB(true);
+    var editableB = frp.createB(true);
+    var enabledB = frp.liftBI(function(v) {
+	return new recoil.ui.BoolWithExplanation(v,recoil.ui.message.getParamMsg('enabled'), recoil.ui.message.getParamMsg('disable'));
+    }, function(v, eB) {
+	eB.set(v.val());
+    },enableSource);
     var checkboxWidget = new recoil.ui.widgets.CheckboxWidget(scope);
+    var enableWidget = new recoil.ui.widgets.CheckboxWidget(scope);
+    var editableWidget = new recoil.ui.widgets.CheckboxWidget(scope);
+    var nullWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var undefWidget = new recoil.ui.widgets.ButtonWidget(scope);
 
+    
+
+    nullWidget.attach('NULL',frp.createCallback(function(e){        
+	    val.set(null);
+    }, val));
+
+    undefWidget.attach('Undefined',frp.createCallback(function(e){        
+	    val.set(undefined);
+    }, val));
+
+
+    
     recoil.ui.widgets.CheckboxWidget.options
             .name('boo')
             .value(val)
-            .enabled(true)
+            .enabled(enabledB).editable(editableB)
             .attach(checkboxWidget);
 
     checkboxWidget.getComponent().render($('checkbox'));
-
+    enableWidget.getComponent().render($('enable'));
+    editableWidget.getComponent().render($('editable'));
+    
 
     var checkboxWidget2 = new recoil.ui.widgets.CheckboxWidget(scope);
     checkboxWidget2.getComponent().render($('checkbox2'));
+    nullWidget.getComponent().render($('null'));
+    undefWidget.getComponent().render($('undef'));
     // attach using alternate method
-    checkboxWidget2.attach("boo2", val, true);
-
+    checkboxWidget2.attach("boo2", val, enabledB);
+    enableWidget.attach("boo2", enableSource);
+    editableWidget.attach("boo2", editableB);
+    
 
   </script>
 </body>

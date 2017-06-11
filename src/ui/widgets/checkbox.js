@@ -21,10 +21,15 @@ goog.require('recoil.ui.WidgetScope');
 recoil.ui.widgets.CheckboxWidget = function(scope) {
     this.scope_ = scope;
     this.checkBox_ = new goog.ui.Checkbox();
-    this.isChecked = false;
-
+    this.editableDiv_ = goog.dom.createDom('span');
+    this.readonlyDiv_ = goog.dom.createDom('span');
+    this.containerDiv_ = goog.dom.createDom('span',{class:'foo'});
+    this.container_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.containerDiv_);
+    this.container_.addClassName('goog-inline-block');
+    this.checkBox_.setEnabled(false);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.checkBox_, goog.ui.Component.EventType.CHANGE);
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.checkBox_, this, this.updateState_);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
+    this.checkBox_.render(this.editableDiv_);
 };
 
 /**
@@ -38,13 +43,17 @@ recoil.ui.widgets.CheckboxWidget.prototype.flatten = recoil.frp.struct.NO_FLATTE
 /**
  * list of functions available when creating a CHECKBOXWidget
  */
-recoil.ui.widgets.CheckboxWidget.options = recoil.frp.Util.Options('name', 'value', 'enabled');
+recoil.ui.widgets.CheckboxWidget.options = recoil.frp.Util.Options('name', 'value',
+                                                                   {
+                                                                       'editable' : true,
+                                                                       'enabled' : recoil.ui.BoolWithExplanation.TRUE
+                                                                   });
 
 /**
  * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.CheckboxWidget.prototype.getComponent = function() {
-    return this.checkBox_;
+    return this.container_;
 };
 
 
@@ -67,20 +76,20 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function(options) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
     var structs = recoil.frp.struct;
-    var optionsB = structs.flatten(frp, options);
+    var bound = recoil.ui.widgets.CheckboxWidget.options.bind(frp, options);
 
-    this.nameB_ = structs.get('name', optionsB, '');
-    this.valueB_ = structs.get('value', optionsB, recoil.ui.BoolWithExplanation.FALSE);
-    this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
+    this.nameB_ = bound.name();
+    this.valueB_ = bound.value();
+    this.enabledB_ = bound.enabled();
+    this.editableB_ = bound.editable();
 
-    var readyB = util.isAllGood(this.nameB_, this.valueB_, this.enabledB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         me.valueB_.set(me.checkBox_.getChecked());
     }, me.valueB_));
 
-    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_);
+    this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_, this.editableB_);
 
 };
 
@@ -90,9 +99,24 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function(options) {
  * @private
  */
 recoil.ui.widgets.CheckboxWidget.prototype.updateState_ = function(helper) {
-    if (helper.isGood()) {
-        this.checkBox_.setChecked(this.valueB_.get());
+    var good = helper.isGood();
+    var enabled = good && this.enabledB_.get().val();
+    var editable = !this.editableB_.good() || this.editableB_.get();
+    this.checkBox_.setEnabled(enabled);
+    var defined = this.valueB_.good() ? this.valueB_.get() : null;
+    this.checkBox_.setChecked(defined);
+    var statename = defined === true ? 'checked' : (defined === false ? 'unchecked' : 'unknown');
+    goog.dom.classlist.set(this.readonlyDiv_,'recoil-ro-checkbox-' + statename);
+
+    goog.dom.removeNode(this.editableDiv_);
+    goog.dom.removeNode(this.readonlyDiv_);
+    if (editable) {
+        goog.dom.append(this.containerDiv_, this.editableDiv_);
     }
+    else {
+        goog.dom.append(this.containerDiv_, this.readonlyDiv_);
+    }
+
 };
 
 

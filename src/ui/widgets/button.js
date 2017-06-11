@@ -56,12 +56,12 @@ recoil.ui.widgets.ButtonWidget.prototype.getComponent = function() {
 /**
  * @param {recoil.frp.Behaviour<!string>|!string} textB
  * @param {recoil.frp.Behaviour<*>} callbackB
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} enabledB
+ * @param {(!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation)=} opt_enabledB
  */
-recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, enabledB) {
+recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt_enabledB) {
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
-
+    var enabledB = opt_enabledB || recoil.ui.BoolWithExplanation.TRUE;
     this.textB_ = util.toBehaviour(textB);
     this.callbackB_ = util.toBehaviour(callbackB);
     this.enabledB_ = util.toBehaviour(enabledB);
