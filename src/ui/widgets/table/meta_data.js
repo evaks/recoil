@@ -22,13 +22,22 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
 };
 
 /**
+ * @param {!function(recoil.structs.table.ColumnKey,recoil.ui.widgets.table.Column)} func
+ */
+recoil.ui.widgets.TableMetaData.prototype.forEachColumn = function(func) {
+    this.columns_.forEach(function(col) {
+        func(col.getKey(), col);
+    });
+};
+/**
  *
  * @template CT
  * @param {recoil.structs.table.ColumnKey<CT>} key
  * @param {string} name
+ * @param {!Object=} opt_meta
  */
-recoil.ui.widgets.TableMetaData.prototype.add = function(key, name) {
-    this.addColumn(new recoil.ui.widgets.table.DefaultColumn(key, name));
+recoil.ui.widgets.TableMetaData.prototype.add = function(key, name, opt_meta) {
+    this.addColumn(new recoil.ui.widgets.table.DefaultColumn(key, name, opt_meta || {}));
 };
 
 /**
@@ -71,11 +80,13 @@ recoil.ui.widgets.TableMetaData.prototype.createB = function(frp) {
  * @template T
  * @param {recoil.structs.table.ColumnKey} key
  * @param {string} name
+ * @param {!Object=} opt_meta
  * @implements {recoil.ui.widgets.table.Column}
  */
-recoil.ui.widgets.table.DefaultColumn = function(key, name) {
+recoil.ui.widgets.table.DefaultColumn = function(key, name, opt_meta) {
     this.name_ = name;
     this.key_ = key;
+    this.meta_ = opt_meta || {};
 };
 
 /**
@@ -87,7 +98,7 @@ recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function(curMeta) {
      * @type {Object<string, *>}
      */
     var meta = {name: this.name_};
-    goog.object.extend(meta, curMeta);
+    goog.object.extend(meta, this.meta_, curMeta);
 
     var factoryMap = meta['typeFactories'];
     var factory = (factoryMap === undefined || meta.type === undefined)

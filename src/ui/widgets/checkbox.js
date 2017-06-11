@@ -23,7 +23,7 @@ recoil.ui.widgets.CheckboxWidget = function(scope) {
     this.checkBox_ = new goog.ui.Checkbox();
     this.editableDiv_ = goog.dom.createDom('span');
     this.readonlyDiv_ = goog.dom.createDom('span');
-    this.containerDiv_ = goog.dom.createDom('span',{class:'foo'});
+    this.containerDiv_ = goog.dom.createDom('span', {class: 'foo'});
     this.container_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.containerDiv_);
     this.container_.addClassName('goog-inline-block');
     this.checkBox_.setEnabled(false);
@@ -106,7 +106,7 @@ recoil.ui.widgets.CheckboxWidget.prototype.updateState_ = function(helper) {
     var defined = this.valueB_.good() ? this.valueB_.get() : null;
     this.checkBox_.setChecked(defined);
     var statename = defined === true ? 'checked' : (defined === false ? 'unchecked' : 'unknown');
-    goog.dom.classlist.set(this.readonlyDiv_,'recoil-ro-checkbox-' + statename);
+    goog.dom.classlist.set(this.readonlyDiv_, 'recoil-ro-checkbox-' + statename);
 
     goog.dom.removeNode(this.editableDiv_);
     goog.dom.removeNode(this.readonlyDiv_);

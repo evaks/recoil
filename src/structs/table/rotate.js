@@ -56,7 +56,7 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
 
 
     // work out what columns we will need
-    var otherCols = [this.nameKey_,this.colMapKey_];
+    var otherCols = [this.nameKey_, this.colMapKey_];
 
     table.forEach(function(row, pk) {
         var cached = me.cachedColKeys_.findFirst({key: pk});
@@ -140,8 +140,8 @@ recoil.structs.table.Rotate.prototype.inverse = function(table, sources) {
     var dest = sources.table.unfreeze();
     var me = this;
 
-    var toSet =  new goog.structs.AvlTree(recoil.util.object.compareKey);
-    
+    var toSet = new goog.structs.AvlTree(recoil.util.object.compareKey);
+
     table.forEach(function(row) {
         var destCol = row.get(me.primaryKey_);
         var rowMappings = row.get(me.colMapKey_);
@@ -155,12 +155,12 @@ recoil.structs.table.Rotate.prototype.inverse = function(table, sources) {
                 }
                 var found = toSet.findFirst({key: mapping.srcPk});
                 if (found) {
-                    found.row.set(destCol,  row.get(mapping.destCol));
+                    found.row.set(destCol, row.get(mapping.destCol));
                 }
             });
         }
     });
-    toSet.inOrderTraverse(function (node) {
+    toSet.inOrderTraverse(function(node) {
         dest.addRow(node.row);
     });
     return {table: dest.freeze()};
