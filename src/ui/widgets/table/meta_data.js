@@ -15,9 +15,12 @@ recoil.ui.widgets.TableMetaData = function() {
 
 /**
  * @template CT
- * @param {recoil.ui.widgets.table.Column<CT>} col
+ * @param {!recoil.ui.widgets.table.Column<CT>} col
  */
 recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
+    if (!col) {
+        throw 'undefined column';
+    }
     this.columns_.push(col);
 };
 
@@ -32,11 +35,15 @@ recoil.ui.widgets.TableMetaData.prototype.forEachColumn = function(func) {
 /**
  *
  * @template CT
- * @param {recoil.structs.table.ColumnKey<CT>} key
+ * @param {!recoil.structs.table.ColumnKey<CT>} key
  * @param {string} name
  * @param {!Object=} opt_meta
  */
 recoil.ui.widgets.TableMetaData.prototype.add = function(key, name, opt_meta) {
+    if (!key) {
+        throw 'undefined column key';
+    }
+
     this.addColumn(new recoil.ui.widgets.table.DefaultColumn(key, name, opt_meta || {}));
 };
 

@@ -31,7 +31,7 @@ recoil.ui.widgets.table.BooleanColumn.defaultWidgetFactory_ = function(scope, ce
     var value = recoil.frp.table.TableCell.getValue(frp, cellB);
     var meta = recoil.frp.table.TableCell.getMeta(frp, cellB);
 
-    widget.attach('', value, recoil.frp.struct.get('enabled', meta, recoil.ui.BoolWithExplanation.TRUE));
+    widget.attachStruct(recoil.frp.struct.extend(frp, meta, {value: value}));
     return widget;
 };
 

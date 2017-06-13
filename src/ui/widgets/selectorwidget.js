@@ -6,6 +6,7 @@ goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Debug');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplanation');
+goog.require('recoil.ui.widgets.LabelWidget');
 goog.require('recoil.util');
 
 /**
@@ -18,7 +19,8 @@ goog.require('recoil.util');
 recoil.ui.widgets.SelectorWidget = function(scope) {
     this.scope_ = scope;
     var frp = this.scope_.getFrp();
-    this.component_ = new goog.ui.Component();
+    this.container_ = new goog.ui.Container();
+    this.readOnlyWidget_ = new recoil.ui.widgets.LabelWidget(scope);
     this.selector_ = new goog.ui.Select(undefined, undefined, undefined, undefined, undefined, function(item) {
         var struct = item.getValue();
         return new struct.renderer(struct.value, struct.valid, struct.enabled);
@@ -29,6 +31,8 @@ recoil.ui.widgets.SelectorWidget = function(scope) {
     // not get destroyed unless we manage it ourselves
     this.selector_.setRenderMenuAsSibling(true);
 
+    this.container_.addChild(this.selector_, true);
+    this.container_.addChild(this.readOnlyWidget_.getComponent(), true);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.selector_, this, this.updateState_);
     // this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.ACTION);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.CHANGE);
@@ -59,6 +63,7 @@ recoil.ui.widgets.SelectorWidget.options = recoil.frp.Util.Options(
         'name' : '',
         'renderer': recoil.ui.widgets.SelectorWidget.RENDERER,
         'enabledItems' : [],
+        'editable': true,
         'enabled' : recoil.ui.BoolWithExplanation.TRUE
     },
     'value' , 'list');
@@ -68,7 +73,7 @@ recoil.ui.widgets.SelectorWidget.options = recoil.frp.Util.Options(
  * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.SelectorWidget.prototype.getComponent = function() {
-    return this.selector_;
+    return this.container_;
 };
 
 /**
@@ -97,13 +102,13 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options) {
 
     this.nameB_ = bound.name();
     this.valueB_ = bound.value();
+    this.editableB_ = bound.editable();
     this.listB_ = bound.list();
     /**
      * @type {recoil.frp.Behaviour<!Array<recoil.ui.BoolWithExplanation>>}
      * @private
      */
     this.enabledItemsB_ = bound.enabledItems();
-
     /**
      * @type {recoil.frp.Behaviour.<!recoil.ui.BoolWithExplanation>}
      * @private
@@ -112,7 +117,20 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options) {
     this.rendererB_ = bound.renderer();
 
     this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_,
-         this.enabledItemsB_);
+         this.enabledItemsB_, this.editableB_);
+    var nullFormatter = function(v) {
+        return v;
+    };
+    this.readOnlyWidget_.attachStruct(frp.liftB(
+        function(val, renderer) {
+
+            var el = val === null || val === undefined ? '' : renderer(val, true, true);
+            return {
+                name: el,
+                formatter: nullFormatter
+            };
+
+    }, this.valueB_, this.rendererB_));
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
@@ -153,7 +171,8 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function(helper) {
         var sel = this.selector_;
         var enabledItems = this.enabledItemsB_.get();
         sel.setEnabled(this.enabledB_.get().val());
-
+        sel.setVisible(this.editableB_.get());
+        this.readOnlyWidget_.getComponent().setVisible(!this.editableB_.get());
         var renderer = this.rendererB_.get();
 
 

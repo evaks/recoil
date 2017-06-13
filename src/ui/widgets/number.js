@@ -360,6 +360,9 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
             recoil.ui.widgets.NumberWidget.getDp_(min),
             recoil.ui.widgets.NumberWidget.getDp_(step));
         return function(v) {
+             if (v === null || v === undefined) {
+                return '';
+            }
             return v.toLocaleString(undefined, {minimumFractionDigits: dp});
         };
     }, this.minB_, this.stepB_, bound.readonlyFormatter());
@@ -541,4 +544,5 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
     var c = this.number_.getContentElement();
 //    c.width = 2;
     this.number_.getContentElement().style.width = (width + 10) + 'px';
+    this.readonlyDiv_.style.width = (width) + 'px';
 };
