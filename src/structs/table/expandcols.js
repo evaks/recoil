@@ -163,9 +163,7 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row) 
         });
         row.set(this.col_, val);
     }
-    else {
-        row.set(this.col_, null);
-    }
+
 };
 /**
  * @return {!Array<!{col:!recoil.structs.table.ColumnKey,meta:!Object}>}
