@@ -413,6 +413,9 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
         }
         enabled = false;
     }
+    if (tooltip && tooltip.trim() === '' || tooltip === undefined || tooltip === '') {
+        tooltip = null;
+    }
     if (!this.component_.getElement()) {
         this.component_.createDom();
     }

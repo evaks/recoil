@@ -68,8 +68,9 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt
     var editableB = util.toBehaviour(opt_editable === undefined ? true : opt_editable);
     this.textB_ = util.toBehaviour(textB);
     this.callbackB_ = util.toBehaviour(callbackB);
-    this.enabledB_ = BoolWithExplanation.and(frp,
-        BoolWithExplanation.createB(editableB), enabledB).debug('Editable');
+    this.enabledB_ = BoolWithExplanation.and(
+        frp,
+        BoolWithExplanation.createB(editableB), enabledB);
 
 
 
