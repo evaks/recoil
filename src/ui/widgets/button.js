@@ -7,6 +7,7 @@ goog.require('goog.events.EventType');
 goog.require('goog.ui.Button');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.struct');
+goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
@@ -57,14 +58,20 @@ recoil.ui.widgets.ButtonWidget.prototype.getComponent = function() {
  * @param {recoil.frp.Behaviour<!string>|!string} textB
  * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {(!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation)=} opt_enabledB
+ * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)=} opt_editable
  */
-recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt_enabledB) {
+recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt_enabledB, opt_editable) {
+    var BoolWithExplanation = recoil.ui.BoolWithExplanation;
     var frp = this.helper_.getFrp();
     var util = new recoil.frp.Util(frp);
-    var enabledB = opt_enabledB || recoil.ui.BoolWithExplanation.TRUE;
+    var enabledB = util.toBehaviour(opt_enabledB || recoil.ui.BoolWithExplanation.TRUE);
+    var editableB = util.toBehaviour(opt_editable === undefined ? true : opt_editable);
     this.textB_ = util.toBehaviour(textB);
     this.callbackB_ = util.toBehaviour(callbackB);
-    this.enabledB_ = util.toBehaviour(enabledB);
+    this.enabledB_ = BoolWithExplanation.and(frp,
+        BoolWithExplanation.createB(editableB), enabledB).debug('Editable');
+
+
 
     this.helper_.attach(this.textB_, this.callbackB_, this.enabledB_);
     this.enabledHelper_.attach(
@@ -72,6 +79,31 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt
         this.helper_);
     var me = this;
     this.changeHelper_.listen(this.callbackB_);
+};
+
+
+/**
+ * the behaviours that this widget can take
+ *
+ * action - the callback that gets executed when
+ * text - the text to display on the button
+ * enabled if the button is enambed
+ */
+recoil.ui.widgets.ButtonWidget.options = recoil.frp.Util.Options(
+    'action', 'text',
+    {
+        enabled: recoil.ui.BoolWithExplanation.TRUE,
+        editable: true
+    }
+);
+
+/**
+ * @param {!Object| !recoil.frp.Behaviour<Object>} value
+ */
+recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
+    var frp = this.helper_.getFrp();
+    var bound = recoil.ui.widgets.ButtonWidget.options.bind(frp, value);
+    this.attach(bound.text(), bound.action(), bound.enabled(), bound.editable());
 };
 
 /**
