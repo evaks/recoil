@@ -24,9 +24,24 @@ recoil.ui.widgets.TextAreaWidget = function(scope) {
     this.container_ = new goog.ui.Container();
 
     this.label_ = new recoil.ui.widgets.LabelWidget(scope);
-
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.textarea_, goog.events.InputHandler.EventType.INPUT);
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.textarea_, this, this.updateState_);
+    this.blurChangeHelper_ = new recoil.ui.EventHelper(scope, this.textarea_, goog.events.EventType.BLUR);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.textarea_, this, this.updateState_, this.detach_);
+    this.configHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.textarea_, this, this.updateConfig_);
+};
+
+/**
+ * if not immediate we need to put data back before we detach
+ * @private
+ */
+recoil.ui.widgets.TextAreaWidget.prototype.detach_ = function() {
+    var frp = this.helper_.getFrp();
+    var me = this;
+    frp.accessTrans(function() {
+        if (me.immediateB_.good() && me.valueB_.good() && !me.immediateB_.get()) {
+            me.valueB_.set(me.textarea_.getValue());
+        }
+    }, me.immediateB_, me.valueB_);
 };
 
 /**
@@ -80,6 +95,8 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
     var optionsB = structs.flatten(frp, options);
 
     this.valueB_ = structs.get('value', optionsB);
+    this.minHeightB_ = structs.get('minHeight', optionsB, 70);
+    this.immediateB_ = structs.get('immediate', optionsB, false);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
     var readyB = util.isAllGoodExplain(this.valueB_, this.enabledB_);
 
@@ -87,12 +104,23 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
           structs.get('name', optionsB),
           recoil.ui.BoolWithExplanation.and(frp, this.enabledB_, readyB));
 
-    this.helper_.attach(this.valueB_, this.enabledB_);
+    this.helper_.attach(this.valueB_, this.immediateB_, this.enabledB_);
+    this.configHelper_.attach(this.minHeightB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
-        me.valueB_.set(v.target.value);
-    }, this.valueB_));
+        if (me.immediateB_.get()) {
+            me.valueB_.set(v.target.value);
+        }
+    }, this.valueB_, this.immediateB_));
+
+    this.blurChangeHelper_.listen(this.scope_.getFrp().createCallback(
+        function(v) {
+            if (!me.immediateB_.get()) {
+                me.valueB_.set(v.target.value);
+            }
+        }, this.valueB_, this.immediateB_));
+
 };
 
 
@@ -105,8 +133,26 @@ recoil.ui.widgets.TextAreaWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
         this.textarea_.setContent(this.valueB_.get());
-        this.textarea_.setEnabled(this.enabledB_.get());
+        this.textarea_.setEnabled(this.enabledB_.get().val());
     }
+    else {
+        this.textarea_.setEnabled(false);
+    }
+
+
+};
+
+/**
+ *
+ * @param {recoil.ui.WidgetHelper} helper
+ * @private
+ */
+recoil.ui.widgets.TextAreaWidget.prototype.updateConfig_ = function(helper) {
+
+    if (helper.isGood()) {
+        this.textarea_.setMinHeight(this.minHeightB_.get());
+    }
+
 };
 
 
