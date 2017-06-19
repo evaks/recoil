@@ -287,8 +287,16 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
     }, this.valueB_, this.converterB_, this.charValidatorB_, this.maxLengthB_, this.immediateB_));
 
+    var tooltipB = frp.liftB(function(enabled, length) {
+
+        if (length !== undefined) {
+
+            return new recoil.ui.BoolWithExplanation(true, recoil.ui.messages.MAX_LENGTH_0.resolve({len: length}));
+        }
+        return recoil.ui.BoolWithExplanation.TRUE;
+    }, this.enabledB_, this.maxLengthB_);
     this.enabledHelper_.attach(
-        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
+        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (tooltipB),
         this.helper_);
 };
 

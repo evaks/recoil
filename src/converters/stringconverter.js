@@ -57,6 +57,13 @@ recoil.converters.RegExp.prototype.convert = function(val) {
 };
 
 /**
+ * @return {!recoil.converters.RegExp}
+ */
+recoil.converters.RegExp.prototype.clone = function() {
+    return this;
+};
+
+/**
  * @param {string} val
  * @return {!{error : recoil.ui.message.Message, value : string}}
  */

@@ -19,8 +19,8 @@ goog.require('recoil.ui.widgets.table.Column');
  */
 recoil.ui.widgets.table.StringColumn = function(key, name, opt_maxChars, opt_editable) {
     this.meta_ = recoil.util.object.removeUndefined(
-        {maxChars: opt_maxChars === undefined ? 0 : opt_maxChars,
-         editable: opt_editable === undefined ? true : opt_editable});
+        {maxChars: opt_maxChars,
+         editable: opt_editable});
     this.key_ = key;
     this.name_ = name;
 };

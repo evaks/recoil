@@ -103,8 +103,8 @@ recoil.ui.BoolWithExplanation.prototype.and = function(var_values) {
 
     var res = this.val_;
     for (var i = 0; i < arguments.length; i++) {
-        this.addExplain_(trueExplain, arguments[i].val_, this.true_);
-        this.addExplain_(falseExplain, !arguments[i].val_, this.false_);
+        this.addExplain_(trueExplain, arguments[i].val_, arguments[i].true_);
+        this.addExplain_(falseExplain, !arguments[i].val_, arguments[i].false_);
 
         res = res && arguments[i].val_;
     }
@@ -163,8 +163,8 @@ recoil.ui.BoolWithExplanation.prototype.or = function(var_values) {
 
     var res = this.val_;
     for (var i = 0; i < arguments.length; i++) {
-        this.addExplain_(trueExplain, arguments[i].val_, this.true_);
-        this.addExplain_(falseExplain, !arguments[i].val_, this.false_);
+        this.addExplain_(trueExplain, arguments[i].val_, arguments[i].true_);
+        this.addExplain_(falseExplain, !arguments[i].val_, arguments[i].false_);
 
         res = res || arguments[i].val_;
     }
