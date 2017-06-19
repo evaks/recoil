@@ -141,7 +141,13 @@ recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
         var val = this.nameB_.get();
-        this.label_.setContent(this.formatterB_.get()(val));
+        var content = this.formatterB_.get()(val);
+        if (content instanceof Node || goog.isString(content)) {
+            this.label_.setContent(content);
+        }
+        else {
+            this.label_.setContent(content + '');
+        }
     }
     else {
         this.label_.setContent('??');
