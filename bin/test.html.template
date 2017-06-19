@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Recoil Unit Tests - {CLASS}</title>
+  <script src="{ROOT}closure-library/closure/goog/base.js"></script>
+  <script src="{ROOT}my-deps.js"></script>
+  <script>
+    goog.require('{CLASS}Test');
+  </script>
+</head>
+<body>
+
+</body>
+</html>

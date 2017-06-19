@@ -1,0 +1,13 @@
+goog.provide('{CLASS}Test');
+
+
+goog.require('goog.testing.jsunit');
+goog.require('{CLASS}');
+
+goog.setTestOnly('{CLASS}Test');
+
+function testIt() {
+    assertTrue("Not implemented yet", false);
+}
+
+

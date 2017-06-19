@@ -37,6 +37,44 @@ recoil.converters.DefaultStringConverter.prototype.unconvert = function(val) {
     return {error: null, value: val};
 };
 
+
+/**
+ * this converter takes any string converter and handles null
+ * values by converting them to an empty string
+ *
+ * @constructor
+ * @implements {recoil.converters.StringConverter<string>}
+ * @param {!recoil.converters.StringConverter<string>} subconverter
+ */
+
+recoil.converters.NullStringConverter = function(subconverter) {
+    this.subconverter_ = subconverter;
+};
+
+/**
+ * @param {string} val
+ * @return {string}
+ */
+recoil.converters.NullStringConverter.prototype.convert = function(val) {
+    if (val === null || val === undefined) {
+        return '';
+    }
+    return this.subconverter_.convert(val);
+};
+
+/**
+ * @param {string} val
+ * @return {!{error : recoil.ui.message.Message, value:?(string)}}
+ */
+recoil.converters.NullStringConverter.prototype.unconvert = function(val) {
+    if (val === '') {
+        return {error: null, value: null};
+    }
+
+    return this.subconverter_.unconvert(val);
+};
+
+
 /**
  * does no actual coversions, however will match a regular expression
  * on the uncovert stage
