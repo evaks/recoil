@@ -1,5 +1,7 @@
 goog.provide('recoil.ui.layout.Card');
 
+goog.require('recoil.frp.struct');
+goog.require('recoil.ui.WidgetScope');
 
 
 /**
