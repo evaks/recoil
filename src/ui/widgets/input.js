@@ -83,6 +83,7 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
         immediate: false, // if false changes will not propogate until blur
         converter: new recoil.converters.DefaultStringConverter(),
         maxLength: undefined,
+        width: undefined,
         outErrors: [],
         displayLength: undefined,
         charValidator: function() {return true;}
@@ -146,8 +147,10 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.enabledB_ = bound.enabled();
     this.editableB_ = bound.editable();
     this.immediateB_ = bound.immediate();
+    this.tooltipB_ = bound.tooltip();
     this.converterB_ = bound.converter();
     this.maxLengthB_ = bound.maxLength();
+    this.widthB_ = bound.width();
     this.outErrorsB_ = bound.outErrors();
     this.displayLengthB_ = bound.displayLength();
     this.charValidatorB_ = bound.charValidator();
@@ -167,7 +170,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_, formatter: formatterB});
     this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_,
-        this.maxLengthB_, this.displayLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_, this.outErrorsB_);
+                        this.maxLengthB_, this.widthB_, this.displayLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_, this.outErrorsB_);
 
 
     var me = this;
@@ -283,18 +286,21 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
                 }
             }
         }
-
-
     }, this.valueB_, this.converterB_, this.charValidatorB_, this.maxLengthB_, this.immediateB_));
 
-    var tooltipB = frp.liftB(function(enabled, length) {
-
+    var tooltipB = frp.liftB(function(enabled, length, tooltip) {
+        if (tooltip !== recoil.ui.messages.BLANK) {
+            if (tooltip === null) {
+                return recoil.ui.BoolWithExplanation.TRUE;
+            }
+            return new recoil.ui.BoolWithExplanation(true, tooltip);
+        }
         if (length !== undefined) {
 
             return new recoil.ui.BoolWithExplanation(true, recoil.ui.messages.MAX_LENGTH_0.resolve({len: length}));
         }
         return recoil.ui.BoolWithExplanation.TRUE;
-    }, this.enabledB_, this.maxLengthB_);
+    }, this.enabledB_, this.maxLengthB_, this.tooltipB_);
     this.enabledHelper_.attach(
         /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (tooltipB),
         this.helper_);
@@ -313,12 +319,15 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 
     var el = this.input_.getElement();
     var maxLength = this.maxLengthB_.metaGet().good() ? this.maxLengthB_.get() : undefined;
+    var width = this.widthB_.good() ? this.widthB_.get() : undefined;
+
     var displayLength = this.displayLengthB_.metaGet().good() ? this.displayLengthB_.get() : undefined;
     if (maxLength !== undefined) {
         el.maxLength = maxLength;
     } else if (el.maxLength !== undefined) {
         delete el.maxLength;
     }
+
 
     if (displayLength === undefined) {
         displayLength = maxLength;
@@ -349,7 +358,12 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
             delete this.input_.getContentElement().style.width;
         }
         else {
-            this.input_.getContentElement().style.width = displayLength + 'em';
+            if (typeof(displayLength) === 'string') {
+                this.input_.getContentElement().style.width = displayLength;
+            }
+            else {
+                this.input_.getContentElement().style.width = displayLength + 'em';
+            }
         }
     }
     else {

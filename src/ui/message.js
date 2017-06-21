@@ -78,6 +78,12 @@ recoil.ui.message.Message.prototype.resolveRec_ = function(res, data) {
     return unresolved;
 
 };
+/**
+ * @return {recoil.ui.message.Message}
+ */
+recoil.ui.message.Message.prototype.clone = function() {
+    return this;
+};
 
 /**
  * turn this message into a string if parameters are not assigned
