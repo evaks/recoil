@@ -138,6 +138,7 @@ recoil.db.ChangeDb.prototype.applyAdd = function(path) {
         }
         listNode = this.resolve_(path, true);
     }
+    this.schema_.applyDefaults(path, this);
 
 };
 
@@ -722,6 +723,14 @@ recoil.db.ChangeSet.Schema = function() {
  * @return {!Array<!string>} the children
  */
 recoil.db.ChangeSet.Schema.prototype.children = function(path) {
+
+};
+/**
+ * set up container after item is added
+ * @param {recoil.db.ChangeSet.Path} path
+ * @param {!recoil.db.ChangeDbInterface} db
+ */
+recoil.db.ChangeSet.Schema.prototype.applyDefaults = function(path, db) {
 
 };
 

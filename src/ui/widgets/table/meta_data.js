@@ -19,7 +19,7 @@ recoil.ui.widgets.TableMetaData = function() {
  */
 recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
     if (!col) {
-        throw 'undefined column';
+        throw new Error('undefined column');
     }
     this.columns_.push(col);
 };
@@ -41,7 +41,7 @@ recoil.ui.widgets.TableMetaData.prototype.forEachColumn = function(func) {
  */
 recoil.ui.widgets.TableMetaData.prototype.add = function(key, name, opt_meta) {
     if (!key) {
-        throw 'undefined column key';
+        throw new Error('undefined column key');
     }
 
     this.addColumn(new recoil.ui.widgets.table.DefaultColumn(key, name, opt_meta || {}));

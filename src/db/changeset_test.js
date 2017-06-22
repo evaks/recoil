@@ -174,7 +174,7 @@ var schema = {
         }
         return cur;
     },
-    
+    applyDefaults : function (path, db) {},
     children: function (path) {
         var parts = path.parts();
         var cur = schema.root;
