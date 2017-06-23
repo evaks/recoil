@@ -121,10 +121,10 @@ recoil.db.ChangeDb.prototype.applyAdd = function(path) {
         // this is a list node we are adding
         listNode = this.resolve_(path.unsetKeys(), true);
         if (!listNode) {
-            throw "add node '" + path.unsetKeys().toString() + "' does not exist";
+            throw new Error("add node '" + path.unsetKeys().toString() + "' does not exist");
         }
         if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
-            throw "cannot add node '" + path.toString() + "' to non-list";
+            throw new Error("cannot add node '" + path.toString() + "' to non-list");
         }
 
         var newNode = new recoil.db.ChangeDbNode.Container();
@@ -134,7 +134,7 @@ recoil.db.ChangeDb.prototype.applyAdd = function(path) {
         listNode = this.resolve_(path.parent(), false);
 
         if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
-            throw "cannot add node '" + path.toString() + "' to non-container";
+            throw new Error("cannot add node '" + path.toString() + "' to non-container");
         }
         listNode = this.resolve_(path, true);
     }
@@ -152,10 +152,10 @@ recoil.db.ChangeDb.prototype.applyDelete = function(path) {
         // this is a list node we are deleting from
         listNode = this.resolve_(path.unsetKeys(), false);
         if (!listNode) {
-            throw "delete node '" + path.unsetKeys().toString() + "' does not exist";
+            throw new Error("delete node '" + path.unsetKeys().toString() + "' does not exist");
         }
         if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
-            throw "cannot delete node '" + path.toString() + "' from non-list";
+            throw new Error("cannot delete node '" + path.toString() + "' from non-list");
         }
 
         listNode.remove(path.last());
@@ -165,13 +165,13 @@ recoil.db.ChangeDb.prototype.applyDelete = function(path) {
         listNode = this.resolve_(path.parent(), false);
 
         if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
-            throw "cannot remove node '" + path.toString() + "' to non-container";
+            throw new Error("cannot remove node '" + path.toString() + "' to non-container");
         }
         listNode.remove(path.last());
         return;
     }
 
-    throw "cannot remove node '" + path.toString() + "' from a leaf";
+    throw new Error("cannot remove node '" + path.toString() + "' from a leaf");
 
 
 };
@@ -183,15 +183,15 @@ recoil.db.ChangeDb.prototype.applyDelete = function(path) {
 recoil.db.ChangeDb.prototype.applyMove = function(from, to) {
     var listNode = this.resolve_(from.unsetKeys(), false);
     if (!listNode) {
-        throw "move node '" + from.unsetKeys().toString() + "' does not exist";
+        throw new Error("move node '" + from.unsetKeys().toString() + "' does not exist");
     }
     if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
-        throw "move node '" + from.unsetKeys().toString() + "' is not a list";
+        throw new Error("move node '" + from.unsetKeys().toString() + "' is not a list");
     }
 
     var oldNode = listNode.remove(from.last());
     if (!oldNode) {
-        throw "move node '" + from.toString() + "' does not exist";
+        throw new Error("move node '" + from.toString() + "' does not exist");
     }
     listNode.add(to.last(), oldNode);
 };
@@ -206,12 +206,12 @@ recoil.db.ChangeDb.prototype.applySet = function(path, val) {
     if (!node) {
         var parent = this.resolve_(path.parent(), false);
         if (!parent) {
-            throw "set node '" + path.toString() + "' does not exist";
+            throw new Error("set node '" + path.toString() + "' does not exist");
         }
         node = parent.getChildNode(this.schema_, path.last(), path, true);
     }
     if (!(node instanceof recoil.db.ChangeDbNode.Leaf)) {
-        throw "set node '" + path.toString() + "' is not a leaf";
+        throw new Error("set node '" + path.toString() + "' is not a leaf");
     }
     node.setValue(val);
 

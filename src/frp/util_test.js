@@ -3,8 +3,35 @@ goog.provide('recoil.frp.util.UtilTest');
 goog.require('recoil.frp.Util');
 goog.require('goog.testing.jsunit');
 goog.require('recoil.frp.Frp');
+goog.require('recoil.frp.struct');
 
 goog.setTestOnly('recoil.util.UtilTest');
+
+function testOptionsMultiAttach () {
+
+    var frp = new recoil.frp.Frp();
+    var structs = recoil.frp.struct;
+
+    var testee = recoil.frp.Util.Options({'add' : {callback:undefined, text: 'Add'}});
+    var cbB1 = frp.createB(1);
+    var cbB2 = frp.createB(2);
+    var val1 = testee.add({callback:cbB1}).struct();
+    var val2 = testee.add({callback:cbB2}).struct();
+    var addB1 = testee.bind(frp,val1).add();
+    var addB2 = testee.bind(frp,val2).add();
+
+    var ocbB1 = structs.get('callback', addB1);
+    var ocbB2 = structs.get('callback', addB2);
+    
+    frp.attach(ocbB1);
+    frp.attach(ocbB2);
+
+    assertEquals(1,ocbB1.unsafeMetaGet().get());
+    assertEquals(2,ocbB2.unsafeMetaGet().get());
+
+    
+    
+};
 
 function testOptions () {
 

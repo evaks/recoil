@@ -314,6 +314,7 @@ recoil.frp.Util.OptionsType = function()
 recoil.frp.Util.Options = function(var_options) {
     var res = new recoil.frp.Util.OptionsType();
     var remaining = {};
+        var k = 0;
 
     var checkRemaining = function(remaining) {
         for (var i in remaining) {
@@ -322,13 +323,12 @@ recoil.frp.Util.Options = function(var_options) {
             }
         }
     };
-    var mkSetFunc = function(struct, remaining, name, params) {
-        struct = goog.object.clone(struct);
-        remaining = goog.object.clone(remaining);
+    var mkSetFunc = function(pstruct, premaining, name, params) {
 
        return function(var_vals) {
-
-            delete remaining[name];
+           var struct = goog.object.clone(pstruct);
+           var remaining = goog.object.clone(premaining);
+           delete remaining[name];
 
             if (name instanceof Object) {
                 for (var n in name) {
@@ -420,8 +420,8 @@ recoil.frp.Util.Options = function(var_options) {
     }
 
 
-    for (var i = 0; i < arguments.length; i++) {
-        var name = arguments[i];
+    for (i = 0; i < arguments.length; i++) {
+        name = arguments[i];
         functionParams(name).forEach(function(func) {
             res[func.name] = mkSetFunc({}, remaining, func.name, func.params);
         });

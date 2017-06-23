@@ -85,7 +85,7 @@ recoil.ui.messages.MUST_BE_AT_LEAST_0_CHARACTORS = recoil.ui.message.getParamMsg
  * @type {recoil.ui.message.Message}
  * @final
  */
-recoil.ui.messages.MAX_LENGTH_0 = recoil.ui.message.getParamMsg('Maxiumn Length ', ['len'], '.');
+recoil.ui.messages.MAX_LENGTH_0 = recoil.ui.message.getParamMsg('Maximum Length ', ['len'], '.');
 
 /**
  * @type {recoil.ui.message.Message}

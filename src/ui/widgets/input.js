@@ -289,6 +289,9 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     }, this.valueB_, this.converterB_, this.charValidatorB_, this.maxLengthB_, this.immediateB_));
 
     var tooltipB = frp.liftB(function(enabled, length, tooltip) {
+         if (!enabled.val()) {
+            return enabled;
+        }
         if (tooltip !== recoil.ui.messages.BLANK) {
             if (tooltip === null) {
                 return recoil.ui.BoolWithExplanation.TRUE;
