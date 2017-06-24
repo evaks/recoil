@@ -18,4 +18,4 @@ TOCUT=`expr 1 + ${#DEPDIR}`
 ROOT=`echo $FILEDIR | cut -c$TOCUT- | sed -e 's/\/[^/][^/]*/..\\\\\//g'`
 
 cat $DIR/test.html.template | sed -e "s/{CLASS}/$1/g" | sed -e "s/{ROOT}/$ROOT/g" > $FILEDIR/${FNAME}_test.html
-cat $DIR/test.js.template | sed -e "s/{CLASS}/$1/g" | sed -e "s/{ROOT}/$ROOT/g" > $FILEDIR/${FNAME}_test.html
+cat $DIR/test.js.template | sed -e "s/{CLASS}/$1/g" | sed -e "s/{ROOT}/$ROOT/g" > $FILEDIR/${FNAME}_test.js

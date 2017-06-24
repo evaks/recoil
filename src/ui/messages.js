@@ -106,19 +106,21 @@ recoil.ui.messages.BLANK = recoil.ui.message.getParamMsg('');
  * @return {!recoil.ui.message.Message}
  */
 recoil.ui.messages.join = function(messages) {
-
-    if (messages.length === 0) {
-        return new recoil.ui.message.Message(['']);
+    var first = new recoil.ui.message.Message(['']);
+    for (var i = 0; i < messages.length; i++) {
+        var msg = messages[i];
+        if (msg && msg.toString() !== '') {
+            first = msg;
+            break;
+        }
     }
-    if (messages.length === 1) {
-        return recoil.ui.message.toMessage(messages[0]);
-    }
+    i++;
 
-    var first = messages[0];
-
-    for (var i = 1; i < messages.length; i++) {
+    for (; i < messages.length; i++) {
         var second = messages[i];
-        first = recoil.ui.messages.AND.resolve({first: first, second: second});
+        if (second && second.toString() !== '') {
+            first = recoil.ui.messages.AND.resolve({first: first, second: second});
+        }
     }
     return /** @type {!recoil.ui.message.Message} */ (first);
 };

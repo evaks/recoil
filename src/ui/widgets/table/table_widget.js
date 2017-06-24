@@ -1210,3 +1210,5 @@ recoil.ui.widgets.table.TableWidget.prototype.attach = function(table, meta) {
  */
 
 recoil.ui.widgets.table.TableWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+

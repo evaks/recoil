@@ -135,7 +135,7 @@ recoil.ui.HtmlHelper.prototype.createInnerHtmlDiv = function(innerHtmlB, opt_opt
 
 /**
  * @param {!Node} parent
- * @param {!recoil.frp.Behaviour<string>} innerHtmlB
+ * @param {!recoil.frp.Behaviour<?string>|!recoil.frp.Behaviour<string>} innerHtmlB
  * @param {(Object|Array<string>|string)=} opt_options
  * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
  *     strings for text nodes. If one of the var_args is an array or NodeList,
