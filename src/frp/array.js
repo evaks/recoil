@@ -132,12 +132,12 @@ recoil.frp.Array.prototype.tag = function(array, tag) {
         return v[tag] ? true : false;
     };
     var stripTag = function(v) {
-        v = goog.object.clone(v);
+        v = recoil.util.object.clone(v);
         delete v[tag];
         return v;
     };
     var tagger = function(v) {
-        v = goog.object.clone(v);
+        v = recoil.util.object.clone(v);
         v[tag] = true;
         return v;
     };
