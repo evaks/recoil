@@ -140,3 +140,23 @@ recoil.frp.Array.prototype.tag = function(array, tag) {
 
     return this.map(this.filter(array, filter, true), stripTag, tagger);
 };
+
+
+/**
+ * @template T
+ * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>} array
+ * @param {!string} tag
+ * @return {!recoil.frp.Behaviour<!IArrayLike<T>>}
+ */
+recoil.frp.Array.prototype.stripTag = function(array, tag) {
+
+    var stripTag = function(v) {
+        if (v && v.tag) {
+            
+            return v.value;
+        }
+        return v;
+    };
+
+    return this.map(array, stripTag);
+};
