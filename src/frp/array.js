@@ -129,17 +129,13 @@ recoil.frp.Array.prototype.filter = function(array, filter, opt_inversable) {
  */
 recoil.frp.Array.prototype.tag = function(array, tag) {
     var filter = function(v) {
-        return v[tag] ? true : false;
+        return v.tag === tag;
     };
     var stripTag = function(v) {
-        v = recoil.util.object.clone(v);
-        delete v[tag];
-        return v;
+        return v.value;
     };
     var tagger = function(v) {
-        v = recoil.util.object.clone(v);
-        v[tag] = true;
-        return v;
+        return {tag:tag, value:v};
     };
 
     return this.map(this.filter(array, filter, true), stripTag, tagger);

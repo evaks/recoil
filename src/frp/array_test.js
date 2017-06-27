@@ -24,7 +24,7 @@ function testTag() {
         aB.set([{v:1}]);
     }, aB, bB);
 
-    assertObjectEquals([{v:1,a:true}], valB.unsafeMetaGet().get());
+    assertObjectEquals([{value: {v:1}, tag:'a'}], valB.unsafeMetaGet().get());
     assertObjectEquals([{v:1}], aB.unsafeMetaGet().get());
     assertObjectEquals([], bB.unsafeMetaGet().get());
 
@@ -33,7 +33,7 @@ function testTag() {
         bB.set([{v:2}]);
     }, aB, bB);
 
-    assertObjectEquals([{v:1,a:true},{v:2,b:true}], valB.unsafeMetaGet().get());
+    assertObjectEquals([{tag:'a', value: {v:1}},{tag:'b',value: {v:2}}], valB.unsafeMetaGet().get());
     assertObjectEquals([{v:1}], aB.unsafeMetaGet().get());
     assertObjectEquals([{v:2}], bB.unsafeMetaGet().get());
 
@@ -42,9 +42,25 @@ function testTag() {
         bB.set([{v:2},{v:3}]);
     }, aB, bB);
 
-    assertObjectEquals([{v:1,a:true},{v:2,b:true},{v:3, b:true}], valB.unsafeMetaGet().get());
+    assertObjectEquals([{tag:'a',value:{v:1}},{tag:'b', value: {v:2}},{tag:'b', value: {v:3}}], valB.unsafeMetaGet().get());
     assertObjectEquals([{v:1}], aB.unsafeMetaGet().get());
     assertObjectEquals([{v:2},{v:3}], bB.unsafeMetaGet().get());
+
+    frp.accessTrans(function () {
+        aB.set([]);
+    }, aB, bB);
+    assertObjectEquals([{tag:'b', value: {v:2}},{tag:'b', value: {v:3}}], valB.unsafeMetaGet().get());
+    assertObjectEquals([], aB.unsafeMetaGet().get());
+    assertObjectEquals([{v:2},{v:3}], bB.unsafeMetaGet().get());
+
+
+    frp.accessTrans(function () {
+        bB.set([]);
+    }, aB, bB);
+
+    assertObjectEquals([], valB.unsafeMetaGet().get());
+    assertObjectEquals([], aB.unsafeMetaGet().get());
+    assertObjectEquals([], bB.unsafeMetaGet().get());
 }
 
 
