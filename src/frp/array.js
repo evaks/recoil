@@ -1,6 +1,7 @@
 goog.provide('recoil.frp.Array');
 
 goog.require('recoil.frp.Util');
+goog.require('recoil.util.object');
 
 
 
@@ -47,37 +48,99 @@ recoil.frp.Array.prototype.isNotEmpty = function(array) {
 
 
 /**
- * @template T
- * @param {!Array<T>|recoil.frp.Behaviour<!Array<T>>} array
- * @param {(!function(T) : boolean|!recoil.frp.Behaviour<!function(T) : boolean>)} filter
- * @return {!recoil.frp.Behaviour<!Array<T>>}
- */
-recoil.frp.Array.prototype.filter = function(array, filter) {
-    return this.frp_.liftB(function(arr, filter) {
-        var res = [];
-        for (var i = 0; i < arr.length; i++) {
-            if (filter(arr[i])) {
-                res.push(arr[i]);
-            }
-        }
-        return res;
-    }, this.util_.toBehaviour(array), this.util_.toBehaviour(filter));
-};
-
-
-/**
  * @template FROM
  * @template TO
  * @param {!IArrayLike<FROM>|!recoil.frp.Behaviour<!IArrayLike<FROM>>} array
  * @param {(!function(FROM) : TO|!recoil.frp.Behaviour<!function(FROM) : TO>)} map
+ * @param {(!function(TO) : FROM|!recoil.frp.Behaviour<!function(TO) : FROM>)=} opt_inv
  * @return {!recoil.frp.Behaviour<!IArrayLike<TO>>}
  */
-recoil.frp.Array.prototype.map = function(array, map) {
-    return this.frp_.liftB(function(arr, map) {
+recoil.frp.Array.prototype.map = function(array, map, opt_inv) {
+    var mapFunc = function(arr, map) {
         var res = [];
         for (var i = 0; i < arr.length; i++) {
             res.push(map(arr[i]));
         }
         return res;
-    }, this.util_.toBehaviour(array), this.util_.toBehaviour(map));
+    };
+    if (opt_inv) {
+        var invFunc = function(arr, arrayB, mapB, invB) {
+            var res = [];
+            var inv = invB.get();
+            for (var i = 0; i < arr.length; i++) {
+                res.push(inv(arr[i]));
+            }
+            arrayB.set(res);
+
+        };
+        return this.frp_.liftBI(mapFunc, invFunc, this.util_.toBehaviour(array), this.util_.toBehaviour(map), this.util_.toBehaviour(opt_inv));
+    }
+    else {
+        return this.frp_.liftB(mapFunc, this.util_.toBehaviour(array), this.util_.toBehaviour(map));
+    }
+};
+
+
+/**
+ * @template T
+ * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>} array
+ * @param {(!function(T) : boolean|!recoil.frp.Behaviour<!function(T) : boolean>)} filter
+ * @param {!boolean=} opt_inversable if true then you can set the list, not the new filtered items will be at the end of the list
+ * @return {!recoil.frp.Behaviour<!IArrayLike<T>>}
+ */
+recoil.frp.Array.prototype.filter = function(array, filter, opt_inversable) {
+    return this.frp_.liftBI(
+        function(arr, filter) {
+            var res = [];
+            for (var i = 0; i < arr.length; i++) {
+                if (filter(arr[i])) {
+                    res.push(arr[i]);
+                }
+            }
+            return res;
+        },
+        function(arr, arrayB, filterB) {
+            if (opt_inversable) {
+                var src = arrayB.get();
+                var filter = filterB.get();
+
+                var res = [];
+                for (var j = 0; j < src.length; j++) {
+                    if (!filter(src[j])) {
+                        res.push(src[j]);
+                    }
+                }
+
+                for (var i = 0; i < arr.length; i++) {
+                    res.push(arr[i]);
+                }
+                arrayB.set(res);
+            }
+        },
+        this.util_.toBehaviour(array), this.util_.toBehaviour(filter));
+};
+
+
+/**
+ * @template T
+ * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>} array
+ * @param {!string} tag
+ * @return {!recoil.frp.Behaviour<!IArrayLike<T>>}
+ */
+recoil.frp.Array.prototype.tag = function(array, tag) {
+    var filter = function(v) {
+        return v[tag] ? true : false;
+    };
+    var stripTag = function(v) {
+        v = goog.object.clone(v);
+        delete v[tag];
+        return v;
+    };
+    var tagger = function(v) {
+        v = goog.object.clone(v);
+        v[tag] = true;
+        return v;
+    };
+
+    return this.map(this.filter(array, filter, true), stripTag, tagger);
 };
