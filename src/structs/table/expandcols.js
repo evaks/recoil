@@ -139,7 +139,7 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.getSubRow = function(row) 
                 }
             });
 
-            res.addCellMeta(info.col, metaGetter(res.getCellMeta(info.col), info.path));
+            res.addCellMeta(info.col, metaGetter(meta, info.path));
         }
 
 
