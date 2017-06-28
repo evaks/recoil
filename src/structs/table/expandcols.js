@@ -109,12 +109,12 @@ recoil.structs.table.ExpandCols.prototype.inverse = function(table, sources) {
  * @implements {recoil.structs.table.ExpandColsDef}
  * @param {!function(recoil.structs.table.TableRowInterface):!boolean} check
  * @param {!recoil.structs.table.ColumnKey} col
- * @param {function (!Object,!recoil.db.ChangeSet.Path): !Object} metaGetter this extracts meta data from the cell meta for the subcell
+ * @param {function (!Object,!recoil.structs.table.ColumnKey,!recoil.db.ChangeSet.Path): !Object} metaGetter this extracts meta data from the cell meta for the subcell
  *  for example errors
  * @param {!Array<!{col:!recoil.structs.table.ColumnKey,path:!recoil.db.ChangeSet.Path,defaultVal:*,meta:(!Object|undefined)}>} subcols
  */
 recoil.structs.table.ExpandCols.PresenceDef = function(check, col, metaGetter, subcols) {
-    this.metaGetter_ = metaGetter;
+    this.metaGetter_ = metaGetter || function(meta, col, path) {return {};};;
     this.check_ = check;
     this.col_ = col;
     this.subcols_ = subcols;
@@ -129,7 +129,8 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.getSubRow = function(row) 
     var exists = this.check_(row);
     var val = row.get(this.col_);
     var meta = row.getCellMeta(this.col_);
-    var metaGetter = this.metaGetter_ || function(meta, path) {return {};};
+    var metaGetter = this.metaGetter_;
+    var col = this.col_;
     this.subcols_.forEach(function(info) {
         var curVal = exists ? val : null;
         if (exists) {
@@ -139,7 +140,7 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.getSubRow = function(row) 
                 }
             });
 
-            res.addCellMeta(info.col, metaGetter(meta, info.path));
+            res.addCellMeta(info.col, metaGetter(meta, col, info.path));
         }
 
 
