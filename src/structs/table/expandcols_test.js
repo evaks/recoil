@@ -63,7 +63,7 @@ function testExpand() {
         function (row) {
             return row.get(COL_B) % 2 == 0;
         },
-        COL_C,
+        COL_C,undefined,
         [
             {path:recoil.db.ChangeSet.Path.fromString("c1"),col:COL_C_1, defaultVal:"c1def"},
             {path:recoil.db.ChangeSet.Path.fromString("c2"),col:COL_C_2, defaultVal:"c2def"}])];
@@ -169,7 +169,7 @@ function testExpandRec() {
         function (row) {
             return row.get(COL_B) % 2 == 0;
         },
-        COL_C,
+        COL_C,undefined,
         [
             {path:recoil.db.ChangeSet.Path.fromString("d/e"),col: COL_E, defaultVal:"e.def"}])];
 

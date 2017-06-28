@@ -181,20 +181,22 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function(helper) {
         }
 
         var found = -1;
-        for (i = 0; i < list.length; i++) {
-            var val = list[i];
-            var enabled = enabledItems.length > i ? enabledItems[i] : recoil.ui.BoolWithExplanation.TRUE;
-            sel.addItem(recoil.ui.widgets.SelectorWidget.createMenuItem_(renderer, val, true, enabled));
-            if (recoil.util.isEqual(this.valueB_.get(), val)) {
-                found = i;
+        if (list) {
+            for (i = 0; i < list.length; i++) {
+                var val = list[i];
+                var enabled = enabledItems.length > i ? enabledItems[i] : recoil.ui.BoolWithExplanation.TRUE;
+                sel.addItem(recoil.ui.widgets.SelectorWidget.createMenuItem_(renderer, val, true, enabled));
+                if (recoil.util.isEqual(this.valueB_.get(), val)) {
+                    found = i;
+                }
             }
-        }
-        if (found === -1) {
-            sel.addItem(recoil.ui.widgets.SelectorWidget.createMenuItem_(renderer, this.valueB_.get(), false, recoil.ui.BoolWithExplanation.FALSE));
-            found = list.length;
-        }
+            if (found === -1) {
+                sel.addItem(recoil.ui.widgets.SelectorWidget.createMenuItem_(renderer, this.valueB_.get(), false, recoil.ui.BoolWithExplanation.FALSE));
+                found = list.length;
+            }
 
-        sel.setSelectedIndex(found);
+            sel.setSelectedIndex(found);
+        }
     }
 
 };

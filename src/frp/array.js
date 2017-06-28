@@ -135,7 +135,7 @@ recoil.frp.Array.prototype.tag = function(array, tag) {
         return v.value;
     };
     var tagger = function(v) {
-        return {tag:tag, value:v};
+        return {tag: tag, value: v};
     };
 
     return this.map(this.filter(array, filter, true), stripTag, tagger);
@@ -152,7 +152,7 @@ recoil.frp.Array.prototype.stripTag = function(array, tag) {
 
     var stripTag = function(v) {
         if (v && v.tag) {
-            
+
             return v.value;
         }
         return v;

@@ -598,7 +598,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     this.refListeners_ = [];
     this.providers_ = providers || [];
 
-    this.quickLoopCheck_();
+//    this.quickLoopCheck_();
 //    this.checkProvidersBefore_();
 
 };
@@ -670,6 +670,7 @@ recoil.frp.Behaviour.prototype.quickLoopCheck_ = function() {
         if (seen[cur.seqStr_]) {
             continue;
         }
+        seen[cur.seqStr_] = true;
         for (i = 0; i < cur.providers_.length; i++) {
             stack.push(cur.providers_[i]);
         }
