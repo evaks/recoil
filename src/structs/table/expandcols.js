@@ -114,7 +114,7 @@ recoil.structs.table.ExpandCols.prototype.inverse = function(table, sources) {
  * @param {!Array<!{col:!recoil.structs.table.ColumnKey,path:!recoil.db.ChangeSet.Path,defaultVal:*,meta:(!Object|undefined)}>} subcols
  */
 recoil.structs.table.ExpandCols.PresenceDef = function(check, col, metaGetter, subcols) {
-    this.metaGetter_ = metaGetter || function(meta, col, path) {return {};};;
+    this.metaGetter_ = metaGetter || function(meta, col, path) {return {};};
     this.check_ = check;
     this.col_ = col;
     this.subcols_ = subcols;

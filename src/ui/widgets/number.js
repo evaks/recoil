@@ -68,7 +68,7 @@ recoil.ui.widgets.NumberWidget.prototype.detach_ = function() {
         if (me.valueB_.good()) {
             try {
                 var element = me.number_.getElement();
-                var val = parseFloat(element.value);
+                var val = element.value === '' ? null : parseFloat(element.value);
                 if (element.validity.valid && element.value !== '') {
                     me.valueB_.set(val);
                 }
@@ -272,6 +272,7 @@ recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
         min: 0,
         max: Number.MAX_SAFE_INTEGER || 9007199254740991,
         step: 1,
+        allowNull: false,
         outErrors: [],
         validator: function(val) {return null;},
         readonlyFormatter: null,
@@ -351,7 +352,9 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.classesB_ = bound.classes();
     this.validatorB_ = bound.validator();
     this.outErrorsB_ = bound.outErrors();
+    this.allowNullB_ = bound.allowNull();
     this.hasErrors_ = false;
+
     this.formatterB_ = frp.liftB(function(min, step, fmt) {
         if (fmt) {
             return fmt;
@@ -367,8 +370,8 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
         };
     }, this.minB_, this.stepB_, bound.readonlyFormatter());
 
-    this.errorHelper_.attach(this.outErrorsB_, this.validatorB_);
-    this.validatorHelper_.attach(this.validatorB_, this.minB_, this.maxB_, this.stepB_);
+    this.errorHelper_.attach(this.outErrorsB_, this.validatorB_, this.allowNullB_);
+    this.validatorHelper_.attach(this.validatorB_, this.allowNullB_, this.minB_, this.maxB_, this.stepB_);
     this.valueHelper_.attach(this.valueB_);
 
     this.configHelper_.attach(this.minB_, this.maxB_, this.stepB_, this.enabledB_, this.formatterB_);
@@ -384,8 +387,8 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
 
-        if (inputEl.validity.valid && inputEl.value !== '') {
-            var val = parseFloat(inputEl.value);
+        if (inputEl.validity.valid && (inputEl.value !== '' || me.allowNullB_.get())) {
+            var val = inputEl.value === '' ? null : parseFloat(inputEl.value);
             var error = me.validatorB_.get()(val);
             if (error) {
                 me.updateErrors_(inputEl, me.outErrorsB_, me.validatorB_);
@@ -399,10 +402,14 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
             me.updateErrors_(inputEl, me.outErrorsB_, me.validatorB_);
         }
 
-    }, this.valueB_, this.outErrorsB_, this.validatorB_));
+    }, this.valueB_, this.outErrorsB_, this.validatorB_, this.allowNullB_));
 
     var toolTipB = frp.liftB(function(enabled, min, max, step) {
         if (!enabled.val()) {
+            return enabled;
+        }
+        var reason = enabled.reason();
+        if (reason && reason.toString() !== '') {
             return enabled;
         }
         var info = {'min': min, max: max, step: step};
@@ -425,7 +432,7 @@ recoil.ui.widgets.NumberWidget.prototype.updateValidator_ = function(helper) {
         this.scope_.getFrp().accessTrans(function() {
             if (me.valueB_.hasRefs() && me.valueB_.good()) {
                 var element = me.number_.getElement();
-                var val = parseFloat(element.value);
+                var val = element.value == '' ? null : parseFloat(element.value);
                 me.valueB_.set(val);
             }
             return true;
@@ -442,9 +449,10 @@ recoil.ui.widgets.NumberWidget.prototype.updateValidator_ = function(helper) {
 recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, validatorB) {
     var me = this;
     var res = false;
-    if (el.validity.valid && el.value !== '') {
-        this.scope_.getFrp().accessTrans(function() {
-            var v = parseFloat(el.value);
+    this.scope_.getFrp().accessTrans(function() {
+        var allowNull = (me.allowNullB_.hasRefs() && me.allowNullB_.good() && me.allowNullB_.get());
+        if (el.validity.valid && (el.value !== '' || allowNull)) {
+            var v = el.value === '' ? null : parseFloat(el.value);
             var validator = validatorB.hasRefs() && validatorB.good() ? validatorB.get() : function() {return null;};
             var error = validator(v);
             if (error) {
@@ -454,10 +462,8 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
                 errorsB.set([]);
                 res = true;
             }
-        }, errorsB, validatorB);
-    }
-    else {
-        this.scope_.getFrp().accessTrans(function() {
+        }
+        else {
             if (!me.stepB_.hasRefs() || !me.minB_.hasRefs() || !me.maxB_.hasRefs() ||
                 !me.stepB_.good() || !me.minB_.good() || !me.maxB_.good()) {
                 return;
@@ -478,9 +484,10 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
 
                     })]);
             }
-        }, errorsB, this.minB_, this.maxB_, this.stepB_);
+        }
 
-    }
+    }, errorsB, validatorB, me.allowNullB_, this.minB_, this.maxB_, this.stepB_);
+
     if (this.hasErrors_ !== !res) {
         if (res) {
             goog.dom.classlist.remove(el, 'recoil-error');

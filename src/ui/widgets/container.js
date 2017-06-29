@@ -22,7 +22,7 @@ goog.require('recoil.ui.ComponentWidgetHelper');
  */
 recoil.ui.widgets.ContainerWidget = function(node) {
     this.container_ = new goog.ui.Component();
-    this.container_.addChild(recoil.ui.ComponentWidgetHelper.elementToControl(node), true);
+    this.container_.addChild(recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(node), true);
 };
 
 /**

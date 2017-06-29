@@ -906,7 +906,7 @@ recoil.structs.table.MutableTable.prototype.setCellMeta = function(keys, column,
  */
 recoil.structs.table.MutableTable.prototype.addCellMeta = function(keys, column, meta) {
     var cell = this.getCell(keys, column);
-    var newMeta = recoil.util.object.clone(cell.getMeta());
+    var newMeta = cell.getMeta();
     recoil.util.object.addProps(newMeta, meta);
     this.setCell(keys, column, cell.setMeta(meta));
 };
@@ -1676,7 +1676,7 @@ recoil.structs.table.TableCell = function(value, opt_meta) {
  */
 
 recoil.structs.table.TableCell.prototype.getMeta = function() {
-    return !this.meta_ ? {} : recoil.util.object.clone(this.meta_);
+    return !this.meta_ ? {} : goog.object.clone(this.meta_);
 };
 
 /**

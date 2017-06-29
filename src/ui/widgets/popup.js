@@ -31,7 +31,7 @@ recoil.ui.widgets.PopupWidget = function(scope) {
     goog.dom.append(innerBox, this.buttonContainer_);
 
     this.container_ = new goog.ui.Component();
-    var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
+    var toControl = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl;
 
 //    this.container_.addClassName("goog-inline-block");
 

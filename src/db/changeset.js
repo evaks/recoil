@@ -1120,6 +1120,7 @@ recoil.db.ChangeSet.Path.prototype.toString = function() {
 };
 
 /**
+ * get the path as a string but do not include the parameters
  * @return {!string}
  */
 recoil.db.ChangeSet.Path.prototype.pathAsString = function() {
