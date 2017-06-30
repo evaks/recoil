@@ -1028,6 +1028,13 @@ recoil.db.ChangeSet.Path.prototype.prepend = function(parts) {
 };
 
 /**
+ * @return {!number}
+ */
+recoil.db.ChangeSet.Path.prototype.length = function() {
+    return this.items_.length;
+};
+
+/**
  * @param {!number} parts
  * @return {!recoil.db.ChangeSet.Path}
  */
@@ -1210,6 +1217,14 @@ recoil.db.ChangeSet.Path.prototype.parts = function() {
  */
 recoil.db.ChangeSet.Path.prototype.items = function() {
     return this.items_.slice(0);
+};
+
+/**
+ * @param {!number} pos
+ * @return {!recoil.db.ChangeSet.PathItem}
+ */
+recoil.db.ChangeSet.Path.prototype.item = function(pos) {
+    return this.items_[pos];
 };
 
 /**
