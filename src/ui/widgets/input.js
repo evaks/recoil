@@ -23,23 +23,21 @@ goog.require('recoil.ui.widgets.LabelWidget');
  */
 recoil.ui.widgets.InputWidget = function(scope) {
     this.scope_ = scope;
-    this.editableDiv_ = goog.dom.createDom('div');
-    this.readonlyDiv_ = goog.dom.createDom('div');
     this.containerDiv_ = goog.dom.createDom('div');
     var toControl = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl;
+    this.container_ = toControl(this.containerDiv_);
     this.curClasses_ = [];
 
-    goog.dom.append(this.containerDiv_, this.editableDiv_);
-    goog.dom.append(this.containerDiv_, this.readonlyDiv_);
-
-    this.container_ = toControl(this.containerDiv_);
-    this.readonly_ = new recoil.ui.widgets.LabelWidget(scope);
     this.input_ = new goog.ui.LabelInput();
-    this.readonly_.getComponent().render(this.readonlyDiv_);
-    this.input_.render(this.editableDiv_);
+    this.readonly_ = new recoil.ui.widgets.LabelWidget(scope);
+
+    this.input_.render(this.containerDiv_);
+    this.readonly_.getComponent().render(this.containerDiv_);
+
+
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.input_, this, this.updateState_, this.detach_);
 
-    this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.editableDiv_], [this.readonlyDiv_]);
+    this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.input_.getElement()], [this.readonly_.getComponent().getElement()]);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.InputHandler.EventType.INPUT);
     this.keyPressHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.KEYDOWN);
     this.blurChangeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.BLUR);

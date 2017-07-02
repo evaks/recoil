@@ -452,9 +452,6 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
                 }
             });
         });  // table.forEach
-        if (!recoil.util.object.isEqual(old, info) && old) {
-            console.log('INFO', info, recoil.util.object.isEqual(old.rowMeta, info.rowMeta));
-        }
         old = info;
         return info;
 
@@ -555,7 +552,9 @@ recoil.ui.widgets.table.TableWidget.prototype.createCell_ =
 {
 
     var renderInfo = this.createRenderInfoCell_(tableMeta, row.key, rowMeta, columnMeta);
-    row.inner.appendChild(renderInfo.outer);
+    if (renderInfo.outer) {
+        row.inner.appendChild(renderInfo.outer);
+    }
     row.cols.push(renderInfo);
 };
 
@@ -575,7 +574,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfoCell_ =
         'cellDecorator', tableMeta, rowMeta.meta, columnMeta, cellMeta);
     var cellFactory = this.getMetaValue(
         'cellWidgetFactory', tableMeta, rowMeta.meta, columnMeta, cellMeta);
-    var renderInfo = cellDecorator();
+    var renderInfo = cellDecorator ? cellDecorator() : new recoil.ui.RenderedDecorator(null, null);
     renderInfo.decorator = cellDecorator;
     renderInfo.factory = cellFactory;
 
@@ -633,7 +632,9 @@ recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ =
             'headerWidgetFactory', tableMeta, meta);
 
         var renderInfo = columnHeaderDecorator();
-        renderState.headerRow.inner.appendChild(renderInfo.outer);
+        if (renderInfo.outer) {
+            renderState.headerRow.inner.appendChild(renderInfo.outer);
+        }
         renderState.headerCols.push(renderInfo);
 
         renderInfo.factory = columnHeaderWidgetFactory;
@@ -712,7 +713,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
     rowRemoves.inOrderTraverse(function(key) {
 
         var renderRow = renderState.rows.remove(key);
-        if (renderRow) {
+        if (renderRow && renderRow.outer) {
             renderState.table.inner.removeChild(renderRow.outer);
         }
         state.rowMeta.remove(key);//TODO watch this it changed from {key:x}
@@ -722,7 +723,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
     var colRemoves = this.getColumnRemoves_(table.columnMeta);
     colRemoves.forEach(function(col) {
         var renderInfo = renderState.headerCols[col.pos];
-        if (renderState.headerRow) {
+        if (renderState.headerRow && renderInfo.outer) {
             renderState.headerRow.inner.removeChild(renderInfo.outer);
             renderState.headerCols.splice(col.pos, 1);
         }
@@ -734,12 +735,34 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
     renderState.rows.inOrderTraverse(function(row) {
         colRemoves.forEach(function(col) {
             var renderInfo = row.cols[col.pos];
-            row.inner.removeChild(renderInfo.outer);
+            if (renderInfo.outer) {
+                row.inner.removeChild(renderInfo.outer);
+            }
             row.cols.splice(col.pos, 1);
         });
     });
 };
 
+/**
+ * @private
+ * @param {!Element} parent
+ * @param {!Node} el
+ * @param {?{cols:Array<!recoil.ui.RenderedDecorator>}} row
+ * @param {!number} position
+ */
+
+recoil.ui.widgets.table.TableWidget.prototype.insertChildAtPos_ = function(parent, el, row, position)  {
+    var actualPosition = 0;
+    var i;
+    var cols = row ? row.cols : this.renderState_.headerCols;
+
+    for (i = 0; i < position; i++) {
+        if (cols[i] && cols[i].outer) {
+            actualPosition++;
+        }
+    }
+    goog.dom.insertChildAt(parent, el, actualPosition);
+};
 /**
  * @private
  * @param {Object} oldRenderInfo
@@ -748,15 +771,16 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
  * @param {Object} tableMeta
  * @param {?recoil.ui.widgets.table.RowAndCellMeta_} row
  * @param {Object} columnMeta
+ * @param {?{cols:Array<recoil.ui.RenderedDecorator>}} rowState
  * @return {Object}
  */
-recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = function(oldRenderInfo, parent, position, tableMeta, row, columnMeta) {
+recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = function(oldRenderInfo, parent, position, tableMeta, row, columnMeta, rowState) {
     var type = row ? 'cell' : 'header';
     var cellMeta = row ? row.cellMeta[columnMeta.key] : {};
     var rowMeta = row ? row.meta : {};
     var decorator = this.getMetaValue(type + 'Decorator', tableMeta, rowMeta, columnMeta, cellMeta);
     var factory = this.getMetaValue(type + 'WidgetFactory', tableMeta, rowMeta, columnMeta, cellMeta);
-
+    var widget;
 
     if (recoil.util.object.isEqual(decorator, oldRenderInfo.decorator)
         && recoil.util.object.isEqual(factory, oldRenderInfo.factory)) {
@@ -774,9 +798,23 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
     if (!recoil.util.object.isEqual(decorator, oldRenderInfo.decorator)) {
 
         if (recoil.util.object.isEqual(factory, oldRenderInfo.factory)) {
-            res = decorator();
-            this.replaceChild(parent, oldRenderInfo.outer, res.outer);
-            this.moveChildren(oldRenderInfo.inner, res.inner);
+            res = decorator ? decorator() : new recoil.ui.RenderedDecorator(null, null);
+            if (oldRenderInfo.outer && res.outer) {
+                this.replaceChild(parent, oldRenderInfo.outer, res.outer);
+                this.moveChildren(oldRenderInfo.inner, res.inner);
+            }
+            else if (oldRenderInfo.outer) {
+                parent.removeChild(oldRenderInfo.outer);
+            }
+            else if (res.outer && row) {
+                res = this.createRenderInfoCell_(tableMeta, row.key, row, columnMeta);
+                this.insertChildAtPos_(parent, res.outer, rowState, position);
+            }
+            else if (res.outer) {
+                this.insertChildAtPos_(parent, res.outer, rowState, position);
+                widget = mkHeader();
+                widget.getComponent().render(res.inner);
+            }
 //            res.widget = oldRenderInfo.widget;
         }
         else {
@@ -788,14 +826,17 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
             else {
                 res = decorator();
                 this.replaceChild(parent, oldRenderInfo.outer, res.outer);
-                var widget = mkHeader();
+                widget = mkHeader();
                 widget.getComponent().render(res.inner);
             }
         }
         res.factory = factory;
 
     }
-    else {
+    else if (oldRenderInfo.outer) {
+        // no need to deal with null outer hear because the are not changing
+        // so if the old one is null so is the new one and we dont' need to render
+        // the cell
         res.inner = oldRenderInfo.inner;
         res.outer = oldRenderInfo.outer;
         goog.dom.removeChildren(oldRenderInfo.inner);
@@ -861,7 +902,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
 
         if (renderState.headerRow) {
             var oldRenderInfo = renderState.headerCols[i];
-            renderState.headerCols[i] = this.replaceWidgetAndDecorator_(oldRenderInfo, renderState.headerRow.inner, i, tableMeta, null, meta);
+            renderState.headerCols[i] = this.replaceWidgetAndDecorator_(oldRenderInfo, renderState.headerRow.inner, i, tableMeta, null, meta, null);
         }
     }
 
@@ -889,7 +930,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
             var columnMeta = table.columnMeta[i];
             var cellMeta = newRow.cellMeta[columnMeta.key];
             var oldRenderInfo = row.cols[i];
-            row.cols[i] = me.replaceWidgetAndDecorator_(oldRenderInfo, row.inner, i, tableMeta, newRow, columnMeta);
+            row.cols[i] = me.replaceWidgetAndDecorator_(oldRenderInfo, row.inner, i, tableMeta, newRow, columnMeta, row);
         }
     });
 };

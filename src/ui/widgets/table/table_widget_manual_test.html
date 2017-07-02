@@ -35,6 +35,8 @@
   <div id='addB'/>
   <div id='hideB'/>
   <div id='hideHeadersB'/>
+  <div id='addCell'/>
+  <div id='removeCell'/>
   <div id='showB'/>
   <div id='badB'/>
   <div id='deleteB'/>
@@ -138,7 +140,8 @@
         return new recoil.ui.widgets.table.SelectColumn(meta);
     }};
 
-    var tableX = frp.createB(recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable));
+    var mtable = recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable).unfreeze();
+    var tableX = frp.createB(mtable.freeze());
     var wfact = function (scope, cellB) {
 	var widget = new recoil.ui.widgets.LabelWidget(scope);
 	var value = recoil.frp.table.TableCell.getValue(frp, cellB);
@@ -192,6 +195,8 @@
 			tableWidget.attach(table, columnsB);
 			
     var hideWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var addCellWidget = new recoil.ui.widgets.ButtonWidget(scope);
+    var removeCellWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var hideHeadersWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var showWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var badWidget = new recoil.ui.widgets.ButtonWidget(scope);
@@ -211,7 +216,26 @@
 			table.set(mtable.freeze());
 			console.log("table meta", tmeta);
 			},table));
-			
+
+    
+    removeCellWidget.attach("Remove Cell", frp.createCallback(
+	function() {
+	    var mtable =table.get().unfreeze();
+
+	    mtable.setCellMeta([3], tblKeys.count,{cellDecorator:null});
+
+	    table.set(mtable.freeze());
+	},table));
+
+    addCellWidget.attach("Add Cell", frp.createCallback(
+	function() {
+	    var mtable =table.get().unfreeze();
+	    mtable.setCellMeta([3], tblKeys.count,{});
+
+	    table.set(mtable.freeze());
+	},table));
+
+
     hideWidget.attach("Hide", frp.createCallback(function () {
     var columns = new recoil.ui.widgets.TableMetaData();
     columns.add(tblKeys.name, "Name");
@@ -252,6 +276,8 @@
     tableWidget.getComponent().render($('tablediv'));
     buttonWidget.getComponent().render($('addB'));
     hideWidget.getComponent().render($('hideB'));
+    removeCellWidget.getComponent().render($('removeCell'));
+    addCellWidget.getComponent().render($('addCell'));
     hideHeadersWidget.getComponent().render($('hideHeadersB'));
     showWidget.getComponent().render($('showB'));
     badWidget.getComponent().render($('badB'));

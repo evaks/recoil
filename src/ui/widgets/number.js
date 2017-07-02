@@ -28,8 +28,6 @@ goog.require('recoil.ui.widgets.LabelWidget');
  */
 recoil.ui.widgets.NumberWidget = function(scope) {
     this.scope_ = scope;
-    this.editableDiv_ = goog.dom.createDom('div');
-    this.readonlyDiv_ = goog.dom.createDom('div');
     this.containerDiv_ = goog.dom.createDom('div');
     var toControl = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl;
     this.number_ = new recoil.ui.widgets.NumberWidget.NumberInput();
@@ -39,12 +37,8 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.container_ = toControl(this.containerDiv_);
     this.readonly_ = new recoil.ui.widgets.LabelWidget(scope);
 
-    goog.dom.append(this.containerDiv_, this.editableDiv_);
-    goog.dom.append(this.containerDiv_, this.readonlyDiv_);
-
-
-    this.readonly_.getComponent().render(this.readonlyDiv_);
-    this.number_.render(this.editableDiv_);
+    this.readonly_.getComponent().render(this.containerDiv_);
+    this.number_.render(this.containerDiv_);
 
     this.valueHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateValue_, this.detach_);
     this.configHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateConfig_);
@@ -52,7 +46,7 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.validatorHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.number_, this, this.updateValidator_);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.number_, recoil.ui.EventHelper.EL_CHANGE);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.number_);
-    this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.editableDiv_], [this.readonlyDiv_]);
+    this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.number_.getElement()], [this.readonly_.getComponent().getElement()]);
 
 };
 
@@ -551,5 +545,5 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
     var c = this.number_.getContentElement();
 //    c.width = 2;
     this.number_.getContentElement().style.width = (width + 10) + 'px';
-    this.readonlyDiv_.style.width = (width) + 'px';
+    this.readonly_.getComponent().getElement().style.width = (width) + 'px';
 };
