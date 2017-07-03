@@ -38,7 +38,8 @@ recoil.ui.widgets.table.Column.prototype.getKey = function() {
  * that has the interface of
  * create = new Widget(scope)
  * attachStruct = function ({value:*,...})
- * @param {function (new:recoil.ui.Widget,!recoil.ui.WidgetScope)} widgetCons
+ * @template T
+ * @param {function (new:recoil.ui.Widget,T):undefined} widgetCons
  * @return {function(!recoil.structs.table.ColumnKey,string)}
  */
 recoil.ui.widgets.table.makeStructColumn = function(widgetCons) {

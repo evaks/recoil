@@ -50,10 +50,10 @@ recoil.frp.Array.prototype.isNotEmpty = function(array) {
 /**
  * @template FROM
  * @template TO
- * @param {!IArrayLike<FROM>|!recoil.frp.Behaviour<!IArrayLike<FROM>>} array
+ * @param {!IArrayLike<FROM>|!Array<FROM>|!recoil.frp.Behaviour<!IArrayLike<FROM>>|!recoil.frp.Behaviour<!Array<FROM>>} array
  * @param {(!function(FROM) : TO|!recoil.frp.Behaviour<!function(FROM) : TO>)} map
  * @param {(!function(TO) : FROM|!recoil.frp.Behaviour<!function(TO) : FROM>)=} opt_inv
- * @return {!recoil.frp.Behaviour<!IArrayLike<TO>>}
+ * @return {!recoil.frp.Behaviour<!Array<TO>>}
  */
 recoil.frp.Array.prototype.map = function(array, map, opt_inv) {
     var mapFunc = function(arr, map) {
@@ -125,7 +125,7 @@ recoil.frp.Array.prototype.filter = function(array, filter, opt_inversable) {
  * @template T
  * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>} array
  * @param {!string} tag
- * @return {!recoil.frp.Behaviour<!IArrayLike<T>>}
+ * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
 recoil.frp.Array.prototype.tag = function(array, tag) {
     var filter = function(v) {
@@ -144,9 +144,9 @@ recoil.frp.Array.prototype.tag = function(array, tag) {
 
 /**
  * @template T
- * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>} array
+ * @param {!IArrayLike<{tag:!string,value:T}>|!Array<!{tag:string,value:T}>|!recoil.frp.Behaviour<!IArrayLike<{tag:!string,value:T}>>|!Array<{tag:!string,value:T}>} array
  * @param {!string} tag
- * @return {!recoil.frp.Behaviour<!IArrayLike<T>>}
+ * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
 recoil.frp.Array.prototype.stripTag = function(array, tag) {
 
