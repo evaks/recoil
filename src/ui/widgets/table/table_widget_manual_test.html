@@ -141,6 +141,7 @@
     }};
 
     var mtable = recoil.structs.table.Table.create(typeFactories, rawTableMeta, rawTable).unfreeze();
+//    mtable.addMeta({selectionMode: recoil.ui.widgets.table.TableWidget.SelectionMode.NONE});
     var tableX = frp.createB(mtable.freeze());
     var wfact = function (scope, cellB) {
 	var widget = new recoil.ui.widgets.LabelWidget(scope);
@@ -200,7 +201,7 @@
     var hideHeadersWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var showWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var badWidget = new recoil.ui.widgets.ButtonWidget(scope);
-
+    
 			hideHeadersWidget.attach("Hide/Show Headers", frp.createCallback(
 			function() {
 			var mtable =table.get().unfreeze();

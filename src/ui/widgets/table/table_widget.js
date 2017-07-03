@@ -67,7 +67,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
         if (helper.isGood()) {
             var selected = selectedB.get();
             var selectMeta = selectMetaB.get();
-
+            var canSelect = selectMeta.canSelect;
             for (i = 0; i < me.curSelected_.length; i++) {
                 var rowMeta = selectMeta.rowMeta.findFirst({key: me.curSelected_[i]});
                 selector = me.getMetaValue('rowSelector', selectMetaB.table, rowMeta ? rowMeta.meta : undefined);
@@ -81,7 +81,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
                 selector = me.getMetaValue('rowSelector', selectMeta.table, selectMeta.rowMeta.findFirst({key: selected[i]}));
                 row = me.renderState_.rows.findFirst({key: selected[i]});
                 if (row) {
-                    selector(row.outer, true);
+                    selector(row.outer, canSelect);
                 }
             }
             me.curSelected_ = selected;
@@ -100,15 +100,18 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     // this will keep the current table in it, it will allow us to get selected before
     // we have attached a table
     this.tableBB_ = this.scope_.getFrp().createNotReadyB();
-    this.rowClickEvent_ = scope.getFrp().createCallback(function(e, selectedB) {
+    this.rowClickEvent_ = scope.getFrp().createCallback(function(e, selectedB, tableB) {
         var oldSelected = selectedB.get();
-        if (!goog.array.find(oldSelected, function(x) {
-            return recoil.util.isEqual(x, e.data);
-        })) {
-            selectedB.set([e.data]);
+        var mode = tableB.get().getMeta().selectionMode || recoil.ui.widgets.table.TableWidget.SelectionMode.SINGLE;
+        if (mode !== recoil.ui.widgets.table.TableWidget.SelectionMode.NONE) {
+            if (!goog.array.find(oldSelected, function(x) {
+                return recoil.util.isEqual(x, e.data);
+            })) {
+                selectedB.set([e.data]);
+            }
         }
 
-    }, this.selected_);
+    }, this.selected_, this.scope_.getFrp().switchB(this.tableBB_));
     this.rowClickHelper_.attach(this.rowClickEvent_);
 };
 
@@ -367,8 +370,8 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
 
     return frp.liftB(function(table) {
         var info = recoil.ui.widgets.table.TableWidget.emptyState_();
-
-
+        var mode = table.getMeta().selectionMode || recoil.ui.widgets.table.TableWidget.SelectionMode.SINGLE;
+        info.canSelect = mode !== recoil.ui.widgets.table.TableWidget.SelectionMode.NONE;
         var tableMeta = table.getMeta();
         recoil.ui.widgets.table.TableWidget.copyMeta(['rowSelector'], [tableMeta, info.tableMeta]);
         var primaryColumns = table.getPrimaryColumns();
@@ -1253,3 +1256,13 @@ recoil.ui.widgets.table.TableWidget.prototype.attach = function(table, meta) {
 recoil.ui.widgets.table.TableWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
 
 
+
+/**
+ *
+ * @enum {!number}
+ * @final
+ */
+recoil.ui.widgets.table.TableWidget.SelectionMode = {
+    NONE: 1,
+    SINGLE: 2
+};
