@@ -26,6 +26,14 @@ goog.require('recoil.util.object');
  */
 recoil.structs.table.TableInterface = function() {};
 
+/**
+ * this ensures the sort order, the parameters to the function are columnkey and column meta data
+ *
+ * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
+ */
+
+recoil.structs.table.TableInterface.prototype.forEachPlacedColumn = function(func) {};
+
 
 /**
  * @interface
@@ -46,7 +54,6 @@ recoil.structs.table.TableRowInterface.prototype.get = function(column) {};
  * @param {!function(!string,!recoil.structs.table.TableCell)} func
  */
 recoil.structs.table.TableRowInterface.prototype.forEachColumn = function(func) {};
-
 
 /**
  * Get the value and meta data from the cell
@@ -539,6 +546,33 @@ recoil.structs.table.MutableTable.prototype.getColumns = function() {
  */
 recoil.structs.table.MutableTable.prototype.getPrimaryColumns = function() {
     return this.primaryColumns_;
+};
+
+
+/**
+ * this ensures the sort order, the parameters to the function are columnkey and column meta data
+ *
+ * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
+ */
+
+recoil.structs.table.MutableTable.prototype.forEachPlacedColumn = function(func) {
+    var cols = [];
+    var me = this;
+    var addCol = function(key) {
+        var col = me.columnMeta_[key.getId()];
+        if (col && col.position !== undefined) {
+            cols.push({meta: col, key: key});
+        }
+    };
+    this.primaryColumns_.forEach(addCol);
+    this.otherColumns_.forEach(addCol);
+    goog.array.sort(cols, function(x, y) {
+        return x.meta.position - y.meta.position;
+    });
+
+    cols.forEach(function(col) {
+        func(col.key, col.meta);
+    });
 };
 
 /**

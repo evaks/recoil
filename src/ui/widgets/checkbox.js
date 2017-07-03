@@ -30,6 +30,7 @@ recoil.ui.widgets.CheckboxWidget = function(scope) {
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.checkBox_, goog.ui.Component.EventType.CHANGE);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
     this.checkBox_.render(this.editableDiv_);
+    this.tooltipHelper = new recoil.ui.TooltipHelper(scope, this.checkBox_);
 };
 
 /**
@@ -90,7 +91,7 @@ recoil.ui.widgets.CheckboxWidget.prototype.attachStruct = function(options) {
     }, me.valueB_));
 
     this.helper_.attach(this.nameB_, this.valueB_, this.enabledB_, this.editableB_);
-
+    this.tooltipHelper.attach(this.enabledB_, this.helper_);
 };
 
 /**
@@ -102,7 +103,6 @@ recoil.ui.widgets.CheckboxWidget.prototype.updateState_ = function(helper) {
     var good = helper.isGood();
     var enabled = good && this.enabledB_.get().val();
     var editable = !this.editableB_.good() || this.editableB_.get();
-    this.checkBox_.setEnabled(enabled);
     var defined = this.valueB_.good() ? this.valueB_.get() : null;
     this.checkBox_.setChecked(defined);
     var statename = defined === true ? 'checked' : (defined === false ? 'unchecked' : 'unknown');
