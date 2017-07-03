@@ -85,7 +85,7 @@ recoil.structs.table.Filter.createRowFilterB = function(tableB, filter) {
  * @template T
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.ColumnKey<T>>|!recoil.structs.table.ColumnKey<T>} column
- * @param {!recoil.frp.Behaviour<!function(!recoil.structs.table.TableRow):boolean>|!function(!recoil.structs.table.TableRow):boolean} filter
+ * @param {!recoil.frp.Behaviour<!function(T):boolean>|!function(T):boolean} filter
  * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
  */
 recoil.structs.table.Filter.createColFilterB = function(tableB, column, filter) {
