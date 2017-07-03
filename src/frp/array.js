@@ -83,10 +83,10 @@ recoil.frp.Array.prototype.map = function(array, map, opt_inv) {
 
 /**
  * @template T
- * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>} array
+ * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>|!Array<T>|!recoil.frp.Behaviour<!Array<T>>} array
  * @param {(!function(T) : boolean|!recoil.frp.Behaviour<!function(T) : boolean>)} filter
  * @param {!boolean=} opt_inversable if true then you can set the list, not the new filtered items will be at the end of the list
- * @return {!recoil.frp.Behaviour<!IArrayLike<T>>}
+ * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
 recoil.frp.Array.prototype.filter = function(array, filter, opt_inversable) {
     return this.frp_.liftBI(
@@ -123,7 +123,7 @@ recoil.frp.Array.prototype.filter = function(array, filter, opt_inversable) {
 
 /**
  * @template T
- * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>} array
+ * @param {!IArrayLike<T>|!Array<T>|!recoil.frp.Behaviour<!IArrayLike<T>>|!recoil.frp.Behaviour<!Array<T>>} array
  * @param {!string} tag
  * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
