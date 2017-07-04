@@ -70,6 +70,12 @@ recoil.db.ChangeDbInterface.prototype.set = function(path, val) {};
 recoil.db.ChangeDbInterface.prototype.get = function(path) {};
 
 /**
+ * stops new roots from being added this is useful
+ * @param {!function()} callback
+ */
+recoil.db.ChangeDbInterface.prototype.lockRoots = function(callback) {};
+
+/**
  * @param {!recoil.db.ChangeDbInterface} dbInterface
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!Array<!recoil.db.ChangeSet.Change>} changes
@@ -104,6 +110,7 @@ recoil.db.ChangeDbInterface.applyChanges = function(dbInterface, schema, changes
 recoil.db.ChangeDb = function(schema) {
     this.schema_ = schema;
     this.data_ = new recoil.db.ChangeDbNode.Container();
+    this.rootLock_ = 0;
     /**
      * @private
      * @type {!Array<!recoil.db.ChangeSet.Path>}
@@ -239,6 +246,20 @@ recoil.db.ChangeDb.prototype.getRoots = function(path) {
 };
 
 /**
+ * stops new roots from being added this is useful
+ * @param {!function()} callback
+ */
+recoil.db.ChangeDb.prototype.lockRoots = function(callback) {
+    try {
+        this.rootLock_++;
+        callback();
+    }
+    finally {
+        this.rootLock_--;
+    }
+};
+
+/**
  * replaces this db with the src db
  * @param {!recoil.db.ChangeDb} srcDb
  * @return  {!Array<!recoil.db.ChangeSet.Path>}
@@ -281,7 +302,7 @@ recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
 
     }
 
-    if (!found) {
+    if (!found && this.rootLock_ === 0) {
         this.roots_.push(rootPath);
         changed.push(rootPath);
     }
