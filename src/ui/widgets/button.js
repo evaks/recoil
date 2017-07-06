@@ -45,6 +45,14 @@ recoil.ui.widgets.ButtonWidget.prototype.getComponent = function() {
     return this.component_;
 };
 
+/**
+ *
+ * @return {!goog.ui.Button}
+ */
+recoil.ui.widgets.ButtonWidget.prototype.getButton = function() {
+    return this.button_;
+};
+
 //recoil.ui.widgets.ButtonWidget.prototype.attach = function(value) {
 //
 //    this.callback_ = recoil.frp.struct.get('callback', value);
