@@ -288,9 +288,13 @@ recoil.db.ChangeDb.prototype.applyChanges = function(changes) {
  * @return {!Array<!recoil.db.ChangeSet.Path>} returns a list of roots that have changed
  */
 recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
-    var cur = this.resolve_(rootPath, true);
+    // don't create path if val is null
+    var cur = this.resolve_(rootPath, val !== null);
+
     var absolutePath = this.schema_.absolute(rootPath);
-    cur.set(this.schema_, rootPath, val);
+    if (cur) {
+        cur.set(this.schema_, rootPath, val);
+    }        
     var found = false;
     var changed = [];
     for (var i = 0; i < this.roots_.length; i++) {
