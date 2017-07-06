@@ -364,16 +364,17 @@ recoil.ui.EventHelper.prototype.listen = function(callback) {
  * @constructor
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
  * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
+ * @param {Element=} opt_element
  */
 
-recoil.ui.TooltipHelper = function(widgetScope, component) {
+recoil.ui.TooltipHelper = function(widgetScope, component, opt_element) {
     this.behaviours_ = [];
     this.enabledB_ = null;
     this.tooltip_ = null;
+    this.element_ = opt_element;
     this.component_ = component;
     this.helper_ = new recoil.ui.ComponentWidgetHelper(widgetScope, component, this, this.update_, this.detach_);
 };
-
 
 /**
  * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} enabledB
@@ -416,11 +417,15 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     if (tooltip && tooltip.trim() === '' || tooltip === undefined || tooltip === '') {
         tooltip = null;
     }
-    if (!this.component_.getElement()) {
+
+    var element = this.element_ || this.component_.getElement();
+    if (!element) {
         this.component_.createDom();
+        element = this.component_.getElement();
     }
+
     if (this.tooltip_) {
-        this.tooltip_.detach(this.component_.getElement());
+        this.tooltip_.detach(element);
         this.tooltip_.dispose();
     }
     if (tooltip === null) {
@@ -428,7 +433,7 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
         this.tooltip_ = null;
     }
     else {
-        this.tooltip_ = new goog.ui.Tooltip(this.component_.getElement(), tooltip);
+        this.tooltip_ = new goog.ui.Tooltip(element, tooltip);
 //        this.tooltip_.setEnabled(enabled);
     }
     if (this.component_.setEnabled) {
@@ -442,7 +447,7 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
  */
 recoil.ui.TooltipHelper.prototype.detach_ = function() {
     if (this.tooltip_) {
-        this.tooltip_.detach(this.component_.getElement());
+        this.tooltip_.detach(this.element_ || this.component_.getElement());
         this.tooltip_.dispose();
         this.tooltip_ = null;
     }

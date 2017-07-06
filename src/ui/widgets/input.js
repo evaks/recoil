@@ -44,7 +44,7 @@ recoil.ui.widgets.InputWidget = function(scope) {
     this.pasteHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.PASTE);
 
     this.input_.setEnabled(false);
-    this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.input_);
+    this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.input_, this.containerDiv_);
 };
 
 /**
