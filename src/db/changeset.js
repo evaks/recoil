@@ -84,17 +84,28 @@ recoil.db.ChangeDbInterface.prototype.lockRoots = function(callback) {};
 recoil.db.ChangeDbInterface.applyChanges = function(dbInterface, schema, changes) {
     var changedRoots = new goog.structs.AvlTree(recoil.util.object.compare);
 
+    var addRoot = function(root) {
+        changedRoots.add(root);
+    };
+    var addRoots = function(path) {
+        dbInterface.getRoots(path).forEach(addRoot);
+    };
     for (var i = 0; i < changes.length; i++) {
         var change = changes[i];
 
-        dbInterface.getRoots(change.path()).forEach(function(root) {
-            changedRoots.add(root);
-        });
-        if (change instanceof recoil.db.ChangeSet.Move) {
-            dbInterface.getRoots(change.to()).forEach(function(root) {
-                changedRoots.add(root);
-            });
+        addRoots(change.path());
 
+        if (change instanceof recoil.db.ChangeSet.Add || change instanceof recoil.db.ChangeSet.Move) {
+            // we may have changes in children
+            schema.children(change.path()).forEach(function(child) {
+                addRoots(change.path().appendName(child));
+            });
+        }
+        if (change instanceof recoil.db.ChangeSet.Move) {
+            addRoots(change.to());
+            schema.children(change.to()).forEach(function(child) {
+                addRoots(change.to().appendName(child));
+            });
         }
         change.applyToDb(dbInterface, schema);
     }
@@ -294,7 +305,7 @@ recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
     var absolutePath = this.schema_.absolute(rootPath);
     if (cur) {
         cur.set(this.schema_, rootPath, val);
-    }        
+    }
     var found = false;
     var changed = [];
     for (var i = 0; i < this.roots_.length; i++) {

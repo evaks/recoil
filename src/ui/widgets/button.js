@@ -30,7 +30,7 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
     this.button_ = new goog.ui.Button();
     this.button_.setEnabled(false);
     this.button_.setContent('??');
-    this.component_.addChild(this.button_,true);
+    this.component_.addChild(this.button_, true);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.button_, this.component_.getElement());
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_);
 
