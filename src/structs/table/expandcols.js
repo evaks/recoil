@@ -158,7 +158,7 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row) 
     if (exists) {
         this.subcols_.forEach(function(info) {
             var newVal = row.get(info.col);
-            if (newVal === null) {
+            if (newVal === null && info.defaultVal !== undefined) {
                 newVal = info.defaultVal;
             }
             var prevVal = val;
