@@ -151,7 +151,7 @@ var schema = {
         
         for (var i = 1; i < parts.length && cur; i++) {
             var part = parts[i];
-            cur = cur.children[part];
+            cur = cur.children && cur.children[part];
 
             if (cur && cur.keys) {
                 cur.keys.forEach(function (k) {
@@ -178,7 +178,7 @@ var schema = {
     children: function (path) {
         var parts = path.parts();
         var cur = schema.root;
-        for (var i = 0; i < parts.length; i++) {
+        for (var i = 0; i < parts.length && cur; i++) {
             cur = cur[parts[i]].children;
         }
         if (cur === undefined) {
@@ -277,7 +277,26 @@ function assertSameObjects (a, b, c) {
 
     
 }
+
+function testDbNonExistantDesendant() {
+
+
+    var ns = recoil.db.ChangeSet;
     
+    var path = ns.Path.fromString('/obj1');
+    var pathc = ns.Path.fromString('/obj1/b/c');
+
+    var testee = new recoil.db.ChangeDb(schema);
+
+
+    assertObjectEquals([path],testee.setRoot(path, {}));
+    assertObjectEquals([pathc],testee.setRoot(pathc, null));
+
+    assertObjectEquals({}, testee.get(path));
+    assertObjectEquals([path, pathc],testee.setRoot(pathc, 1));
+    assertObjectEquals({b:{c:1}}, testee.get(path));
+
+}    
     
 function testDiffChange() {
 
@@ -529,9 +548,9 @@ function testChangeDbSet() {
     var namedPath = ns.Path.fromString('named-a');
     var listA = ns.Path.fromString('list-a');
     
-    assertObjectEquals([fullPath],testee.set(fullPath, {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]}));
-    assertSameObjects([fullPath, namedPath],testee.set(namedPath, {v : 10, list : [{k:1, v:10},{k:2, v:20}]}));
-    testee.set(contPath, {});
+    assertObjectEquals([fullPath],testee.setRoot(fullPath, {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]}));
+    assertSameObjects([fullPath, namedPath],testee.setRoot(namedPath, {v : 10, list : [{k:1, v:10},{k:2, v:20}]}));
+    testee.setRoot(contPath, {});
 
 
     assertObjectEquals([fullPath,namedPath],testee.getRoots(fullPath.appendName('v')));
@@ -539,15 +558,15 @@ function testChangeDbSet() {
     assertObjectEquals({v : 10, list : [{k:1, v:10},{k:2, v: 20}]}, testee.get(namedPath));
     assertObjectEquals({}, testee.get(contPath));
 
-    testee.set(fullPath, {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]});
+    testee.setRoot(fullPath, {v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v:2, v2: 2}]});
     assertObjectEquals({v : 1, v2: 2, list : [{k:1, v:1, v2:2},{k:2, v: 2, v2: 2}]}, testee.get(fullPath));
     assertObjectEquals({v : 1, list : [{k:1, v:1},{k:2, v: 2}]}, testee.get(namedPath));
 
 
     // resolve full path that does not exist
-    testee.set(listA, [{k:1, v:1}, {k:2, v:2}]);
+    testee.setRoot(listA, [{k:1, v:1}, {k:2, v:2}]);
     assertObjectEquals([{k:1, v:1}, {k:2, v:2}], testee.get(listA));
-    testee.set(listA, [{k:1, v:10}, {k:2, v:20}]);
+    testee.setRoot(listA, [{k:1, v:10}, {k:2, v:20}]);
     assertObjectEquals([{k:1, v:10}, {k:2, v:20}], testee.get(listA));
     
     // now apply some changes
@@ -601,7 +620,7 @@ function testChangeDbReplace() {
     var v1Path = key1Path.appendName('v');
     
     
-    assertObjectEquals([fullPath],testee1.set(fullPath,obj1));
+    assertObjectEquals([fullPath],testee1.setRoot(fullPath,obj1));
     assertObjectEquals(obj1, testee1.get(fullPath));
     assertObjectEquals(null, testee2.get(fullPath));
     testee2.replaceDb(testee1);

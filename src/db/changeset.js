@@ -65,6 +65,13 @@ recoil.db.ChangeDbInterface.prototype.set = function(path, val) {};
 
 /**
  * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ * @return {!Array<!recoil.db.ChangeSet.Path>}
+ */
+recoil.db.ChangeDbInterface.prototype.setRoot = function(path, val) {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
  * @return {?}
  */
 recoil.db.ChangeDbInterface.prototype.get = function(path) {};
@@ -300,6 +307,37 @@ recoil.db.ChangeDb.prototype.applyChanges = function(changes) {
  */
 recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
     // don't create path if val is null
+    var cur = this.resolve_(rootPath, true);
+
+    var absolutePath = this.schema_.absolute(rootPath);
+    cur.set(this.schema_, rootPath, val);
+    var found = false;
+    var changed = [];
+    for (var i = 0; i < this.roots_.length; i++) {
+        var root = this.roots_[i];
+        found = found || recoil.util.object.isEqual(root, rootPath);
+        if (this.schema_.absolute(root).isAncestor(absolutePath, true)) {
+            changed.push(root);
+        }
+    }
+
+    /*
+      if (!found && this.rootLock_ === 0) {
+        this.roots_.push(rootPath);
+        changed.push(rootPath);
+    }*/
+    return changed;
+};
+
+/**
+ * used to set entire trees as opposed when changes are applied
+ * this checks for null value set and if so does not create ansestors
+ * @param {!recoil.db.ChangeSet.Path} rootPath
+ * @param {?} val
+ * @return {!Array<!recoil.db.ChangeSet.Path>} returns a list of roots that have changed
+ */
+recoil.db.ChangeDb.prototype.setRoot = function(rootPath, val) {
+    // don't create path if val is null
     var cur = this.resolve_(rootPath, val !== null);
 
     var absolutePath = this.schema_.absolute(rootPath);
@@ -310,9 +348,12 @@ recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
     var changed = [];
     for (var i = 0; i < this.roots_.length; i++) {
         var root = this.roots_[i];
-        found = found || recoil.util.object.isEqual(root, rootPath);
+        var equal = recoil.util.object.isEqual(root, rootPath);
+        found = found || equal;
         if (this.schema_.absolute(root).isAncestor(absolutePath, true)) {
-            changed.push(root);
+            if (cur || equal) {
+                changed.push(root);
+            }
         }
 
     }
@@ -321,6 +362,7 @@ recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
         this.roots_.push(rootPath);
         changed.push(rootPath);
     }
+
     return changed;
 };
 
