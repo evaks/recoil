@@ -2088,6 +2088,7 @@ recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
             var b = visited[idx];
             if (visited[idx].removeRef(me)) {
                 me.removeProvidersFromDependancyMap_(b);
+                b.dirtyDown_ = false;
                 me.removePending_(b);
             }
         }

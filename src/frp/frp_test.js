@@ -56,6 +56,23 @@ function testBehaviourUp() {
     assertEquals(0, tm.watching());
 }
 
+function testDetachWhileInTrans() {
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var b = frp.createB(2);
+    var c = frp.liftBI(function (v) {return v}, function (v) {b.set(v);tm.detach(c)}, b);
+
+    tm.attach(c);
+    frp.accessTrans(function (v) {c.set(1)},c);
+    //assertTrue(b.dirtyDown_);
+
+    tm.attach(c);
+
+    assertEquals(2, c.unsafeMetaGet().get());
+    assertEquals(2, b.unsafeMetaGet().get());
+
+}
 function testEventDown() {
     var frp = new recoil.frp.Frp();
     var tm = frp.tm();
