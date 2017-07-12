@@ -6,7 +6,7 @@ goog.require('recoil.ui.widgets.table.Column');
 /**
  *
  * @param {recoil.structs.table.ColumnKey} key
- * @param {string} name
+ * @param {string|Node} name
  * @param {(recoil.frp.Behaviour<Object>|Object)=} opt_options
  * @implements {recoil.ui.widgets.table.Column}
  * @constructor

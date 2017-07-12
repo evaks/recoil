@@ -12,7 +12,7 @@ goog.require('recoil.ui.widgets.table.Column');
  * @template T
  * @constructor
  * @param {recoil.structs.table.ColumnKey} key
- * @param {string} name
+ * @param {string|Node} name
  *
  */
 recoil.ui.widgets.table.LabelColumn = function(key, name) {
