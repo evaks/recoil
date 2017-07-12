@@ -6,7 +6,7 @@ goog.provide('recoil.util.map');
  * does not exist it will insert the default into the map
  * and return that
  * @template KT, T
- * @param {IObject<KT,T>} map
+ * @param {IObject<KT,T>|Object} map
  * @param {KT} key
  * @param {T} def
  * @return {T}
@@ -27,7 +27,7 @@ recoil.util.map.safeGet = function(map, key, def) {
  * map is a recursive structure of maps, it will continue
  * to do a safe get until the keys run out
  * @template T
- * @param {Object} map
+ * @param {Object|IObject} map
  * @param {Array} keys
  * @param {T} def
  * @return {T}
@@ -50,7 +50,7 @@ recoil.util.map.safeRecGet = function(map, keys, def) {
  * map is a recursive structure of maps, it will continue
  * to do a safe get until the keys run out
  * @template T
- * @param {Object} map
+ * @param {!Object|IObject} map
  * @param {Array} keys
  * @param {function(T):boolean} removeFunc
  * @return {T}
@@ -86,7 +86,7 @@ recoil.util.map.safeRecRemove = function(map, keys, removeFunc) {
 /**
  * checks if the map is empty a bit better than getting all the keys
  * and then checking the length
- * @param {Object} map
+ * @param {Object|IObject} map
  * @return {!boolean}
  */
 recoil.util.map.isEmpty = function(map) {

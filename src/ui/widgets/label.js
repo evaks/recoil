@@ -67,6 +67,9 @@ recoil.ui.widgets.LabelWidget.defaultFormatter_ = function(value) {
     if (goog.isString(value)) {
         return value;
     }
+    else if (value instanceof Node) {
+        return value;
+    }
     else {
         return 'ERROR: not string but ' + typeof(value) + ': ' + value;
     }
