@@ -49,6 +49,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     this.container_ = new goog.ui.Component();
     this.container_.createDom();
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
+    this.selectNewRow_ = false;
     var me = this;
     this.rowClickHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, function() {});
 
@@ -101,6 +102,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     // we have attached a table
     this.tableBB_ = this.scope_.getFrp().createNotReadyB();
     this.rowClickEvent_ = scope.getFrp().createCallback(function(e, selectedB, tableB) {
+        this.selectNewRow_ = false;
         var oldSelected = selectedB.get();
         var mode = tableB.get().getMeta().selectionMode || recoil.ui.widgets.table.TableWidget.SelectionMode.SINGLE;
         if (mode !== recoil.ui.widgets.table.TableWidget.SelectionMode.NONE) {
@@ -115,6 +117,14 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     this.rowClickHelper_.attach(this.rowClickEvent_);
 };
 
+/**
+ * use this when adding for the table widget to select a new row
+ * this highlight which row was added to the user
+ *
+ */
+recoil.ui.widgets.table.TableWidget.prototype.selectNewRow = function() {
+    this.selectNewRow_ = true;
+};
 /**
  * this should be called after the attach this way it can filter out the
  * rows that do not exist in the table.
@@ -393,6 +403,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
             info.rowMeta.add(rowAndCellMeta);
             pos++;
         });  // table.forEach
+        console.log('info', info);
         return info;
     }, tableB);
 };
@@ -413,7 +424,8 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
 
     return frp.liftB(function(table) {
         var info = recoil.ui.widgets.table.TableWidget.emptyState_();
-
+        var mode = table.getMeta().selectionMode || recoil.ui.widgets.table.TableWidget.SelectionMode.SINGLE;
+        info.canSelect = mode !== recoil.ui.widgets.table.TableWidget.SelectionMode.NONE;
 
         var tableMeta = table.getMeta();
         recoil.ui.widgets.table.TableWidget.copyMeta(['tableDecorator', 'headerRowDecorator'], [tableMeta, info.tableMeta]);
@@ -1151,6 +1163,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
         // now all we have to do is add th new rows
 
         var sortedNewRows = this.getNewRows_(sortedRowMeta);
+        var newSelect = null;
 
         sortedNewRows.inOrderTraverse(function(row) {
 
@@ -1162,6 +1175,9 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
             rowComponent.cols = [];
             rowComponent.key = row.key;
+            if (me.selectNewRow_) {
+                newSelect = {key: row.key, el: rowComponent.outer};
+            }
             rowComponent.rowPos = row.rowPos;
             rowComponent.keyCols = row.keyCols;
             goog.dom.insertChildAt(me.renderState_.table.inner, rowComponent.outer, me.renderState_.headerRow ? row.rowPos + 1 : row.rowPos);
@@ -1174,6 +1190,16 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
         });
         this.state_ = table;
+        if (newSelect) {
+            this.scope_.getFrp().accessTrans(function() {
+                if (table.canSelect) {
+                    me.selected_.set([newSelect.key]);
+                }
+                if (newSelect.el) {
+                    newSelect.el.scrollIntoView();
+                }
+            }, this.selected_);
+        }
 
     }
     else {
@@ -1199,6 +1225,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
 
         // display error or not ready state
     }
+    this.selectNewRow_ = false;
 };
 
 /**

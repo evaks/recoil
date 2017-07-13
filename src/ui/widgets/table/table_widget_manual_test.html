@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/menuseparator.css">
 <link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/flatmenubutton.css">
 <link rel="stylesheet" href="../../../../../closure-library/closure/goog/css/common.css">
-
+ 
 <script>
   goog.require('recoil.frp.Frp');
   goog.require('recoil.ui.widgets.table.TableWidget');
@@ -77,7 +77,7 @@
 
     var rawTable = [];
 
-    for (var i = 0; i < 50; i++) {
+    for (var i = 0; i < 10; i++) {
 			rawTable.push({id: i, name: "row " + i, count:i, check: true, select: {a: 'one'}});
     }
     
@@ -189,7 +189,7 @@
     row.set(tblKeys.count, max);
     row.set(tblKeys.check, false);
     row.set(tblKeys.select, {a: 'test'});
-
+	tableWidget.selectNewRow();
     mtable.addRow(row);
     table.set(mtable.freeze());
     }, table));
