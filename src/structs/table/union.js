@@ -18,12 +18,16 @@ goog.require('recoil.util.object');
  * @param {boolean} uniqPk if this is true we will use the primary key of table1, otherwize an integer primary key will be generated
  *                         if this is true an error will be thrown if the union doesn't have a uniq primay key
  * @param {boolean} uniq   this will remove duplicate rows if true
+ * @param {!recoil.structs.table.ColumnKey<Array<number>?>=} opt_srcCol supply column for src, allows adding
+ * @param {!Array<string>=} opt_concatPk if exists overrides uniqPk and will concat the associated index to the pk to make the key uniqu
+ *                                      this only works if you have 1 string primary key that cannot end with the concatination
  */
 
-recoil.structs.table.Union = function(uniqPk, uniq) {
-    this.primaryKey_ = uniqPk ? null : new recoil.structs.table.ColumnKey('$id');
+recoil.structs.table.Union = function(uniqPk, uniq, opt_srcCol, opt_concatPk) {
+    this.primaryKey_ = uniqPk || opt_concatPk ? null : new recoil.structs.table.ColumnKey('$id');
     this.uniq_ = uniq;
-    this.srcCol_ = new recoil.structs.table.ColumnKey('$src', undefined, undefined,  /** @type {Array<number>?}*/(null));
+    this.concatPk_ = opt_concatPk;
+    this.srcCol_ = opt_srcCol || new recoil.structs.table.ColumnKey('$src', undefined, undefined,  /** @type {Array<number>?}*/(null));
 };
 /**
  * @private
@@ -55,9 +59,13 @@ recoil.structs.table.Union.prototype.calculate = function(params) {
     var removeDups = this.uniq_;
     var pos = 0;
 
+    if (this.concatPk_ && pks.length > 1) {
+        throw new Error('you can only have one pk to use concat pks');
+    }
 
     for (var i = 0; i < tables.length; i++) {
         var table = tables[i];
+        var pkConcat = this.concatPk_ ? this.concatPk_[i] : null;
         result.addMeta(table.getMeta());
 
         table.getColumns().forEach(function(col) {
@@ -66,7 +74,7 @@ recoil.structs.table.Union.prototype.calculate = function(params) {
         table.forEach(function(row, key) {
             if (removeDups) {
                 var rowValues = me.getRowValues_(table, row);
-                   var existing = seen.findFirst({key: rowValues});
+                var existing = seen.findFirst({key: rowValues});
                 if (existing) {
                     result.set(key, me.srcCol_, result.get(key, me.srcCol_).concat([i]));
                     return;
@@ -76,6 +84,10 @@ recoil.structs.table.Union.prototype.calculate = function(params) {
             var newRow = row.setCell(me.srcCol_, new recoil.structs.table.TableCell([i]));
             if (me.primaryKey_) {
                 newRow = newRow.setCell(me.primaryKey_, new recoil.structs.table.TableCell(pos));
+            }
+            else if (me.concatPk_) {
+                
+                newRow = newRow.set(pks[0], key[0] + me.concatPk_[i]);
             }
             result.addRow(newRow);
             pos++;
@@ -92,18 +104,23 @@ recoil.structs.table.Union.prototype.calculate = function(params) {
 recoil.structs.table.Union.prototype.inverse = function(table, sources) {
     var tables = [sources.table1.createEmpty(), sources.table2.createEmpty()];
     var me = this;
-
+    var keyCol = me.concatPk_ ? tables[0].getPrimaryColumns()[0] : null;
     table.forEach(function(row) {
         var srcs = row.get(me.srcCol_);
         srcs.forEach(function(src) {
             if (src >= 0 && src < tables.length) {
+                var concatLen = me.concatPk_ ? me.concatPk_[src].length : 0;
+                if (keyCol) {
+                    var key = row.get(keyCol);
+                    var newKey = key.substr(0,key.length - concatLen);
+                    row = row.set(keyCol,newKey);
+                }
                 tables[src].addRow(row);
             }
             else {
                 throw 'Unknown destination';
             }
         });
-
     });
     return {table1: tables[0].freeze(), table2: tables[1].freeze()};
 };
