@@ -265,6 +265,7 @@ recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
     {
         min: 0,
         max: Number.MAX_SAFE_INTEGER || 9007199254740991,
+        displayLength: null,
         step: 1,
         allowNull: false,
         outErrors: [],
@@ -340,6 +341,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.valueB_ = bound.value();
     this.minB_ = bound.min();
     this.maxB_ = bound.max();
+    this.displayLengthB_ = bound.displayLength();
     this.stepB_ = bound.step();
     this.editableB_ = bound.editable();
     this.enabledB_ = bound.enabled();
@@ -368,7 +370,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     this.validatorHelper_.attach(this.validatorB_, this.allowNullB_, this.minB_, this.maxB_, this.stepB_);
     this.valueHelper_.attach(this.valueB_);
 
-    this.configHelper_.attach(this.minB_, this.maxB_, this.stepB_, this.enabledB_, this.formatterB_);
+    this.configHelper_.attach(this.minB_, this.maxB_, this.stepB_, this.enabledB_, this.formatterB_, this.displayLengthB_);
 
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_,
@@ -522,7 +524,11 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         this.formatterB_.metaGet().get() : function(v) {
             return '' + v;
         };
+    var displayLen = this.displayLengthB_.good() ? this.displayLengthB_.get() : null;
     var calcWidth = function(width, val) {
+        if (displayLen) {
+            return null;
+        }
         var str = formatter(val);
         return Math.max(width,
                         recoil.ui.widgets.NumberWidget.calcWidth_(el, str));
@@ -543,7 +549,13 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         this.number_.setStep(this.stepB_.get());
     }
     var c = this.number_.getContentElement();
-//    c.width = 2;
-    this.number_.getContentElement().style.width = (width + 10) + 'px';
-    this.readonly_.getComponent().getElement().style.width = (width) + 'px';
+    //    c.width = 2;
+    if (displayLen) {
+        this.number_.getContentElement().style.width = (displayLen + 1) + 'em';
+        this.readonly_.getComponent().getElement().style.width = displayLen + 'em';
+    }
+    else {
+        this.number_.getContentElement().style.width = (width + 10) + 'px';
+        this.readonly_.getComponent().getElement().style.width = (width) + 'px';
+    }
 };

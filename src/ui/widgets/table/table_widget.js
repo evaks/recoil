@@ -403,7 +403,6 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelectInfo_ = function(table
             info.rowMeta.add(rowAndCellMeta);
             pos++;
         });  // table.forEach
-        console.log('info', info);
         return info;
     }, tableB);
 };
