@@ -592,7 +592,7 @@ function testChangeDbSet() {
 
     // delete container in list
     testee.applyChanges([new ns.Delete(listA.setKeys(['k'],[3]).appendName('c'))]);
-    assertSameObjects([{k:11, v:10}, {k:2, v:200}, {k:3,v:300}], testee.get(listA));
+    assertSameObjects([{k:11, v:10}, {k:2, v:200}, {k:3,v:300, c:null}], testee.get(listA));
 
     // remove from list
     testee.applyChanges([new ns.Delete(listA.setKeys(['k'],[3]))]);
@@ -600,7 +600,7 @@ function testChangeDbSet() {
 
     // remove from container
     testee.applyChanges([new ns.Delete(contPath.appendName('c1'),[])]);
-    assertObjectEquals({}, testee.get(contPath));
+    assertObjectEquals({c1: null}, testee.get(contPath));
 
     testee.set(ns.Path.fromString('a'),{b:null});
     assertObjectEquals({b:null}, testee.get(ns.Path.fromString('a')));

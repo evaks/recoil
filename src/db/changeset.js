@@ -192,7 +192,10 @@ recoil.db.ChangeDb.prototype.applyDelete = function(path) {
         if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
             throw new Error("cannot remove node '" + path.toString() + "' to non-container");
         }
-        listNode.remove(path.last());
+        var curNode = this.resolve_(path, false);
+        if (curNode) {
+            curNode.set(this.schema_, path, null);
+        }
         return;
     }
 
