@@ -86,7 +86,7 @@ recoil.structs.table.Union.prototype.calculate = function(params) {
                 newRow = newRow.setCell(me.primaryKey_, new recoil.structs.table.TableCell(pos));
             }
             else if (me.concatPk_) {
-                
+
                 newRow = newRow.set(pks[0], key[0] + me.concatPk_[i]);
             }
             result.addRow(newRow);
@@ -112,8 +112,8 @@ recoil.structs.table.Union.prototype.inverse = function(table, sources) {
                 var concatLen = me.concatPk_ ? me.concatPk_[src].length : 0;
                 if (keyCol) {
                     var key = row.get(keyCol);
-                    var newKey = key.substr(0,key.length - concatLen);
-                    row = row.set(keyCol,newKey);
+                    var newKey = key.substr(0, key.length - concatLen);
+                    row = row.set(keyCol, newKey);
                 }
                 tables[src].addRow(row);
             }
