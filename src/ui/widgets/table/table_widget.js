@@ -592,13 +592,14 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfoCell_ =
     renderInfo.decorator = cellDecorator;
     renderInfo.factory = cellFactory;
 
-    var widget = renderInfo.factory(
-        this.scope_,
-        recoil.frp.table.TableCell.create(
-            this.scope_.getFrp(), this.tableB_,
-            key, columnMeta.key));
-//TODO    renderInfo.widget = widget;
-
+    if (renderInfo.inner) {
+        var widget = renderInfo.factory(
+            this.scope_,
+            recoil.frp.table.TableCell.create(
+                this.scope_.getFrp(), this.tableB_,
+                key, columnMeta.key));
+        //TODO    renderInfo.widget = widget;
+    }
     widget.getComponent().render(renderInfo.inner);
     return renderInfo;
 };
@@ -652,13 +653,15 @@ recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ =
         renderState.headerCols.push(renderInfo);
 
         renderInfo.factory = columnHeaderWidgetFactory;
-        var widget = columnHeaderWidgetFactory(
-            me.scope_,
-            recoil.frp.table.TableCell.createHeader(
-                me.scope_.getFrp(),
-                me.tableB_, meta.key));
-//        renderInfo.widget = widget;
-        widget.getComponent().render(renderInfo.inner);
+        if (renderInfo.inner) {
+            var widget = columnHeaderWidgetFactory(
+                me.scope_,
+                recoil.frp.table.TableCell.createHeader(
+                    me.scope_.getFrp(),
+                    me.tableB_, meta.key));
+            //        renderInfo.widget = widget;
+            widget.getComponent().render(renderInfo.inner);
+        }
     });
 };
 

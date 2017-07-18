@@ -771,7 +771,7 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
                 row = row.set(col, col.getDefault());
             }
             else {
-                throw 'missing column: ' + col.getName();
+                throw new Error('missing column: ' + col.getName());
             }
         }
     });
