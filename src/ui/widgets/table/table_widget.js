@@ -599,8 +599,8 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfoCell_ =
                 this.scope_.getFrp(), this.tableB_,
                 key, columnMeta.key));
         //TODO    renderInfo.widget = widget;
+        widget.getComponent().render(renderInfo.inner);
     }
-    widget.getComponent().render(renderInfo.inner);
     return renderInfo;
 };
 
