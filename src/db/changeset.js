@@ -162,6 +162,11 @@ recoil.db.ChangeDb.prototype.applyAdd = function(path) {
             throw new Error("cannot add node '" + path.toString() + "' to non-container");
         }
         listNode = this.resolve_(path, true);
+        if (listNode instanceof recoil.db.ChangeDbNode.Container) {
+            if (!listNode.get(this.schema_, path)) {
+                listNode.set(this.schema_, path, {});
+            }
+        }
     }
     this.schema_.applyDefaults(path, this);
 
