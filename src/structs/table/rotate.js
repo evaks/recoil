@@ -89,7 +89,6 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
             if (first) {
                 result.setColumnMeta(cached.col, {name: row.get(col), position: colPos++});
                 result.addColumnMeta(cached.col, row.getMeta());
-                result.addColumnMeta(cached.col, row.getCell(col).getMeta());
             }
             first = false;
         });
