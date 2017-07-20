@@ -48,11 +48,13 @@ recoil.ui.widgets.TableMetaData.prototype.add = function(key, name, opt_meta) {
 };
 
 /**
- * @param {recoil.structs.table.Table} table
- * @return {recoil.structs.table.Table}
+ * creates a new table with the meta data applied to it
+ * if table is a mutable table it will also apply the meta data it
+ * @param {!recoil.structs.table.Table|!recoil.structs.table.MutableTable} table
+ * @return {!recoil.structs.table.Table}
  */
 recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
-    var mtable = table.unfreeze();
+    var mtable = table instanceof recoil.structs.table.MutableTable ? table : table.unfreeze();
     var pos = 0;
     this.columns_.forEach(function(col) {
         var inMeta = {};
