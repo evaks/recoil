@@ -93,6 +93,24 @@ recoil.structs.table.ColumnKey.createUnique = function(name) {
     });
 };
 /**
+ * this function can be used to make 2 primary keys have
+ * the same default function, this can be useful if you want
+ * to have primary keys to be unique between accross to keys
+ *
+ * note this should really be called only once and before the column is
+ * used to generate any primary keys
+ *
+ * @param {!recoil.structs.table.ColumnKey} otherKey
+ */
+recoil.structs.table.ColumnKey.prototype.setSameDefaultFunc = function(otherKey)  {
+    if (!goog.isFunction(this.defaultFunc_)) {
+        otherKey.defaultFunc_ = this.defaultFunc_;
+        otherKey.hasDefault_ = true;
+        return;
+    }
+    throw new Error(this + ' does not have a default function');
+};
+/**
  * @return {T}
  */
 recoil.structs.table.ColumnKey.prototype.getDefault = function() {

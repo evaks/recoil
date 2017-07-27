@@ -239,7 +239,11 @@ recoil.db.ChangeDb.prototype.applySet = function(path, val) {
     if (!node) {
         var parent = this.resolve_(path.parent(), false);
         if (!parent) {
-            throw new Error("set node '" + path.toString() + "' does not exist");
+            if (this.rootLock_ === 0) {
+                throw new Error("set node '" + path.toString() + "' does not exist");
+            }
+            // don't set it but we may just not have this item
+            return;
         }
         node = parent.getChildNode(this.schema_, path.last(), path, true);
     }
