@@ -12,6 +12,26 @@ goog.require('recoil.util');
 
 goog.setTestOnly('recoil.frp.FrpTest');
 
+function testNoInverse() {
+	var frp = new recoil.frp.Frp();
+	var tm = frp.tm();
+	var b1 = frp.createB(1);
+	var testee = b1.noInverseB();
+	
+	tm.attach(testee);
+	assertEquals(1, testee.unsafeMetaGet().get());
+	frp.accessTrans(function () {
+		testee.set(2);
+	}, testee);
+	assertEquals(1, testee.unsafeMetaGet().get());
+
+	frp.accessTrans(function () {
+		b1.set(3);
+	}, b1);
+	assertEquals(3, testee.unsafeMetaGet().get());
+}
+	
+
 function testBehaviourUp() {
     var count1 = 0;
     var count2 = 0;

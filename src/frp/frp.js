@@ -604,6 +604,13 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
 };
 
 /**
+ * the resulting behaviour will ignore all set
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Behaviour.prototype.noInverseB = function () {
+	this.frp_.liftB(function (v) {return v}, this);
+};
+/**
  * @return {!boolean}
  */
 recoil.frp.Behaviour.prototype.good = function() {
