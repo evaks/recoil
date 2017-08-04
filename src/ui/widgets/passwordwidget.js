@@ -15,9 +15,16 @@ goog.require('recoil.ui.widgets.InputWidget');
 recoil.ui.widgets.PasswordWidget = function(scope) {
     this.scope_ = scope;
     this.passwordInput_ = new recoil.ui.widgets.InputWidget(scope);
+    this.passwordInput_.setType('password');
 
     var el = this.passwordInput_.getComponent().getElement();
+    if (!el) {
+        this.passwordInput_.getComponent().createDom();
+        el = this.passwordInput_.getComponent().getElement();
+    }
     el.setAttribute('type', 'password');
+    el.setAttribute('autocomplete', 'off');
+
 };
 
 /**

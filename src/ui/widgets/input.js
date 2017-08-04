@@ -387,3 +387,11 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
 recoil.ui.widgets.InputWidgetHelper = function(scope) {
     this.scope_ = scope;
 };
+
+/**
+ *
+ * @param {string} type
+ */
+recoil.ui.widgets.InputWidget.prototype.setType = function(type) {
+    this.input_.getContentElement().type = type;
+};
