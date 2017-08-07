@@ -156,7 +156,7 @@ recoil.frp.table.TableCell.getValue = function(frp, cellB) {
  * gets just the meta information out of a cell
  * @template CT
  * @param {!recoil.frp.Frp} frp
- * @param {recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cellB
+ * @param {!recoil.frp.Behaviour<recoil.structs.table.TableCell<CT>>} cellB
  * @return {!recoil.frp.Behaviour<*>}
  */
 
