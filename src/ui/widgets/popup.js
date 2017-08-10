@@ -35,10 +35,10 @@ recoil.ui.widgets.PopupWidget = function(scope) {
 
 //    this.container_.addClassName("goog-inline-block");
 
-    this.container_.addChild(toControl(this.displayAndButtonContainer_), true);
+    var buttonControl = recoil.ui.ComponentWidgetHelper.elementToControl(this.displayAndButtonContainer_);
+    this.container_.addChild(buttonControl, true);
     this.container_.addChild(toControl(this.popupContainer_), true);
     this.popup_ = new goog.ui.Popup(this.popupContainer_);
-
     goog.dom.setProperties(this.popupContainer_, {class: 'recoil-popup'});
 
     this.popup_.setVisible(false);
