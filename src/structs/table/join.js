@@ -31,16 +31,16 @@ recoil.structs.table.Join = function(keyGetter1,  keyGetter2, opt_table2Pks, opt
     this.defaultRow_ = opt_defaultRow;
     this.outer_ = opt_defaultRow ? true : opt_outer;
 };
-
 /**
- * @param {{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}} tables
- * @return {!recoil.structs.table.Table}
+ * @private
+ * @param {!recoil.structs.table.Table} table
+ * @param {!function (!recoil.structs.table.TableRow) : !Object} keyGetter
+ * @return {goog.structs.AvlTree}
  */
-recoil.structs.table.Join.prototype.calculate = function(tables) {
-    var me = this;
+recoil.structs.table.Join.makeMap_ = function(table, keyGetter) {
     var rightMap = new goog.structs.AvlTree(recoil.util.object.compareKey);
-    tables.right.forEach(function(row) {
-       var key = me.keyGetter2_(row);
+    table.forEach(function(row) {
+       var key = keyGetter(row);
        var existing = rightMap.findFirst({key: key});
        if (existing) {
            existing.rows.push(row);
@@ -48,7 +48,17 @@ recoil.structs.table.Join.prototype.calculate = function(tables) {
        else {
            rightMap.add({key: key, rows: [row]});
        }
-   });
+    });
+    return rightMap;
+};
+
+/**
+ * @param {{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}} tables
+ * @return {!recoil.structs.table.Table}
+ */
+recoil.structs.table.Join.prototype.calculate = function(tables) {
+    var me = this;
+    var rightMap = recoil.structs.table.Join.makeMap_(tables.right, me.keyGetter2_);
 
     var src = [];
     var pks = tables.left.getPrimaryColumns().concat(this.table2Pks_);
@@ -105,6 +115,22 @@ recoil.structs.table.Join.prototype.inverse = function(table, sources) {
     var leftRes = sources.left.createEmpty();
     var rightRes = sources.right.createEmpty();
     var me = this;
+
+
+
+    var rightMap = recoil.structs.table.Join.makeMap_(sources.right, me.keyGetter2_);
+    var leftMap = recoil.structs.table.Join.makeMap_(sources.left, me.keyGetter1_);
+    // add items in left and right that are not in the other table
+    [{tbl: sources.left, dest: leftRes, map: rightMap, getter: me.keyGetter1_},
+     {tbl: sources.right, dest: rightRes, map: leftMap, getter: me.keyGetter2_}].forEach(
+         function(info) {
+             info.tbl.forEach(function(row) {
+                 if (!info.map.findFirst({key: info.getter(row)})) {
+                     info.dest.addRow(row);
+                 }
+             });
+         }
+     );
 
     table.forEach(function(row) {
         var leftRow = new recoil.structs.table.MutableTableRow();
