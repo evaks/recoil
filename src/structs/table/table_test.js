@@ -31,6 +31,32 @@ function testAutoKey() {
     });
     
 };
+
+function testRowValuesEqual () {
+    var r1 = new recoil.structs.table.MutableTableRow(1);
+    var r2 = new recoil.structs.table.MutableTableRow(2);
+
+    assertTrue(r1.valuesEqual(r2));
+    r1.set(COL_A,1);
+    assertFalse(r1.valuesEqual(r2));
+
+    r2.set(COL_A,1);
+    assertTrue(r1.valuesEqual(r2));
+
+
+    r2.set(COL_B,2);
+    assertFalse(r1.valuesEqual(r2));
+
+    r1.set(COL_B,2);
+    assertTrue(r1.valuesEqual(r2));
+
+    r1.setCellMeta(COL_A,{x: 2});
+    assertTrue(r1.valuesEqual(r2));
+
+    r1.setRowMeta({x: 2});
+    assertTrue(r1.valuesEqual(r2));
+
+}
 function testOrdered () {
     var tbl = new recoil.structs.table.MutableTable([COL_A], []);
     var row = new recoil.structs.table.MutableTableRow(1);

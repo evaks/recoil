@@ -28,6 +28,89 @@ function valSub1Getter (key) {
     };
 }
 
+
+function testOuterJoin () {
+    var leftTbl = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
+    var rightTbl = new recoil.structs.table.MutableTable([COL_D], [COL_E]);
+    var defaults = new recoil.structs.table.MutableTableRow();
+    defaults.set(COL_D, -1);
+    defaults.set(COL_E, -2);
+    
+    
+    leftTbl.setMeta({left:true});
+    rightTbl.setMeta({right:true});
+    leftTbl.setColumnMeta(COL_B, {left : true});
+    rightTbl.setColumnMeta(COL_E, {right : true});
+
+    [1,2,3,4].forEach(function (val) {
+        var row = new recoil.structs.table.MutableTableRow();
+        row.set(COL_A, val);
+        row.set(COL_B, val);
+        
+        leftTbl.addRow(row);
+
+        row = new recoil.structs.table.MutableTableRow();
+        row.set(COL_D, val + 1);
+        row.set(COL_E, val + 1);
+        rightTbl.addRow(row);
+    });
+
+    var testee = new recoil.structs.table.Join(valGetter(COL_A), valGetter(COL_D), undefined, defaults.freeze());
+
+    
+    var expected = [1, 2,3,4];
+    var i = 0;
+    var table = testee.calculate({left : leftTbl.freeze(), right : rightTbl.freeze()});
+
+    assertObjectEquals({left: true, right: true}, table.getMeta());
+    assertObjectEquals({left: true}, table.getColumnMeta(COL_B));
+    assertObjectEquals({right: true}, table.getColumnMeta(COL_E));
+    assertEquals(expected.length, table.size());
+
+    table.forEach(function (row) {
+        assertEquals(expected[i], row.get(COL_A));
+        assertEquals(expected[i], row.get(COL_B));
+        if (i === 0) {
+            assertEquals(-1, row.get(COL_D));
+            assertEquals(-2, row.get(COL_E));
+        }
+        else {
+            assertEquals(expected[i], row.get(COL_D));
+            assertEquals(expected[i], row.get(COL_E));
+        }
+        i++;
+    });
+
+    var mtable = table.unfreeze();
+
+    
+    mtable.set([2], COL_B, 8);
+    mtable.set([2], COL_E, 9);
+
+    var orig = testee.inverse(mtable.freeze(),{left : leftTbl.freeze(), right: rightTbl.freeze()});
+
+    expected = [{a: 1, b: 1} ,{a : 2, b: 8}, {a : 3, b : 3}, {a : 4, b : 4}];
+    i = 0;
+    assertEquals(expected.length, orig.left.size());
+    orig.left.forEach(function (row) {
+        assertEquals(expected[i].a, row.get(COL_A));
+        assertEquals(expected[i].b, row.get(COL_B));
+        i++;
+    });
+
+    expected = [{d: 2, e: 9} ,{d : 3, e: 3}, {d : 4, e : 4}, {d : 5, e : 5}];
+    i = 0;
+    assertEquals(expected.length, orig.right.size());
+    orig.right.forEach(function (row) {
+        assertEquals(expected[i].d, row.get(COL_D));
+        assertEquals(expected[i].e, row.get(COL_E));
+        i++;
+    });
+    return;
+    
+    
+}
+
 function testExtraRowJoin () {
     var leftTbl = new recoil.structs.table.MutableTable([COL_A], [COL_B]);
     var rightTbl = new recoil.structs.table.MutableTable([COL_D], [COL_E]);

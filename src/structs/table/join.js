@@ -22,6 +22,11 @@ goog.require('recoil.util.object');
  *             does not exist, if this is supplied then it is assumed this is an outer join
  * @param {boolean=} opt_outer is this an outer join
  *
+ * notes on outer joins:
+ * when doing an inversable outer join you should be careful that you do not set all the right columns to
+ * match the default row (all nulls if none specified) since this will delete the right row from the output
+ * table, but only if the keys still match the left table
+ *
  */
 
 recoil.structs.table.Join = function(keyGetter1,  keyGetter2, opt_table2Pks, opt_defaultRow, opt_outer) {
@@ -148,22 +153,37 @@ recoil.structs.table.Join.prototype.inverse = function(table, sources) {
         }
         else if (!recoil.util.object.isEqual(existing, leftRow.freeze())) {
             console.error('dup', existing, leftRow.freeze());
-            throw 'duplicate rows must be the same';
+            throw new Error('duplicate rows must be the same');
         }
+
+        var matchesDefault = me.outer_;
 
         rightRes.getColumns().forEach(function(col) {
             var cell = row.getCell(col);
             if (cell) {
                 rightRow.setCell(col, cell);
+                var val = cell.getValue();
+                var defVal = me.defaultRow_ ? me.defaultRow_.get(col) : null;
+                if (!recoil.util.object.isEqual(val, defVal)) {
+                    matchesDefault = false;
+                }
             }
         });
+
+        // if the default key matches and the keys don't match
+        if (matchesDefault &&
+            recoil.util.object.compare(
+                me.keyGetter1_(leftRow.freeze()), me.keyGetter2_(rightRow.freeze())) !== 0) {
+            return;
+        }
+
         existing = rightRes.getRow(rightRes.getRowKey(rightRow));
         if (!existing) {
             rightRes.addRow(rightRow);
         }
         else if (!recoil.util.object.isEqual(existing, rightRow.freeze())) {
             console.error('dup', existing, rightRow.freeze());
-            throw 'duplicate rows must be the same';
+            throw new Error('duplicate rows must be the same');
         }
     });
 

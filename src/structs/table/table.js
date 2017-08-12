@@ -1345,6 +1345,39 @@ recoil.structs.table.TableRow.positionComparator_ = function(comparator) {
 };
 
 /**
+ * checks to see if the values are equal ignoring meta data
+ * @param {?} that
+ * @return {boolean}
+ */
+recoil.structs.table.TableRow.prototype.valuesEqual = function(that) {
+    if (!(that instanceof recoil.structs.table.TableRow)) {
+        return false;
+    }
+    var equal = true;
+    var me = this;
+    this.forEachColumn(function(col, cell) {
+        if (!that.cells_.hasOwnProperty(col) || !that.cells_[col]) {
+            equal = false;
+            return true;
+        }
+        if (!recoil.util.object.isEqual(cell.getValue(), that.cells_[col].getValue())) {
+            equal = false;
+            return true;
+        }
+        return false;
+    });
+
+    that.forEachColumn(function(col, cell) {
+        if (!me.cells_.hasOwnProperty(col)) {
+            equal = false;
+            return true;
+        }
+        return false;
+    });
+    return equal;
+};
+
+/**
  * @return {number|undefined}
  */
 recoil.structs.table.TableRow.prototype.pos = function() {
@@ -1389,7 +1422,9 @@ recoil.structs.table.TableRow.prototype.forEachColumn = function(func) {
     var metaCol = recoil.structs.table.ColumnKey.ROW_META.toString();
     for (var col in this.cells_) {
         if (metaCol !== col) {
-            func(col, this.cells_[col]);
+            if (func(col, this.cells_[col])) {
+                return;
+            }
         }
     }
 };
@@ -1533,17 +1568,22 @@ recoil.structs.table.MutableTableRow = function(opt_position, opt_immutable) {
 
 /**
  * @param {!function(!string,!recoil.structs.table.TableCell)} func
+ * if the function returns true the loop exist
  */
 recoil.structs.table.MutableTableRow.prototype.forEachColumn = function(func) {
     var metaCol = recoil.structs.table.ColumnKey.ROW_META.toString();
     for (var col in this.changed_) {
         if (metaCol !== col) {
-            func(col, this.changed_[col]);
+            if (func(col, this.changed_[col])) {
+                return;
+            }
         }
     }
     for (col in this.orig_) {
         if (metaCol !== col && !this.changed_[col]) {
-            func(col, this.orig_[col]);
+            if (func(col, this.orig_[col])) {
+                return;
+            }
         }
     }
 };
@@ -1566,6 +1606,19 @@ recoil.structs.table.MutableTableRow.prototype.equals = function(that) {
     }
 
     return recoil.util.object.isEqual(this.freeze(), that.freeze());
+};
+
+/**
+ * checks to see if the values are equal ignoring meta data
+ * @param {?} that
+ * @return {boolean}
+ */
+recoil.structs.table.MutableTableRow.prototype.valuesEqual = function(that) {
+    if (!(that instanceof recoil.structs.table.MutableTableRow)) {
+        return false;
+    }
+
+    return this.freeze().valuesEqual(that.freeze());
 };
 
 /**
