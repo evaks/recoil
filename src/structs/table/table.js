@@ -560,6 +560,18 @@ recoil.structs.table.MutableTable.prototype.getColumns = function() {
 };
 
 /**
+ * @return {Array} a more readable version of the table
+ */
+recoil.structs.table.MutableTable.prototype.toDebugObj = function() {
+    var tableOut = [];
+    var behaviour = this;
+    this.forEach(function(row){
+        tableOut.push(row);
+    });
+    return tableOut;
+};
+
+/**
  * @return {!Array<!recoil.structs.table.ColumnKey<*>>}
  */
 recoil.structs.table.MutableTable.prototype.getPrimaryColumns = function() {
@@ -608,6 +620,10 @@ recoil.structs.table.MutableTable.prototype.forEachColumn = function(func) {
     this.otherColumns_.forEach(addCol);
 
     cols.forEach(function(col) {
+         if (col.key !== recoil.structs.table.ColumnKey.ROW_META) {
+            func(col.key, col.meta);
+        }
+
         func(col.key, col.meta);
     });
 };
@@ -1139,6 +1155,17 @@ recoil.structs.table.Table.prototype.forEachPlacedColumn = function(func) {
     });
 };
 
+/**
+ * @return {!Array} a more readable version
+ */
+recoil.structs.table.Table.prototype.toDebugObj = function() {
+    var tableOut = [];
+    var behaviour = this;
+    this.forEach(function(row){
+        tableOut.push(row);
+    });
+    return tableOut;
+};
 
 /**
  * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func

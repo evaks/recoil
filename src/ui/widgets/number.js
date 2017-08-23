@@ -187,6 +187,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
     var element = this.getDomHelper().createDom(
         goog.dom.TagName.INPUT,
         {
+            'title' : ' ',
             'class' : 'recoil-number-input',
             'type': goog.dom.InputType.NUMBER,
             step: this.step_, min: this.min_, max: this.max_});
@@ -286,11 +287,12 @@ recoil.ui.widgets.NumberWidget.getDp_ = function(num) {
     if (isNaN(num)) {
         return 0;
     }
-    num = Math.abs(num);
-    var fract = num - Math.floor(num);
-    var dp = 0;
-    var str = '' + fract;
-    return Math.max(0, str.length - 2);
+    var str = num + '';
+    var idx = str.indexOf('.');
+    if (idx === -1) {
+        return 0;
+    }
+    return str.length - 1 - idx;
 };
 
 /**
@@ -366,11 +368,11 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
         };
     }, this.minB_, this.stepB_, bound.readonlyFormatter());
 
-    this.errorHelper_.attach(this.outErrorsB_, this.validatorB_, this.allowNullB_);
+    this.errorHelper_.attach(this.outErrorsB_, this.validatorB_, this.allowNullB_, this.enabledB_);
     this.validatorHelper_.attach(this.validatorB_, this.allowNullB_, this.minB_, this.maxB_, this.stepB_);
     this.valueHelper_.attach(this.valueB_);
 
-    this.configHelper_.attach(this.minB_, this.maxB_, this.stepB_, this.enabledB_, this.formatterB_, this.displayLengthB_);
+    this.configHelper_.attach(this.minB_, this.maxB_, this.stepB_, this.enabledB_, this.editableB_, this.formatterB_, this.displayLengthB_);
 
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_,
@@ -447,7 +449,52 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
     var res = false;
     this.scope_.getFrp().accessTrans(function() {
         var allowNull = (me.allowNullB_.hasRefs() && me.allowNullB_.good() && me.allowNullB_.get());
-        if (el.validity.valid && (el.value !== '' || allowNull)) {
+        if (me.editableB_.good() && !me.editableB_.get()) {
+            res = true;
+            errorsB.set([]);
+            return;
+        }
+        if (me.enabledB_.good() && !me.enabledB_.get().val()) {
+            res = true;
+            if (me.valueB_.good()) {
+                me.number_.setValue(me.valueB_.get());
+            }
+            errorsB.set([]);
+            return;
+        }
+        // do the validation ourselves since it is inconsistent between browsers
+        var manualValid = true;
+         if (me.stepB_.hasRefs() && me.minB_.hasRefs() && me.maxB_.hasRefs() &&
+                me.stepB_.good() && me.minB_.good() && me.maxB_.good()) {
+                    
+            if (el.value === '') {
+                manualValid = allowNull;
+            }
+            else {
+                try {
+                    var v = parseFloat(el.value);
+                    if (v <  me.minB_.get() || v > me.maxB_.get()) {
+                        manualValid = false;
+                    }
+                    else {
+                        v = v - me.minB_.get();
+                        
+                        var mul = Math.pow(10, Math.max(
+                            recoil.ui.widgets.NumberWidget.getDp_(me.minB_.get()),
+                            recoil.ui.widgets.NumberWidget.getDp_(me.stepB_.get())));
+                        var step = Math.floor(mul * me.stepB_.get());
+                        v = Math.floor(v * mul);
+                        
+                        manualValid = (v % step)  === 0;
+                    }
+                }
+                catch (e) {
+                    manualValid = false;
+                }
+            }
+        }
+
+        if (manualValid && el.validity.valid && (el.value !== '' || allowNull)) {
             var v = el.value === '' ? null : parseFloat(el.value);
             var validator = validatorB.hasRefs() && validatorB.good() ? validatorB.get() : function() {return null;};
             var error = validator(v);
@@ -482,7 +529,7 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
             }
         }
 
-    }, errorsB, validatorB, me.allowNullB_, this.minB_, this.maxB_, this.stepB_);
+    }, errorsB, validatorB, me.allowNullB_, this.minB_, this.maxB_, this.stepB_, this.editableB_, this.enabledB_, me.valueB_);
 
     if (this.hasErrors_ !== !res) {
         if (res) {
@@ -558,4 +605,5 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         this.number_.getContentElement().style.width = (width + 10) + 'px';
         this.readonly_.getComponent().getElement().style.width = (width) + 'px';
     }
+    this.updateErrors_(this.number_.getElement(), this.outErrorsB_, this.validatorB_);
 };

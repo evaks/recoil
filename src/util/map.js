@@ -8,15 +8,15 @@ goog.provide('recoil.util.map');
  * @template KT, T
  * @param {IObject<KT,T>|Object} map
  * @param {KT} key
- * @param {T} def
+ * @param {T=} opt_def
  * @return {T}
  */
 
-recoil.util.map.safeGet = function(map, key, def) {
+recoil.util.map.safeGet = function(map, key, opt_def) {
     var res = map[key];
-    if (!res) {
-        res = def;
-        map[key] = def;
+    if (!res && arguments.length===3) {
+        res = opt_def;
+        map[key] = opt_def;
     }
     return res;
 };
@@ -29,19 +29,27 @@ recoil.util.map.safeGet = function(map, key, def) {
  * @template T
  * @param {Object|IObject} map
  * @param {Array} keys
- * @param {T} def
+ * @param {T=} opt_def
  * @return {T}
  */
 
-recoil.util.map.safeRecGet = function(map, keys, def) {
+recoil.util.map.safeRecGet = function(map, keys, opt_def) {
     if (keys.length === 0) {
         throw new Error('must provide at least one key');
     }
     var curMap = map;
     for (var i = 0; i < keys.length - 1; i++) {
-        curMap = recoil.util.map.safeGet(curMap, keys[i], {});
+        if (arguments.length===3) {
+            curMap = recoil.util.map.safeGet(curMap, keys[i], {});
+        }
+        else{
+            curMap = recoil.util.map.safeGet(curMap, keys[i]);
+        }
     }
-    return recoil.util.map.safeGet(curMap, keys[i], def);
+    if (arguments.length===3) {
+        return recoil.util.map.safeGet(curMap, keys[i], opt_def);
+    }
+    return recoil.util.map.safeGet(curMap, keys[i]);
 };
 
 

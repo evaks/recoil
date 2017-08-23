@@ -12,11 +12,11 @@ goog.require('recoil.util.object');
  !{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table},
  !{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}>}
  * @constructor
- * @param {!function (!recoil.structs.table.TableRow) : !Object} keyGetter1 gets the join key out of the
+ * @param {!function (!recoil.structs.table.TableRow) : ?} keyGetter1 gets the join key out of the
  *             left table
- * @param {!function (!recoil.structs.table.TableRow) : !Object} keyGetter2 gets the join key out of the
+ * @param {!function (!recoil.structs.table.TableRow) : ?} keyGetter2 gets the join key out of the
  *             right table
- * @param {Array<!recoil.structs.table.ColumnKey>} opt_table2Pks extra primay keys from right table
+ * @param {Array<!recoil.structs.table.ColumnKey>=} opt_table2Pks extra primay keys from right table
                this is nessecary the right table can result in more than 1 row for each left table row
  * @param {recoil.structs.table.TableRow=} opt_defaultRow a row containing the default values if right row
  *             does not exist, if this is supplied then it is assumed this is an outer join

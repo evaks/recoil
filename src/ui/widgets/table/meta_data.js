@@ -1,8 +1,11 @@
 goog.provide('recoil.ui.widgets.TableMetaData');
 goog.provide('recoil.ui.widgets.table.DefaultColumn');
+goog.provide('recoil.ui.widgets.table.SeperatorColumn');
 
 goog.require('recoil.structs.table.ColumnKey');
 goog.require('recoil.structs.table.Table');
+goog.require('recoil.util.func');
+goog.require('recoil.util.object');
 
 /**
  * data that describes the table, it contains the columns and how to contruct the render widget
@@ -11,6 +14,7 @@ goog.require('recoil.structs.table.Table');
  */
 recoil.ui.widgets.TableMetaData = function() {
     this.columns_ = [];
+    this.colSeperators_ = [];
 };
 
 /**
@@ -23,6 +27,20 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
     }
     this.columns_.push(col);
 };
+/**
+ * @param {!recoil.structs.table.ColumnKey} key
+ * @param {string|Node} name if you pass a node this will allow better formating of header
+ * @param {!Object=} opt_meta
+ */
+
+recoil.ui.widgets.TableMetaData.prototype.addSeperatorCol = function (key, name, opt_meta) {
+    if (!key) {
+        throw new Error('undefined column key');
+    }
+
+    this.addColumn(new recoil.ui.widgets.table.SeperatorColumn(key, name, opt_meta || {}));
+    this.colSeperators_.push(key);
+}
 
 /**
  * @param {!function(recoil.structs.table.ColumnKey,recoil.ui.widgets.table.Column)} func
@@ -32,6 +50,8 @@ recoil.ui.widgets.TableMetaData.prototype.forEachColumn = function(func) {
         func(col.getKey(), col);
     });
 };
+
+
 /**
  *
  * @template CT
@@ -66,7 +86,50 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
         mtable.setColumnMeta(col.getKey(), meta);
         pos++;
     });
+    var me = this;
+    if (this.colSeperators_.length > 0) {
+        var res = mtable.freeze().createEmpty([], this.colSeperators_);
+
+       me.colSeperators_.forEach(function (col) {
+           res.addColumnMeta(col, {cellDecorator: recoil.ui.widgets.TableMetaData.createSpanDecorator(mtable.size() + 1)});
+       });
+        
+        mtable.forEach(function (row) {
+           var mrow = row.unfreeze();
+           me.colSeperators_.forEach(function (col) {
+               mrow.set(col, null);
+               mrow.addCellMeta(col, {cellDecorator: null});
+
+           })
+           res.addRow(mrow); 
+        });
+        return res.freeze();
+    }
     return mtable.freeze();
+};
+/**
+ * @type {!Object} 
+ * @final
+ */ 
+recoil.ui.widgets.TableMetaData.SPAN_FUNC = recoil.util.object.uniq();
+
+/**
+ * the default decorator for making cells
+ * @final
+ * @private
+ * @return {function():recoil.ui.RenderedDecorator}
+ */
+
+recoil.ui.widgets.TableMetaData.createSpanDecorator = function(size) {
+    var res = function () {
+        return new recoil.ui.RenderedDecorator(
+            res,
+            goog.dom.createDom('td', {colspan: size, class:'recoil-table-group'}));
+        
+        };
+    recoil.util.func.makeEqualFunc(res, recoil.ui.widgets.TableMetaData.SPAN_FUNC, size);
+    return res;
+
 };
 /**
  * return all the haviours containted in this meta data structure
@@ -125,5 +188,42 @@ recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function(curMeta) {
  * @return {recoil.structs.table.ColumnKey}
  */
 recoil.ui.widgets.table.DefaultColumn.prototype.getKey = function() {
+    return this.key_;
+};
+
+/**
+ * @constructor
+ * @template T
+ * @param {recoil.structs.table.ColumnKey} key
+ * @param {string|Node} name
+ * @param {!Object=} opt_meta
+ * @implements {recoil.ui.widgets.table.Column}
+ */
+recoil.ui.widgets.table.SeperatorColumn = function(key, name, opt_meta) {
+    this.name_ = name;
+    this.key_ = key;
+    this.meta_ = opt_meta || {};
+};
+
+/**
+ * @param {Object} curMeta
+ * @return {Object}
+ */
+recoil.ui.widgets.table.SeperatorColumn.prototype.getMeta = function(curMeta) {
+    /**
+     * @type {Object<string, *>}
+     */
+    var meta = {name: this.name_};
+    goog.object.extend(meta, this.meta_, curMeta);
+
+    var column = new recoil.ui.widgets.table.StringColumn(this.key_, meta.name);
+    
+    return column.getMeta(meta);
+};
+
+/**
+ * @return {recoil.structs.table.ColumnKey}
+ */
+recoil.ui.widgets.table.SeperatorColumn.prototype.getKey = function() {
     return this.key_;
 };

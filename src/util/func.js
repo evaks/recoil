@@ -46,3 +46,17 @@ recoil.util.func.invokeParamsAndArray = function(func, obj, var_arguments) {
     }
     return func.apply(obj, args);
 };
+
+/**
+ * @param {function(...)} func
+ * @param {?} key
+ * @param {?} data
+ */
+recoil.util.func.makeEqualFunc = function (func, key, data) {
+    func.$key = {key: key, data: data};
+    
+    func.equals = function (that) {
+        return that && recoil.util.object.isEqual(that.$key, func.$key);
+    }
+    
+};

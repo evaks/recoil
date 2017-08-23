@@ -695,10 +695,23 @@ recoil.frp.Behaviour.prototype.quickLoopCheck_ = function() {
  */
 recoil.frp.Behaviour.prototype.debug = function(name) {
     var behaviour = this;
+     
+    var getDebug = function (metaV) {
+        if (metaV.good()) {
+            var val =  metaV.get();
+            if (val.toDebugObj) {
+               return val.toDebugObj();                    
+            }
+            else {
+                return val;
+            }
+        }
+        return metaV;
+    }
     return behaviour.frp().metaLiftBI(
         function() {
             if (behaviour.metaGet().good()) {
-                console.log(name, 'calc', behaviour.get());
+                    console.log(name, 'calc', getDebug(behaviour.metaGet()));
             }
             else {
                 console.log(name, 'calc (not good)', behaviour.metaGet());
@@ -706,7 +719,8 @@ recoil.frp.Behaviour.prototype.debug = function(name) {
             return behaviour.metaGet();
         },
         function(val) {
-            console.log(name, 'inv', val);
+            console.log(name, 'inv', getDebug(val));
+
             behaviour.metaSet(val);
         }, behaviour);
 };
