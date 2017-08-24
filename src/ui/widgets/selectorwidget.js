@@ -6,6 +6,7 @@ goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Debug');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplanation');
+goog.require('recoil.ui.TooltipHelper');
 goog.require('recoil.ui.widgets.LabelWidget');
 goog.require('recoil.util');
 
@@ -36,7 +37,7 @@ recoil.ui.widgets.SelectorWidget = function(scope) {
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.selector_, this, this.updateState_);
     // this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.ACTION);
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.selector_, goog.ui.Component.EventType.CHANGE);
-
+    this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.selector_, this.container_.getElement());
 };
 
 
@@ -142,7 +143,9 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options) {
         }
 
     }, this.valueB_, this.listB_));
-
+    this.enabledHelper_.attach(
+        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
+        this.helper_);
 };
 
 /**
@@ -170,7 +173,7 @@ recoil.ui.widgets.SelectorWidget.prototype.updateState_ = function(helper) {
         var list = this.listB_.get();
         var sel = this.selector_;
         var enabledItems = this.enabledItemsB_.get();
-        sel.setEnabled(this.enabledB_.get().val());
+        //sel.setEnabled(this.enabledB_.get().val());
         sel.setVisible(this.editableB_.get());
         this.readOnlyWidget_.getComponent().setVisible(!this.editableB_.get());
         var renderer = this.rendererB_.get();
