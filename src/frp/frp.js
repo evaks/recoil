@@ -699,7 +699,7 @@ recoil.frp.Behaviour.prototype.debug = function(name) {
     var getDebug = function (metaV) {
         if (metaV.good()) {
             var val =  metaV.get();
-            if (val.toDebugObj) {
+            if (val && val.toDebugObj) {
                return val.toDebugObj();                    
             }
             else {
