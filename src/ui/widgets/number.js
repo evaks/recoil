@@ -47,7 +47,7 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.number_, recoil.ui.EventHelper.EL_CHANGE);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.number_);
     this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.number_.getElement()], [this.readonly_.getComponent().getElement()]);
-
+    this.keyPressHelper_ = new recoil.ui.EventHelper(scope, this.number_, goog.events.EventType.KEYDOWN);
 };
 
 /**
@@ -205,10 +205,29 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
 
                            var txt = clip.getData('text/plain');
 
-                           txt = txt.replace(/[^0-9.+]/g, 'F');
-                           console.log('paste', e, txt);
-//            e.preventDefault();
-//                           e.stopPropagation();
+                           var newtxt = txt.replace(/[^0-9.+-]/g, '');
+                           var orig = inputEl.value;
+                           var before = orig.substr(0, inputEl.selectionStart);
+                           var after = orig.substr(inputEl.selectionEnd);
+
+                           var selPos = inputEl.selectionStart + newtxt.length;
+                           var newNum = before + newtxt + after;
+                           if (newtxt === '' || !newtxt.match(/^-?[0-9]+(\.[0-9]+)?$/)) {
+                               e.preventDefault();
+                           }
+                           else {
+                               try {
+                                   var newValue = parseFloat(newNum);
+                                   inputEl.value = newNum;
+
+                                   inputEl.selectionStart = selPos;
+                                   inputEl.selectionEnd = selPos;
+                                   e.preventDefault();
+                               } catch (e) {
+                                   e.preventDefault();
+                               }                                   
+
+                           }
                            //filter stuff here
                        });
 
@@ -379,12 +398,15 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
                                  formatter: this.formatterB_,
                                  classes: arrUtil.append(this.classesB_, ['recoil-number'])
                                 });
-
-
     var me = this;
+    this.keyPressHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
+        if (v.keyCode === goog.events.KeyCodes.ESC) {
+            me.updateValue_(me.valueHelper_);
+        }
+    }, this.valueB_,  this.outErrorsB_, this.validatorB_, this.allowNullB_));
+
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-
         if (inputEl.validity.valid && (inputEl.value !== '' || me.allowNullB_.get())) {
             var val = inputEl.value === '' ? null : parseFloat(inputEl.value);
             var error = me.validatorB_.get()(val);
@@ -421,7 +443,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 };
 /**
  * @private
- * @param {recoil.ui.WidgetHelper} helper
+ * @param {recoil.ui.ComponentWidgetHelper} helper
  */
 recoil.ui.widgets.NumberWidget.prototype.updateValidator_ = function(helper) {
     var me = this;
@@ -547,7 +569,7 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
 
 /**
  *
- * @param {recoil.ui.WidgetHelper} helper
+ * @param {recoil.ui.ComponentWidgetHelper} helper
  * @private
  */
 recoil.ui.widgets.NumberWidget.prototype.updateValue_ = function(helper) {
