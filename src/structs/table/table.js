@@ -828,7 +828,7 @@ recoil.structs.table.MutableTable.prototype.addRow = function(row) {
 
     var tblRow = row.keepColumns(goog.array.concat(this.primaryColumns_, this.otherColumns_));
     if (this.rows_.findFirst(tblRow) !== null) {
-        throw 'row already exists ';
+        throw new Error('row already exists ');
     }
     this.rows_.add(tblRow);
     this.ordered_.add(tblRow);
