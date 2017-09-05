@@ -1208,8 +1208,13 @@ recoil.db.ChangeSet.Path.prototype.toString = function() {
     var txt = [];
     this.items().forEach(function(part) {
         var p = part.name();
+
         if (part.keys().length > 0) {
-            p += '{' + part.keys().join(',') + '}';
+            var keyStrs = [];
+            part.keys().forEach(function(key) {
+                keyStrs.push(JSON.stringify(key));
+            });
+            p += '{' + keyStrs.join(',') + '}';
         }
         txt.push(p);
     });

@@ -205,28 +205,9 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
 
                            var txt = clip.getData('text/plain');
 
-                           var newtxt = txt.replace(/[^0-9.+-]/g, '');
-                           var orig = inputEl.value;
-                           var before = orig.substr(0, inputEl.selectionStart);
-                           var after = orig.substr(inputEl.selectionEnd);
 
-                           var selPos = inputEl.selectionStart + newtxt.length;
-                           var newNum = before + newtxt + after;
-                           if (newtxt === '' || !newtxt.match(/^-?[0-9]+(\.[0-9]+)?$/)) {
+                           if (txt === '' || !txt.match(/^-?[0-9]*(\.[0-9]*)?$/)) {
                                e.preventDefault();
-                           }
-                           else {
-                               try {
-                                   var newValue = parseFloat(newNum);
-                                   inputEl.value = newNum;
-
-                                   inputEl.selectionStart = selPos;
-                                   inputEl.selectionEnd = selPos;
-                                   e.preventDefault();
-                               } catch (e) {
-                                   e.preventDefault();
-                               }
-
                            }
                            //filter stuff here
                        });
