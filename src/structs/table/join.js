@@ -72,10 +72,10 @@ recoil.structs.table.Join.prototype.calculate = function(tables) {
                 return pks.indexOf(value) < 0;
             });
     var seen = {};
-    tables.left.getColumns().forEach(function (col) {
+    tables.left.getColumns().forEach(function(col) {
         seen[col] = true;
     });
-    tables.right.getColumns().forEach(function (col) {
+    tables.right.getColumns().forEach(function(col) {
         if (pks.indexOf(col) < 0) {
             if (!seen[col]) {
                 otherColumns.push(col);
@@ -208,14 +208,14 @@ recoil.structs.table.Join.prototype.inverse = function(table, sources) {
  * @param {!recoil.structs.table.ColumnKey=} opt_key2
  * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
  */
-recoil.structs.table.Join.createKeyJoin = function (table1B, table2B, key1, opt_key2) {
-    var keyGetter1 = function (row) {
+recoil.structs.table.Join.createKeyJoin = function(table1B, table2B, key1, opt_key2) {
+    var keyGetter1 = function(row) {
         return row.get(key1);
-    }
-    var keyGetter2 = function (row) {
+    };
+    var keyGetter2 = function(row) {
         return row.get(opt_key2 || key1);
-    }
-    var join = new recoil.structs.table.Join(keyGetter1,  keyGetter2);   
+    };
+    var join = new recoil.structs.table.Join(keyGetter1, keyGetter2);
 
-    return recoil.frp.Inversable.create(table1B.frp(), join,{left: table1B, right: table2B});
+    return recoil.frp.Inversable.create(table1B.frp(), join, {left: table1B, right: table2B});
 }

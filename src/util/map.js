@@ -14,7 +14,7 @@ goog.provide('recoil.util.map');
 
 recoil.util.map.safeGet = function(map, key, opt_def) {
     var res = map[key];
-    if (!res && arguments.length===3) {
+    if (!res && arguments.length === 3) {
         res = opt_def;
         map[key] = opt_def;
     }
@@ -39,14 +39,14 @@ recoil.util.map.safeRecGet = function(map, keys, opt_def) {
     }
     var curMap = map;
     for (var i = 0; i < keys.length - 1; i++) {
-        if (arguments.length===3) {
+        if (arguments.length === 3) {
             curMap = recoil.util.map.safeGet(curMap, keys[i], {});
         }
-        else{
+        else {
             curMap = recoil.util.map.safeGet(curMap, keys[i]);
         }
     }
-    if (arguments.length===3) {
+    if (arguments.length === 3) {
         return recoil.util.map.safeGet(curMap, keys[i], opt_def);
     }
     return recoil.util.map.safeGet(curMap, keys[i]);

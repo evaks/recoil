@@ -33,14 +33,14 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
  * @param {!Object=} opt_meta
  */
 
-recoil.ui.widgets.TableMetaData.prototype.addSeperatorCol = function (key, name, opt_meta) {
+recoil.ui.widgets.TableMetaData.prototype.addSeperatorCol = function(key, name, opt_meta) {
     if (!key) {
         throw new Error('undefined column key');
     }
 
     this.addColumn(new recoil.ui.widgets.table.SeperatorColumn(key, name, opt_meta || {}));
     this.colSeperators_.push(key);
-}
+};
 
 /**
  * @param {!function(recoil.structs.table.ColumnKey,recoil.ui.widgets.table.Column)} func
@@ -90,42 +90,42 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
     if (this.colSeperators_.length > 0) {
         var res = mtable.freeze().createEmpty([], this.colSeperators_);
 
-       me.colSeperators_.forEach(function (col) {
+       me.colSeperators_.forEach(function(col) {
            res.addColumnMeta(col, {cellDecorator: recoil.ui.widgets.TableMetaData.createSpanDecorator(mtable.size() + 1)});
        });
-        
-        mtable.forEach(function (row) {
+
+        mtable.forEach(function(row) {
            var mrow = row.unfreeze();
-           me.colSeperators_.forEach(function (col) {
+           me.colSeperators_.forEach(function(col) {
                mrow.set(col, null);
                mrow.addCellMeta(col, {cellDecorator: null});
 
-           })
-           res.addRow(mrow); 
+           });
+           res.addRow(mrow);
         });
         return res.freeze();
     }
     return mtable.freeze();
 };
 /**
- * @type {!Object} 
+ * @type {!Object}
  * @final
- */ 
+ */
 recoil.ui.widgets.TableMetaData.SPAN_FUNC = recoil.util.object.uniq();
 
 /**
  * the default decorator for making cells
  * @final
- * @private
+ * @param {!number} size
  * @return {function():recoil.ui.RenderedDecorator}
  */
 
 recoil.ui.widgets.TableMetaData.createSpanDecorator = function(size) {
-    var res = function () {
+    var res = function() {
         return new recoil.ui.RenderedDecorator(
             res,
-            goog.dom.createDom('td', {colspan: size, class:'recoil-table-group'}));
-        
+            goog.dom.createDom('td', {colspan: size, class: 'recoil-table-group'}));
+
         };
     recoil.util.func.makeEqualFunc(res, recoil.ui.widgets.TableMetaData.SPAN_FUNC, size);
     return res;
@@ -217,7 +217,7 @@ recoil.ui.widgets.table.SeperatorColumn.prototype.getMeta = function(curMeta) {
     goog.object.extend(meta, this.meta_, curMeta);
 
     var column = new recoil.ui.widgets.table.StringColumn(this.key_, meta.name);
-    
+
     return column.getMeta(meta);
 };
 

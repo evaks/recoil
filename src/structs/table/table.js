@@ -565,7 +565,7 @@ recoil.structs.table.MutableTable.prototype.getColumns = function() {
 recoil.structs.table.MutableTable.prototype.toDebugObj = function() {
     var tableOut = [];
     var behaviour = this;
-    this.forEach(function(row){
+    this.forEach(function(row) {
         tableOut.push(row);
     });
     return tableOut;
@@ -1161,7 +1161,7 @@ recoil.structs.table.Table.prototype.forEachPlacedColumn = function(func) {
 recoil.structs.table.Table.prototype.toDebugObj = function() {
     var tableOut = [];
     var behaviour = this;
-    this.forEach(function(row){
+    this.forEach(function(row) {
         tableOut.push(row);
     });
     return tableOut;

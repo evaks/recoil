@@ -695,19 +695,19 @@ recoil.frp.Behaviour.prototype.quickLoopCheck_ = function() {
  */
 recoil.frp.Behaviour.prototype.debug = function(name) {
     var behaviour = this;
-     
-    var getDebug = function (metaV) {
+
+    var getDebug = function(metaV) {
         if (metaV.good()) {
-            var val =  metaV.get();
+            var val = metaV.get();
             if (val && val.toDebugObj) {
-               return val.toDebugObj();                    
+               return val.toDebugObj();
             }
             else {
                 return val;
             }
         }
         return metaV;
-    }
+    };
     return behaviour.frp().metaLiftBI(
         function() {
             if (behaviour.metaGet().good()) {

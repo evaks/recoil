@@ -225,7 +225,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
                                    e.preventDefault();
                                } catch (e) {
                                    e.preventDefault();
-                               }                                   
+                               }
 
                            }
                            //filter stuff here
@@ -403,7 +403,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
         if (v.keyCode === goog.events.KeyCodes.ESC) {
             me.updateValue_(me.valueHelper_);
         }
-    }, this.valueB_,  this.outErrorsB_, this.validatorB_, this.allowNullB_));
+    }, this.valueB_, this.outErrorsB_, this.validatorB_, this.allowNullB_));
 
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
@@ -488,26 +488,26 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
         var manualValid = true;
          if (me.stepB_.hasRefs() && me.minB_.hasRefs() && me.maxB_.hasRefs() &&
                 me.stepB_.good() && me.minB_.good() && me.maxB_.good()) {
-                    
+
             if (el.value === '') {
                 manualValid = allowNull;
             }
             else {
                 try {
                     var v = parseFloat(el.value);
-                    if (v <  me.minB_.get() || v > me.maxB_.get()) {
+                    if (v < me.minB_.get() || v > me.maxB_.get()) {
                         manualValid = false;
                     }
                     else {
                         v = v - me.minB_.get();
-                        
+
                         var mul = Math.pow(10, Math.max(
                             recoil.ui.widgets.NumberWidget.getDp_(me.minB_.get()),
                             recoil.ui.widgets.NumberWidget.getDp_(me.stepB_.get())));
                         var step = Math.floor(mul * me.stepB_.get());
                         v = Math.floor(v * mul);
-                        
-                        manualValid = (v % step)  === 0;
+
+                        manualValid = (v % step) === 0;
                     }
                 }
                 catch (e) {
