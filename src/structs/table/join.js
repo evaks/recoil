@@ -201,7 +201,13 @@ recoil.structs.table.Join.prototype.inverse = function(table, sources) {
     return {left: leftRes.freeze(), right: rightRes.freeze()};
 };
 
-
+/**
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} table1B
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} table2B
+ * @param {!recoil.structs.table.ColumnKey} key1
+ * @param {!recoil.structs.table.ColumnKey=} opt_key2
+ * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
+ */
 recoil.structs.table.Join.createKeyJoin = function (table1B, table2B, key1, opt_key2) {
     var keyGetter1 = function (row) {
         return row.get(key1);
