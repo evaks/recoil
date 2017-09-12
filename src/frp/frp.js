@@ -12,6 +12,7 @@ goog.require('recoil.exception.LoopDetected');
 goog.require('recoil.exception.NoAccessors');
 goog.require('recoil.exception.NotAttached');
 goog.require('recoil.exception.NotInTransaction');
+goog.require('recoil.frp.Debugger');
 goog.require('recoil.structs.UniquePriorityQueue');
 goog.require('recoil.util');
 
@@ -610,6 +611,15 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
 recoil.frp.Behaviour.prototype.noInverseB = function() {
     return this.frp_.liftB(function(v) {return v}, this);
 };
+
+/**
+ * allows naming of behaviours for debugging
+ * @param {!string} name
+ */
+recoil.frp.Behaviour.prototype.setName = function(name) {
+    this.name_ = name;
+};
+
 /**
  * @return {!boolean}
  */
@@ -1010,7 +1020,21 @@ recoil.frp.Behaviour.prototype.set = function(value) {
         this.metaSet(new recoil.frp.BStatus(value));
     }
 };
+/**
+ * sets the debugger interface for the frp engin
+ * @param {recoil.frp.Debugger} dbugger
+ */
+recoil.frp.Frp.prototype.setDebugger = function(dbugger) {
+    this.transactionManager_.debugger_ = dbugger;
+};
 
+/**
+ * for debugging, if the debugger has paused the execution this resumes
+ * it
+ */
+recoil.frp.Frp.prototype.resume = function() {
+    this.transactionManager_.resume();
+};
 /**
  * @template T
  * @param {T} initial
@@ -1568,7 +1592,27 @@ recoil.frp.TransactionManager.prototype.lockIds_ = function(callback) {
         this.curIndexLock_--;
     }
 };
-
+/**
+ * resumes the transaction after it has been paused by the debugger
+ */
+recoil.frp.TransactionManager.prototype.resume = function() {
+    if (this.debugState_) {
+        this.debugPaused_ = false;
+        var pending = this.debugState_.pendingTrans;
+        this.debugState_.pendingTrans = [];
+        if (this.transDone_()) {
+            this.level_--;
+            for (var i = 0; i < pending.length; i++) {
+                this.doTrans(pending[i]);
+            }
+        }
+        else {
+            for (i = 0; i < pending.length; i++) {
+                pending[i]();
+            }
+        }
+    }
+};
 /**
  * to a transaction nothing should fire until we exit out the top level
  *
@@ -1577,46 +1621,66 @@ recoil.frp.TransactionManager.prototype.lockIds_ = function(callback) {
  */
 
 recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
+    if (this.debugState_) {
+        this.debugState_.pendingTrans.push(callback);
+        return;
+    }
     this.level_++;
 
     try {
         callback();
     } finally {
+        var decrement = true;
         try {
             if (this.level_ === 1) {
-                var seen = true;
-                while (seen) {
-                    seen = false;
-                    this.todoRefs_ = {};
-                    var todo;
-                    try {
-                        this.propagateAll_();
-                    }
-                    finally {
-                        todo = this.todoRefs_;
-                        this.todoRefs_ = undefined;
-                    }
-                    for (var k in todo) {
-                        seen = true;
-                        var ref = todo[k];
-                        if (ref.start === ref.end) {
-                            try {
-                                ref.b.fireRefListeners_(ref.start);
-                            }
-                            catch (e) {
-                                console.error(e);
-                            }
-                        }
-                    }
-                }
-
+                decrement = this.transDone_();
             }
         } finally {
-            this.level_--;
+            if (decrement) {
+                this.level_--;
+            }
         }
     }
 };
+/**
+ * @private
+ * @return {!boolean} true if we should continue
+ * finishes of the transaction if it at level 1, it performas behaviour tree traversal
+ */
+recoil.frp.TransactionManager.prototype.transDone_ = function() {
+    var seen = true;
+    while (seen) {
+        seen = false;
+        this.todoRefs_ = this.debugState_ ? this.debugState_.todoRefs_ : {};
+        var todo;
+        try {
+                this.propagateAll_();
+        }
+        finally {
+            if (this.debugState_) {
+                this.debugState_.todo = this.todoRefs_;
+                this.todoRefs_ = undefined;
+                return false;
+            }
+                todo = this.todoRefs_;
+            this.todoRefs_ = undefined;
+        }
+        for (var k in todo) {
+            seen = true;
+            var ref = todo[k];
+            if (ref.start === ref.end) {
+                    try {
+                        ref.b.fireRefListeners_(ref.start);
+                    }
+                catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+        }
+    return true;
 
+};
 /**
  * make an array of all providers of behaviour
  *
@@ -1708,22 +1772,23 @@ recoil.frp.TransactionManager.prototype.propagateAll_ = function() {
     var wasUp = false;
     var wasDown = false;
 
-    while (!pendingUp.isEmpty() || !pendingDown.isEmpty()) {
-        if (!pendingDown.isEmpty() && !wasDown) {
+
+    while ((!pendingUp.isEmpty() || !pendingDown.isEmpty() || this.debugState_) && !this.debugPaused_) {
+        if ((!pendingDown.isEmpty() && !wasDown && !this.debugState_) || (this.debugState_ && this.debugState_.dir === recoil.frp.Frp.Direction_.DOWN)) {
             this.propagate_(recoil.frp.Frp.Direction_.DOWN);
             wasUp = false;
             wasDown = true;
             continue;
         }
 
-        if (!pendingUp.isEmpty() && !wasUp) {
+        if ((!pendingUp.isEmpty() && !wasUp && !this.debugState_) || (this.debugState_ && this.debugState_.dir === recoil.frp.Frp.Direction_.UP)) {
             this.propagate_(recoil.frp.Frp.Direction_.UP);
             wasUp = true;
             wasDown = false;
             continue;
         }
-            wasUp = false;
-            wasDown = false;
+        wasUp = false;
+        wasDown = false;
     }
 };
 
@@ -1735,10 +1800,10 @@ recoil.frp.TransactionManager.prototype.propagateAll_ = function() {
  */
 recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
     var pendingHeap = this.getPending_(dir);
-    var nextPending = new recoil.structs.UniquePriorityQueue(dir.heapComparator());
-    var visited = {};
+    var nextPending = this.debugState_ ? this.debugState_.nextPending : new recoil.structs.UniquePriorityQueue(dir.heapComparator());
+    var visited = this.debugState_ ? this.debugState_.visited : {};
 
-    var cur = pendingHeap.pop();
+    var cur = this.debugState_ ? this.debugState_.cur : pendingHeap.pop();
     var prev = null;
     var me = this;
     var heapComparator = dir.heapComparator();
@@ -1746,24 +1811,54 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
         // calculate changed something
         var deps;
         var nextItr = [];
-        var accessFunc = function() {
-            if (dir === recoil.frp.Frp.Direction_.UP) {
-                me.nestIds(cur, function() {
-                    deps = dir.calculate(cur, cur.providers_, me.dependancyMap_[cur.seqStr_], nextItr);
-                });
-            } else {
-                me.lockIds_(function() {
-                    deps = dir.calculate(cur, cur.providers_, me.dependancyMap_[cur.seqStr_], nextItr);
-                });
-
-            }
-        };
-
-        var args = [accessFunc, cur];
-        for (var i = 0; i < cur.providers_.length; i++) {
-            args.push(cur.providers_[i]);
+        var args;
+        if (this.debugState_) {
+            deps = this.debugState_.deps;
+            nextItr = this.debugState_.nextItr;
+            args = this.debugState_.args;
+            delete this.debugState_;
         }
-        recoil.frp.Frp.access.apply(this, args);
+        else {
+            var accessFunc = function() {
+                if (dir === recoil.frp.Frp.Direction_.UP) {
+                    me.nestIds(cur, function() {
+                        deps = dir.calculate(cur, cur.providers_, me.dependancyMap_[cur.seqStr_], nextItr);
+                    });
+                } else {
+                    me.lockIds_(function() {
+                        deps = dir.calculate(cur, cur.providers_, me.dependancyMap_[cur.seqStr_], nextItr);
+                    });
+
+                }
+            };
+
+            args = [accessFunc, cur];
+            for (var i = 0; i < cur.providers_.length; i++) {
+                args.push(cur.providers_[i]);
+            }
+            if (this.debugger_ && !this.debugger_.preVisit(cur)) {
+                this.debugPaused_ = true;
+                this.debugState_ = {
+                    args: args,
+                    visited: visited,
+                    dir: dir,
+                    cur: cur,
+                    nextItr: nextItr,
+                    nextPending: nextPending,
+                    deps: deps,
+                    pendingTrans: []
+                    };
+                return;
+            }
+        }
+        try {
+            recoil.frp.Frp.access.apply(this, args);
+        }
+        finally {
+            if (this.debugger_) {
+                this.debugger_.postVisit(cur);
+            }
+        }
         var delayed = false;
         for (i = 0; i < nextItr.length && !delayed; i++) {
             delayed = nextItr[i].force && nextItr[i].behaviour === cur;

@@ -860,3 +860,40 @@ function testSameBehaviour() {
 }
 
 
+function testBreakPoint() {
+
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+
+    var l1B = frp.createB(1);
+    var l2B = frp.liftBI(
+        function (v) {
+            return v + 1;
+        }, function (v) {
+            l1B.set(v - 1);
+        }, l1B);
+    tm.attach(l2B);
+
+    assertEquals(2, l2B.unsafeMetaGet().get());
+
+    frp.setDebugger({
+        breakpoint: function (node) {
+        },
+        preVisit: function (node) {
+            return node !== l2B;
+        },
+        postVisit: function (node) {
+        }
+    });
+    frp.accessTrans(function () {
+        l1B.set(3);
+    },l1B); 
+    assertEquals(3, l1B.unsafeMetaGet().get());
+    assertEquals(2, l2B.unsafeMetaGet().get());
+
+    frp.resume();
+
+    assertEquals(3, l1B.unsafeMetaGet().get());
+    assertEquals(4, l2B.unsafeMetaGet().get());
+    
+}
