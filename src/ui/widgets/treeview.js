@@ -50,6 +50,40 @@ recoil.ui.widgets.TreeView.defaultConfig = (function() {
     res.showRoot = true;
     return res;
 })();
+/**
+ * scrolls the element into view if not on screen
+ * @param {!Element} el
+ */
+recoil.ui.widgets.TreeView.scrollIfNeeded = function(el) {
+    var findScrollableParent = function(el) {
+        var cur = el;
+        while (cur) {
+            if (cur.scrollHeight > cur.clientHeight) {
+                var style = getComputedStyle(cur);
+                var overflow = style ? style.overflow : undefined;
+                if (['auto', 'scroll'].indexOf(overflow) >= 0) {
+                    return cur;
+                }
+            }
+            cur = cur.parentElement;
+        }
+        return null;
+    };
+    var ancestor = findScrollableParent(el);
+    if (ancestor && ancestor.scrollIntoView) {
+        var bound = el.getBoundingClientRect();
+        var abound = ancestor.getBoundingClientRect();
+        if (bound && abound) {
+            if (abound.bottom < bound.bottom) {
+                el.scrollIntoView(false);
+            }
+            else if (bound.top < abound.top) {
+                el.scrollIntoView(true);
+
+            }
+        }
+    }
+};
 
 /**
  * This creates a TreeControl object. A tree control provides a way to
@@ -71,6 +105,26 @@ recoil.ui.widgets.TreeNode = function(key, content, opt_config, opt_domHelper) {
 };
 goog.inherits(recoil.ui.widgets.TreeNode, goog.ui.tree.TreeNode);
 
+/**
+ * Handles a key down event.
+ * @param {!goog.events.BrowserEvent} e The browser event.
+ * @return {boolean} The handled value.
+ * @protected
+ */
+recoil.ui.widgets.TreeNode.prototype.onKeyDown = function(e) {
+
+    var handled = recoil.ui.widgets.TreeNode.superClass_.onKeyDown.call(this, e);
+    if (handled && this.getTree().getSelectedItem()) {
+        var selected = this.getTree().getSelectedItem();
+        if (selected) {
+            var el = selected.getRowElement();
+            if (el) {
+                recoil.ui.widgets.TreeView.scrollIfNeeded(el);
+            }
+        }
+    }
+    return handled;
+};
 /**
  * Handles a click event.
  * @param {!goog.events.BrowserEvent} e The browser event.
