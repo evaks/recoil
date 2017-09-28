@@ -86,6 +86,33 @@ recoil.ui.WidgetHelper.prototype.setComponent = function(container) {
 };
 
 /**
+ * @return {!Array<*>} an array of errors
+ */
+recoil.ui.WidgetHelper.prototype.errors = function() {
+    var result = [];
+    for (var key = 0; key < this.behaviours_.length; key++) {
+        var b = this.behaviours_[key];
+        if (!b.hasRefs()) {
+            continue;
+        }
+        var meta = b.metaGet();
+
+        if (meta !== null) {
+            var errors = meta.errors();
+
+            for (var i = 0; i < errors.length; i++) {
+                var error = errors[i];
+                if (result.indexOf(error) === -1) {
+                    result.push(error);
+                }
+            }
+        }
+    }
+
+    return result;
+};
+
+/**
  * remove all the cheldren
  */
 recoil.ui.WidgetHelper.prototype.clearContainer = function() {

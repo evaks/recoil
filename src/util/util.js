@@ -58,8 +58,8 @@ recoil.util.invokeParamsAndArray = recoil.util.func.invokeParamsAndArray;
 /**
  * compares 2 objects
  *
- * @param {Object|number|undefined} a
- * @param {Object|number|undefined} b
+ * @param {?} a
+ * @param {?} b
  * @param {Object=} opt_ignore a map of fields to ignore
  * @return {!boolean}
  */
