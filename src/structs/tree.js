@@ -114,7 +114,7 @@ recoil.structs.Tree.prototype.key = function() {
 recoil.structs.Tree.prototype.insertChildAt = function(child, position) {
     var newChildren = goog.array.clone(this.children_);
     goog.array.insertAt(newChildren, child, position);
-    return new recoil.structs.Tree(this.value_, newChildren);
+    return new recoil.structs.Tree(this.key_, this.value_, newChildren);
 };
 
 /**
@@ -125,7 +125,7 @@ recoil.structs.Tree.prototype.insertChildAt = function(child, position) {
 recoil.structs.Tree.prototype.removeChild = function(child) {
     var newChildren = goog.array.clone(this.children_);
     goog.array.remove(newChildren, child);
-    return new recoil.structs.Tree(this.value_, newChildren);
+    return new recoil.structs.Tree(this.key_, this.value_, newChildren);
 };
 
 /**
@@ -136,5 +136,5 @@ recoil.structs.Tree.prototype.removeChild = function(child) {
 recoil.structs.Tree.prototype.removeChildAt = function(position) {
     var newChildren = goog.array.clone(this.children_);
     goog.array.removeAt(newChildren, position);
-    return new recoil.structs.Tree(this.value_, newChildren);
+    return new recoil.structs.Tree(this.key_, this.value_, newChildren);
 };

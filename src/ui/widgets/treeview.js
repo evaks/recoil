@@ -4,6 +4,7 @@ goog.require('goog.dom');
 goog.require('goog.dom.classlist');
 goog.require('goog.fx.DragDrop');
 goog.require('goog.html.SafeHtml');
+goog.require('goog.object');
 goog.require('goog.structs.TreeNode');
 goog.require('goog.ui.tree.TreeControl');
 goog.require('recoil.frp.Behaviour');
@@ -13,15 +14,6 @@ goog.require('recoil.frp.tree');
 goog.require('recoil.structs.Tree');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.util');
-
-// http://closure-library.googlecode.com/git-history/0148f7ecaa1be5b645fabe7338b9579ed2f951c8/closure/goog/demos/index.html
-// TreeControl, TreeNode
-/**
- * @constructor
- */
-recoil.ui.widgets.Tree = function() {
-
-};
 
 /**
  * @param {!recoil.ui.WidgetScope} scope
@@ -49,6 +41,15 @@ recoil.ui.widgets.TreeView = function(scope) {
     this.expandHelper_ = new recoil.ui.WidgetHelper(scope, this.componentDiv_, this, this.updateExpand_);
 
 };
+
+/**
+ * @type {!Object}
+ */
+recoil.ui.widgets.TreeView.defaultConfig = (function() {
+    var res = goog.object.clone(goog.ui.tree.TreeControl.defaultConfig);
+    res.showRoot = true;
+    return res;
+})();
 
 /**
  * This creates a TreeControl object. A tree control provides a way to
@@ -451,7 +452,7 @@ recoil.ui.widgets.TreeView.prototype.updateTree_ = function(helper, newValue) {
  * attachable behaviours for widget
  */
 recoil.ui.widgets.TreeView.options = recoil.ui.util.StandardOptions(
-    'state', {config: goog.ui.tree.TreeControl.defaultConfig});
+    'state', {config: recoil.ui.widgets.TreeView.defaultConfig});
 /**
  * @param {!recoil.frp.Behaviour<Object>|!Object} options
  * @param {!recoil.frp.Behaviour<!{expanded:Object,internal:(boolean|undefined)}>=} opt_expandedB
