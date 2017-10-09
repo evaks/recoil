@@ -443,6 +443,31 @@ recoil.frp.Util.Options = function(var_options) {
      * @param {!recoil.frp.Behaviour<!Object>|!Object} val
      * @return {!Object}
      */
+    res.bindKeepMeta = function(frp, val) {
+        var optionsB = recoil.frp.struct.flattenMeta(frp, val);
+        var res = new recoil.frp.Util.OptionsType();
+        for (var i = 0; i < args.length; i++)
+            (function(name) {
+                var funcs = functionParams(name);
+                funcs.forEach(function(func) {
+                    func.params.forEach(function(param) {
+                        res[param] = function() {
+                            return recoil.frp.struct.getMeta(param, optionsB, func.def[param]).debug('bound ' + param);
+                        };
+                    });
+                });
+
+        })(args[i]);
+        return res;
+
+    };
+
+    /**
+     *
+     * @param {!recoil.frp.Frp} frp
+     * @param {!recoil.frp.Behaviour<!Object>|!Object} val
+     * @return {!Object}
+     */
     res.bind = function(frp, val) {
         var optionsB = recoil.frp.struct.flatten(frp, val);
         var res = new recoil.frp.Util.OptionsType();

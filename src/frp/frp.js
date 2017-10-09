@@ -101,6 +101,14 @@ recoil.frp.Frp.prototype.detach = function(behaviour) {
 recoil.frp.Status = function() {};
 
 /**
+ * @param {*} val
+ * @return {!boolean}
+ */
+recoil.frp.Status.isStatus = function(val) {
+    return val instanceof recoil.frp.EStatus || val instanceof recoil.frp.BStatus;
+};
+
+/**
  * @return {!Array<*>}
  */
 recoil.frp.Status.prototype.errors = function() {};
@@ -1006,8 +1014,6 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
     }
 
 };
-
-
 /**
  * @param {T} value
  */

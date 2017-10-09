@@ -29,6 +29,32 @@ recoil.frp.struct.get = function(name, value, opt_default) {
 };
 
 /**
+ * @template T,O
+ * @param {string} name the attribute name of the element to get out of the struct
+ * @param {recoil.frp.Behaviour<O>} value the structure to get it out of
+ * @param {T=} opt_default
+ * @return {!recoil.frp.Behaviour<!T>}
+ */
+recoil.frp.struct.getMeta = function(name, value, opt_default) {
+   return value.frp().metaLiftBI(function() {
+       var val = value.get();
+       var res = val ? val[name] : undefined;
+       if (res === undefined) {
+           res = new recoil.frp.BStatus(opt_default);
+       }
+       else if (!recoil.frp.Status.isStatus(res)) {
+           res = new recoil.frp.BStatus(res);
+       }
+
+        return res;
+
+    }, function(newVal) {
+        var res = goog.object.clone(value.get());
+        res[name] = newVal;
+        value.set(res);
+    }, value);
+};
+/**
  * takes a structure and adds all overrides all the fields with extenstions
  * @param {!recoil.frp.Frp} frp the frp engine
  * @param {Object|recoil.frp.Behaviour<Object>} structB
@@ -132,8 +158,9 @@ recoil.frp.struct.getBehaviours = function(struct) {
  * @param {!recoil.frp.Behaviour<!Object>|!Object} struct
  * @param {!Object}  newVal
  * @param {!Array<?>} path
+ * @param {boolean=} opt_meta if true keep meta info
  */
-recoil.frp.struct.setFlattenRec_ = function(struct, newVal, path) {
+recoil.frp.struct.setFlattenRec_ = function(struct, newVal, path, opt_meta) {
     if (newVal === undefined) {
         return;
     }
@@ -145,7 +172,12 @@ recoil.frp.struct.setFlattenRec_ = function(struct, newVal, path) {
 
 
     if (struct instanceof recoil.frp.Behaviour) {
-        struct.set(newVal);
+        if (opt_meta && recoil.frp.Status.isStatus(newVal)) {
+            struct.metaSet(/** @type {!recoil.frp.Status} */ (newVal));
+        }
+        else {
+            struct.set(newVal);
+        }
         return;
     }
 
@@ -155,14 +187,14 @@ recoil.frp.struct.setFlattenRec_ = function(struct, newVal, path) {
     var res;
     if (struct instanceof Array) {
         for (var i = 0; i < struct.length; i++) {
-            recoil.frp.struct.setFlattenRec_(struct[i], newVal[i], newPath);
+            recoil.frp.struct.setFlattenRec_(struct[i], newVal[i], newPath, opt_meta);
         }
         return;
     }
     if (struct instanceof Object) {
         for (var prop in struct) {
             if (struct.hasOwnProperty(prop)) {
-                recoil.frp.struct.setFlattenRec_(struct[prop], newVal[prop], newPath);
+                recoil.frp.struct.setFlattenRec_(struct[prop], newVal[prop], newPath, opt_meta);
             }
         }
         return;
@@ -174,10 +206,14 @@ recoil.frp.struct.setFlattenRec_ = function(struct, newVal, path) {
  * @private
  * @param {!recoil.frp.Behaviour<!Object>|!Object} struct
  * @param {!Array<?>} path
+ * @param {boolean=} opt_meta if true keep meta info
  * @return {!Object}
  */
-recoil.frp.struct.flattenRec_ = function(struct, path) {
+recoil.frp.struct.flattenRec_ = function(struct, path, opt_meta) {
     if (struct instanceof recoil.frp.Behaviour) {
+        if (opt_meta) {
+            return /** @type {!Object} */(struct.metaGet());
+        }
         return struct.get();
     }
 
@@ -200,7 +236,7 @@ recoil.frp.struct.flattenRec_ = function(struct, path) {
     if (struct instanceof Array) {
         res = [];
         for (var i = 0; i < struct.length; i++) {
-            res.push(recoil.frp.struct.flattenRec_(struct[i], newPath));
+            res.push(recoil.frp.struct.flattenRec_(struct[i], newPath, opt_meta));
         }
         return res;
     }
@@ -208,7 +244,7 @@ recoil.frp.struct.flattenRec_ = function(struct, path) {
         res = {};
         for (var prop in struct) {
             if (struct.hasOwnProperty(prop)) {
-                res[prop] = recoil.frp.struct.flattenRec_(struct[prop], newPath);
+                res[prop] = recoil.frp.struct.flattenRec_(struct[prop], newPath, opt_meta);
             }
         }
         return res;
@@ -247,6 +283,39 @@ recoil.frp.struct.flatten = function(frp, structB) {
         return frp.createConstB(structB);
     }
     return frp.liftBI.apply(frp, args);
+
+};
+
+/**
+ * takes a structure which is either a behaviour, or a
+ *       structure with behaviours, and non behaviours in it
+ *       and returns a behaviour with a structur in it, note this is inversable
+ *       when possible
+ * @param {!recoil.frp.Frp} frp
+ * @param {!recoil.frp.Behaviour<!Object>|!Object} structB
+ * @return {!recoil.frp.Behaviour<!Object>}
+ */
+recoil.frp.struct.flattenMeta = function(frp, structB) {
+    if (structB instanceof recoil.frp.Behaviour) {
+        return structB;
+    }
+
+    var args = [
+        function() {
+            return new recoil.frp.BStatus(recoil.frp.struct.flattenRec_(structB, [], true));
+        },
+        function(val) {
+            return recoil.frp.struct.setFlattenRec_(structB, val.get(), [], true);
+
+        }
+    ];
+
+    recoil.frp.struct.getBehavioursRec_(structB, [], args);
+
+    if (args.length === 2) {
+        return frp.createConstB(structB);
+    }
+    return frp.metaLiftBI.apply(frp, args);
 
 };
 /**
