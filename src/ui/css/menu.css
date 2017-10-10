@@ -25,3 +25,7 @@
   position: absolute;
   z-index: 20000; /* Arbitrary, but some apps depend on it... */
 }
+
+.goog-menu-vertical {
+    overflow-y: auto;
+}

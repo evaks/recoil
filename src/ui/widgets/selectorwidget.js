@@ -32,6 +32,8 @@ recoil.ui.widgets.SelectorWidget = function(scope) {
     // not get destroyed unless we manage it ourselves
     this.selector_.setRenderMenuAsSibling(true);
 
+    this.selector_.setScrollOnOverflow(true);
+
     this.container_.addChild(this.selector_, true);
     this.container_.addChild(this.readOnlyWidget_.getComponent(), true);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.selector_, this, this.updateState_);

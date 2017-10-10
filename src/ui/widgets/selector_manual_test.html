@@ -37,7 +37,7 @@ See the COPYING file for details.
     <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuseparator.css">
     <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/flatmenubutton.css">
     <link rel="stylesheet" href="../css/checklist.css">
-
+    <link rel="stylesheet" href="../css/menu.css">
 </head>
 <body>
 
@@ -55,7 +55,9 @@ See the COPYING file for details.
     var $ = goog.dom.getElement;
 
     var value = frp.createB({a: 'test'});
-    var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
+    var list = [{a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'},{a: 'one'},
+                {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'},
+                {a: 'one'}, {a: 'two'}, {a: 'three'}, {a: 'four'}, {a: 'five'}];
     var label = new recoil.ui.widgets.LabelWidget(scope);
     var listB = frp.createNotReadyB();
   setTimeout(function () {
