@@ -20,7 +20,7 @@ goog.require('recoil.util');
  *
  */
 recoil.structs.Tree = function(key, value, opt_children) {
-    this.value_ = recoil.util.safeFreeze(value);
+    this.value_ = value;
     this.key_ = key;
     this.keyMap_ = {};
     if (opt_children) {

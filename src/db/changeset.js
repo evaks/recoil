@@ -899,6 +899,22 @@ recoil.db.ChangeSet.PathItem.prototype.name = function() {
 };
 
 /**
+ * @param {Object} obj
+ * @return {!boolean}
+ */
+recoil.db.ChangeSet.PathItem.prototype.keyMatch = function(obj) {
+    if (!obj) {
+        return false;
+    }
+    for (var i = 0; i < this.keyNames_.length; i++) {
+        if (!recoil.util.object.isEqual(obj[this.keyNames_[i]], this.keys_[i])) {
+            return false;
+        }
+    }
+    return true;
+};
+
+/**
  * @return {!Array<?>}
  */
 recoil.db.ChangeSet.PathItem.prototype.keys = function() {
@@ -1601,6 +1617,7 @@ recoil.db.ChangeSet.Add.prototype.applyToDb = function(db, schema) {
  */
 recoil.db.ChangeSet.Add.prototype.serialize = function(keepOld, schema, valSerializor, opt_compressor) {
     var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
+
     return {type: recoil.db.ChangeSet.Change.Type.ADD, path: this.path_.serialize(valSerializor, compressor),
             deps: recoil.db.ChangeSet.Change.serializeList(this.dependants_, keepOld, schema, valSerializor, compressor)};
 };
@@ -2803,13 +2820,14 @@ recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
     var keys = this.keys_;
     // we could schemas that filter nodes but not yet
     var newKeys = new goog.structs.AvlTree(recoil.util.object.compareKey);
-
-    val.forEach(function(val) {
-        var subKey = schema.createKeyPath(path, val);
-        var newNode = keys.safeFind({key: subKey.lastKeys(), value: new recoil.db.ChangeDbNode.Container()});
-        newNode.value.set(schema, subKey, val);
-        newKeys.add(newNode);
-    });
+    if (val) {
+        val.forEach(function(val) {
+            var subKey = schema.createKeyPath(path, val);
+            var newNode = keys.safeFind({key: subKey.lastKeys(), value: new recoil.db.ChangeDbNode.Container()});
+            newNode.value.set(schema, subKey, val);
+            newKeys.add(newNode);
+        });
+    }
     this.keys_ = newKeys;
 };
 

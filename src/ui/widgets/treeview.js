@@ -39,7 +39,14 @@ recoil.ui.widgets.TreeView = function(scope) {
     this.config_ = new recoil.ui.WidgetHelper(scope, this.componentDiv_, this, this.updateConfig_);
     this.state_ = new recoil.ui.WidgetHelper(scope, this.componentDiv_, this, this.updateTree_);
     this.expandHelper_ = new recoil.ui.WidgetHelper(scope, this.componentDiv_, this, this.updateExpand_);
+    this.selectedB_ = /** @type {!recoil.frp.Behaviour} **/(scope.getFrp().createB(null));
+};
 
+/**
+ * @return {!recoil.frp.Behaviour}
+ */
+recoil.ui.widgets.TreeView.prototype.getSelectedB = function() {
+    return this.selectedB_;
 };
 
 /**
@@ -48,6 +55,8 @@ recoil.ui.widgets.TreeView = function(scope) {
 recoil.ui.widgets.TreeView.defaultConfig = (function() {
     var res = goog.object.clone(goog.ui.tree.TreeControl.defaultConfig);
     res.showRoot = true;
+    res.showLines = true;
+    res.showExpandIcons = true;
     return res;
 })();
 /**
@@ -105,6 +114,14 @@ recoil.ui.widgets.TreeNode = function(key, content, opt_config, opt_domHelper) {
 };
 goog.inherits(recoil.ui.widgets.TreeNode, goog.ui.tree.TreeNode);
 
+
+/**
+ * Selects the node.
+ */
+recoil.ui.widgets.TreeNode.prototype.select = function() {
+    recoil.ui.widgets.TreeNode.superClass_.select.call(this);
+};
+
 /**
  * Handles a key down event.
  * @param {!goog.events.BrowserEvent} e The browser event.
@@ -139,8 +156,20 @@ recoil.ui.widgets.TreeNode.prototype.onClick_ = function(e) {
         e.preventDefault();
         return;
     }
+
+
     if (this.getConfig().oneClickExpand && this.isUserCollapsible()) {
-        this.toggle();
+        if (!this.hasChildren() && e.button === 0) {
+            return;
+        }
+
+        try {
+            this.getTree().userToggle = true;
+            this.toggle();
+        }
+        catch (e) {
+            delete this.getTree().userToggle;
+        }
     }
     e.preventDefault();
 };
@@ -205,6 +234,7 @@ recoil.ui.widgets.TreeNode.prototype.setExpanded = function(expanded) {
     var ce;
     this.setExpandedInternal(expanded);
     var tree = this.getTree();
+    var expandOverride = tree.userToggle && this.getConfig().expandOverride;
     var el = this.getElement();
 
     if (this.hasChildren()) {
@@ -215,8 +245,8 @@ recoil.ui.widgets.TreeNode.prototype.setExpanded = function(expanded) {
         if (el) {
             ce = this.getChildrenElement();
             if (ce) {
-                goog.style.setElementShown(ce, expanded);
 
+                if (!expandOverride) {goog.style.setElementShown(ce, expanded)}
                 // Make sure we have the HTML for the children here.
                 if (expanded && this.isInDocument() && !ce.hasChildNodes()) {
                     var children = [];
@@ -228,6 +258,9 @@ recoil.ui.widgets.TreeNode.prototype.setExpanded = function(expanded) {
                     });
 
                     this.forEachChild(function(child) { child.enterDocument(); });
+                }
+                if (expandOverride) {
+                    expandOverride(ce, expanded);
                 }
             }
             this.updateExpandIcon();
@@ -351,8 +384,33 @@ recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
         }
         var treeConfig = helper.value();
         me.tree_ = new goog.ui.tree.TreeControl('root', treeConfig);
+        me.tree_.listen(goog.events.EventType.CHANGE, function(e) {
+            var item = me.tree_.getSelectedItem();
+            var path = [];
+            var cur = item;
+
+            while (cur && cur.key_) {
+                path.unshift(cur.key_);
+                cur = cur.getParent();
+            }
+            if (me.oldValue_) {
+                this.scope_.getFrp().accessTrans(
+                    function() {
+                        if (item) {
+                            me.selectedB_.set({path: path, value: me.oldValue_.getValue(path)});
+                        }
+                        else {
+                            me.selectedB_.set(null);
+                        }
+                    }, me.selectedB_);
+            }
+
+        }, false, this);
+
         // now force the tree to re-render since we just destroyed
         me.tree_.setShowRootNode(treeConfig.showRoot === undefined || treeConfig.showRoot);
+        me.tree_.setShowLines(treeConfig.showLines === undefined || treeConfig.showLines);
+        me.tree_.setShowExpandIcons(treeConfig.showExpandIcons === undefined || treeConfig.showExpandIcons);
         me.tree_.render(me.componentDiv_);
         me.nodeFactory_ = treeConfig.nodeFactory_ || recoil.ui.widgets.TreeView.defaultNodeFactory;
         // and created a new one
@@ -545,9 +603,6 @@ recoil.ui.widgets.TreeView.prototype.createNode = function(key) {
     var node = new recoil.ui.widgets.TreeNode(key, 'blank',
                                               this.tree_.getConfig(), this.tree_.getDomHelper());
     node.listen(goog.ui.tree.BaseNode.EventType.EXPAND, this.expandListener_, false, this);
-    node.listen(goog.events.EventType.CLICK, function(e) {
-        console.log('click', e);
-    }, false, this);
     node.listen(goog.ui.tree.BaseNode.EventType.COLLAPSE, this.expandListener_, false, this);
     return node;
 };
