@@ -53,7 +53,11 @@ recoil.ui.widgets.SelectorWidget = function(scope) {
  * @constructor
  */
 recoil.ui.widgets.SelectorWidget.RENDERER = function(obj, valid, enabled) {
-
+    if (enabled && enabled.reason && enabled.reason()) {
+        if (enabled.reason().toString().trim() !== '') {
+            return goog.dom.createDom('div', {disabled: true, class: valid ? undefined : 'recoil-error', title: enabled.reason().toString()}, obj);
+        }
+    }
     return goog.dom.createDom('div', valid ? undefined : 'recoil-error', obj);
 };
 /**
@@ -160,7 +164,11 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options) {
  * @private
  */
 recoil.ui.widgets.SelectorWidget.createMenuItem_ = function(renderer, val, valid, enabled) {
-    return new goog.ui.MenuItem(renderer(val, valid, enabled), {value: val, valid: valid, enabled: enabled, renderer: renderer});
+    var item = new goog.ui.MenuItem(renderer(val, valid, enabled), {value: val, valid: valid, enabled: enabled, renderer: renderer});
+    if (enabled && enabled.val && !enabled.val()) {
+        item.setEnabled(false);
+    }
+    return item;
 };
 
 /**
