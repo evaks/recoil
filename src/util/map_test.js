@@ -10,8 +10,9 @@ goog.setTestOnly('recoil.util.mapTest');
 function testRecSafeGet() {
         var ns = recoil.util.map;
     var map = {};
-    var val = ns.safeRecGet(map, ['a','b','c']);
-    assertTrue(undefined === val);
+    assertTrue(undefined === ns.safeRecGet(map, ['a','b','c']));
+    assertTrue(undefined === ns.safeRecGet({}, ['a','b']));
+    
     
 }
 function testRecSafeGetRemove() {
