@@ -42,8 +42,11 @@ recoil.util.map.safeRecGet = function(map, keys, opt_def) {
         if (arguments.length === 3) {
             curMap = recoil.util.map.safeGet(curMap, keys[i], {});
         }
-        else {
+        else if (curMap) {
             curMap = recoil.util.map.safeGet(curMap, keys[i]);
+        }
+        else {
+            return undefined;
         }
     }
     if (arguments.length === 3) {

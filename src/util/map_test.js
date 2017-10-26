@@ -6,6 +6,14 @@ goog.require('recoil.util.map');
 
 goog.setTestOnly('recoil.util.mapTest');
 
+
+function testRecSafeGet() {
+        var ns = recoil.util.map;
+    var map = {};
+    var val = ns.safeRecGet(map, ['a','b','c']);
+    assertTrue(undefined === val);
+    
+}
 function testRecSafeGetRemove() {
     var ns = recoil.util.map;
     var map = {};
