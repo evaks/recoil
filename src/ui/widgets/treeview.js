@@ -151,6 +151,10 @@ recoil.ui.widgets.TreeNode.prototype.onKeyDown = function(e) {
 recoil.ui.widgets.TreeNode.prototype.onClick_ = function(e) {
     var el = e.target;
     // expand icon
+
+    if (this.getConfig().clickCallback && this.getConfig().clickCallback(this, e)) {
+        return;
+    }
     var type = el.getAttribute('type');
     if (type == 'expand' && this.hasChildren()) {
         e.preventDefault();
@@ -178,6 +182,20 @@ recoil.ui.widgets.TreeNode.prototype.onClick_ = function(e) {
  */
 recoil.ui.widgets.TreeNode.prototype.key = function() {
     return this.key_;
+};
+
+/**
+ * @return {!Array<!string>}
+ */
+recoil.ui.widgets.TreeNode.prototype.path = function() {
+    var res = [this.key_];
+
+    var parent = this.getParent();
+    while (parent instanceof recoil.ui.widgets.TreeNode) {
+        res.unshift(parent.key());
+        parent = parent.getParent();
+    }
+    return res;
 };
 
 /** @override */
