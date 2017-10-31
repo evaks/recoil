@@ -411,12 +411,18 @@ recoil.db.ChangeDb.prototype.remove = function(rootPath) {
 recoil.db.ChangeDb.prototype.resolve_ = function(path, create) {
     var items = this.schema_.absolute(path).items();
     var cur = this.data_;
-
+    var seenItems = [];
     for (var i = 0; i < items.length && cur; i++) {
         var item = items[i];
-        cur = cur.getChildNode(this.schema_, item, i + 1 == items.length ? path : null, create);
+        var unkeyed = item.unsetKeys();
+        seenItems.push(unkeyed);
+        cur = cur.getChildNode(this.schema_,
+                               item, new recoil.db.ChangeSet.Path(seenItems), create);
         if (cur && item.keys().length > 0) {
-            cur = cur.getChildNode(this.schema_, item, i + 1 == items.length ? path : null, create);
+            seenItems[seenItems.length - 1] = item;
+            cur = cur.getChildNode(
+                this.schema_, item,
+                new recoil.db.ChangeSet.Path(seenItems), create);
         }
     }
     return cur;

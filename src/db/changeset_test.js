@@ -80,9 +80,20 @@ var schema = {
             },
             keys : ['k']
         },
-
+        test: {
+            children : {
+            }
+        },
         full: {
             children : {
+                k1 : {
+                    keys:['k'],
+                    children: {
+                        a :{},
+                        k :{}
+                    }
+                },
+
                 a: {
                     children: {
                         v: {},
@@ -136,14 +147,14 @@ var schema = {
         }
             
     },
-
+    
 
                 
     meta1 : function (path, opt_keys) {
         var keys = opt_keys || [];
         var parts = path.parts();
         var cur = schema.root[parts[0]];
-        if (cur.keys) {
+        if (cur && cur.keys) {
             cur.keys.forEach(function (k) {
                 keys.push(k);
             });
@@ -243,6 +254,11 @@ var schema = {
     
 };
 
+schema.root.test.children.obj1 = schema.root.obj1;
+schema.root.test.children.cont = schema.root.cont;
+schema.root.test.children['list-a'] = schema.root['list-a'];
+schema.root.test.children.a = schema.root.a;
+
 function assertSameObjects (a, b, c) {
     var expected = nonCommentArg(1, 2, arguments);
     var actual = nonCommentArg(2, 2, arguments);
@@ -278,6 +294,17 @@ function assertSameObjects (a, b, c) {
     
 }
 
+function testSetList() {
+    var ns = recoil.db.ChangeSet;
+    var path1 = ns.Path.fromString('/full/k1');
+    var  path = path1.setKeys(['k'],[1]);
+
+    var testee = new recoil.db.ChangeDb(schema);
+    testee.set(path, {k:1, a:{foo: 5, list :[1]}});
+    assertObjectEquals([{k:1, a:{foo: 5, list :[1]}}], testee.get(path1));
+    
+}
+    
 function testDbNonExistantDesendant() {
 
 
