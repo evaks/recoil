@@ -222,11 +222,16 @@ recoil.db.ChangeDb.prototype.applyMove = function(from, to) {
         throw new Error("move node '" + from.unsetKeys().toString() + "' is not a list");
     }
 
-    var oldNode = listNode.remove(from.last());
-    if (!oldNode) {
-        throw new Error("move node '" + from.toString() + "' does not exist");
+    if (this.schema_.isOrderedList(from)) {
+        listNode.move(from.last(), to.last());
     }
-    listNode.add(to.last(), oldNode);
+    else {
+        var oldNode = listNode.remove(from.last());
+        if (!oldNode) {
+            throw new Error("move node '" + from.toString() + "' does not exist");
+        }
+        listNode.add(to.last(), oldNode);
+    }
 };
 
 
@@ -821,6 +826,14 @@ recoil.db.ChangeSet.Schema = function() {
 recoil.db.ChangeSet.Schema.prototype.children = function(path) {
 
 };
+
+/**
+ * @param {recoil.db.ChangeSet.Path} path
+ * @return {!boolean} the children
+ */
+recoil.db.ChangeSet.Schema.prototype.isOrderedList = function(path) {
+};
+
 /**
  * set up container after item is added
  * @param {recoil.db.ChangeSet.Path} path
@@ -2811,10 +2824,11 @@ recoil.db.ChangeDbNode.Container.prototype.getChildNode = function(schema, item,
  */
 recoil.db.ChangeDbNode.List = function() {
     /**
-     * @type {goog.structs.AvlTree<{key:Array,value:recoil.db.ChangeDbNode}>}
+     * @type {goog.structs.AvlTree<{key:Array,pos:!number,value:recoil.db.ChangeDbNode}>}
      * @private
      **/
     this.keys_ = new goog.structs.AvlTree(recoil.util.object.compareKey);
+    this.positions_ = new goog.structs.AvlTree(recoil.util.object.compare);
 };
 
 /**
@@ -2826,15 +2840,37 @@ recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
     var keys = this.keys_;
     // we could schemas that filter nodes but not yet
     var newKeys = new goog.structs.AvlTree(recoil.util.object.compareKey);
+    var newPositions = new goog.structs.AvlTree(recoil.util.object.compare);
     if (val) {
+        var pos = 0;
         val.forEach(function(val) {
+            newPositions.add(pos);
             var subKey = schema.createKeyPath(path, val);
-            var newNode = keys.safeFind({key: subKey.lastKeys(), value: new recoil.db.ChangeDbNode.Container()});
+            var newNode = keys.safeFind({key: subKey.lastKeys(), pos: pos++, value: new recoil.db.ChangeDbNode.Container()});
             newNode.value.set(schema, subKey, val);
             newKeys.add(newNode);
         });
     }
     this.keys_ = newKeys;
+    this.positions_ = newPositions;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.PathItem} from
+ * @param {!recoil.db.ChangeSet.PathItem} to
+ * @return {recoil.db.ChangeDbNode}
+ */
+recoil.db.ChangeDbNode.List.prototype.move = function(from, to) {
+
+    var node = this.keys_.remove({key: from.keys(), pos: 0, value: null});
+    if (node) {
+        node.value.setKeys(to);
+        this.keys_.add({key: to.keys(), pos: node.pos, value: node.value});
+        return node.value;
+    }
+    else {
+        throw new Error("move node '" + from.toString() + "' does not exist");
+    }
 };
 
 /**
@@ -2842,8 +2878,9 @@ recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
  * @return {recoil.db.ChangeDbNode}
  */
 recoil.db.ChangeDbNode.List.prototype.remove = function(item) {
-    var node = this.keys_.remove({key: item.keys(), value: null});
+    var node = this.keys_.remove({key: item.keys(), pos: 0, value: null});
     if (node) {
+        this.positions_.remove(node.pos);
         return node.value;
     }
     return null;
@@ -2855,7 +2892,9 @@ recoil.db.ChangeDbNode.List.prototype.remove = function(item) {
  */
 recoil.db.ChangeDbNode.List.prototype.add = function(item, node) {
     node.setKeys(item);
-    this.keys_.add({key: item.keys(), value: node});
+    var pos = this.positions_.getCount() === 0 ? 0 : this.positions_.getMaximum() + 1;
+
+    this.keys_.add({key: item.keys(), pos: pos, value: node});
 };
 
 
@@ -2866,7 +2905,14 @@ recoil.db.ChangeDbNode.List.prototype.add = function(item, node) {
  */
 recoil.db.ChangeDbNode.List.prototype.get = function(schema, path) {
     var res = [];
-    this.keys_.inOrderTraverse(function(val) {
+    var map = this.keys_;
+    if (schema.isOrderedList(path)) {
+        map = new goog.structs.AvlTree(recoil.util.object.compareKey);
+        this.keys_.inOrderTraverse(function(val) {
+            map.add({value: val.value, key: val.pos});
+        });
+    }
+    map.inOrderTraverse(function(val) {
         var subKey = schema.createKeyPath(path, val.value);
         res.push(val.value.get(schema, subKey));
     });
@@ -2882,7 +2928,7 @@ recoil.db.ChangeDbNode.List.prototype.get = function(schema, path) {
  * @return {recoil.db.ChangeDbNode}
  */
 recoil.db.ChangeDbNode.List.prototype.getChildNode = function(schema, item, path, create) {
-    var lookup = {key: item.keys(), value: new recoil.db.ChangeDbNode.Container()};
+    var lookup = {key: item.keys(), pos: 0, value: new recoil.db.ChangeDbNode.Container()};
     var entry = create ?
         this.keys_.safeFind(lookup) : this.keys_.findFirst(lookup);
     if (entry) {
