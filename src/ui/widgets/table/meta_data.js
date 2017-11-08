@@ -91,7 +91,8 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
         var res = mtable.freeze().createEmpty([], this.colSeperators_);
 
        me.colSeperators_.forEach(function(col) {
-           res.addColumnMeta(col, {cellDecorator: recoil.ui.widgets.TableMetaData.createSpanDecorator(mtable.size() + 1)});
+           res.addColumnMeta(col, {cellDecorator: recoil.ui.widgets.TableMetaData.createSpanDecorator(mtable.size() + 1,
+                                                                                                      {class: 'recoil-table-group'})});
        });
 
         mtable.forEach(function(row) {
@@ -113,24 +114,29 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
  */
 recoil.ui.widgets.TableMetaData.SPAN_FUNC = recoil.util.object.uniq();
 
+
 /**
  * the default decorator for making cells
  * @final
  * @param {!number} size
+ * @param {Object=} opt_extra
  * @return {function():recoil.ui.RenderedDecorator}
  */
 
-recoil.ui.widgets.TableMetaData.createSpanDecorator = function(size) {
+recoil.ui.widgets.TableMetaData.createSpanDecorator = function(size, opt_extra) {
+    var opts = {};
+    goog.object.extend(opts, opt_extra || {}, {colspan: size});
     var res = function() {
         return new recoil.ui.RenderedDecorator(
             res,
-            goog.dom.createDom('td', {colspan: size, class: 'recoil-table-group'}));
+            goog.dom.createDom('td', opts));
 
         };
-    recoil.util.func.makeEqualFunc(res, recoil.ui.widgets.TableMetaData.SPAN_FUNC, size);
+    recoil.util.func.makeEqualFunc(res, recoil.ui.widgets.TableMetaData.SPAN_FUNC, opts);
     return res;
 
 };
+
 /**
  * return all the haviours containted in this meta data structure
  * @return {!Array<!recoil.frp.Behaviour>}

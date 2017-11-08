@@ -13,6 +13,12 @@ recoil.converters.IPv4AddressConverter = function() {
 
 /**
  *
+ * @type {!number}
+ */
+recoil.converters.IPv4AddressConverter.maxLength = 15;
+
+/**
+ *
  * @param {!string} c
  * @return {boolean}
  */

@@ -16,7 +16,7 @@ recoil.frp.Array = function(frp) {
 
 /**
  * @param {!Array<?>|recoil.frp.Behaviour<!Array<?>>} array
- * @return {recoil.frp.Behaviour<boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.Array.prototype.isEmpty = function(array) {
     return this.frp_.liftB(function(arr) {

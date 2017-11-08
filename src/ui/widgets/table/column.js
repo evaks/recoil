@@ -80,3 +80,61 @@ recoil.ui.widgets.table.makeStructColumn = function(widgetCons) {
 
     return res;
 };
+
+
+/**
+ * a utility to make a column that attaches to a widget
+ * that has the interface of
+ * create = new Widget(scope)
+ * attachStruct = function ({value:*,...})
+ * @template T
+ * @param {function (new:recoil.ui.Widget,T,?):undefined} widgetCons
+ * @param {?=} opt_extra
+ * @return {function(!recoil.structs.table.ColumnKey,string)}
+ */
+recoil.ui.widgets.table.makeCellColumn = function(widgetCons, opt_extra) {
+    var factory = function(scope, cellB) {
+        var frp = scope.getFrp();
+        var widget = new widgetCons(scope, opt_extra);
+        var newCellB = frp.liftBI(
+            function(v) {
+                return v;
+            },
+            function(v) {
+                var meta = goog.object.clone(cellB.get().getMeta());
+                goog.object.extend(meta, v.getMeta());
+                var res = new recoil.structs.table.TableCell(v.getValue(), meta);
+                cellB.set(res);
+            }, cellB);
+        widget.attachCell(newCellB);
+        return widget;
+    };
+    /**
+     * @constructor
+     * @param {!recoil.structs.table.ColumnKey} column
+     * @param {string} name
+     * @param {Object=} opt_meta
+     * @implements {recoil.ui.widgets.table.Column}
+     */
+    var res = function(column, name, opt_meta) {
+        this.key_ = column;
+        this.name_ = name;
+        this.meta_ = opt_meta || {};
+    };
+
+    res.prototype.getMeta = function(curMeta) {
+        var meta = {name: this.name_,
+                    cellWidgetFactory: factory};
+        goog.object.extend(meta, this.meta_, curMeta);
+        return meta;
+    };
+
+    /**
+     * @return {recoil.structs.table.ColumnKey}
+     */
+    res.prototype.getKey = function() {
+        return this.key_;
+    };
+
+    return res;
+};
