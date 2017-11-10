@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>input Test</title>
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menubutton.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuitem.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuseparator.css">
     <script src="../../../../closure-library/closure/goog/base.js"></script>
     <script src="../../../../my-deps.js"></script>
     <style>
@@ -19,6 +23,7 @@
         goog.require('recoil.converters.IPv6AddressConverter');
         goog.require('recoil.converters.IPAddressConverter');
 
+	goog.require('recoil.ui.widgets.SelectorWidget');
         goog.require('recoil.frp.Util');
         goog.require('recoil.frp.struct');
         goog.require('recoil.ui.widgets.NumberWidget');
@@ -34,13 +39,26 @@
 </head>
 <body>
 
-error<div id='error'/>
+error<div id='error'></div>
 <div id="label1"></div>
 <div id="input1"></div>
 <div id="input2"></div>
 <div id="enabled2"></div>
 <div id="numberInput"></div>
-<div id="ipInput"></div>
+<div>ipInput<div id="ipInput"></div></div>
+hi ho
+<table>
+  <tr>
+    <td>Converter</td>
+    <td><div id="converter1"></div></td>
+    <td>Text</td>
+    <td><div id="converterInputID"></div></td>
+    <td>Val</td>
+    <td><div id="converterLabelID"></div></td>
+    <td>Error</td>
+    <td><div id="converterErrorID"></div></td>
+  </tr>
+</table>
 
 
 <script>
@@ -50,16 +68,54 @@ error<div id='error'/>
     var errorB = frp.createB([]);
     var val = frp.createB("test");
 
+    var aconverter = {
+    convert : function (v) {return v},
+    unconvert: function (v) {if (v.startsWith('a'))
+    return {error: null, value:v};
+    else {
+        return {error :recoil.ui.message.toMessage("a reason"), value: null}}}
+    };
+    var bconverter = {
+    convert : function (v) {return v},
+    unconvert: function (v) {if (v.startsWith('b')) return {error: null, value:v};
+    else {return {error :recoil.ui.message.toMessage("b reason"), value: null}}}
+    };
+    var convertSelect = new recoil.ui.widgets.SelectorWidget(scope);
+    convertSelect.getComponent().render($('converter1'));
+
+  var converterValB = frp.createB('');        
+  var converterErrorsB = frp.createB([]);        
   var enabledB = frp.createB(recoil.ui.BoolWithExplanation.TRUE);
   var editableB = frp.createB(true);
   var label = new recoil.ui.widgets.LabelWidget(scope);
+  var converterLabel = new recoil.ui.widgets.InputWidget(scope);
+  var converterError = new recoil.ui.widgets.LabelWidget(scope);
+  var converterInput = new recoil.ui.widgets.InputWidget(scope);
   var error = new recoil.ui.widgets.LabelWidget(scope);
-  var input1 = new recoil.ui.widgets.InputWidget(scope);
+    var input1 = new recoil.ui.widgets.InputWidget(scope);
+    var convertRend = function (value, x, y) {
+    var txt = 'none';
+    if (value === aconverter) {
+    txt = 'a converter';
+    } else if (value === bconverter) {
+    txt = 'b converter';
+    }
+    return recoil.ui.widgets.SelectorWidget.RENDERER(txt,x,y);
+    };
+    var converterB = frp.createB(aconverter);
+    convertSelect.attachStruct({value: converterB, list :[aconverter, bconverter], renderer:convertRend});
+    
   input1.attachStruct({value : val,
       editable : editableB,
       enabled : enabledB, immediate: false
   });
-  label.getComponent().render($('label1'));
+    label.getComponent().render($('label1'));
+    converterLabel.getComponent().render($('converterLabelID'));
+    converterError.getComponent().render($('converterErrorID'));
+    converterInput.getComponent().render($('converterInputID'));
+
+    converterLabel.attachStruct({value: converterValB});
+    converterInput.attachStruct({value: converterValB, converter:converterB, outErrors: converterErrorsB});
   label.attach(val);
     error.attach(frp.liftB(function (e) {
     if (e.length === 0) {
@@ -67,6 +123,12 @@ error<div id='error'/>
     }
        return e[0].toString();
     },errorB));
+    converterError.attach(frp.liftB(function (e) {
+    if (e.length === 0) {
+    return 'Ok';
+    }
+       return e[0].toString();
+    },converterErrorsB));
     input1.getComponent().render($('input1'));
     error.getComponent().render($('error'));
 

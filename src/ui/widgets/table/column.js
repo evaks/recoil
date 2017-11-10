@@ -88,7 +88,7 @@ recoil.ui.widgets.table.makeStructColumn = function(widgetCons) {
  * create = new Widget(scope)
  * attachStruct = function ({value:*,...})
  * @template T
- * @param {function (new:recoil.ui.Widget,T,?):undefined} widgetCons
+ * @param {function (new:recoil.ui.CellWidget,T,?):undefined} widgetCons
  * @param {?=} opt_extra
  * @return {function(!recoil.structs.table.ColumnKey,string)}
  */

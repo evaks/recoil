@@ -1,3 +1,4 @@
+goog.provide('recoil.ui.CellWidget');
 goog.provide('recoil.ui.Widget');
 
 goog.require('goog.ui.Component');
@@ -24,3 +25,14 @@ recoil.ui.Widget.prototype.getComponent = function() {
 
 recoil.ui.Widget.prototype.flatten;
 
+/**
+ * @interface
+ * @extends {recoil.ui.Widget}
+ */
+recoil.ui.CellWidget = function() {
+};
+
+/**
+ * @param  {!recoil.frp.Behaviour<recoil.structs.table.TableCell>} cellB
+ */
+recoil.ui.CellWidget.prototype.attachCell = function(cellB) {};

@@ -57,6 +57,7 @@ recoil.ui.widgets.TreeView.defaultConfig = (function() {
     res.showRoot = true;
     res.showLines = true;
     res.showExpandIcons = true;
+    res.clickCallback = null;
     return res;
 })();
 /**
