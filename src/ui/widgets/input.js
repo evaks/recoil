@@ -352,9 +352,12 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
                     !recoil.util.object.isEqual(this.lastConverter_, this.converterB_.metaGet())
                    ) {
                     this.input_.setValue(strVal);
-                    this.updateElement_(this, me.input_.getElement(), false, false);
+                    this.updateElement_(this, me.input_.getElement(), false, true);
                 }
 
+            }
+            else if (!recoil.util.object.isEqual(this.lastConverter_, this.converterB_.metaGet())) {
+                this.updateElement_(this, me.input_.getElement(), false, true);
             }
         }
 

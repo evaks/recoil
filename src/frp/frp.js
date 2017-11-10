@@ -1321,7 +1321,7 @@ recoil.frp.Frp.nullInvFunc_ = function() {
  *
  * Creates callback, this is basically a behaviour with only an inverse
  * the calculate function always returns true
- * @param {function(...*)} func
+ * @param {function(...?)} func
  * @param {...recoil.frp.Behaviour<?>} var_dependants
  * @return {!recoil.frp.Behaviour<?>}
  */
