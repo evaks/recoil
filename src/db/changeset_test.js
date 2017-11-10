@@ -250,6 +250,9 @@ var schema = {
         
     isLeaf: function (path) {
         return schema.children(path).length === 0;
+    },
+    isOrderedList: function (path) {
+        return false;
     }
     
 };
