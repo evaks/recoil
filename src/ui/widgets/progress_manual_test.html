@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Progress Test</title>
+    <script src="../../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../../my-deps.js"></script>
+    
+  <style>
+    .progress-bar-vertical,
+      .progress-bar-horizontal {
+      position: relative;
+      border: 1px solid #949dad;
+      background: #eee;
+      overflow: hidden;
+      margin: 2px;
+      border-radius: 5px; 
+    }
+
+    .progress-bar-horizontal {
+      width: 80%;
+      height: 30px;
+    }
+
+    .progress-bar-vertical {
+      width: 14px;
+      height: 200px;
+    }
+      .progress-bar-text {
+	  position:absolute;top:0;
+	  text-align:center;
+	  width:100%;
+	  line-height: 30px;
+	  font:statusbar;padding:2px}
+    .progress-bar-thumb {
+      position: relative;
+#      background: #d4e4ff;
+      background-image:
+      repeating-linear-gradient(
+	  45deg,
+	  transparent,
+	  transparent 10px,
+	  rgba(204,204,204,0.2) 10px,
+	  rgba(204,204,204,0.2) 20px
+      ),
+      linear-gradient(
+	  to bottom,
+	  #09c,
+	  rgba(0, 0, 0, .3)
+      );
+
+      background-size: 100% 100%;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+
+    #pb2 {
+      height: 1.3em;
+    }
+  </style>
+
+      -webkit-linear-gradient(top, #09c,  rgba(0, 0, 0, .1));
+
+  -webkit-linear-gradient(-45deg, 
+  transparent 33%, rgba(0, 0, 0, .1) 33%, 
+  rgba(0,0, 0, .1) 66%, transparent 66%),
+
+
+  , 100% 100%, 100% 100%;
+    <script>
+        goog.require('goog.dom');
+        goog.require('recoil.frp.Frp');
+        goog.require('recoil.ui.WidgetScope');
+        goog.require('recoil.frp.Behaviour');
+        goog.require('recoil.frp.Util');
+        goog.require('recoil.frp.struct');
+        goog.require('recoil.ui.WidgetHelper');
+        goog.require('recoil.ui.Widget');
+        goog.require('recoil.ui.widgets.ProgressWidget');
+        goog.require('recoil.ui.widgets.NumberWidget');
+    </script>
+    <link rel="stylesheet" href="../css/demo.css">
+</head>
+<body>
+
+<div>
+    <div id="label"></div>
+    <div id="password"></div>
+    <div id="input"></div>
+</div>
+
+
+<script>
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+
+    var valB = frp.createB(50);
+    var maxB = frp.createB(150);
+
+  var progress = new recoil.ui.widgets.ProgressWidget(scope);
+  progress.attach(valB, maxB, 'hi', recoil.ui.BoolWithExplanation.TRUE);
+
+  var inputWidget = new recoil.ui.widgets.NumberWidget(scope);
+  inputWidget.attachStruct({value:valB});
+  
+  progress.getComponent().render($('progress'));
+  inputWidget.getComponent().render($('input'));
+  
+
+</script>
+</body>
+</html>
