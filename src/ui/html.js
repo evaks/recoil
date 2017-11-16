@@ -251,3 +251,24 @@ recoil.ui.HtmlHelper.prototype.createDom = function(tagName, opt_attributes, var
     }
     return parent;
 };
+
+/**
+ * @param {!Element} element
+ * @param {!recoil.frp.Behaviour<string>} callbackB
+ */
+recoil.ui.HtmlHelper.prototype.onClick = function(element, callbackB) {
+    var helper = new recoil.ui.WidgetHelper(this.scope_, element, this, function(helper) {
+
+    });
+    var frp = this.scope_.getFrp();
+    goog.events.listen(element, goog.events.EventType.CLICK, function(e) {
+
+        frp.accessTrans(function() {
+            if (callbackB.good()) {
+                callbackB.set(e);
+            }
+        }, callbackB);
+    });
+    helper.attach(callbackB);
+
+};
