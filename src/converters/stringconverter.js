@@ -26,7 +26,7 @@ recoil.converters.DefaultStringConverter = function() {
  * @return {string}
  */
 recoil.converters.DefaultStringConverter.prototype.convert = function(val) {
-    return val;
+    return val ? val : '';
 };
 
 /**

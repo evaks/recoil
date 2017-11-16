@@ -452,7 +452,7 @@ recoil.frp.Util.Options = function(var_options) {
                 funcs.forEach(function(func) {
                     func.params.forEach(function(param) {
                         res[param] = function() {
-                            return recoil.frp.struct.getMeta(param, optionsB, func.def[param]).debug('bound ' + param);
+                            return recoil.frp.struct.getMeta(param, optionsB, func.def[param]);
                         };
                     });
                 });

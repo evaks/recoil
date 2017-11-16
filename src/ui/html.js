@@ -134,6 +134,21 @@ recoil.ui.HtmlHelper.prototype.createInnerHtmlDiv = function(innerHtmlB, opt_opt
 };
 
 /**
+ * @param {!string} type
+ * @param {!recoil.frp.Behaviour<string>} innerHtmlB
+ * @param {(Object|Array<string>|string)=} opt_options
+ * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
+ *     strings for text nodes. If one of the var_args is an array or NodeList,
+ *     its elements will be added as childNodes instead.
+ * @return {!Element}
+ */
+recoil.ui.HtmlHelper.prototype.createInnerHtmlDom = function(type, innerHtmlB, opt_options, var_args) {
+    var div = this.createDom_(2, type, arguments);
+    this.innerHtml(div, innerHtmlB);
+    return div;
+};
+
+/**
  * @param {!Node} parent
  * @param {!recoil.frp.Behaviour<?string>|!recoil.frp.Behaviour<string>} innerHtmlB
  * @param {(Object|Array<string>|string)=} opt_options
@@ -191,4 +206,48 @@ recoil.ui.HtmlHelper.prototype.createShowDiv = function(showB, opt_options, var_
  */
 recoil.ui.HtmlHelper.prototype.appendShowDiv = function(parent, showB, opt_options, var_args) {
     return this.append_(this.createShowDiv, arguments);
+};
+
+
+/**
+ * like goog.dom.createDom except it will handle widget, children
+ *
+ * @param {string} tagName Tag to create.
+ * @param {(Object|Array<string>|string)=} opt_attributes If object, then a map
+ *     of name-value pairs for attributes. If a string, then this is the
+ *     className of the new element. If an array, the elements will be joined
+ *     together as the className of the new element.
+ * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
+ *     strings for text nodes. If one of the var_args is an array or NodeList,
+ *     its elements will be added as childNodes instead.
+ * @return {!Element} Reference to a DOM node.
+ */
+
+recoil.ui.HtmlHelper.prototype.createDom = function(tagName, opt_attributes, var_args) {
+    var parent = goog.dom.createDom(tagName, opt_attributes);
+    function childHandler(child) {
+        if (child) {
+            if (child.getComponent) {
+                var comp = child.getComponent();
+                comp.render(parent);
+            }
+            else {
+                parent.appendChild(
+                goog.isString(child) ? goog.dom.createTextNode(child) : child);
+            }
+        }
+    }
+    for (var i = 2; i < arguments.length; i++) {
+        var arg = arguments[i];
+        if (goog.isArrayLike(arg) && !goog.dom.isNodeLike(arg)) {
+            // If the argument is a node list, not a real array, use a clone,
+            // because forEach can't be used to mutate a NodeList.
+            goog.array.forEach(
+                goog.dom.isNodeList(arg) ? goog.array.toArray(arg) : arg,
+                childHandler);
+        } else {
+            childHandler(arg);
+        }
+    }
+    return parent;
 };

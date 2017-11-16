@@ -30,6 +30,16 @@ recoil.ui.widgets.FileWidget = function(scope) {
     fileInput.addEventListener('change', function(e) {
         var file = fileInput.files[0];
         var textType = /text.*/;
+        var raw = false;
+        frp.accessTrans(function() {
+            if (me.rawB_.get()) {
+                raw = true;
+                me.valueB_.set(file);
+            }
+        }, me.rawB_, me.valueB_);
+        if (raw) {
+            return;
+        }
 
         var reader = new FileReader();
 
@@ -70,6 +80,7 @@ recoil.ui.widgets.FileWidget.prototype.getComponent = function() {
 recoil.ui.widgets.FileWidget.options = recoil.frp.Util.Options(
     'value',
     {
+        raw: false, // don't load the file into memory, just make value the reference
         suffix: null
     }
 );
@@ -86,8 +97,9 @@ recoil.ui.widgets.FileWidget.prototype.attachStruct = function(value) {
 
     this.suffixB_ = bound.suffix();
     this.valueB_ = bound.value();
+    this.rawB_ = bound.raw();
     this.valueHelper_.attach(this.valueB_);
-    this.helper_.attach(this.suffixB_);
+    this.helper_.attach(this.suffixB_, this.rawB_);
 };
 
 /**
