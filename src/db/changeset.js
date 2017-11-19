@@ -2893,7 +2893,7 @@ recoil.db.ChangeDbNode.List.prototype.remove = function(item) {
 recoil.db.ChangeDbNode.List.prototype.add = function(item, node) {
     node.setKeys(item);
     var pos = this.positions_.getCount() === 0 ? 0 : this.positions_.getMaximum() + 1;
-
+    this.positions_.add(pos);
     this.keys_.add({key: item.keys(), pos: pos, value: node});
 };
 
