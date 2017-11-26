@@ -107,7 +107,7 @@ recoil.structs.table.ExpandCols.prototype.inverse = function(table, sources) {
 /**
  * @constructor
  * @implements {recoil.structs.table.ExpandColsDef}
- * @param {!function(recoil.structs.table.TableRowInterface):!boolean} check
+ * @param {!function(recoil.structs.table.TableRowInterface,boolean):?} check function to check outer object exists, the first parameter is the row that we are setting/getting the second is true if we are setting, this should return true or false, or null if we should set the container to null
  * @param {!recoil.structs.table.ColumnKey} col
  * @param {function (!Object,!recoil.structs.table.ColumnKey,!recoil.db.ChangeSet.Path): !Object} metaGetter this extracts meta data from the cell meta for the subcell
  *  for example errors
@@ -126,7 +126,7 @@ recoil.structs.table.ExpandCols.PresenceDef = function(check, col, metaGetter, s
  */
 recoil.structs.table.ExpandCols.PresenceDef.prototype.getSubRow = function(row) {
     var res = new recoil.structs.table.MutableTableRow();
-    var exists = this.check_(row);
+    var exists = this.check_(row, false);
     var val = row.get(this.col_);
     var meta = row.getCellMeta(this.col_);
     var metaGetter = this.metaGetter_;
@@ -153,7 +153,7 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.getSubRow = function(row) 
  * @param {!recoil.structs.table.MutableTableRow} row
  */
 recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row) {
-    var exists = this.check_(row);
+    var exists = this.check_(row, true);
     var val = recoil.util.object.clone(row.get(this.col_) || {});
     if (exists) {
         this.subcols_.forEach(function(info) {
@@ -172,6 +172,9 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row) 
             prevVal[parts[parts.length - 1]] = newVal;
         });
         row.set(this.col_, val);
+    }
+    else if (exists === null) {
+        row.set(this.col_, null);
     }
 
 };
