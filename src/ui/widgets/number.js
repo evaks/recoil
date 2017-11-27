@@ -358,7 +358,6 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
     }, this.valueB_, this.outErrorsB_, this.validatorB_, this.allowNullB_));
 
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
-        console.log('elchang', v);
         var inputEl = v.target;
         if (inputEl.validity.valid && (inputEl.value !== '' || me.allowNullB_.get())) {
             var val = inputEl.value === '' ? null : parseFloat(inputEl.value);
@@ -432,8 +431,6 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
         if (me.enabledB_.good() && !me.enabledB_.get().val()) {
             res = true;
             if (me.valueB_.good()) {
-                console.log('setValue 1');
-
                 me.number_.setValue(me.valueB_.get());
             }
             errorsB.set([]);
@@ -529,7 +526,6 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
  */
 recoil.ui.widgets.NumberWidget.prototype.updateValue_ = function(helper) {
     if (helper.isGood()) {
-        console.log('setValue');
         this.number_.setValue(this.valueB_.get());
         var me = this;
         this.updateErrors_(this.number_.getElement(), this.outErrorsB_, this.validatorB_);
