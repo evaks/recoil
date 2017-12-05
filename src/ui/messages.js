@@ -8,6 +8,13 @@ goog.require('recoil.ui.message');
  */
 recoil.ui.messages.AND = recoil.ui.message.getParamMsg(['first'], ' and ', ['second']);
 
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.OR = recoil.ui.message.getParamMsg(['first'], ' or ', ['second']);
+
 /**
  * @type {!recoil.ui.message.Message}
  * @final
@@ -103,9 +110,11 @@ recoil.ui.messages.BLANK = recoil.ui.message.getParamMsg('');
 /**
  * combines multiple messages, this logic may need to be changed for different languages
  * @param {Array<recoil.ui.message.Message| *>} messages
+ * @param {recoil.ui.message.Message=} opt_joiner
  * @return {!recoil.ui.message.Message}
  */
-recoil.ui.messages.join = function(messages) {
+recoil.ui.messages.join = function(messages, opt_joiner) {
+    var joiner = opt_joiner || recoil.ui.messages.AND;
     var first = new recoil.ui.message.Message(['']);
     for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
@@ -119,7 +128,7 @@ recoil.ui.messages.join = function(messages) {
     for (; i < messages.length; i++) {
         var second = messages[i];
         if (second && second.toString() !== '') {
-            first = recoil.ui.messages.AND.resolve({first: first, second: second});
+            first = joiner.resolve({first: first, second: second});
         }
     }
     return /** @type {!recoil.ui.message.Message} */ (first);

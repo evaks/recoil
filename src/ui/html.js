@@ -113,6 +113,9 @@ recoil.ui.HtmlHelper.prototype.innerHtml = function(element, innerHtmlB) {
         if (innerHtmlB.good()) {
             element.innerHTML = innerHtmlB.get();
         }
+        else if (innerHtmlB.metaGet().errors().length > 0) {
+            element.innerHTML = innerHtmlB.metaGet().errors().join(',');
+        }
     });
     helper.attach(innerHtmlB);
     return helper;

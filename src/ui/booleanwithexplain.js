@@ -173,7 +173,7 @@ recoil.ui.BoolWithExplanation.prototype.or = function(var_values) {
         return new recoil.ui.BoolWithExplanation(true, recoil.ui.messages.join(trueExplain), null);
     }
     else {
-        return new recoil.ui.BoolWithExplanation(false, null, recoil.ui.messages.join(falseExplain));
+        return new recoil.ui.BoolWithExplanation(false, null, recoil.ui.messages.join(falseExplain, recoil.ui.messages.OR));
     }
 };
 
