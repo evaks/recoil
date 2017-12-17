@@ -74,6 +74,35 @@ recoil.ui.frp.LocalBehaviour.createSession = function(frp, version, key, defVal,
 };
 
 /**
+ * creates a local session storage, this will use both session
+ * local, session will override the local storage, but will write to both
+ * this write to both, this is useful if you want to new tabs have information
+ * of the old tab when opened but maintain its new copy
+ *
+ * @suppress {undefinedVars}
+ * @param {!recoil.frp.Frp} frp
+ * @param {!string} version use this old values are lost if you upgrade
+ * @param {!string} key the key to store this var under
+ * @param {?} defVal
+ * @param {!recoil.db.Cache.Serializer=} opt_serializer
+ * @return {!recoil.frp.Behaviour}
+ */
+recoil.ui.frp.LocalBehaviour.createSessionLocal = function(frp, version, key, defVal, opt_serializer) {
+    var def = new Object();
+    var sessionB = recoil.ui.frp.LocalBehaviour.create(frp, version, 'session.' + key, def, sessionStorage, opt_serializer);
+    var localB = recoil.ui.frp.LocalBehaviour.create(frp, version, 'local.' + key, def, localStorage, opt_serializer);
+
+
+    return frp.liftBI(function(l, s) {
+       var val = s === def ? l : s;
+       return val === def ? defVal : val;
+    }, function(v) {
+        localB.set(v);
+        sessionB.set(v);
+    }, localB, sessionB);
+};
+
+/**
  * clears all local storage
  */
 recoil.ui.frp.LocalBehaviour.clear = function() {
