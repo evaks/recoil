@@ -402,6 +402,7 @@ recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
             goog.dom.removeChildren(this.componentDiv_);
         }
         var treeConfig = helper.value();
+        me.oldValue_ = undefined;
         me.tree_ = new goog.ui.tree.TreeControl('root', treeConfig);
         me.tree_.listen(goog.events.EventType.CHANGE, function(e) {
             var item = me.tree_.getSelectedItem();
