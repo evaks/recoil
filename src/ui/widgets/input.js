@@ -12,6 +12,7 @@ goog.require('recoil.frp.struct');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.TooltipHelper');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.util');
 goog.require('recoil.ui.widgets.LabelWidget');
 

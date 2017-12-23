@@ -10,6 +10,7 @@ goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.struct');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');

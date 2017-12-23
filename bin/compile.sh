@@ -64,7 +64,7 @@ if [ $? -ne 0 ]; then
 fi
 
 
-
+#--jscomp_error=missingRequire
 ${PYTHON} closure-library/closure/bin/build/closurebuilder.py --root closure-library/ --root recoil/src/ --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" --compiler_flags="--warning_level=VERBOSE" \
     --compiler_flags="--jscomp_error=checkTypes" \
     -c bin/compiler.jar  --output_mode="compiled"  `grep -hr --include="*.js" --exclude="*_test.js" goog.provide  recoil/src  | sed 's/goog.provide('\'// | sed s/\'');.*$'// | sort|uniq | sed s/^/--namespace\ /` > /dev/null

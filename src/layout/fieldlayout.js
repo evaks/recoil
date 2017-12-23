@@ -3,6 +3,7 @@ goog.provide('recoil.layout.FieldLayoutWidget');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
 goog.require('recoil.structs.Pair');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.widgets.InputWidget');
 
 

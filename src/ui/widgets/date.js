@@ -7,9 +7,13 @@ goog.provide('recoil.ui.widgets.DateWidget');
 
 goog.require('goog.date');
 goog.require('goog.dom');
+goog.require('goog.ui.Component');
 goog.require('goog.ui.Container');
 goog.require('goog.ui.DatePicker');
 goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.EventHelper');
+goog.require('recoil.ui.TooltipHelper');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.message.Message');
 goog.require('recoil.ui.messages');

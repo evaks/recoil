@@ -11,6 +11,7 @@ goog.provide('recoil.ui.widgets.ContainerWidget');
 
 goog.require('goog.ui.Container');
 goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.Widget');
 
 
 /**

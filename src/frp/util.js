@@ -1,7 +1,9 @@
 goog.provide('recoil.frp.Util');
 goog.provide('recoil.frp.util');
 
+goog.require('goog.Timer');
 goog.require('goog.string');
+goog.require('recoil.frp.BStatus');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.struct');

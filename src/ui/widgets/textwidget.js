@@ -5,6 +5,7 @@ goog.require('goog.events.InputHandler');
 goog.require('goog.ui.Component');
 goog.require('goog.ui.Textarea');
 goog.require('recoil.frp.Util');
+goog.require('recoil.ui.Widget');
 
 /**
  *

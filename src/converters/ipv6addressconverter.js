@@ -1,6 +1,7 @@
 goog.provide('recoil.converters.IPv6AddressConverter');
 
 goog.require('recoil.converters.IPv4AddressConverter');
+goog.require('recoil.converters.TypeConverter');
 goog.require('recoil.types');
 goog.require('recoil.ui.message.Message');
 goog.require('recoil.ui.messages');

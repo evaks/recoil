@@ -1,12 +1,16 @@
 goog.provide('recoil.ui.widgets.SelectorWidget');
 goog.require('goog.ui.Container');
 goog.require('goog.ui.Control');
+goog.require('goog.ui.MenuItem');
 goog.require('goog.ui.Select');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Debug');
 goog.require('recoil.frp.Util');
 goog.require('recoil.ui.BoolWithExplanation');
+goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.EventHelper');
 goog.require('recoil.ui.TooltipHelper');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.widgets.LabelWidget');
 goog.require('recoil.util');
 

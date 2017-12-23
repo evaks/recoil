@@ -1,8 +1,7 @@
 goog.provide('recoil.converters.And');
 
-goog.require('recoil.converters.TypeStringConverter');
+goog.require('recoil.converters.TypeConverter');
 goog.require('recoil.ui.message.Message');
-
 
 /**
  * this uses all the provided converters validate uncovert, if any fail

@@ -4,6 +4,7 @@ goog.require('goog.events');
 goog.require('goog.events.InputHandler');
 goog.require('goog.ui.Component');
 goog.require('recoil.frp.Util');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.widgets.InputWidget');
 
 /**

@@ -8,6 +8,7 @@ goog.provide('recoil.ui.widgets.RadioWidget');
 goog.require('goog.dom');
 goog.require('goog.ui.Container');
 goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.message.Message');
 goog.require('recoil.ui.messages');

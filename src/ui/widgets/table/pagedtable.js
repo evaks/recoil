@@ -8,6 +8,7 @@ goog.provide('recoil.ui.widgets.table.createNextTablePager');
 
 goog.require('goog.dom.classes');
 goog.require('goog.string');
+goog.require('goog.ui.Component');
 goog.require('goog.ui.Container');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
@@ -18,6 +19,7 @@ goog.require('recoil.ui.AttachableWidget');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.RenderedDecorator');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.messages');
 goog.require('recoil.ui.widgets.LabelWidget');
 goog.require('recoil.ui.widgets.TableMetaData');

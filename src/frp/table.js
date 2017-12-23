@@ -6,9 +6,10 @@
 
 goog.provide('recoil.frp.table.TableCell');
 goog.provide('recoil.frp.table.TableRow');
-
-
 goog.require('goog.object');
+goog.require('recoil.frp.BStatus');
+goog.require('recoil.frp.Util');
+goog.require('recoil.structs.table.TableCell');
 
 /**
  * @param {!recoil.frp.Frp} frp the frp engine

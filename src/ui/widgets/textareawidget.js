@@ -2,12 +2,15 @@ goog.provide('recoil.ui.widgets.TextAreaWidget');
 
 goog.require('goog.events.InputHandler');
 goog.require('goog.ui.Component');
+goog.require('goog.ui.Container');
 goog.require('goog.ui.Textarea');
 goog.require('goog.ui.TextareaRenderer');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');
 goog.require('recoil.frp.struct');
 goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.EventHelper');
+goog.require('recoil.ui.LabeledWidget');
 goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');

@@ -5,6 +5,7 @@
 
 goog.provide('recoil.frp.Chooser');
 
+goog.require('recoil.frp.BStatus');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.Util');
 goog.require('recoil.util.object');

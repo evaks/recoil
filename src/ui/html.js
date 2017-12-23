@@ -6,6 +6,7 @@
 goog.provide('recoil.ui.HtmlHelper');
 
 goog.require('goog.dom.classlist');
+goog.require('recoil.ui.WidgetHelper');
 
 /**
  * @constructor

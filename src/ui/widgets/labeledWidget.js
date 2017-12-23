@@ -1,5 +1,7 @@
 goog.provide('recoil.ui.LabeledWidget');
 
+goog.require('recoil.ui.Widget');
+
 /**
  * @extends recoil.ui.Widget
  * @interface

@@ -7,6 +7,7 @@ goog.require('goog.structs.AvlTree');
 goog.require('recoil.db.DatabaseComms');
 goog.require('recoil.db.ObjectManager');
 goog.require('recoil.db.QueryOptions');
+goog.require('recoil.db.SendInfo');
 goog.require('recoil.db.Type');
 goog.require('recoil.frp.ChangeManager');
 goog.require('recoil.frp.Debug');

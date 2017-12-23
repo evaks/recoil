@@ -3,7 +3,9 @@ goog.provide('recoil.ui.widgets.ProgressWidget');
 goog.require('goog.events');
 goog.require('goog.ui.ProgressBar');
 goog.require('recoil.frp.Util');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.util');
+
 /**
  *
  * @param {!recoil.ui.WidgetScope} scope

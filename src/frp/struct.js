@@ -1,6 +1,7 @@
 goog.provide('recoil.frp.struct');
 
 goog.require('goog.object');
+goog.require('recoil.frp.BStatus');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.util.object');

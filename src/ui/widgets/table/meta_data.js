@@ -4,6 +4,9 @@ goog.provide('recoil.ui.widgets.table.SeperatorColumn');
 
 goog.require('recoil.structs.table.ColumnKey');
 goog.require('recoil.structs.table.Table');
+goog.require('recoil.ui.RenderedDecorator');
+goog.require('recoil.ui.widgets.table.Column');
+goog.require('recoil.ui.widgets.table.StringColumn');
 goog.require('recoil.util.func');
 goog.require('recoil.util.object');
 

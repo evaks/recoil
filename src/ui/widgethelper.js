@@ -9,6 +9,7 @@ goog.provide('recoil.ui.VisibleHelper');
 goog.provide('recoil.ui.WidgetHelper');
 
 
+goog.require('recoil.frp.BStatus');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.ui.WidgetScope');

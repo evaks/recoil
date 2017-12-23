@@ -2,6 +2,7 @@ goog.provide('recoil.converters.DefaultStringConverter');
 goog.provide('recoil.converters.MinLength');
 goog.provide('recoil.converters.RegExp');
 goog.provide('recoil.converters.StringConverter');
+goog.require('recoil.converters.TypeConverter');
 
 goog.require('recoil.ui.message.Message');
 

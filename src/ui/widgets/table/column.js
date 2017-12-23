@@ -2,6 +2,7 @@ goog.provide('recoil.ui.widgets.table.Column');
 goog.provide('recoil.ui.widgets.table.makeStructColumn');
 
 goog.require('recoil.structs.table.ColumnKey');
+goog.require('recoil.structs.table.TableCell');
 goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetScope');
 /**

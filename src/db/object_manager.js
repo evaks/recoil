@@ -4,10 +4,12 @@
  */
 goog.provide('recoil.db.Entity');
 goog.provide('recoil.db.ObjectManager');
+goog.provide('recoil.db.SendInfo');
 
 
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.db.Type');
+goog.require('recoil.frp.BStatus');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.structs.Pair');
 

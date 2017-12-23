@@ -6,10 +6,12 @@
  *
  */
 goog.provide('recoil.ui.ComponentWidgetHelper');
+goog.provide('recoil.ui.EventHelper');
 goog.provide('recoil.ui.TooltipHelper');
 
 goog.require('goog.events.FocusHandler');
 goog.require('goog.ui.Tooltip');
+goog.require('recoil.frp.BStatus');
 goog.require('recoil.frp.DomObserver');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.ui.BoolWithExplanation');

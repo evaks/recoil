@@ -2,6 +2,8 @@ goog.provide('recoil.ui.widgets.table.TableWidget');
 
 goog.require('goog.dom.classes');
 goog.require('goog.string');
+goog.require('goog.structs.AvlTree');
+goog.require('goog.ui.Component');
 goog.require('goog.ui.Container');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Util');

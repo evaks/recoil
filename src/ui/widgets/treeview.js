@@ -7,13 +7,16 @@ goog.require('goog.html.SafeHtml');
 goog.require('goog.object');
 goog.require('goog.structs.TreeNode');
 goog.require('goog.ui.tree.TreeControl');
+goog.require('goog.ui.tree.TreeNode');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.struct');
 goog.require('recoil.frp.tree');
 goog.require('recoil.structs.Tree');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.util');
+goog.require('recoil.ui.widgets.LabelWidget');
 
 /**
  * @param {!recoil.ui.WidgetScope} scope

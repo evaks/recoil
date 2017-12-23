@@ -5,6 +5,7 @@ goog.require('goog.structs.AvlTree');
 goog.require('recoil.db.Database');
 goog.require('recoil.db.DatabaseComms');
 goog.require('recoil.db.Type');
+goog.require('recoil.frp.BStatus');
 
 
 /**

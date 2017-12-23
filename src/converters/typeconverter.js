@@ -1,4 +1,4 @@
-goog.provide('recoil.converters.TypeStringConverter');
+goog.provide('recoil.converters.TypeConverter');
 
 goog.require('recoil.ui.message.Message');
 

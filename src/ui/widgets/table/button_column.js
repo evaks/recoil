@@ -1,7 +1,7 @@
 goog.provide('recoil.ui.widgets.table.ButtonColumn');
 
 goog.require('recoil.frp.Behaviour');
-goog.require('recoil.ui.widgets.NumberWidget');
+goog.require('recoil.ui.widgets.ButtonWidget');
 goog.require('recoil.ui.widgets.table.Column');
 /**
  *

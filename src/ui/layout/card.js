@@ -4,6 +4,7 @@ goog.provide('recoil.ui.layout.ComponentCard');
 goog.require('goog.ui.Component');
 goog.require('recoil.frp.struct');
 goog.require('recoil.ui.ComponentWidgetHelper');
+goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetScope');
 
 /**
