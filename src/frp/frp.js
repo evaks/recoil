@@ -621,6 +621,15 @@ recoil.frp.Behaviour.prototype.noInverseB = function() {
 };
 
 /**
+ * used for debugger gets the dependants of this behaviour
+ * @return {!Array<!recoil.frp.Behaviour<T>>}
+ */
+recoil.frp.Behaviour.prototype.getDependants = function() {
+    return this.frp_.tm().dependancyMap_[this.seqStr_] || [];
+};
+
+
+/**
  * allows naming of behaviours for debugging
  * @param {!string} name
  */
