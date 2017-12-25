@@ -212,29 +212,27 @@ recoil.debugger.ObjectBrowser.prototype.getChildKeys_ = function(obj) {
 
 };
 
+recoil.debugger.ObjectBrowser.prototype.createNodeHtml_ = function (name, obj) {
+    return goog.html.SafeHtml.create(
+        'div', {style: {display: 'inline-block'}},
+        [
+            goog.html.SafeHtml.create('b', undefined, name + suffix),
+            this.typeToSafeHtml(obj)
+            
+        ]
+    );
+};
 /**
  * @private
- * @param {goog.ui.tree.BaseNode} parent
  * @param {string} name
  * @param {?} obj
  * @param {number} depth
  * @return {goog.ui.tree.TreeNode}
  */
-recoil.debugger.ObjectBrowser.prototype.createNode_ = function(parent, name, obj, depth) {
+recoil.debugger.ObjectBrowser.prototype.createNode_ = function(name, obj, depth) {
 
-    if (depth < 0) {
-        return null;
-    }
     var suffix = obj instanceof Function ? '' : ':';
-    var node = new goog.ui.tree.TreeNode(
-        goog.html.SafeHtml.create(
-            'div', {style: {display: 'inline-block'}},
-            [
-                goog.html.SafeHtml.create('b', undefined, name + suffix),
-                this.typeToSafeHtml(obj)
-
-            ]
-        ));
+    var node = new goog.ui.tree.TreeNode(this.createNodeHtml_(name, obj));
 
     var childCount = 0;
     var childMap = {};
@@ -244,6 +242,7 @@ recoil.debugger.ObjectBrowser.prototype.createNode_ = function(parent, name, obj
         var k = childKeys[i];
         if (depth > 0) {
             var child = this.createNode_(node, k.aname, k(obj), depth - 1);
+            node.add(child);
             childMap[k.aname] = {node: child, val: k(obj), getter: k};
         }
 
@@ -269,8 +268,6 @@ recoil.debugger.ObjectBrowser.prototype.createNode_ = function(parent, name, obj
                            }
                        });
 
-    parent.add(node);
-
     return node;
 };
 /**
@@ -278,9 +275,30 @@ recoil.debugger.ObjectBrowser.prototype.createNode_ = function(parent, name, obj
  * @param {!string} name
  * @param {?} obj
  */
-recoil.debugger.ObjectBrowser.prototype.addObject = function(name, obj) {
+recoil.debugger.ObjectBrowser.prototype.setItems = function(items) {
+    this.setItemsRec_(this.tree_, items, this.oldItems_);
+};
+recoil.debugger.ObjectBrowser.prototype.setItemsRec_ = function(node, items, oldItems) {
 
+    var diffs = recoil.ui.widgets.TreeView.minDifference(this.oldItems_ || [], items, diffFunc);
 
+    var childIndex = 0;
+    for (var idx = 0; idx < diffs.length; idx++) {
+        var diff = diffs[idx];
+        var childNode = node.getChildAt(childIndex);
+        var newPath;
+        if (diff.oldVal !== undefined && diff.newVal !== undefined) {
+            childNode.setSafeHtml();
+            this.updateNode_(node, childNode, newPath, diff.oldVal, diff.newVal);
+            childIndex++;
+        } else if (diff.newVal === undefined) {
+            node.removeChild(childNode);
+        } else if (diff.oldVal === undefined) {
+            childNode = this.createNode(name, obj, 1);
+            node.addChildAt(childNode, childIndex);
+            childIndex++;
+        }
+    }
 
     this.createNode_(this.tree_, name, obj, 1);
 
