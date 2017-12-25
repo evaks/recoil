@@ -4,7 +4,7 @@ goog.require('goog.dom');
 goog.require('goog.ui.tree.TreeControl');
 goog.require('goog.ui.tree.TreeNode');
 goog.require('recoil.ui.Widget');
-
+goog.require('recoil.ui.widgets.TreeView');
 /**
  * @param {Element} container
  * @constructor
@@ -14,6 +14,7 @@ recoil.debugger.ObjectBrowser = function(container) {
     this.tree_.setShowRootNode(false);
     this.tree_.setShowRootLines(false);
     this.tree_.render(container);
+    this.tree_.oldItems = [];
 };
 
 /**
@@ -137,6 +138,20 @@ recoil.debugger.ObjectBrowser.prototype.typeToSafeHtml = function(val) {
 
     return '' + val;
 };
+
+/**
+ * @private
+ * @param {?} obj
+ * @return {!Array<{name:?, val:?}>}
+ */
+recoil.debugger.ObjectBrowser.prototype.getChildKeyValues_ = function(obj) {
+    var res = [];
+    this.getChildKeys_(obj).forEach(function(key) {
+        res.push({name: key.aname, val: key(obj)});
+    });
+    return res;
+};
+
 /**
  * @private
  * @param {?} obj
@@ -211,18 +226,43 @@ recoil.debugger.ObjectBrowser.prototype.getChildKeys_ = function(obj) {
     return res;
 
 };
-
-recoil.debugger.ObjectBrowser.prototype.createNodeHtml_ = function (name, obj) {
+/**
+ * creates the safe html that goes in a tree node
+ * @private
+ * @param {!string} name
+ * @param {?} obj
+ * @return {!goog.html.SafeHtml}
+ */
+recoil.debugger.ObjectBrowser.prototype.createNodeHtml_ = function(name, obj) {
+    var suffix = obj instanceof Function ? '' : ':';
     return goog.html.SafeHtml.create(
         'div', {style: {display: 'inline-block'}},
         [
             goog.html.SafeHtml.create('b', undefined, name + suffix),
             this.typeToSafeHtml(obj)
-            
+
         ]
     );
 };
-/**
+/***
+ * @private
+ * @param {!goog.ui.tree.BaseNode} node
+ * @param {?} obj
+ */
+recoil.debugger.ObjectBrowser.prototype.updateChildMap_ = function(node, obj) {
+    var oldMap = node.childMap || {};
+    var map = {};
+    var childKeys = this.getChildKeys_(obj);
+    for (var i = 0; i < childKeys.length; i++) {
+        var k = childKeys[i];
+        var childNode = node.getChildAt(i);
+        var expanded = (oldMap[k.aname] && oldMap[k.aname].expanded) || node.getExpanded();
+        map[k.aname] = {node: childNode, val: k(obj), getter: k, expanded: expanded};
+
+    }
+    node.childMap = map;
+};
+    /**
  * @private
  * @param {string} name
  * @param {?} obj
@@ -231,37 +271,35 @@ recoil.debugger.ObjectBrowser.prototype.createNodeHtml_ = function (name, obj) {
  */
 recoil.debugger.ObjectBrowser.prototype.createNode_ = function(name, obj, depth) {
 
-    var suffix = obj instanceof Function ? '' : ':';
     var node = new goog.ui.tree.TreeNode(this.createNodeHtml_(name, obj));
-
-    var childCount = 0;
+    var items = [];
     var childMap = {};
-
+    node.childMap = childMap;
     var childKeys = this.getChildKeys_(obj);
     for (var i = 0; i < childKeys.length; i++) {
         var k = childKeys[i];
+        items.push({name: k.aname, val: k(obj)});
         if (depth > 0) {
-            var child = this.createNode_(node, k.aname, k(obj), depth - 1);
+            var child = this.createNode_(k.aname, k(obj), depth - 1);
             node.add(child);
             childMap[k.aname] = {node: child, val: k(obj), getter: k};
         }
 
     }
-
+    node.oldItems = items;
 
 
     var me = this;
     goog.events.listen(node, goog.ui.tree.BaseNode.EventType.BEFORE_EXPAND,
                        function() {
-                           for (var childKey in childMap) {
-                               var child = childMap[childKey];
+                           for (var childKey in node.childMap) {
+                               var child = node.childMap[childKey];
                                if (!child.expanded) {
                                    var keys = me.getChildKeys_(child.val);
-
                                    for (var i = 0; i < keys.length; i++) {
                                        var key = keys[i];
                                        var val = key(child.val);
-                                       me.createNode_(child.node, key.aname, val, 1);
+                                       child.node.add(me.createNode_(key.aname, val, 1));
                                    }
                                    child.expanded = true;
                                }
@@ -272,15 +310,24 @@ recoil.debugger.ObjectBrowser.prototype.createNode_ = function(name, obj, depth)
 };
 /**
  * add an object to the object browser
- * @param {!string} name
- * @param {?} obj
+ * @param {!Array<{name:string,val:?}>} items
  */
 recoil.debugger.ObjectBrowser.prototype.setItems = function(items) {
-    this.setItemsRec_(this.tree_, items, this.oldItems_);
+    this.setItemsRec_(this.tree_, items, this.tree_.oldItems);
 };
+/**
+ * @private
+ * @param {goog.ui.tree.BaseNode} node
+ * @param {!Array<{name:string,val:?}>} items
+ * @param {!Array<{name:string,val:?}>} oldItems
+ */
 recoil.debugger.ObjectBrowser.prototype.setItemsRec_ = function(node, items, oldItems) {
 
-    var diffs = recoil.ui.widgets.TreeView.minDifference(this.oldItems_ || [], items, diffFunc);
+    // old items may have changed in memory since last called
+    var diffs = recoil.ui.widgets.TreeView.minDifference(node.oldItems || [], items, function(x, y) {
+        return x.name === y.name;
+    });
+
 
     var childIndex = 0;
     for (var idx = 0; idx < diffs.length; idx++) {
@@ -288,19 +335,23 @@ recoil.debugger.ObjectBrowser.prototype.setItemsRec_ = function(node, items, old
         var childNode = node.getChildAt(childIndex);
         var newPath;
         if (diff.oldVal !== undefined && diff.newVal !== undefined) {
-            childNode.setSafeHtml();
-            this.updateNode_(node, childNode, newPath, diff.oldVal, diff.newVal);
+            childNode.setSafeHtml(this.createNodeHtml_(diff.newVal.name, diff.newVal.val));
+            if (childNode.getExpanded() || node.getExpanded() || childNode.hasChildren()) {
+                this.setItemsRec_(
+                    childNode,
+                    this.getChildKeyValues_(diff.newVal.val),
+                    this.getChildKeyValues_(diff.oldVal.val));
+                this.updateChildMap_(childNode, diff.newVal.val);
+            }
+
             childIndex++;
         } else if (diff.newVal === undefined) {
             node.removeChild(childNode);
         } else if (diff.oldVal === undefined) {
-            childNode = this.createNode(name, obj, 1);
+            childNode = this.createNode_(diff.newVal.name, diff.newVal.val, 1);
             node.addChildAt(childNode, childIndex);
             childIndex++;
         }
     }
-
-    this.createNode_(this.tree_, name, obj, 1);
-
-
+    node.oldItems = items;
 };

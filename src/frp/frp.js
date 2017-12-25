@@ -632,9 +632,20 @@ recoil.frp.Behaviour.prototype.getDependants = function() {
 /**
  * allows naming of behaviours for debugging
  * @param {!string} name
+ * @return {!recoil.frp.Behaviour}
  */
 recoil.frp.Behaviour.prototype.setName = function(name) {
     this.name_ = name;
+    return this;
+};
+
+
+/**
+ * allows naming of behaviours for debugging
+ * @return {!string}
+ */
+recoil.frp.Behaviour.prototype.getName = function() {
+    return this.name_;
 };
 
 /**
