@@ -2746,6 +2746,7 @@ recoil.db.ChangeDbNode.Container.prototype.setKeys = function(item) {
         var val = keys[i];
         if (!children[child]) {
             children[child] = new recoil.db.ChangeDbNode.Leaf();
+            this.useVal_ = false;
         }
         children[child].setValue(val);
     }
@@ -2774,6 +2775,7 @@ recoil.db.ChangeDbNode.Container.prototype.set = function(schema, path, val) {
         });
     } else {
         this.useVal_ = true;
+        this.children_ = {};
         this.val_ = val;
     }
 };
