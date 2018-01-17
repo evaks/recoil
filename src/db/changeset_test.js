@@ -239,6 +239,9 @@ var schema = {
         return path.prepend([new recoil.db.ChangeSet.PathItem('test',[],[])]);
     },
         
+    isCreatable: function (path) {
+        return true;
+    },
     isKeyedList: function (path) {
         var keys = [];
         var meta = schema.meta1(path, keys);

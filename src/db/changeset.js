@@ -247,9 +247,16 @@ recoil.db.ChangeDb.prototype.applySet = function(path, val) {
             if (this.rootLock_ === 0) {
                 throw new Error("set node '" + path.toString() + "' does not exist");
             }
-            // don't set it but we may just not have this item
-            return;
+            var roots = this.getRoots(path);
+            if (roots.length === 0) {
+                // there is no existing root for this path
+                // and the roots are locked so we don't want to add it
+                return;
+            }
+            // this will add the node
+            parent = this.resolve_(path.parent(), true);
         }
+
         node = parent.getChildNode(this.schema_, path.last(), path, true);
     }
     if (!(node instanceof recoil.db.ChangeDbNode.Leaf)) {
@@ -832,6 +839,13 @@ recoil.db.ChangeSet.Schema.prototype.children = function(path) {
  * @return {!boolean} the children
  */
 recoil.db.ChangeSet.Schema.prototype.isOrderedList = function(path) {
+};
+
+/**
+ * @param {recoil.db.ChangeSet.Path} path
+ * @return {!boolean} returns true if the user has to create
+ */
+recoil.db.ChangeSet.Schema.prototype.isCreatable = function(path) {
 };
 
 /**
