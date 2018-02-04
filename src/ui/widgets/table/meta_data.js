@@ -18,6 +18,7 @@ goog.require('recoil.util.object');
 recoil.ui.widgets.TableMetaData = function() {
     this.columns_ = [];
     this.colSeperators_ = [];
+    this.colSeperatorsOpts_ = [];
 };
 
 /**
@@ -34,15 +35,17 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
  * @param {!recoil.structs.table.ColumnKey} key
  * @param {string|Node} name if you pass a node this will allow better formating of header
  * @param {!Object=} opt_meta
+ * @param {!Object=} opt_DecOptions the options passed to createDom when the decorator is created
  */
 
-recoil.ui.widgets.TableMetaData.prototype.addSeperatorCol = function(key, name, opt_meta) {
+recoil.ui.widgets.TableMetaData.prototype.addSeperatorCol = function(key, name, opt_meta, opt_DecOptions) {
     if (!key) {
         throw new Error('undefined column key');
     }
 
     this.addColumn(new recoil.ui.widgets.table.SeperatorColumn(key, name, opt_meta || {}));
     this.colSeperators_.push(key);
+    this.colSeperatorsOpts_.push({key: key, opt: opt_DecOptions || {class: 'recoil-table-group'}});
 };
 
 /**
@@ -93,9 +96,9 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
     if (this.colSeperators_.length > 0) {
         var res = mtable.freeze().createEmpty([], this.colSeperators_);
 
-       me.colSeperators_.forEach(function(col) {
-           res.addColumnMeta(col, {cellDecorator: recoil.ui.widgets.TableMetaData.createSpanDecorator(mtable.size() + 1,
-                                                                                                      {class: 'recoil-table-group'})});
+       me.colSeperatorsOpts_.forEach(function(opt) {
+           res.addColumnMeta(opt.key, {cellDecorator: recoil.ui.widgets.TableMetaData.createSpanDecorator(mtable.size() + 1,
+                                                                                                      opt.opt)});
        });
 
         mtable.forEach(function(row) {
