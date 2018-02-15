@@ -110,6 +110,29 @@ recoil.frp.DomObserver.prototype.listen = function(node, callback) {
         }
     });
 };
+/**
+ * gets the behaviours attached to the dom node
+ * @param {Node} node
+ * @param {Object=} opt_map a map of behaviour id to behaviurs to add to
+ *                          for behaviours associated with this node
+ * @return {!Object} returns either opt_map or a new map if opt_map is not provided
+ */
+recoil.frp.DomObserver.prototype.getBehaviours = function(node, opt_map) {
+  var map = opt_map || {};
+
+  var entry = this.watchedNodes_.get(node);
+
+  if (entry) {
+    entry.callbacks.forEach(function(cb) {
+        if (cb.behaviours) {
+          cb.behaviours().forEach(function(b) {
+            map[b.getUniqId()] = b;
+          });
+        }
+    });
+  }
+  return map;
+};
 
 /**
  * stops listening to the node, will not call the callback function

@@ -102,10 +102,9 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
     this.immediateB_ = structs.get('immediate', optionsB, false);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
     var readyB = util.isAllGoodExplain(this.valueB_, this.enabledB_);
-
-    this.label_.attach(
-          structs.get('name', optionsB),
-          recoil.ui.BoolWithExplanation.and(frp, this.enabledB_, readyB));
+    var nameB_ = structs.get('name', optionsB);
+    var bool = recoil.ui.BoolWithExplanation.and(frp, this.enabledB_, readyB);
+    this.label_.attach(nameB_, bool);
 
     this.helper_.attach(this.valueB_, this.immediateB_, this.enabledB_);
     this.configHelper_.attach(this.minHeightB_);
@@ -116,6 +115,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
             me.valueB_.set(v.target.value);
         }
     }, this.valueB_, this.immediateB_));
+    this.changeHelper_.listener_.setName('ChangeHelper');
 
     this.blurChangeHelper_.listen(this.scope_.getFrp().createCallback(
         function(v) {
@@ -123,7 +123,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
                 me.valueB_.set(v.target.value);
             }
         }, this.valueB_, this.immediateB_));
-
+    this.blurChangeHelper_.listener_.setName('blurChangeHelper');
 };
 
 
@@ -157,6 +157,3 @@ recoil.ui.widgets.TextAreaWidget.prototype.updateConfig_ = function(helper) {
     }
 
 };
-
-
-

@@ -13,6 +13,7 @@ goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.struct');
 goog.require('recoil.frp.tree');
 goog.require('recoil.structs.Tree');
+goog.require('recoil.ui.ComponentWidgetHelper');
 goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.util');

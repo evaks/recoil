@@ -7,14 +7,18 @@ goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.widgets.TreeView');
 /**
  * @param {Element} container
+ * @param {Window=} opt_window
+ * @param {Function} opt_menuCreator
  * @constructor
  */
-recoil.debugger.ObjectBrowser = function(container) {
+recoil.debugger.ObjectBrowser = function(container, opt_window, opt_menuCreator) {
     this.tree_ = new goog.ui.tree.TreeControl('?');
     this.tree_.setShowRootNode(false);
     this.tree_.setShowRootLines(false);
     this.tree_.render(container);
     this.tree_.oldItems = [];
+    this.window_ = opt_window || window;
+    this.menuCreator_ = opt_menuCreator;
 };
 
 /**
@@ -73,7 +77,7 @@ recoil.debugger.ObjectBrowser.prototype.typeToSafeHtml = function(val) {
             'div', {class: 'recoil-debugger-null'},
             this.shortStringify(val, 'undefined'));
     }
-    if (val instanceof recoil.frp.Behaviour) {
+    if (val instanceof this.window_.recoil.frp.Behaviour) {
         var meta = val.unsafeMetaGet();
         var refs = val.hasRefs();
         var res;
@@ -106,18 +110,18 @@ recoil.debugger.ObjectBrowser.prototype.typeToSafeHtml = function(val) {
         return res;
 
     }
-    if (val instanceof Array) {
+    if (val instanceof this.window_.Array) {
         return goog.html.SafeHtml.create(
             'div', {class: 'recoil-debugger-array'},
             this.shortStringify(val, '[...]'));
     }
 
-    if (val instanceof Function) {
+    if (val instanceof this.window_.Function) {
         return goog.html.SafeHtml.create(
             'div', {class: 'recoil-debugger-function'},'()');
     }
 
-    if (val instanceof Object) {
+    if (val instanceof this.window_.Object) {
         return goog.html.SafeHtml.create(
             'div', {class: 'recoil-debugger-object'},
             this.shortStringify(val, '{...}'));
@@ -174,7 +178,7 @@ recoil.debugger.ObjectBrowser.prototype.getChildKeys_ = function(obj) {
         return res;
     };
     var res = [];
-    if (obj instanceof recoil.frp.Behaviour) {
+    if (obj instanceof this.window_.recoil.frp.Behaviour) {
 
         res.push(calcAttr('value', function(b) {
             var v = b.unsafeMetaGet();
@@ -203,15 +207,15 @@ recoil.debugger.ObjectBrowser.prototype.getChildKeys_ = function(obj) {
         res.push(calcAttr('dependants', function(b) {
             return b.getDependants();
         }));
-    } else if (obj instanceof Array) {
+    } else if (obj instanceof this.window_.Array) {
         for (var i = 0; i < obj.length; i++) {
             res.push(getAttr('' + i));
         }
         res.push(getAttr('length'));
 
     }
-    else if (obj instanceof Object) {
-        if (obj instanceof Function) {
+    else if (obj instanceof this.window_.Object) {
+        if (obj instanceof this.window_.Function) {
             res.push(getAttr('arguments'));
             res.push(getAttr('caller'));
             res.push(getAttr('length'));
@@ -262,6 +266,32 @@ recoil.debugger.ObjectBrowser.prototype.updateChildMap_ = function(node, obj) {
     }
     node.childMap = map;
 };
+
+
+/**
+* @constructor
+* @param {Function} menuCreator
+* @param {!goog.html.SafeHtml} content
+* @param {?} obj
+* @param {?} opt_config
+* @param {?} opt_domHelper
+*/
+recoil.debugger.ObjectBrowser.TreeNode = function(menuCreator, content, obj, opt_config, opt_domHelper) {
+    goog.ui.tree.TreeNode.call(this, content, opt_config, opt_domHelper);
+    this.objectValue = obj;
+    this.menuCreator_ = menuCreator;
+};
+goog.inherits(recoil.debugger.ObjectBrowser.TreeNode, goog.ui.tree.TreeNode);
+
+/** @override */
+recoil.debugger.ObjectBrowser.TreeNode.prototype.createDom = function() {
+    recoil.ui.widgets.TreeNode.superClass_.createDom.call(this);
+    if (this.menuCreator_) {
+        this.menuCreator_(this.getRowElement(), this.objectValue, this);
+    }
+};
+
+
     /**
  * @private
  * @param {string} name
@@ -271,7 +301,8 @@ recoil.debugger.ObjectBrowser.prototype.updateChildMap_ = function(node, obj) {
  */
 recoil.debugger.ObjectBrowser.prototype.createNode_ = function(name, obj, depth) {
 
-    var node = new goog.ui.tree.TreeNode(this.createNodeHtml_(name, obj));
+    var node = new recoil.debugger.ObjectBrowser.TreeNode(this.menuCreator_,
+        this.createNodeHtml_(name, obj), obj);
     var items = [];
     var childMap = {};
     node.childMap = childMap;
@@ -325,7 +356,7 @@ recoil.debugger.ObjectBrowser.prototype.setItemsRec_ = function(node, items, old
 
     // old items may have changed in memory since last called
     var diffs = recoil.ui.widgets.TreeView.minDifference(node.oldItems || [], items, function(x, y) {
-        return x.name === y.name;
+        return x.name === y.name && x.val === y.val;
     });
 
 

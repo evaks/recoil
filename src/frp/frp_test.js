@@ -897,3 +897,84 @@ function testBreakPoint() {
     assertEquals(4, l2B.unsafeMetaGet().get());
     
 }
+
+function testAcess() {
+    var frp = new recoil.frp.Frp();
+
+    var tm = frp.tm();
+    var brk = true;
+    var l1B = frp.createB(1);
+    var l2B = frp.liftBI(
+        function (v) {
+            return v + 1;
+        }, function (v) {
+            l1B.set(v - 1);
+        }, l1B);
+    tm.attach(l2B);
+
+    assertEquals(2, l2B.unsafeMetaGet().get());
+
+    frp.setDebugger({
+        preVisit: function (node) {
+            return !brk;
+        },
+        postVisit: function (node) {
+        }
+    });
+    frp.accessTrans(function () {
+        l1B.set(3);
+    },l1B);
+
+    frp.accessTrans(function () {
+        l2B.set(10);
+    },l2B);
+
+    brk = false;
+    frp.resume();
+
+
+    assertEquals(10, l2B.unsafeMetaGet().get());
+
+
+
+
+}
+
+function testContinue() {
+    var frp = new recoil.frp.Frp();
+
+    var tm = frp.tm();
+    var brk = true;
+    var l1B = frp.createB(1);
+    var plus1 = function (v) {return v + 1};
+    var l2B = frp.liftBI(
+        plus1, function (v) {
+            l1B.set(v - 1);
+        }, l1B);
+    var l3B = frp.liftB(plus1, l2B);
+    var l4B = frp.liftB(plus1, l3B);
+    tm.attach(l4B);
+
+    assertEquals(4, l4B.unsafeMetaGet().get());
+
+    var cont = false;
+    frp.setDebugger({
+        preVisit: function (node) {
+            return node !== l2B || cont;
+        },
+        postVisit: function (node) {
+        }
+    });
+    frp.accessTrans(function () {
+        l1B.set(3);
+    },l1B);
+
+    cont = true;
+    frp.resume();
+
+
+    assertEquals(6, l4B.unsafeMetaGet().get());
+
+
+
+}

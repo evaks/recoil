@@ -91,7 +91,7 @@ function testOr() {
 
     res = x.or(y,z);
     assertFalse("x y z",res.val());
-    assertEquals("msg1 and msg2 and msg3",res.reason().toString());
+    assertEquals("msg1 or msg2 or msg3",res.reason().toString());
     
 }
 
