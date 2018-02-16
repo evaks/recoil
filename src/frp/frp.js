@@ -649,6 +649,19 @@ recoil.frp.Behaviour.prototype.getName = function() {
 };
 
 /**
+ * for debugging this keeps track of the original functions
+ * @template T
+ * @param {!function(...):T} calc
+ * @param {!function(T)} inv
+ * @return {!recoil.frp.Behaviour}
+ */
+recoil.frp.Behaviour.prototype.nameFunc = function(calc, inv) {
+    this.srcCalc_ = calc;
+    this.srcInv_ = inv;
+    return this;
+};
+
+/**
  * @return {!boolean}
  */
 recoil.frp.Behaviour.prototype.good = function() {
@@ -724,7 +737,12 @@ recoil.frp.Behaviour.prototype.quickLoopCheck_ = function() {
 
 
 };
-
+/**
+ * @return {string}
+ */
+recoil.frp.Behaviour.prototype.getUniqId = function() {
+  return this.origSeq_;
+};
 /**
  * a utility function to print out an frp node when it changes
  * @template T
@@ -760,7 +778,7 @@ recoil.frp.Behaviour.prototype.debug = function(name) {
             console.log(name, 'inv', getDebug(val));
 
             behaviour.metaSet(val);
-        }, behaviour);
+        }, behaviour).setName(name + 'metaLiftBI');
 };
 
 /**
@@ -1068,7 +1086,8 @@ recoil.frp.Frp.prototype.resume = function() {
  */
 recoil.frp.Frp.prototype.createB = function(initial) {
     var metaInitial = new recoil.frp.BStatus(initial);
-    return new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
+    var newB = new recoil.frp.Behaviour(this, metaInitial, undefined, undefined, this.transactionManager_.nextIndex(), []);
+    return newB.setName('createB');
 };
 /**
  * helper function to create a behaviour that is not ready
@@ -1119,17 +1138,20 @@ recoil.frp.Frp.prototype.createConstB = function(initial) {
  */
 
 recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
-
-    try {
-        for (var i = 1; i < arguments.length; i++) {
-            arguments[i].accessors_++;
+    var args = arguments;
+    var func = function() {
+        try {
+            for (var i = 1; i < args.length; i++) {
+                args[i].accessors_++;
+            }
+            callback();
+        } finally {
+            for (i = 1; i < args.length; i++) {
+                args[i].accessors_--;
+            }
         }
-        this.transactionManager_.doTrans(callback);
-    } finally {
-        for (i = 1; i < arguments.length; i++) {
-            arguments[i].accessors_--;
-        }
-    }
+    };
+    this.transactionManager_.doTrans(func);
 };
 /**
  * @param {function()} callback
@@ -1212,7 +1234,7 @@ recoil.frp.Frp.prototype.switchB = function(Bb) {
             metaBb.value_.metaSet(val);
         }
 
-    }, Bb);
+    }, Bb).setName('switchB');
     res1.isSwitch = true;
     return res1;
 };
@@ -1272,7 +1294,7 @@ recoil.frp.Frp.prototype.metaLiftBI = function(func, invFunc, var_args) {
     for (var i = 2; i < arguments.length; i++) {
         providers.push(arguments[i]);
     }
-    return new recoil.frp.Behaviour(this, recoil.frp.BStatus.notReady(), func, invFunc, this.transactionManager_.nextIndex(), providers);
+    return new recoil.frp.Behaviour(this, recoil.frp.BStatus.notReady(), func, invFunc, this.transactionManager_.nextIndex(), providers).nameFunc(func, invFunc).setName('metaLiftBI');
 };
 
 /**
@@ -1531,14 +1553,14 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
         newArgs.push(outerArgs[i]);
     }
 
-    return liftFunc.apply(this, newArgs);
+    return liftFunc.apply(this, newArgs).nameFunc(func, invFunc);
 
 };
 
 /**
  * @constructor
  * @param {recoil.frp.Frp} frp
- *
+ * s
  */
 recoil.frp.TransactionManager = function(frp) {
     this.providers_ = [];
@@ -1568,6 +1590,25 @@ recoil.frp.TransactionManager = function(frp) {
      * @private
      */
     this.frp_ = frp;
+};
+
+/**
+ * used by debugger, returns all pending behaviours in the up direction
+ *
+ * @return {Array<!recoil.frp.Behaviour>}
+ */
+recoil.frp.TransactionManager.prototype.getPendingUp = function() {
+    return this.getPending_(recoil.frp.Frp.Direction_.UP).asArray();
+};
+
+/**
+ * used by debugger, returns all pending behaviours in the down direction
+ *
+ * @return {Array<!recoil.frp.Behaviour>}
+ */
+
+recoil.frp.TransactionManager.prototype.getPendingDown = function() {
+    return this.getPending_(recoil.frp.Frp.Direction_.DOWN).asArray();
 };
 
 /**
@@ -1836,13 +1877,18 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
     while (cur !== undefined) {
         // calculate changed something
         var deps;
+        var getDeps;
         var nextItr = [];
         var args;
+
         if (this.debugState_) {
-            deps = this.debugState_.deps;
+            getDeps = this.debugState_.getDeps;
             nextItr = this.debugState_.nextItr;
             args = this.debugState_.args;
             delete this.debugState_;
+            this.debugPaused_ = false;
+            this.debugState_ = null;
+
         }
         else {
             var accessFunc = function() {
@@ -1862,7 +1908,7 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
             for (var i = 0; i < cur.providers_.length; i++) {
                 args.push(cur.providers_[i]);
             }
-            if (this.debugger_ && !this.debugger_.preVisit(cur)) {
+            if (this.debugger_ && !this.debugger_.preVisit(cur, dir === recoil.frp.Frp.Direction_.UP)) {
                 this.debugPaused_ = true;
                 this.debugState_ = {
                     args: args,
@@ -1871,14 +1917,21 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
                     cur: cur,
                     nextItr: nextItr,
                     nextPending: nextPending,
-                    deps: deps,
+                    // we need this because the deps comes from a different function invocation
+                    getDeps: function() {return deps},
+
                     pendingTrans: []
                     };
                 return;
             }
+            getDeps = null;
+
         }
         try {
             recoil.frp.Frp.access.apply(this, args);
+            if (getDeps) {
+                deps = getDeps();
+            }
         }
         finally {
             if (this.debugger_) {
