@@ -7,11 +7,11 @@ goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.widgets.TreeView');
 /**
  * @param {Element} container
+ * @param {function(?,?,?)=} opt_menuCreator
  * @param {Window=} opt_window
- * @param {Function} opt_menuCreator
  * @constructor
  */
-recoil.debugger.ObjectBrowser = function(container, opt_window, opt_menuCreator) {
+recoil.debugger.ObjectBrowser = function(container, opt_menuCreator, opt_window) {
     this.tree_ = new goog.ui.tree.TreeControl('?');
     this.tree_.setShowRootNode(false);
     this.tree_.setShowRootLines(false);
@@ -270,17 +270,20 @@ recoil.debugger.ObjectBrowser.prototype.updateChildMap_ = function(node, obj) {
 
 /**
 * @constructor
-* @param {Function} menuCreator
+* @extends {goog.ui.tree.TreeNode}
+* @param {?function (?, ?, ?)} menuCreator
 * @param {!goog.html.SafeHtml} content
 * @param {?} obj
-* @param {?} opt_config
-* @param {?} opt_domHelper
+* @param {?=} opt_config
+* @param {?=} opt_domHelper
 */
 recoil.debugger.ObjectBrowser.TreeNode = function(menuCreator, content, obj, opt_config, opt_domHelper) {
     goog.ui.tree.TreeNode.call(this, content, opt_config, opt_domHelper);
     this.objectValue = obj;
     this.menuCreator_ = menuCreator;
 };
+
+/** @extends {recoil.debugger.ObjectBrowser.TreeNode} */
 goog.inherits(recoil.debugger.ObjectBrowser.TreeNode, goog.ui.tree.TreeNode);
 
 /** @override */
@@ -297,11 +300,11 @@ recoil.debugger.ObjectBrowser.TreeNode.prototype.createDom = function() {
  * @param {string} name
  * @param {?} obj
  * @param {number} depth
- * @return {goog.ui.tree.TreeNode}
+ * @return {recoil.debugger.ObjectBrowser.TreeNode}
  */
 recoil.debugger.ObjectBrowser.prototype.createNode_ = function(name, obj, depth) {
 
-    var node = new recoil.debugger.ObjectBrowser.TreeNode(this.menuCreator_,
+    var node = new recoil.debugger.ObjectBrowser.TreeNode(this.menuCreator_ || null,
         this.createNodeHtml_(name, obj), obj);
     var items = [];
     var childMap = {};

@@ -112,7 +112,7 @@ recoil.frp.DomObserver.prototype.listen = function(node, callback) {
 };
 /**
  * gets the behaviours attached to the dom node
- * @param {Node} node
+ * @param {EventTarget} node
  * @param {Object=} opt_map a map of behaviour id to behaviurs to add to
  *                          for behaviours associated with this node
  * @return {!Object} returns either opt_map or a new map if opt_map is not provided

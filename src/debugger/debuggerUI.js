@@ -1,3 +1,7 @@
+/**
+ * @suppress {deprecated}
+ */
+
 goog.provide('recoil.debugger.ui');
 
 goog.require('goog.debug.DivConsole');
@@ -29,7 +33,6 @@ goog.require('recoil.ui.events');
 
 
 /**
- * @implements {recoil.debugger.ui}
  * @param {!recoil.ui.WidgetScope} scope
  * @param {Element=} opt_container
  * @param {Window=} opt_window
@@ -37,6 +40,7 @@ goog.require('recoil.ui.events');
  * @param {number=} opt_height
  * @param {Object=} opt_openNodes
  * @constructor
+ * @suppress {deprecated}
  */
 recoil.debugger.ui = function(scope, opt_container, opt_window, opt_width, opt_height, opt_openNodes) {
     this.height_ = opt_height === undefined ? 1500 : opt_height;
@@ -82,11 +86,11 @@ recoil.debugger.ui.openUI = function(scope) {
 
         debugger_.addEventListener('beforeunload', function() {
             console.log('Closing debugger UI');
-            var map = window.document.debuggerMap;
-            if (map) {
-              map.saveNodeInfo();
-              map.saveWatcherInfo();
-              map.finishExecute();
+            this.map = window.document.debuggerMap;
+            if (this.map) {
+              this.map.saveNodeInfo();
+              this.map.saveWatcherInfo();
+              this.map.finishExecute();
             }
         }, false);
         recoil.debugger.ui.debugger_ = debugger_;
@@ -127,15 +131,21 @@ recoil.debugger.ui.prototype.loadStoredData = function() {
     var openNodes = [];
     var watcherInfo = {};
     try {
-        openNodes = JSON.parse(localStorage.getItem('debugger.openNodes'));
-        watcherInfo = JSON.parse(localStorage.getItem('debugger.watcherInfo'));
+        var storedNodes = this.window_.localStorage.getItem('debugger.openNodes');
+        if (storedNodes) {
+            openNodes = JSON.parse(storedNodes);
+        }
+        var storedWacher = this.window_.localStorage.getItem('debugger.watcherInfo');
+        if (storedWacher) {
+            watcherInfo = JSON.parse(storedWacher);
+        }
     }
     catch (e) {
         console.log('error', e);
     }
     this.openNodes = openNodes;
     this.watcherInfo = watcherInfo;
-    // window.opener.document.debuggerMap = map;
+    window.opener.document.debuggerMap = this.map;
 };
 
 
@@ -189,7 +199,8 @@ recoil.debugger.ui.prototype.selectTarget = function() {
 
 /**
 *initialise the debugger map in the Debugger UI
-* @return {div}
+* @return {Element}
+* @suppress {deprecated}
 */
 recoil.debugger.ui.prototype.initialMap = function() {
     var frp = this.frp_;
@@ -248,7 +259,7 @@ recoil.debugger.ui.prototype.reloadWatcher = function(watcherInfo) {
     }else {
       this.selectNode = [];
     }
-    if (watcherInfo.watchingList.length > 0) {
+    if (watcherInfo.watchingList && watcherInfo.watchingList.length > 0) {
       watcherInfo.watchingList.forEach(function(nodeSeq) {
           if (me.behaviors[nodeSeq]) {
               me.watchingList.push(me.behaviors[nodeSeq]);
@@ -282,7 +293,7 @@ recoil.debugger.ui.prototype.createControlIcons = function() {
         me.resetNodesColor();
     }, me.controlIcons, 'format_color_reset', defaultClass, 'Reset Color');
     this.addIcon(function() {
-        me.resetDebugger();
+        me.resetDebugger([]);
     }, me.controlIcons, 'refresh', defaultClass, 'Reset Debugger');
     this.addIcon(function() {
         me.selectTarget();
@@ -293,7 +304,6 @@ recoil.debugger.ui.prototype.createControlIcons = function() {
     while (this.debuggerButtons.firstChild) {
       this.debuggerButtons.removeChild(this.debuggerButtons.firstChild);
     }
-    var defaultClass = 'material-icons md-light';
     var inactive = 'material-icons md-light md-inactive';
     this.stepIntoButton_ = this.addIcon(function() {
         me.debugger_.stepInto_ = true;
@@ -349,12 +359,12 @@ recoil.debugger.ui.prototype.createControlIcons = function() {
 
 /**
  *Create a icon and attach it into the container.
- * @param {function} func
- * @param {goog.dom} container
+ * @param {Function} func
+ * @param {Element} container
  * @param {string} icon
  * @param {string} iconClass
  * @param {string} name
- * @return {goog.dom} icon
+ * @return {Element} icon
  */
 recoil.debugger.ui.prototype.addIcon = function(func, container, icon, iconClass, name) {
     var iconDiv = goog.dom.createDom('i', {'class': iconClass, 'title': name}, icon);
@@ -366,7 +376,7 @@ recoil.debugger.ui.prototype.addIcon = function(func, container, icon, iconClass
 
 /**
  * Change the content of infoLabel.
- * @param {String} content
+ * @param {string} content
  */
 recoil.debugger.ui.prototype.changeInfoLabel = function(content) {
     this.infoLabel.textContent = content;
@@ -415,17 +425,17 @@ recoil.debugger.ui.prototype.finishExecute = function() {
 
 /**
  *clean the localStorage and reset the debugger
- * @param {recoil.frp.Behaviour, Array= } opt_rootNodes
+ * @param {Object} opt_rootNodes
  */
 recoil.debugger.ui.prototype.resetDebugger = function(opt_rootNodes) {
     console.log('resetDebugger');
     this.finishExecute();
-    if (localStorage) {
-        localStorage.removeItem('debugger.openNodes');
-        localStorage.removeItem('debugger.watcherInfo');
+    if (this.window_.localStorage) {
+        this.window_.localStorage.removeItem('debugger.openNodes');
+        this.window_.localStorage.removeItem('debugger.watcherInfo');
     }
     this.watcherInfo = {'selectNodeSeq': null, 'watchingList': []};
-    this.currentNode = [];
+    this.currentNode = {};
     this.openNodes = [];
     this.nodeTreeMap = {};
     this.breakPoints = {};
@@ -464,7 +474,8 @@ recoil.debugger.ui.prototype.setPaused = function(paused) {
 /**
  *A constructor of Debugger.
  * @param {recoil.debugger.ui} me
- * @this {recoil.debugger.ui.Debugger}
+ * @implements {recoil.frp.Debugger}
+ * @constructor
  */
 recoil.debugger.ui.Debugger = function(me) {
     this.widget_ = me;
@@ -487,61 +498,72 @@ recoil.debugger.ui.Debugger = function(me) {
  *Initialise the debugger.
  */
 recoil.debugger.ui.Debugger.prototype.initialiseDebugger = function() {
-    var me = this;
-    var fill = new goog.graphics.SolidFill('rgba(113, 191, 68, 1)');
-    var postFill = new goog.graphics.SolidFill('rgba(215, 223, 33, 1)');
-    var postNode = null;
-    me.widget_.resetNodesColor();
+    this.widget_.resetNodesColor();
 
-    me.frp_.setDebugger({
-        preVisit: function(node) {
-            me.widget_.setCurrentNode(node, fill);
-            me.widget_.currentNode = node;
-            if (me.finish_) {
-              return true;
-            }
-            if (me.breakPoints[node.origSeq_]) {
-                me.setPaused(true);
-                return false;
-            }
-            if (me.stepInto_) {
-                me.setPaused(true);
-                me.stepInto_ = false;
-                return false;
-            }
-            if (me.stepOver_ && me.isVisible(node)) {
-                me.setPaused(true);
-                me.stepOver_ = false;
-                me.pause_ = true;
-                return false;
-            }
-            if (me.pause_) {
-                me.setPaused(true);
-                return false;
-            }
-            if (me.start_) {
-              setTimeout(function() {
-                me.frp_.tm().resume();
-              },10);
-              return false;
-            }
-            if (!me.pause_ && !me.stepOver_ && !me.stepInto_) {
-                setTimeout(function() {
-                    me.frp_.tm().resume();
-                },1000);
-                return false;
-            }
-            return true;
-        }, postVisit: function(node) {
-            me.setPaused(false);
-            me.widget_.setCurrentNode(node, postFill);
-            postNode = node;
-        }
-
-    });
+    this.frp_.setDebugger(this);
 };
 
+/**
+ * this is called before each node is visited,
+ * in order to stop return false,
+ * @param {!recoil.frp.Behaviour} node
+ * @return {!boolean}
+ * @suppress {deprecated}
+ */
 
+recoil.debugger.ui.Debugger.prototype.preVisit = function(node) {
+    var fill = new goog.graphics.SolidFill('rgba(113, 191, 68, 1)');
+    var me = this;
+    me.widget_.setCurrentNode(node, fill);
+    me.widget_.currentNode = node;
+    if (me.finish_) {
+      return true;
+    }
+    if (me.breakPoints[node.origSeq_]) {
+        me.setPaused(true);
+        return false;
+    }
+    if (me.stepInto_) {
+        me.setPaused(true);
+        me.stepInto_ = false;
+        return false;
+    }
+    if (me.stepOver_ && me.isVisible(node)) {
+        me.setPaused(true);
+        me.stepOver_ = false;
+        me.pause_ = true;
+        return false;
+    }
+    if (me.pause_) {
+        me.setPaused(true);
+        return false;
+    }
+    if (me.start_) {
+      setTimeout(function() {
+        me.frp_.tm().resume();
+      },10);
+      return false;
+    }
+    if (!me.pause_ && !me.stepOver_ && !me.stepInto_) {
+        setTimeout(function() {
+            me.frp_.tm().resume();
+        },1000);
+        return false;
+    }
+    return true;
+};
+
+/**
+ * called after the node has been visited
+ * @param {!recoil.frp.Behaviour} node
+ * @suppress {deprecated}
+ */
+
+recoil.debugger.ui.Debugger.prototype.postVisit = function(node) {
+    var postFill = new goog.graphics.SolidFill('rgba(215, 223, 33, 1)');
+    this.setPaused(false);
+    this.widget_.setCurrentNode(node, postFill);
+};
 /**
  *Paused the debugger tracing.
  * @param {boolean} paused
@@ -578,7 +600,7 @@ recoil.debugger.ui.prototype.saveWatcherInfo = function() {
     this.watchingList.forEach(function(node) {
       watcherInfo.watchingList.push(node.origSeq_);
     });
-    localStorage.setItem('debugger.watcherInfo', JSON.stringify(watcherInfo));
+    this.window_.localStorage.setItem('debugger.watcherInfo', JSON.stringify(watcherInfo));
 
 };
 
@@ -610,13 +632,14 @@ recoil.debugger.ui.prototype.saveNodeInfo = function() {
       openNodes.push(openNode);
     });
 
-    localStorage.setItem('debugger.openNodes', JSON.stringify(openNodes));
+    this.window_.localStorage.setItem('debugger.openNodes', JSON.stringify(openNodes));
 };
 
 
 /**
  *Set the selected node as a breakPoint
  * @param {Object} node
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.setBreakPoint = function(node) {
     var strokeSelected = new goog.graphics.Stroke(2, 'grey');
@@ -643,6 +666,7 @@ recoil.debugger.ui.prototype.setBreakPoint = function(node) {
  * Change color of the current behavior node or draw a new behaivior node.
  * @param {recoil.frp.Behaviour} nodeB
  * @param {goog.graphics.SolidFill} fill
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.setCurrentNode = function(nodeB, fill) {
     var seq_ = nodeB.origSeq_;
@@ -665,6 +689,7 @@ recoil.debugger.ui.prototype.setCurrentNode = function(nodeB, fill) {
 /**
  * Draw a node dot and text in the debugger map depends on the coordinates stored in node Object.
  * @param {Object} node
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawNode = function(node) {
     var fill = new goog.graphics.SolidFill('lightgrey');
@@ -680,7 +705,11 @@ recoil.debugger.ui.prototype.drawNode = function(node) {
  */
 recoil.debugger.ui.prototype.drawRootNode = function(nodeB) {
     var roots = this.rootNodes;
-    var rootKeys = Object.keys(roots);
+    var rootKeys = [];
+    if (roots) {
+        rootKeys = Object.keys(roots);
+    }
+
     var me = this;
     var x = 100;
     var avgHeight = Math.max(50, this.height_ / (rootKeys.length + 1));
@@ -777,6 +806,7 @@ recoil.debugger.ui.prototype.getRootNodes = function() {
 
 /**
  *Draw open nodes in the node map.
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawOpenNodes = function() {
   var me = this;
@@ -839,6 +869,7 @@ recoil.debugger.ui.prototype.drawNodeTree = function() {
 
 /**
  *Reset all nodes' color to ligthgrey and path color to grey.
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.resetNodesColor = function() {
     var nodes = Object.values(this.nodeTreeMap);
@@ -858,7 +889,8 @@ recoil.debugger.ui.prototype.resetNodesColor = function() {
 
 /**
  *Draw a main graph area in the debugger map SVG.
- * @param {goog.graphics.SvgGraphics Object} svg
+ * @param {goog.graphics.SvgGraphics} svg
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawMainG = function(svg) {
     var me = this;
@@ -886,12 +918,13 @@ recoil.debugger.ui.prototype.drawMainG = function(svg) {
 
 /**
  *DragListener constructor.
- * @param {recoil.debugger.ui Object} me
- * @this {recoil.debugger.ui.DragListener Object}
+ * @param {recoil.debugger.ui} me
+ * @this {recoil.debugger.ui.DragListener}
+ * @constructor
  */
 recoil.debugger.ui.DragListener = function(me) {
     this.map_ = me;
-    this.nodeMap_ = me.nodeMap;
+    // this.nodeMap_ = me.nodeMap;
     this.dragging_ = false;
     this.draggingRect_ = false;
     this.moved_ = false;
@@ -901,7 +934,7 @@ recoil.debugger.ui.DragListener = function(me) {
 
 /**
  *Drag event of a circle(dot) is done.
- * @param {event} e
+ * @param {Object} e event
  */
 recoil.debugger.ui.DragListener.prototype.done = function(e) {
 
@@ -917,7 +950,7 @@ recoil.debugger.ui.DragListener.prototype.done = function(e) {
 
 /**
  *Drag event of a rectradian is done.
- * @param {event} e
+ * @param {Object} e event
  */
 recoil.debugger.ui.DragListener.prototype.doneRect = function(e) {
 
@@ -933,7 +966,7 @@ recoil.debugger.ui.DragListener.prototype.doneRect = function(e) {
 
 /**
  *Dragging a circle or a rectradian.
- * @param {event} e
+ * @param {Object} e event
  */
 recoil.debugger.ui.DragListener.prototype.move = function(e) {
 
@@ -994,9 +1027,9 @@ recoil.debugger.ui.DragListener.prototype.move = function(e) {
 
 /**
  *Drag event of a circle(dot) is started.
- * @param {goog.Element} el
+ * @param {goog.graphics.EllipseElement} el
  * @param {Object} node
- * @param {event} e
+ * @param {Object} e event
  */
 recoil.debugger.ui.DragListener.prototype.start = function(el, node, e) {
     this.dragging_ = true;
@@ -1012,8 +1045,8 @@ recoil.debugger.ui.DragListener.prototype.start = function(el, node, e) {
 
 /**
  *Drag event of the rectradian is started.
- * @param {goog.Element} el
- * @param {event} e
+ * @param {Element} el
+ * @param {Object} e event
  */
 recoil.debugger.ui.DragListener.prototype.startRect = function(el, e) {
     this.draggingRect_ = true;
@@ -1032,9 +1065,10 @@ recoil.debugger.ui.DragListener.prototype.startRect = function(el, e) {
 
 /**
  *Generate a pop up menu for clicked node.
- * @param {event} e
- * @param {goog.graphics.element Object} element
+ * @param {Object} e event
+ * @param {goog.graphics.EllipseElement} element
  * @param {Object} node
+ * @suppress {accessControls}
  */
 recoil.debugger.ui.prototype.popUpMenu = function(e, element, node) {
     if (this.pm) {
@@ -1057,7 +1091,7 @@ recoil.debugger.ui.prototype.popUpMenu = function(e, element, node) {
     var showAllDeps = new goog.ui.MenuItem('Expand all dependancies');
     var showAllPros = new goog.ui.MenuItem('Expand all providers');
 
-    this.pm.addItem(prosMenu);
+    this.pm.addChild(prosMenu, true);
     prosMenu.addItem(showAllPros);
     if (node.behavior.providers_.length > 0) {
         node.behavior.providers_.forEach(function(proNode) {
@@ -1075,19 +1109,19 @@ recoil.debugger.ui.prototype.popUpMenu = function(e, element, node) {
         prosMenu.setEnabled(false);
     }
 
-    this.pm.addItem(this.depsMenu);
-    this.pm.addItem(hideNode);
+    this.pm.addChild(this.depsMenu, true);
+    this.pm.addChild(hideNode, true);
 
     if (me.inWatchingList(node.seq_)) {
-        this.pm.addItem(removeWatch);
+        this.pm.addChild(removeWatch, true);
     }else {
-        this.pm.addItem(addWatch);
+        this.pm.addChild(addWatch, true);
     }
 
     if (node.isBreakPoint) {
-        this.pm.addItem(removeBreak);
+        this.pm.addChild(removeBreak, true);
     }else {
-        this.pm.addItem(setBreak);
+        this.pm.addChild(setBreak, true);
     }
 
     this.depsMenu.addItem(showAllDeps);
@@ -1122,8 +1156,8 @@ recoil.debugger.ui.prototype.popUpMenu = function(e, element, node) {
     });
     function offset(el) {
         var rect = el.getBoundingClientRect();
-        scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-        scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         return { top: rect.top + scrollTop, left: rect.left + scrollLeft };
     }
     var divEl = me.debuggerDiv;
@@ -1164,6 +1198,7 @@ recoil.debugger.ui.prototype.resizeMap = function(x, y) {
 /**
  *Change the color of selected node.
  * @param {Object} node
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.changeNodeColor = function(node) {
     var selectedFill = new goog.graphics.SolidFill('#e0f7ff');
@@ -1179,10 +1214,11 @@ recoil.debugger.ui.prototype.changeNodeColor = function(node) {
 
 /**
  *Draw the node dot in the SVG graph.
- * @param {goog.graphics.SvgGraphics Object} svg
- * @param {node Object} node
+ * @param {goog.graphics.SvgGraphics} svg
+ * @param {Object} node
  * @param {goog.graphics.SolidFill} fill
  * @param {recoil.debugger.ui.DragListener} dragListener
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawNodeCircle = function(svg, node, fill, dragListener) {
     var me = this;
@@ -1231,8 +1267,9 @@ recoil.debugger.ui.prototype.drawNodeCircle = function(svg, node, fill, dragList
 
 /**
  *Draw a text of the node in the SVG graph.
- * @param {goog.graphics.SvgGraphics Object} svg
+ * @param {goog.graphics.SvgGraphics} svg
  * @param {Object} node
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawNodeText = function(svg, node) {
     var font = new goog.graphics.Font(12, 'Arial');
@@ -1252,10 +1289,11 @@ recoil.debugger.ui.prototype.drawNodeText = function(svg, node) {
 
 /**
  *Draw a Path in the SVG graph.
- * @param {goog.graphics.SvgGraphics Object} svg
+ * @param {goog.graphics.SvgGraphics} svg
  * @param {Object} rootNode dependancy node
  * @param {Object} node provider node
  * @param {goog.graphics.Stroke} stroke
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawNodePath = function(svg, rootNode, node, stroke) {
     var radian = this.calculateRadian(rootNode, node);
@@ -1279,8 +1317,8 @@ recoil.debugger.ui.prototype.drawNodePath = function(svg, rootNode, node, stroke
 
 /**
  *Calculate the path source and target coordinate.
- * @param {Number} r radius
- * @param {Number} radian
+ * @param {number} r radius
+ * @param {number} radian
  * @return {Object} coords
  */
 recoil.debugger.ui.prototype.calculateCoordinates = function(r, radian) {
@@ -1294,7 +1332,7 @@ recoil.debugger.ui.prototype.calculateCoordinates = function(r, radian) {
  *Radian of two nodes.
  * @param {Object} rootNode
  * @param {Object} node
- * @return {Number} radian
+ * @return {number} radian
  */
 recoil.debugger.ui.prototype.calculateRadian = function(rootNode, node) {
     return Math.atan2(node.y - rootNode.y, node.x - rootNode.x);
@@ -1303,7 +1341,7 @@ recoil.debugger.ui.prototype.calculateRadian = function(rootNode, node) {
 /**
  *Whether the node in the  Watching list or not.
  * @param {Object} nodeSeq
- * @return {Boolean} existed
+ * @return {boolean} existed
  */
 recoil.debugger.ui.prototype.inWatchingList = function(nodeSeq) {
     var existed = false;
@@ -1332,7 +1370,7 @@ recoil.debugger.ui.prototype.addWatch = function(node) {
 
 /**
  *Remove the node from Watch list.
- * @param {recoil.frp.behaviour} nodeB
+ * @param {recoil.frp.Behaviour} nodeB
  */
 recoil.debugger.ui.prototype.removeWatch = function(nodeB) {
     this.watchingList = this.watchingList.filter(function(item) {
@@ -1419,6 +1457,7 @@ recoil.debugger.ui.prototype.hideNode = function(rootNode) {
 /**
  *show all dependancies of the rootNode.
  * @param {Object} rootNode
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawDependancies = function(rootNode) {
     var deps = this.dependancyMap[rootNode.seq_];
@@ -1450,6 +1489,7 @@ recoil.debugger.ui.prototype.drawDependancies = function(rootNode) {
  *draw s dependancy of the rootNote
  * @param {Object} rootNode
  * @param {recoil.frp.Behaviour} dependancy
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawDependancy = function(rootNode, dependancy) {
     var me = this;
@@ -1492,6 +1532,7 @@ recoil.debugger.ui.prototype.drawDependancy = function(rootNode, dependancy) {
  *draws provider of the rootNote
  * @param {Object} rootNode
  * @param {recoil.frp.Behaviour} providerB
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawProvider = function(rootNode, providerB) {
     var me = this;
@@ -1550,10 +1591,10 @@ recoil.debugger.ui.prototype.drawProviderPath = function(rootNode) {
     });
 };
 
-
 /**
  *draw dependancies' path of the rootNote
  * @param {Object} rootNode
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawDepPath = function(rootNode) {
     var me = this;
@@ -1576,6 +1617,7 @@ recoil.debugger.ui.prototype.drawDepPath = function(rootNode) {
 /**
  *draw all the providers of the rootNote
  * @param {Object} rootNode
+ * @suppress {deprecated}
  */
 recoil.debugger.ui.prototype.drawProviders = function(rootNode) {
     var providers = rootNode.behavior.providers_;
@@ -1593,13 +1635,14 @@ recoil.debugger.ui.prototype.drawProviders = function(rootNode) {
 /**
  *Create a node object contained node position, paths and so on.
  * @param {recoil.frp.Behaviour} behavior
- * @param {number} seq_
- * @param {...recoil.frp.Behaviour} dependancy
+ * @param {string} seq_
+ * @param {Array<recoil.frp.Behaviour>} dependancy
  * @param {number} x
  * @param {number} y
  * @param {number} avgHeight
- * @return {object} node
+ * @return {Object} node
  */
+// recoil.debugger.ui.prototype.createNode = function(behavior, seq_, dependancy, x, y, avgHeight) {
 recoil.debugger.ui.prototype.createNode = function(behavior, seq_, dependancy, x, y, avgHeight) {
     var me = this;
     if (dependancy) {
@@ -1611,8 +1654,8 @@ recoil.debugger.ui.prototype.createNode = function(behavior, seq_, dependancy, x
         });
     }
     var node = {};
-    node['seq_'] = seq_;
-    node['dependancy'] = dependancy;
+    node.seq_ = seq_;
+    node.dependancy = dependancy;
     node.behavior = behavior;
     node.selected = [];
     node.isBreakPoint = false;
@@ -1627,7 +1670,7 @@ recoil.debugger.ui.prototype.createNode = function(behavior, seq_, dependancy, x
 
 /**
  *make sure the node doesn't have collision with previous nodes.
- * @param {node Object} node
+ * @param {Object} node
  * @param {number} avgHeight
  */
 recoil.debugger.ui.prototype.collision = function(node, avgHeight) {

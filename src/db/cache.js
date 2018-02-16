@@ -35,9 +35,10 @@ recoil.db.Cache.prototype.clear = function() {
  * @template T
  * @param {!string} key
  * @param {!recoil.frp.Behaviour<T>} sourceB
+ * @param {T=} opt_def
  * @return {!recoil.frp.Behaviour<T>}
  */
-recoil.db.Cache.prototype.get = function(key, sourceB) {
+recoil.db.Cache.prototype.get = function(key, sourceB, opt_def) {
     var frp = sourceB.frp();
     var me = this;
     return frp.metaLiftBI(
@@ -52,10 +53,13 @@ recoil.db.Cache.prototype.get = function(key, sourceB) {
             if (me.storage_.hasOwnProperty(k)) {
                 return new recoil.frp.BStatus(me.serializer_.deserialize(me.storage_[k]));
             }
+            if (opt_def !== undefined) {
+                return new recoil.frp.BStatus(opt_def);
+            }
             return recoil.frp.BStatus.notReady();
         },
         function(v) {
-            if (sourceB.good()) {
+            if (sourceB.good() || opt_def !== undefined) {
                 sourceB.set(v.get());
             }
         }, sourceB);

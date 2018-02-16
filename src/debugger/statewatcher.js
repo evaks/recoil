@@ -11,6 +11,12 @@ goog.require('recoil.debugger.ObjectBrowser');
  * @constructor
  */
 recoil.debugger.StateWatcher = function(debuggerUI, container, opt_window) {
+    this.window_ = opt_window;
+    /**
+     * @param {string} name
+     * @param {function(?,?,?)=} opt_menuCreator
+     * @return {{browser:recoil.debugger.ObjectBrowser, header:Element, body:Element}}
+     */
     var makeBrowser = function(name, opt_menuCreator) {
         var res = {
             header: goog.dom.createDom(
@@ -19,7 +25,7 @@ recoil.debugger.StateWatcher = function(debuggerUI, container, opt_window) {
             body: goog.dom.createDom('div', {id: name})
         };
 
-        res.browser = new recoil.debugger.ObjectBrowser(res.body, opt_window, opt_menuCreator);
+        res.browser = new recoil.debugger.ObjectBrowser(res.body, opt_menuCreator, opt_window);
         return res;
     };
     var me = this;
@@ -30,7 +36,6 @@ recoil.debugger.StateWatcher = function(debuggerUI, container, opt_window) {
     });
     this.pendingUp_ = makeBrowser('Pending Up');
     this.pendingDown_ = makeBrowser('Pending Down');
-    this.window_ = opt_window;
 
 
     [this.current_, this.select_, this.watches_, this.pendingUp_, this.pendingDown_]
@@ -46,15 +51,15 @@ recoil.debugger.StateWatcher = function(debuggerUI, container, opt_window) {
  * @param {recoil.debugger.ui} debuggerUI
  * @param {Element} rowElement
  * @param {recoil.frp.Behaviour} nodeB
- * @param {recoil.debugger.ObjectBrowser.TreeNode} treeNode
+ * @param {goog.ui.tree.TreeNode} treeNode
+ * @suppress {accessControls}
  */
 recoil.debugger.StateWatcher.prototype.popUpMenu = function(debuggerUI, rowElement, nodeB, treeNode) {
 
     var pm = new goog.ui.PopupMenu();
     var removeWatch = new goog.ui.MenuItem('Remove ' + nodeB.name_ + nodeB.origSeq_);
-    pm.addItem(removeWatch);
+    pm.addChild(removeWatch, true);
     goog.events.listen(removeWatch, 'action', function(e) {
-        console.log('remove', treeNode, treeNode.objectValue.origSeq_, rowElement);
         if (e.target === removeWatch) {
             console.log('remove Item in StateWatcher', nodeB.origSeq_);
             debuggerUI.removeWatch(nodeB);
@@ -63,8 +68,8 @@ recoil.debugger.StateWatcher.prototype.popUpMenu = function(debuggerUI, rowEleme
 
     function offset(el) {
       var rect = el.getBoundingClientRect();
-      scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-      scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       return { top: rect.top + scrollTop, left: rect.left + scrollLeft };
     }
     pm.render(rowElement);
@@ -73,7 +78,9 @@ recoil.debugger.StateWatcher.prototype.popUpMenu = function(debuggerUI, rowEleme
         var pos = offset(debuggerDiv);
         // pm.showMenu(rowElement, e.clientX - e.offsetX, e.clientY - e.offsetY);
 
-        pm.showMenu(debuggerDiv, e.clientX - pos.left, e.clientY - pos.top);
+        if (debuggerDiv) {
+            pm.showMenu(debuggerDiv, e.clientX - pos.left, e.clientY - pos.top);
+        }
         console.log('menu', pos, e, rowElement.parentNode);
     });
 };
@@ -99,8 +106,8 @@ recoil.debugger.StateWatcher.prototype.nameItems_ = function(items) {
 };
 
 /**
- * @param {!recoil.frp.Behaviour} curNode
- * @param {!recoil.frp.Behaviour} selectNode
+ * @param {!Array<!recoil.frp.Behaviour|!{name:!string,val:?}>} curNode
+ * @param {!Array<!recoil.frp.Behaviour|!{name:!string,val:?}>} selectNode
  * @param {!Array<!recoil.frp.Behaviour|!{name:!string,val:?}>} watches
  * @param {!Array<!recoil.frp.Behaviour>} pendingUp
  * @param {!Array<!recoil.frp.Behaviour>} pendingDown
@@ -116,6 +123,4 @@ recoil.debugger.StateWatcher.prototype.setState = function(curNode, selectNode, 
     if (pendingDown) {
       this.pendingDown_.browser.setItems(this.nameItems_(pendingDown));
     }
-
-    // console.log('watcher', this.watches_.body);
 };

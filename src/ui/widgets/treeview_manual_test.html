@@ -52,7 +52,7 @@ See the COPYING file for details.
   <p><button onclick="cut()">Cut</button>
   <button onclick="paste()">Paste</button>
   <button onclick="test()">Test</button>
-  <div id="treeViewContainer" style="width:400px"></div>
+  <div id="treeViewContainer" style="width:400px"></div>  
   <div id="treeContainer" style="width:400px"></div>
 
   <script>
@@ -64,19 +64,9 @@ See the COPYING file for details.
     divConsole.setCapturing(true);
 
     var logger = goog.debug.LogManager.getRoot();
-    var testData = ['A', [
-        ['AA', [
-            ['AAA', []],
-            ['AAB', []]
-        ]],
-        ['AB', [
-            ['ABA', []],
-            ['ABB', []]
-        ]]
-    ]];
 
     function makeTree() {
-
+    
       goog.debug.Trace.initCurrentTrace();
       var tracerId = goog.debug.Trace.startTracer('makeTree');
       var treeConfig = goog.ui.tree.TreeControl.defaultConfig;
@@ -85,11 +75,11 @@ See the COPYING file for details.
 
       var scope = new recoil.ui.WidgetScope();
       var frp = scope.getFrp();
-      var treeView = new recoil.ui.widgets.TreeView(scope, $('treeViewContainer'));
+      treeView = new recoil.ui.widgets.TreeView(scope, $('treeViewContainer'));
       var world = new recoil.structs.Tree("world",[]);
       var world1 = new recoil.structs.Tree("I",[new recoil.structs.Tree("sub 1",[])]);
       var world2 = new recoil.structs.Tree("am",[]);
-      var b = recoil.frp.struct.create(frp, {state : frp.createB(new recoil.structs.Tree("hello",[world,world1, world2]))});
+      var b = recoil.frp.struct.create(frp, {state : frp.createB(new recoil.structs.Tree("hello",[world,world1, world2]))}); 
       treeView.attach(b);
       createTreeFromTestData(tree, testData);
 
@@ -111,7 +101,7 @@ See the COPYING file for details.
     }
 
     function createTreeFromTestData(node, data) {
-//      node.setHtml(data[0]);
+      node.setHtml(data[0]);
       if (data.length > 1) {
         var children = data[1];
         var childNotCollapsible = 3; // Hard coded to reduce randomness.

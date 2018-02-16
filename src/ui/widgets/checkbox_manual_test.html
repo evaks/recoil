@@ -14,13 +14,13 @@ See the COPYING file for details.
   <script src="../../../../my-deps.js"></script>
   <script>
     goog.require('goog.dom');
-    goog.require('recoil.frp.Behaviour');
     goog.require('recoil.frp.Frp');
-    goog.require('recoil.frp.struct');
-    goog.require('recoil.frp.Util');
-    goog.require('recoil.ui.Widget');
-    goog.require('recoil.ui.WidgetHelper');
     goog.require('recoil.ui.WidgetScope');
+    goog.require('recoil.frp.Behaviour');
+    goog.require('recoil.frp.Util');
+    goog.require('recoil.frp.struct');
+    goog.require('recoil.ui.WidgetHelper');
+    goog.require('recoil.ui.Widget');
     goog.require('recoil.ui.widgets.CheckboxWidget');
     goog.require('recoil.ui.widgets.ButtonWidget');
 
@@ -67,16 +67,18 @@ See the COPYING file for details.
     var nullWidget = new recoil.ui.widgets.ButtonWidget(scope);
     var undefWidget = new recoil.ui.widgets.ButtonWidget(scope);
 
+    
 
-
-    nullWidget.attach('NULL',frp.createCallback(function(e){
+    nullWidget.attach('NULL',frp.createCallback(function(e){        
 	    val.set(null);
     }, val));
 
-    undefWidget.attach('Undefined',frp.createCallback(function(e){
+    undefWidget.attach('Undefined',frp.createCallback(function(e){        
 	    val.set(undefined);
     }, val));
 
+
+    
     recoil.ui.widgets.CheckboxWidget.options
             .name('boo')
             .value(val)
@@ -86,6 +88,7 @@ See the COPYING file for details.
     checkboxWidget.getComponent().render($('checkbox'));
     enableWidget.getComponent().render($('enable'));
     editableWidget.getComponent().render($('editable'));
+    
 
     var checkboxWidget2 = new recoil.ui.widgets.CheckboxWidget(scope);
     checkboxWidget2.getComponent().render($('checkbox2'));
@@ -95,6 +98,7 @@ See the COPYING file for details.
     checkboxWidget2.attach("boo2", val, enabledB);
     enableWidget.attach("boo2", enableSource);
     editableWidget.attach("boo2", editableB);
+    
 
   </script>
 </body>
