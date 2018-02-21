@@ -57,12 +57,17 @@ recoil.ui.widgets.SelectorWidget = function(scope) {
  * @constructor
  */
 recoil.ui.widgets.SelectorWidget.RENDERER = function(obj, valid, enabled) {
+    if (typeof(obj) === 'number') {
+        obj = '' + obj;
+    }
     if (enabled && enabled.reason && enabled.reason()) {
         if (enabled.reason().toString().trim() !== '') {
             return goog.dom.createDom('div', {disabled: true, class: valid ? undefined : 'recoil-error', title: enabled.reason().toString()}, obj);
         }
     }
+
     return goog.dom.createDom('div', valid ? undefined : 'recoil-error', obj);
+
 };
 /**
  * list of functions available when creating a selectorWidget
