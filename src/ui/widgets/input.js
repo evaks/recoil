@@ -117,7 +117,14 @@ recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, s
                 me.outErrorsB_.set([res.error]);
             }, me.outErrorsB_);
         }
-        goog.dom.classlist.add(el, 'recoil-error');
+        // if we don't remove the error on empty then the placeholder
+        // goes red
+        if (inputEl.value) {
+            goog.dom.classlist.add(el, 'recoil-error');
+        }
+        else {
+            goog.dom.classlist.remove(el, 'recoil-error');
+        }
     }
 };
 /**
