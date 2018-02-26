@@ -41,7 +41,7 @@ recoil.ui.widgets.table.Column.prototype.getKey = function() {
  * attachStruct = function ({value:*,...})
  * @template T
  * @param {function (new:recoil.ui.Widget,T):undefined} widgetCons
- * @return {function(!recoil.structs.table.ColumnKey,string)}
+ * @return {function(!recoil.structs.table.ColumnKey,string,Object=)}
  */
 recoil.ui.widgets.table.makeStructColumn = function(widgetCons) {
     var factory = function(scope, cellB) {
@@ -58,17 +58,19 @@ recoil.ui.widgets.table.makeStructColumn = function(widgetCons) {
      * @constructor
      * @param {!recoil.structs.table.ColumnKey} column
      * @param {string} name
+     * @param {Object=} opt_meta
      * @implements {recoil.ui.widgets.table.Column}
      */
-    var res = function(column, name) {
+    var res = function(column, name, opt_meta) {
         this.key_ = column;
         this.name_ = name;
+        this.meta_ = opt_meta || {};
     };
 
     res.prototype.getMeta = function(curMeta) {
         var meta = {name: this.name_,
                     cellWidgetFactory: factory};
-        goog.object.extend(meta, curMeta);
+        goog.object.extend(meta, this.meta_, curMeta);
         return meta;
     };
 
