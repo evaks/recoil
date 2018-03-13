@@ -582,5 +582,23 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         this.number_.getContentElement().style.width = (width + 10) + 'px';
         this.readonly_.getComponent().getElement().style.width = (width) + 'px';
     }
+    var hadErrors = this.hasErrors_;
     this.updateErrors_(this.number_.getElement(), this.outErrorsB_, this.validatorB_);
+    if (hadErrors && !this.hasErrors_) {
+        var me = this;
+        var frp = this.valueHelper_.getFrp();
+        frp.accessTrans(function() {
+
+            if (me.valueB_.good()) {
+            try {
+                var element = me.number_.getElement();
+                var val = element.value === '' ? null : parseFloat(element.value);
+                me.valueB_.set(val);
+            }
+            catch (e) {
+                console.error(e);
+            }
+        }
+    }, me.valueB_);
+    }
 };
