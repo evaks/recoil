@@ -13,9 +13,27 @@
       .recoil-error {
       color:red;
       }
+.popup {
+    position:absolute;
+    background-color:#e0ecff;
+    color:black;
+    visibility:hidden;
+    width:100px;
+    height:100px;
+    font-size: 80%;
+    border:solid red 1px;
+    -moz-outline:0;
+      outline:0;
+      display:none;
+  }
+
+  
       </style>
     <script>
         goog.require('goog.dom');
+      goog.require('goog.positioning.ClientPosition');
+      goog.require('goog.positioning.ViewportClientPosition');
+      goog.require('goog.ui.Popup');
         goog.require('recoil.frp.Frp');
         goog.require('recoil.ui.WidgetScope');
         goog.require('recoil.frp.Behaviour');
@@ -45,6 +63,7 @@ error<div id='error'></div>
 <div id="input2"></div>
 <div id="enabled2"></div>
 <div id="numberInput"></div>
+<div id='popupt' class='popup'>hello popup</div>
 <div>ipInput<div id="ipInput"></div></div>
 hi ho
 <table>
@@ -67,7 +86,8 @@ hi ho
     var $ = goog.dom.getElement;
     var errorB = frp.createB([]);
     var val = frp.createB("test");
-
+  var popup =  new goog.ui.Popup($('popupt'), new goog.positioning.ViewportClientPosition(1500,0));
+  popup.setVisible(true);
     var aconverter = {
     convert : function (v) {return v},
     unconvert: function (v) {if (v.startsWith('a'))

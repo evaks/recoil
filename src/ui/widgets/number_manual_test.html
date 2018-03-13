@@ -29,6 +29,7 @@ error<div id='error'/>
 <div id="input1"></div>
 <div id="input2"></div>
 <div id="enabled2"></div>
+<div id="inputr"></div>
 <div>validate
   <div id="validate"></div>
 </div>
@@ -59,12 +60,15 @@ error.attach(frp.liftB(function (e) {
   var editableB = frp.createB(true);
   var label = new recoil.ui.widgets.LabelWidget(scope);
   var input1 = new recoil.ui.widgets.NumberWidget(scope);
+  var inputr = new recoil.ui.widgets.NumberWidget(scope);
   input1.attachStruct({value : val, validator: validatorB,editable : editableB, max: 10, enabled : enabledB, step : 0.1, readonlyFormatter : function (v) {return "xx " + v},       outErrors: errorB});
+  inputr.attachStruct({value : val, validator: validatorB,editable : editableB, ranges: [{min: 0, max:10}, {min:20, max:30}], enabled : enabledB, step : 0.1, readonlyFormatter : function (v) {return "xx " + v},       outErrors: errorB});
   label.getComponent().render($('label1'));
   label.attachStruct({name : val, formatter : function (v) {
       return ""+ v;
   }});
     input1.getComponent().render($('input1'));
+    inputr.getComponent().render($('inputr'));
 
     var input2 = new recoil.ui.widgets.CheckboxWidget(scope);
     var enabled = new recoil.ui.widgets.CheckboxWidget(scope);

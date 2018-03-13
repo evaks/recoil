@@ -7,6 +7,35 @@ goog.require('recoil.frp.struct');
 
 goog.setTestOnly('recoil.util.UtilTest');
 
+function testGroupBind() {
+    
+    var frp = new recoil.frp.Frp();
+    var structs = recoil.frp.struct;
+    
+    var testee = recoil.frp.Util.Options({'a' : 1, 'b': 2, c:3, d:4, e:2});
+    var aB = frp.createB('a-');
+    var bB = frp.createB('b-');
+    var eB = frp.createB(3);
+    var bound = testee.bind(frp, {a:aB, b: bB, e: eB});
+    var groupB = bound.getGroup([bound.a, bound.b, bound.c, bound.e], function (x) {x.e = x.e + 1;return x;},  function (x) {x.e = x.e - 1;return x;});
+
+    
+    frp.attach(groupB);
+    assertObjectEquals({a:'a-',b:'b-', c: 3, e: 4},groupB.unsafeMetaGet().get());
+
+    frp.accessTrans(function() {
+        groupB.set({a:'a+', b:'b+', c:7, e: 10});
+    }, groupB);
+
+    frp.accessTrans(function() {
+        assertObjectEquals({a:'a+',b:'b+', c: 3, e:10},groupB.get());
+        assertObjectEquals('a+',aB.get());
+        assertObjectEquals('b+',bB.get());
+        assertObjectEquals(9,eB.get());
+    }, groupB, aB, bB, eB);
+
+}
+
 function testOptionsMultiAttach () {
 
     var frp = new recoil.frp.Frp();

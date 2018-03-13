@@ -474,22 +474,50 @@ recoil.frp.Util.Options = function(var_options) {
         var optionsB = recoil.frp.struct.flatten(frp, val);
         optionsB.setName('bindOptionsB');
         var res = new recoil.frp.Util.OptionsType();
-        for (var i = 0; i < args.length; i++)
-            (function(name) {
-                var funcs = functionParams(name);
-                funcs.forEach(function(func) {
-                    func.params.forEach(function(param) {
-                        res[param] = function() {
-                            return recoil.frp.struct.get(param, optionsB, func.def[param]);
-                        };
-                    });
-                });
 
-        })(args[i]);
+        var forEachParam = function(cb) {
+            for (var i = 0; i < args.length; i++)
+                (function(name) {
+                    var funcs = functionParams(name);
+                    funcs.forEach(function(func) {
+                        func.params.forEach(function(param) {
+                            cb(param, func.def[param]);
+                        });
+                    });
+
+                })(args[i]);
+        };
+        forEachParam(function(param, def) {
+            res[param] = function() {
+                return recoil.frp.struct.get(param, optionsB, def);
+            };
+        });
+        /**
+         * get all the fields specified fields as a struct, the main use
+         * of this is to reduce amount of behaviours in the system as opposed to breaking up
+         * each
+         * @template T
+         * @param {!Array} fields
+         * @param {function(Object):T=} opt_lift lift function you could do this with a liftB however
+         * since we are trying to reduce behaviours I have added it
+         * @param {function(T):!Object=} opt_inv
+         * @return {!recoil.frp.Behaviour<T>}
+         */
+        res.getGroup = function(fields, opt_lift, opt_inv) {
+            var defs = {};
+            forEachParam(function(param, def) {
+                fields.forEach(function(field) {
+                    if (res[param] === field) {
+                        defs[param] = def;
+                    }
+                });
+            });
+
+            return recoil.frp.struct.getSubset(optionsB, defs, opt_lift, opt_inv);
+        };
         return res;
 
     };
-
 
     /**
      * will just return behaviour will all the values

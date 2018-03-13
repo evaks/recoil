@@ -30,6 +30,40 @@ recoil.frp.struct.get = function(name, value, opt_default) {
 
     return behavior;
 };
+/**
+ * gets only fields specified by the map defs
+ * @template T
+ * @param {!recoil.frp.Behaviour<!Object>} value
+ * @param {Object} defs
+ * @param {function(Object):T=} opt_lift lift function you could do this with a liftB however
+ * since we are trying to reduce behaviours I have added it
+ * @param {function(T):!Object=} opt_inv
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.struct.getSubset = function(value, defs, opt_lift, opt_inv) {
+    var behavior = value.frp().liftBI(function() {
+        var val = value.get();
+        var res = {};
+        for (var k in defs) {
+            if (val.hasOwnProperty(k) || val[k] !== undefined) {
+                res[k] = val[k];
+            }
+            else {
+                res[k] = defs[k];
+            }
+        }
+        return opt_lift ? opt_lift(res) : res;
+
+    }, function(newVal) {
+        var res = goog.object.clone(value.get());
+        for (var k in defs) {
+            res[k] = newVal[k];
+        }
+        value.set(opt_inv ? opt_inv(res) : res);
+    }, value).setName('struct.getSubset(\'' + JSON.stringify(defs) + '\')');
+
+    return behavior;
+};
 
 /**
  * @template T,O
