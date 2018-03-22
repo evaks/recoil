@@ -50,17 +50,62 @@ Note I have not needed events yet, so they are largely untested.
 ### Stricter enforcement of dependencies
 The system will error if you try to access a behavior that you are not meant to for example:
 ```javascript
-A = frp.lift(function () {
+A = frp.liftB(function () {
    return B.get();
 })
 ```
 this is invalid since you have not specified by as a provider the correct way is:
 ```javascript
-A = frp.lift(function (b) {
+A = frp.liftB(function (b) {
    return B.get();
 },B)
 ```
 You can use either the b, or B.get() to get the value although using b seems functionally more clean in practice B.get() can work better for large function since you have to maintain the order of the parameters passed and scroll down to the bottom to find out what exactly B is.
 
-## Automatic garbage collection
+### Automatic garbage collection
 FRP nodes are not calculated until they are attached, there is a [``recoil.frp.DomObserver``](https://github.com/evaks/recoil/blob/master/src/frp/domobserver.js) which will automatically attach detach the FRP based on the DOM's elements present in the document. You could implement this on the server side as well based on registration 
+
+### Built in errors
+
+Instead of having a guard at the top of each lift to check if the input behaviours are valid, the default lift functions do this automatically and propogate the errors and readyness result automatically.
+
+Sometimes however you may want to deal with this yourself in that case simply call the metaLift functions and the data values you get will be of type [``recoil.frp.BStatus``](https://github.com/evaks/recoil/blob/master/src/frp/frp.js) and you the function should return a recoil.frp.BStatus or recoil.frp.EStatus (behaviour or event)
+
+The following will turn any error into not ready:
+```javascript
+A = frp.liftB(function (bMeta) {
+    if (bMeta.good()) {
+        return bMeta;
+    }
+   return recoil.frp.BStatus.notReady();
+},B)
+```
+
+## Widgets
+
+To create a widget you must implement [``recoil.ui.Widget``](https://github.com/evaks/recoil/blob/master/src/ui/widgets/widget.js) it currently must create an element that is goog.ui.Component although I think this is a bit of overkill and should only have to create a dom element.
+
+Widgets should have an attach function that associates them with behaviour and updates them seleves and set the behaviour as nessary.
+
+### Scope
+
+This is just a variable to provide global context to the widget so the can access things such as the frp engine or a database.
+
+### Options
+
+### flatten
+This is a marker so that widgets themeselves can be placed into behaviours and the options will check try to look inside them to get behaviours.
+
+it should probably always be set to:
+```javascript
+recoil.frp.struct.NO_FLATTEN
+```
+### Rendering
+To display the widget get the component and then render it using the goog.ui.Component method
+
+```javascript
+  var w = new MyWidget(scope);
+  w.getComponent().render(element);
+  w.attachStruct({value: valueB, min:1, max:10});
+```
+
