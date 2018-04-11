@@ -149,7 +149,7 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
     if (a.compare !== undefined && a.compare instanceof Function) {
         res = a.compare(b);
         if (res !== undefined) {
-            return -res;
+            return res;
         }
     }
     if (b.compare !== undefined && b.compare instanceof Function) {

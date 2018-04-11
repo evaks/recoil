@@ -932,6 +932,21 @@ recoil.db.ChangeSet.PathItem.prototype.name = function() {
 };
 
 /**
+ * @param {!recoil.db.ChangeSet.PathItem} other
+ * @return {!number}
+ */
+recoil.db.ChangeSet.PathItem.prototype.compare = function(other) {
+    var res = goog.array.defaultCompare(this.name_, other.name_);
+    if (res !== 0) {
+        return res;
+    }
+    if (this.keys_.length != other.keys_.length) {
+        return this.keys_.length - other.keys_.length;
+    }
+    return recoil.util.object.compareAll([{x: this.keys_, y: other.keys_}, {x: this.keyNames_, y: other.keyNames_}]);
+};
+
+/**
  * @param {Object} obj
  * @return {!boolean}
  */
@@ -1108,7 +1123,7 @@ recoil.db.ChangeSet.Path.prototype.clone = function() {
 
 
 /**
- * check to see if this is an ancesetor if path
+ * check to see if this is an ancesetor of path
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {!boolean} allowSelf
  * @return {!boolean}
@@ -1361,6 +1376,14 @@ recoil.db.ChangeSet.Path.prototype.parts = function() {
  */
 recoil.db.ChangeSet.Path.prototype.items = function() {
     return this.items_.slice(0);
+};
+
+
+/**
+ * @return {!number}
+ */
+recoil.db.ChangeSet.Path.prototype.size = function() {
+    return this.items_.length;
 };
 
 /**

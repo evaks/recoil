@@ -16,7 +16,7 @@ recoil.db.DatabaseComms = function() {
  * @param {function(T)} successFunction called when the data is retrieve from the database, maybe called multiple times
  * @param {function(!recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database, maybe called multiple times
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
- * @param {*} key the information we need to get the object/objects
+ * @param {?} key the information we need to get the object/objects
  * @param {*} options
  *
  */
@@ -31,7 +31,7 @@ recoil.db.DatabaseComms.prototype.get = function(successFunction, failFunction, 
  * @param {function(T)} successFunction called when the data is retrieve from the database, the parameter is the set data
  * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
- * @param {*} key the information we need to get the object/objects
+ * @param {?} key the information we need to get the object/objects
  * @param {*} options
  */
 
@@ -49,7 +49,7 @@ recoil.db.DatabaseComms.prototype.makeKey = function(values) {
  * instruct the databse that we are no longer interested
  * @template T
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
- * @param {*} key the key to stop
+ * @param {?} key the key to stop
  * @param {*} options the key to stop
  */
 recoil.db.DatabaseComms.prototype.stop = function(id, key, options) {
