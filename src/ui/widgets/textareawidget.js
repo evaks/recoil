@@ -101,13 +101,14 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
     this.minHeightB_ = structs.get('minHeight', optionsB, 70);
     this.immediateB_ = structs.get('immediate', optionsB, false);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
+    this.editableB_ = structs.get('editable', optionsB, true);
     var readyB = util.isAllGoodExplain(this.valueB_, this.enabledB_);
 
     this.label_.attach(
           structs.get('name', optionsB),
           recoil.ui.BoolWithExplanation.and(frp, this.enabledB_, readyB));
 
-    this.helper_.attach(this.valueB_, this.immediateB_, this.enabledB_);
+    this.helper_.attach(this.valueB_, this.immediateB_, this.enabledB_, this.editableB_);
     this.configHelper_.attach(this.minHeightB_);
 
     var me = this;
@@ -136,7 +137,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.updateState_ = function(helper) {
 
     if (helper.isGood()) {
         this.textarea_.setContent(this.valueB_.get());
-        this.textarea_.setEnabled(this.enabledB_.get().val());
+        this.textarea_.setEnabled(this.enabledB_.get().val() && this.editableB_.get());
     }
     else {
         this.textarea_.setEnabled(false);

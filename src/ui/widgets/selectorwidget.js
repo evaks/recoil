@@ -137,10 +137,16 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options) {
     var nullFormatter = function(v) {
         return v;
     };
+
     this.readOnlyWidget_.attachStruct(frp.liftB(
         function(val, renderer) {
-
-            var el = val === null || val === undefined ? '' : renderer(val, true, true);
+            var el;
+            try {
+                el = renderer(val, true, false);
+            }
+            catch (e) {
+                el = '';
+            }
             return {
                 name: el,
                 formatter: nullFormatter

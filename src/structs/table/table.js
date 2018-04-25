@@ -312,6 +312,24 @@ recoil.structs.table.Table = function(table) {
         me.ordered_.add(x);
     });
 };
+
+/**
+ * very efficent way of setting the meta on a table
+ * it doesn't change this table but returns an new table
+ * with new meta
+ * @param {!Object} meta
+ * @return {!recoil.structs.table.Table}
+ */
+recoil.structs.table.Table.prototype.addMeta = function(meta) {
+    var res = new recoil.structs.table.Table(new recoil.structs.table.MutableTable(this.primaryColumns_, this.otherColumns_));
+    res.meta_ = goog.object.clone(this.meta_);
+    recoil.util.object.addProps(res.meta_, meta);
+    res.columnMeta_ = this.columnMeta_;
+    res.rows_ = this.rows_;
+    res.ordered_ = this.ordered_;
+    return res;
+};
+
 /**
  * @param {?} b
  * @return {!number}
