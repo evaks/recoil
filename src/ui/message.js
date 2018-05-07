@@ -5,7 +5,7 @@ goog.provide('recoil.ui.message.MessageEnum');
 
 /**
  * @constructor
- * @param {!Array<!Array<!string>|!string>} parts
+ * @param {!Array<!Array<!string>|!string|!Object>} parts
  */
 recoil.ui.message.Message = function(parts) {
     this.parts_ = parts;
@@ -17,6 +17,16 @@ recoil.ui.message.Message = function(parts) {
                 throw 'Parameter ' + i + ' of ' + parts + ' must be of length 1';
             }
         }
+        else if (part instanceof Object) {
+            var keys = Object.keys(part);
+            if (keys.length !== 1) {
+                throw 'Parameter ' + i + ' of ' + parts + ' must be an object with 1 entry';
+            }
+            if (!(part[keys[0]] instanceof Function)) {
+                throw 'Parameter ' + i + ' of ' + parts + ' must be an object with formatter function';
+            }
+        }
+
     }
 };
 
@@ -48,7 +58,7 @@ recoil.ui.message.toMessage = function(message) {
 /**
  * partially resolve a message some paramters may still be present, this will handle, messages inside messages
  * @private
- * @param {Array<Array<string>|string>} res
+ * @param {Array<Array<!string>|!string|!Object>} res
  * @param {!Object} data
  * @return {number}
  */
@@ -57,8 +67,14 @@ recoil.ui.message.Message.prototype.resolveRec_ = function(res, data) {
     var unresolved = 0;
     for (var i = 0; i < this.parts_.length; i++) {
         var part = this.parts_[i];
-        if (part instanceof Array && part.length === 1) {
-            var val = data[part];
+        var formatter = null;
+        var fieldName = null;
+        if (!(part instanceof Array) && (part instanceof Object)) {
+            fieldName = Object.keys(part)[0];
+            formatter = part[fieldName];
+        }
+        if ((part instanceof Array && part.length === 1) || formatter) {
+            var val = data[fieldName ? fieldName : part];
             if (val instanceof recoil.ui.message.Message) {
                 unresolved += val.resolveRec_(res, data);
             }
@@ -67,7 +83,7 @@ recoil.ui.message.Message.prototype.resolveRec_ = function(res, data) {
                 res.push(part);
             }
             else {
-                res.push(val);
+                res.push(formatter ? formatter(val) : val);
             }
         }
         else {
@@ -108,7 +124,7 @@ recoil.ui.message.Message.prototype.toString = function() {
 
 /**
  * returns a structure that can be used to messages with substution
- * @param {...(!Array<!string>| !string)} var_parts
+ * @param {...(!Array<!string>|!string|!Object)} var_parts
  * @return {!recoil.ui.message.Message}
  */
 recoil.ui.message.getParamMsg = function(var_parts) {
@@ -116,7 +132,7 @@ recoil.ui.message.getParamMsg = function(var_parts) {
     for (var i = 0; i < arguments.length; i++) {
         parts.push(arguments[i]);
     }
-    return new recoil.ui.message.Message(/** @type {!Array<!Array<!string>|!string>}*/(parts));
+    return new recoil.ui.message.Message(/** @type {!Array<!Array<!string>|!string|!Object>}*/(parts));
 };
 
 /**
