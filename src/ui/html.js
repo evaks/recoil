@@ -122,6 +122,24 @@ recoil.ui.HtmlHelper.prototype.innerHtml = function(element, innerHtmlB) {
     return helper;
 };
 
+/**
+ * @param {!Element} element
+ * @param {!recoil.frp.Behaviour<string>} innerTextB
+ * @return {!recoil.ui.WidgetHelper}
+ */
+recoil.ui.HtmlHelper.prototype.innerText = function(element, innerTextB) {
+    var helper = new recoil.ui.WidgetHelper(this.scope_, element, null, function() {
+        if (innerTextB.good()) {
+            element.innerText = innerTextB.get();
+        }
+        else if (innerTextB.metaGet().errors().length > 0) {
+            element.innerText = innerTextB.metaGet().errors().join(',');
+        }
+    });
+    helper.attach(innerTextB);
+    return helper;
+};
+
 
 /**
  * @param {!recoil.frp.Behaviour<string>} innerHtmlB
