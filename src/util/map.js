@@ -14,7 +14,7 @@ goog.provide('recoil.util.map');
 
 recoil.util.map.safeGet = function(map, key, opt_def) {
     var res = map[key];
-    if (!res && arguments.length === 3) {
+    if (res === undefined && arguments.length === 3) {
         res = opt_def;
         map[key] = opt_def;
     }

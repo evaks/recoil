@@ -104,6 +104,9 @@ recoil.frp.Array.prototype.filter = function(array, filter, opt_inversable) {
                 var src = arrayB.get();
                 var filter = filterB.get();
 
+                if (!src) {
+                    return;
+                }
                 var res = [];
                 for (var j = 0; j < src.length; j++) {
                     if (!filter(src[j])) {
