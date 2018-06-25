@@ -145,6 +145,7 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
     if (b === null) {
         return 1;
     }
+
     var res;
     if (a.compare !== undefined && a.compare instanceof Function) {
         res = a.compare(b);
@@ -305,6 +306,30 @@ goog.structs.AvlTree.prototype.safeFind = function(val) {
     }
     return res;
 };
+/**
+ * @param {?} other
+ * @return {!boolean}
+ */
+Date.prototype.equals = function(other) {
+
+    if (other instanceof Date) {
+        return this.getTime() === other.getTime();
+    }
+    return false;
+};
+
+/**
+ * @param {?} other
+ * @return {!number}
+ */
+Date.prototype.compare = function(other) {
+
+    if (other instanceof Date) {
+        return this.getTime() - other.getTime();
+    }
+    return -1;
+};
+
 /**
  * @param {?} other
  * @return {!boolean}
