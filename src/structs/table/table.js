@@ -1270,7 +1270,7 @@ recoil.structs.table.Table.prototype.getFullCellMeta = function(keys, col) {
  * @param {Object} typeFactories
  * @param {Object} tableMeta
  * @param {Array<Object>} rawTable
- * @param {boolean} opt_ordered if true then it will enforce the order it rawtable came in
+ * @param {boolean=} opt_ordered if true then it will enforce the order it rawtable came in
  * @return {recoil.structs.table.Table}
  */
 recoil.structs.table.Table.create = function(typeFactories, tableMeta, rawTable, opt_ordered) {

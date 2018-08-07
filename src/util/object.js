@@ -383,6 +383,7 @@ goog.structs.AvlTree.prototype.compare = function(other) {
 /**
  * @param {!WeakMap=} opt_used
  * @return {!goog.structs.AvlTree}
+ * @suppress {visibility}
  */
 goog.structs.AvlTree.prototype.clone = function(opt_used) {
     opt_used = opt_used || new WeakMap();
