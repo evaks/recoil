@@ -10,6 +10,8 @@ goog.require('recoil.frp.struct');
 goog.require('recoil.ui.messages');
 goog.require('recoil.util');
 goog.require('recoil.util.func');
+goog.require('recoil.ui.AttachableWidget');
+
 /**
  * @constructor
  * @param {recoil.frp.Frp} frp the frp engine to do operations on
@@ -346,7 +348,6 @@ recoil.frp.Util.Options = function(var_options) {
 
             }
 
-
             var res1 = {};
             for (var name1 in remaining) {
                 functionParams(remaining[name1]).forEach(function(func) {
@@ -357,6 +358,9 @@ recoil.frp.Util.Options = function(var_options) {
                 checkRemaining(remaining);
                 return struct;
             };
+			/**
+			 * @param {recoil.ui.AttachableWidget} widget
+		 	 */
             res1.attach = function(widget) {
                 checkRemaining(remaining);
                 widget.attachStruct(struct);
@@ -434,6 +438,9 @@ recoil.frp.Util.Options = function(var_options) {
         checkRemaining(remaining);
         return {};
     };
+	/**
+	 * @param {recoil.ui.AttachableWidget} widget
+	 */
     res.attach = function(widget) {
         checkRemaining(remaining);
         widget.attachStruct({});
