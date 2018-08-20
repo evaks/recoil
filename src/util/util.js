@@ -86,3 +86,17 @@ recoil.util.notNull = function(args)  {
         }
     }
 };
+
+/**
+ * @template T
+ * @param {...T} var_args
+ * @return {T|undefined}
+ */
+recoil.util.getFirstDefined = function(var_args) {
+    for (var i = 0; i < arguments.length; i++) {
+        if (arguments[i] !== undefined) {
+            return arguments[i];
+        }
+    }
+    return undefined;
+};

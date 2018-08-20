@@ -44,8 +44,9 @@ recoil.ui.widgets.CheckboxWidget.prototype.flatten = recoil.frp.struct.NO_FLATTE
 /**
  * list of functions available when creating a CHECKBOXWidget
  */
-recoil.ui.widgets.CheckboxWidget.options = recoil.frp.Util.Options('name', 'value',
+recoil.ui.widgets.CheckboxWidget.options = recoil.frp.Util.Options('value',
                                                                    {
+                                                                       'name' : '',
                                                                        'editable' : true,
                                                                        'enabled' : recoil.ui.BoolWithExplanation.TRUE
                                                                    });
