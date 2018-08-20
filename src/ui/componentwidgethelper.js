@@ -17,7 +17,8 @@ goog.require('recoil.frp.Frp');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.messages');
-
+goog.require('goog.ui.Control');
+goog.require('goog.events.InputHandler');
 
 /**
  * @template T
