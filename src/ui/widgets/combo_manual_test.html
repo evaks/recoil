@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright 2010 The Closure Library Authors. All Rights Reserved.
+
+Use of this source code is governed by the Apache License, Version 2.0.
+See the COPYING file for details.
+-->
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Combo Test</title>
+    <script src="../../../../closure-library/closure/goog/base.js"></script>
+    <script src="../../../../my-deps.js"></script>
+    <script>
+        goog.require('goog.dom');
+        goog.require('recoil.frp.Frp');
+        goog.require('recoil.ui.WidgetScope');
+        goog.require('recoil.frp.Behaviour');
+        goog.require('recoil.frp.Util');
+        goog.require('recoil.frp.struct');
+        goog.require('recoil.ui.WidgetHelper');
+        goog.require('recoil.ui.Widget');
+        goog.require('recoil.ui.widgets.ButtonWidget');
+        goog.require('goog.ui.Option');
+        goog.require('goog.ui.ComboBox');
+        goog.require('goog.ui.Select');
+        goog.require('goog.ui.Separator');
+        goog.require('recoil.ui.widgets.NumberWidget');
+        goog.require('recoil.ui.widgets.ComboWidget');
+        goog.require('recoil.ui.widgets.LabelWidget');
+        goog.require('recoil.frp.Debug');
+
+    </script>
+
+    <link rel="stylesheet" href="../css/demo.css">
+
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menubutton.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menu.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuitem.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/menuseparator.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/flatmenubutton.css">
+    <link rel="stylesheet" href="../css/menu.css">
+    <link rel="stylesheet" href="../css/check.css">
+    <link rel="stylesheet" href="../../../../closure-library/closure/goog/css/checkbox.css">
+
+</head>
+<body>
+
+<div id="editable"></div>
+<div id="enabled"></div>
+<div id="selector"></div>
+<div id="cbox"></div>
+<!--<div id="selector2"></div>-->
+<br>
+
+<br>
+
+<script>
+
+    var scope = new recoil.ui.WidgetScope();
+    var frp = scope.getFrp();
+    var $ = goog.dom.getElement;
+
+    var value = frp.createB(77);
+    var list = [1,3,4, 8, 9, 10, 11, 12, 13, 14, 15];
+    var listB = frp.createNotReadyB();
+  setTimeout(function () {
+      frp.accessTrans(function () {
+	  listB.set(list);
+      });
+  },1000);
+
+    var number = new recoil.ui.widgets.NumberWidget(scope);
+    var selector = new recoil.ui.widgets.ComboWidget(scope, number);
+
+    var enabledItems =
+            [new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(true, undefined, recoil.ui.messages.VALID),
+            new recoil.ui.BoolWithExplanation(false, undefined, recoil.ui.messages.INVALID)];
+    var editableB = frp.createB(true);
+    var enabledB = frp.createB(true);
+    var enabled1B = frp.liftB(function (v) {
+    return new recoil.ui.BoolWithExplanation(v);
+    }, enabledB);
+
+    recoil.ui.widgets.ComboWidget.options
+            .value(value)
+            .list(listB)
+            .enabled(enabled1B)
+            .editable(editableB)
+            .enabledItems(enabledItems)
+            .attach(selector);
+
+    number.attachStruct({value: value, enabled: enabled1B, editable: editableB});
+
+    selector.getComponent().render($('selector'));
+
+
+    var editable = new recoil.ui.widgets.CheckboxWidget(scope);
+    var enabled = new recoil.ui.widgets.CheckboxWidget(scope);
+
+    enabled.getComponent().render($('editable'));
+    editable.getComponent().render($('enabled'));
+
+    editable.attach("hi", editableB);
+    enabled.attach("hi", enabledB);
+
+
+    var combo = new goog.ui.ComboBox();
+    combo.setUseDropdownArrow(true);
+    combo.addItem(new goog.ui.MenuItem("fred"));
+    combo.render($('cbox'));
+    
+</script>
+</body>
+</html>
