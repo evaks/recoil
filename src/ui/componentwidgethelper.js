@@ -10,6 +10,8 @@ goog.provide('recoil.ui.EventHelper');
 goog.provide('recoil.ui.TooltipHelper');
 
 goog.require('goog.events.FocusHandler');
+goog.require('goog.events.InputHandler');
+goog.require('goog.ui.Control');
 goog.require('goog.ui.Tooltip');
 goog.require('recoil.frp.BStatus');
 goog.require('recoil.frp.DomObserver');
@@ -17,8 +19,6 @@ goog.require('recoil.frp.Frp');
 goog.require('recoil.ui.BoolWithExplanation');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.messages');
-goog.require('goog.ui.Control');
-goog.require('goog.events.InputHandler');
 
 /**
  * @template T

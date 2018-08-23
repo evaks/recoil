@@ -7,10 +7,10 @@ goog.require('recoil.frp.BStatus');
 goog.require('recoil.frp.Behaviour');
 goog.require('recoil.frp.Frp');
 goog.require('recoil.frp.struct');
+goog.require('recoil.ui.AttachableWidget');
 goog.require('recoil.ui.messages');
 goog.require('recoil.util');
 goog.require('recoil.util.func');
-goog.require('recoil.ui.AttachableWidget');
 
 /**
  * @constructor
