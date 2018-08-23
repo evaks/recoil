@@ -358,9 +358,9 @@ recoil.frp.Util.Options = function(var_options) {
                 checkRemaining(remaining);
                 return struct;
             };
-			/**
-			 * @param {recoil.ui.AttachableWidget} widget
-		 	 */
+           /**
+            * @param {recoil.ui.AttachableWidget} widget
+            */
             res1.attach = function(widget) {
                 checkRemaining(remaining);
                 widget.attachStruct(struct);
@@ -438,9 +438,9 @@ recoil.frp.Util.Options = function(var_options) {
         checkRemaining(remaining);
         return {};
     };
-	/**
-	 * @param {recoil.ui.AttachableWidget} widget
-	 */
+    /**
+     * @param {recoil.ui.AttachableWidget} widget
+     */
     res.attach = function(widget) {
         checkRemaining(remaining);
         widget.attachStruct({});
