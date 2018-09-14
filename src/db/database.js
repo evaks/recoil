@@ -1,7 +1,6 @@
 goog.provide('recoil.db.Database');
 goog.provide('recoil.db.ReadOnlyDatabase');
 goog.provide('recoil.db.ReadWriteDatabase');
-goog.provide('recoil.db.error');
 
 goog.require('goog.structs.AvlTree');
 goog.require('recoil.db.DatabaseComms');
@@ -282,8 +281,3 @@ recoil.db.DelayedDatabase.prototype.makeKey = function(values) {
     return this.source_.makeKey(values);
 };
 
-
-/**
- * defines the database errors
- */
-recoil.db.error.NOT_PRESENT = recoil.util.object.constant({name: 'not present'});

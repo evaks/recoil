@@ -739,7 +739,7 @@ recoil.structs.table.MutableTable.prototype.setColumnMeta = function(key, meta) 
  * add new column meta data leaving already existing meta data there
  * if it is not overriden by the new meta data
  * @param {!recoil.structs.table.ColumnKey} key
- * @param {!Object} meta
+ * @param {!Object|!{position:number}} meta
  */
 recoil.structs.table.MutableTable.prototype.addColumnMeta = function(key, meta) {
     var newMeta = goog.object.clone(this.getColumnMeta(key));

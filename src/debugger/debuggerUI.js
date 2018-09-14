@@ -1,5 +1,4 @@
 /**
- * @suppress {deprecated}
  */
 
 goog.provide('recoil.debugger.ui');

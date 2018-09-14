@@ -3,6 +3,9 @@ goog.provide('recoil.db.PathItem');
 
 goog.require('goog.string');
 goog.require('goog.structs.AvlTree');
+goog.require('recoil.db.error');
+
+
 /**
  * @interface
  */

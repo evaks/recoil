@@ -1547,7 +1547,7 @@ recoil.db.ChangeSet.Add.prototype.merge = function(pathChangeMap, pAncestor, max
         else if (ancestor instanceof recoil.db.ChangeSet.Move) {
             // adjust path to before move
             if (ancestor.to().isAncestor(this.path_, true)) {
-                var newPath = ancestor.beforeMovePath(this.path());
+                var newPath = ancestor.beforeMovePath(this.path_);
                 // we know longer paths are moved before shorter paths
                 //
                 if (recoil.util.object.isEqual(ancestor.to(), this.path_)) {
@@ -1742,7 +1742,7 @@ recoil.db.ChangeSet.Delete.prototype.merge = function(pathChangeMap, pAncestor, 
                 pathChangeMap.removeChangeInfo(relation);
             }
             else {
-                var newPath = relation.beforeMovePath(this.path());
+                var newPath = relation.beforeMovePath(this.path_);
                 // we know longer paths are moved before shorter paths
                 //
                 moveInfo = pathChangeMap.findChangeInfo(relation);
@@ -2005,7 +2005,7 @@ recoil.db.ChangeSet.PathChangeMap.prototype.forEach = function(callback) {
 
 /**
  * @param {!recoil.db.ChangeSet.Change} change
- * @return {?{change:!recoil.db.ChangeSet.Change,pos:!Array<!number>,ancestor:recoil.db.ChangeSet.Change}}
+ * @return {?{change:!recoil.db.ChangeSet.Change,pos:!Array<!number>,ancestor:recoil.db.ChangeSet.Change,hide:(undefined|boolean)}}
  */
 recoil.db.ChangeSet.PathChangeMap.prototype.findChangeInfo = function(change) {
     var cur = this.root_;
@@ -2224,7 +2224,7 @@ recoil.db.ChangeSet.PathChangeMap.prototype.addMove = function(change, ancestor,
 
     if (opt_pos === undefined) {
         max.push(this.next_);
-        this.next++;
+        this.next_++;
     }
     else {
         max = opt_pos;
@@ -2256,7 +2256,7 @@ recoil.db.ChangeSet.PathChangeMap.prototype.add = function(path, change, ancesto
     max = max.slice(0);
     var pos = opt_pos === undefined ? this.next_ : opt_pos;
     if (opt_pos === undefined) {
-        this.next++;
+        this.next_++;
     }
 
     for (var i = 0; i < items.length; i++) {
@@ -2404,7 +2404,7 @@ recoil.db.ChangeSet.Set.prototype.merge = function(pathChangeMap, pAncestor, max
 
         if (ancestor) {
 
-            var newPath = ancestor.beforeMovePath(this.path());
+            var newPath = ancestor.beforeMovePath(this.path_);
             // we know longer paths are moved before shorter paths
             //
             var moveInfo = pathChangeMap.findChangeInfo(ancestor);

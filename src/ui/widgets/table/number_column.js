@@ -1,6 +1,7 @@
 goog.provide('recoil.ui.widgets.table.NumberColumn');
 
 goog.require('recoil.frp.Behaviour');
+goog.require('recoil.frp.table.TableCell');
 goog.require('recoil.ui.widgets.NumberWidget');
 goog.require('recoil.ui.widgets.table.Column');
 /**
