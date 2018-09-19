@@ -294,7 +294,7 @@ recoil.frp.BStatus.prototype.merge = function(other) {
         console.log('merging with non error');
     }
     this.errors_ = goog.array.concat(this.errors_, other.errors());
-    this.ready_ = this.ready_ && other.ready();
+    this.ready_ = this.ready_ && ((other instanceof recoil.frp.EStatus) || other.ready());
 };
 
 /**
@@ -1456,8 +1456,6 @@ recoil.frp.Frp.prototype.liftEI = function(func, invFunc, var_args) {
 recoil.frp.Frp.prototype.mergeErrors = function(args, opt_result) {
     var metaResult = opt_result || new recoil.frp.BStatus(null);
     var metaResultB = null;
-    var eventReady = false;
-
 
     for (var i = 0; i < args.length; i++) {
         var metaArgVal = args[i];
@@ -1468,9 +1466,6 @@ recoil.frp.Frp.prototype.mergeErrors = function(args, opt_result) {
                 metaResultB = new recoil.frp.BStatus(null);
             }
             metaResultB.merge(metaArgVal);
-        }
-        else {
-            eventReady = eventReady || metaArgVal.ready();
         }
     }
     return metaResult;
