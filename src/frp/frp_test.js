@@ -93,6 +93,33 @@ function testDetachWhileInTrans() {
     assertEquals(2, b.unsafeMetaGet().get());
 
 }
+
+function testEventLiftB () {
+    var frp = new recoil.frp.Frp();
+    var E = frp.createE();
+    var B = frp.createB(true);
+
+    var resB = frp.liftB(function (e, b) {
+        return true;
+    }, E, B);
+    var evFired = 0;
+    var res2B = frp.liftB(function (e) {
+        evFired++;
+        return true;
+    }, E);
+
+    frp.attach(resB);
+    frp.attach(res2B);
+    
+    assertTrue(resB.unsafeMetaGet().ready());
+    assertEquals(0, evFired);
+
+    frp.accessTrans(function () {
+        E.set(1);
+    }, E);
+    assertEquals(1, evFired);
+}
+    
 function testEventDown() {
     var frp = new recoil.frp.Frp();
     var tm = frp.tm();
