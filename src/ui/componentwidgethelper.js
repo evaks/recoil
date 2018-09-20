@@ -72,7 +72,11 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
      */
     this.callback_ = function() {
         if (me.component_ !== null) {
-            recoil.util.invokeOneParamAndArray(obj, callback, me, me.behaviours_);
+            try {
+                recoil.util.invokeOneParamAndArray(obj, callback, me, me.behaviours_);
+            } catch (e) {
+                console.error(e);
+            }
         }
         return new recoil.frp.BStatus(null);
     };
