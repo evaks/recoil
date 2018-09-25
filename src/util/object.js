@@ -26,8 +26,8 @@ recoil.util.object.safeFreeze = function(value) {
 /**
  * a generic compare function that should handle anything
  *
- * @param {*} a
- * @param {*} b
+ * @param {?} a
+ * @param {?} b
  * @return {!number}
  */
 recoil.util.object.compare = function(a, b) {
