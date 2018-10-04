@@ -11,7 +11,6 @@ goog.require('recoil.util.func');
 goog.require('recoil.util.object');
 
 
-
 /**
  * a utility module that provides
  * set of logic funtions
@@ -39,8 +38,8 @@ recoil.frp.logic.getFrp_ = function(args) {
     throw 'No Behaviours given';
 };
 /**
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)} first
- * @param {...(!recoil.frp.Behaviour<!boolean>|!boolean)} var_args note at least one parameter must be a behavior
+ * @param {(!recoil.frp.Behaviour|*)} first
+ * @param {...(!recoil.frp.Behaviour|*)} var_args note at least one parameter must be a behavior
  * @return {!recoil.frp.Behaviour<!boolean>}
  */
 recoil.frp.logic.and = function(first, var_args) {
@@ -111,7 +110,7 @@ recoil.frp.logic.sc.or = function(first, var_args) {
 };
 
 /**
- * @param {!recoil.frp.Behaviour<!boolean>} x
+ * @param {!recoil.frp.Behaviour} x
  * @return {!recoil.frp.Behaviour<!boolean>}
  */
 recoil.frp.logic.not = function(x) {

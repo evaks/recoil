@@ -202,6 +202,24 @@ recoil.ui.HtmlHelper.prototype.show = function(element, showB) {
     return helper;
 };
 
+/**
+ * sets the disabled field, I hav called it enabled because I don't like
+ * negative logic in code
+ * @param {!Element} element
+ * @param {!recoil.frp.Behaviour<!boolean>} enabledB
+ * @return {!recoil.ui.WidgetHelper}
+ */
+recoil.ui.HtmlHelper.prototype.enabled = function(element, enabledB) {
+    var orig = element.style.display;
+    orig = orig === 'none' ? undefined : orig;
+    var helper = new recoil.ui.WidgetHelper(this.scope_, element, null, function() {
+        var disabled = !(enabledB.good() && enabledB.get());
+        element.disabled = disabled;
+    });
+    helper.attach(enabledB);
+    return helper;
+};
+
 
 /**
  * @param {!recoil.frp.Behaviour<!boolean>} showB
