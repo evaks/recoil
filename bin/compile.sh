@@ -1,5 +1,6 @@
 #!/bin/bash
-MAJOR=`python --version |& sed 's/Python //g' | sed 's/\.[0-9][0-9]*//g'`
+
+MAJOR=`python --version |& sed 's/Python //g' | sed 's/\.[0-9]\w*//g'`
 #java -jar compiler.jar --js shop.js --js icecream.js --js cone.js
 if [ "$MAJOR" -gt 2 ] ; then
       if [ -z "$PYTHON2" ] ; then
