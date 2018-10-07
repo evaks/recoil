@@ -117,15 +117,33 @@ recoil.util.regexp.CharRange.prototype.not = function() {
 recoil.util.regexp.EdgeSet = function () {};
 
 /**
- * @param {function(!recoil.util.regexp.CharRange,!Array<!recoil.util.regexp.Node>)}
+ * @param {function(!recoil.util.regexp.CharRange,!recoil.util.regexp.Node)}
  */
 recoil.util.regexp.EdgeSet.prototype.forEachEdge = function (callback) {};
 
 /**
  * @param {!recoil.util.regexp.CharRange} charSet
- * @param {!Array<!recoil.util.regexp.Node>} node
+ * @param {!recoil.util.regexp.Node} node
  */
-recoil.util.regexp.EdgeSet.prototype.addEdges = function (charSet, node) {};
+recoil.util.regexp.EdgeSet.prototype.addEdge = function (charSet, node) {};
+
+/**
+ * @implements {recoil.util.regexp.EdgeSet}
+ * @constructor
+ */
+recoil.util.regexp.GenericEdgeSet = function () {
+    /**
+     * @type {!Array<{node:!recoil.util.regexp.Node,chars:!recoil.util.regexp.CharSet}}
+     */
+    this.edges_ = [];
+};
+
+/**
+ * @param {function(!recoil.util.regexp.CharRange,!recoil.util.regexp.Node)}
+ */
+recoil.util.regexp.GenericEdgeSet.prototype.forEachEdge = function (callback) {
+    
+};
 
 
 /**
@@ -198,14 +216,83 @@ recoil.util.regexp.NFA.prototype.clone = function() {
     recoil.util.regexp.Node.traverse(this.start_, function (node) {
         var newMe = nodeMap.get(node);
         
-        node.edges_.forEachEdge(function (charRange, nodes) {
-            var newNodes = nodes.map(function (n) {return nodeMap.get(n);});
-            newMe.addEdges(charRange, newNodes);
+        node.edges_.forEachEdge(function (node, charRange) {
+            newMe.addEdge(charRange, nodeMap.get(n));
         });
     });
 
     return new recoil.util.regexp.NFA(nodeMap.get(this.start_),nodeMap.get(this.end_));
 };
+
+/**
+ * @return {!recoil.util.regexp.NFA}
+ */
+recoil.util.regexp.NFA.empty = function(x, y) {
+    var n = recoil.util.regexp.Node();
+    return new recoil.util.regexp.NFA(n, n);
+};
+
+
+/**
+ * @param {!recoil.util.regexp.NFA} toRepeat
+ * @param {!number} min
+ * @param {!number} max if 0 infinite
+ * @return {!recoil.util.regexp.NFA}
+ */
+recoil.util.regexp.NFA.repeat = function(toRepeat, min, max) {
+    var cur = y;
+    var prev = y;
+    for (var i = 0; i < min; i++) {
+        prev = y.clone();
+        /*
+         * (cur.start) ... (cur.end) -> (prev.start) ... (prev.end)
+         */
+        cur = recoil.util.regexp.NFA.append(cur, prev);
+    }
+
+    if (max === 0) {
+        /*
+         *  ...  -> (prev.start) ... (prev.end) 
+         *             \-----<---------/
+         */
+        cur.end.edge(null, prev.start);
+    }
+    else if (max < min) {
+        throw "Min > Max Range";
+    }
+    else {
+        for (; i < max; i++) {
+            var start = recoil.util.regexp.Node();
+            var end = recoil.util.regexp.Node();
+            var next = y.clone();
+            /*
+             * can skip the middle bit because it is otional
+             * (start) -> (next.start) ... (next.end) -> (end)
+             *      \------------->-------------------- /
+             */
+            
+            start.edge(null, next.start);
+            start.edge(null, end);
+            next.end.edge(null, end);
+            var toAppend = new recoil.util.regexp.NFA(start, end);
+            /**
+             * (cur.start) ... (cur.end) -> (next.start) ... (next.end)
+             */
+            cur = recoil.util.regexp.NFA.append(cur, next);
+        }
+    }
+    return cur;
+                                           
+};
+/**
+ * @param {!recoil.util.regexp.NFA} x
+ * @param {!recoil.util.regexp.NFA} y
+ * @return {!recoil.util.regexp.NFA}
+ */
+recoil.util.regexp.NFA.append = function(x, y) {
+    x.end.edge(null, y.start);
+    return new recoil.util.regexp.NFA(x.start, y.end);
+}
 
 /**
  * @param {!recoil.util.regexp.NFA} x
