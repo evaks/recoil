@@ -44,6 +44,7 @@ recoil.util.regexp.Parser.charTypes_ = (function() {
 
 
     // res[s.control] = cr.end();
+    return res;
 })();
 
 /**
@@ -58,7 +59,7 @@ recoil.util.regexp.Parser.prototype.parse = function(input) {
 
 /**
  * @private
- * @return {recoil.util.regexp.NFA}
+ * @return {!recoil.util.regexp.NFA}
  */
 recoil.util.regexp.Parser.prototype.parseOr_ = function() {
     var s = recoil.util.regexp.SymbolType;
@@ -74,7 +75,7 @@ recoil.util.regexp.Parser.prototype.parseOr_ = function() {
 };
 /**
  * @private
- * @return {recoil.util.regexp.NFA}
+ * @return {!recoil.util.regexp.NFA}
  */
 recoil.util.regexp.Parser.prototype.parsePostOp_ = function() {
     var s = recoil.util.regexp.SymbolType;
@@ -132,7 +133,76 @@ recoil.util.regexp.Parser.prototype.parseRange_ = function() {
 
 /**
  * @private
- * @return {recoil.util.regexp.NFA}
+ * @return {!recoil.util.regexp.CharRange}
+ */
+recoil.util.regexp.Parser.prototype.parseCharRange_ = function() {
+    var s = recoil.util.regexp.SymbolType;
+    var sym = this.scanner_.peek();
+    var type = sym.type === s.not_char ? s.not_char : s.lsquare;
+    this.scanner_.scan(type);
+    sym = this.scanner_.peek();
+    var charRanges = [];
+    var inRange = false;
+    var prev = null;
+    while (sym.type != s.rbrace && s.eof !== sym.type) {
+        if (sym.type === s.range) {
+            if (inRange) {
+                // todo prev must be <= next
+                charRanges.push({start: prev, end: '-'});
+                inRange = false;
+                prev = null;
+            }
+            else if (prev !== null) {
+                inRange = true;
+            }
+            else {
+                prev = '-';
+            }
+        }
+        else {
+            var symVal = recoil.util.regexp.Parser.charTypes_[sym.type + ''];
+            if (symVal) {
+                // this is a range char can't be start or end of a range
+                if (prev !== null) {
+                    charRanges.push({start: prev, end: prev});
+                }
+                symVal.asList().forEach(function(item) {
+                    charRanges.push(item);
+                });
+                prev = null;
+                inRange = false;
+            }
+            else {
+                if (inRange) {
+                    if (prev !== null) {
+                        charRanges.push({start: prev, end: sym.val});
+                    }
+                    prev = null;
+                }
+                else {
+                    prev = sym.val;
+                }
+            }
+        }
+
+
+        sym = this.scanner_.next();
+    }
+    if (prev !== null) {
+        charRanges.push({start: prev, end: prev});
+    }
+
+    for (var i = 0; i < charRanges.length; i++) {
+        if (charRanges[i].start > charRanges[i].end) {
+            throw 'Invalid range ' + charRanges[i].start + ' - ' + charRanges[i].end;
+        }
+    }
+    return new recoil.util.regexp.CharRange(null, null, charRanges);
+
+};
+/**
+ * @private
+ * @return {!recoil.util.regexp.NFA}
  */
 recoil.util.regexp.Parser.prototype.parseConcat_ = function() {
     var s = recoil.util.regexp.SymbolType;
@@ -141,13 +211,8 @@ recoil.util.regexp.Parser.prototype.parseConcat_ = function() {
     var charRanges = recoil.util.regexp.Parser.charTypes_[sym.type + ''];
     var cur = NFA.empty();
     while (charRanges || sym.type === s.lsquare || sym.type === s.not_char || sym.type === s.lbracket) {
-        if (sym.type === s.lsquare) {
-            this.scanner_.next();
+        if (sym.type === s.lsquare || sym.type === s.not_char) {
             charRanges = this.parseCharRange_();
-        }
-        else if (sym.type === s.not_char) {
-            this.scanner_.next();
-            charRanges = this.parseCharRange_().not();
         }
         else if (sym.type === s.lbracket) {
             this.scanner_.next();

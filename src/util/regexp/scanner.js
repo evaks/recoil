@@ -109,10 +109,9 @@ recoil.util.regexp.Scanner.prototype.next = function() {
 };
 
 /**
- * @param {!recoil.util.regexp.SymbolType} type
  * @return {string}
  */
-recoil.util.regexp.Scanner.prototype.getErrorPoint = function(type) {
+recoil.util.regexp.Scanner.prototype.getErrorPoint = function() {
     // not quite right but it will do we really need to store where the current symbol started
     // or maybe subtract the input length
     return this.input_.substring(0, this.pos_);
@@ -202,22 +201,21 @@ recoil.util.regexp.Scanner.prototype.next_ = function() {
 };
 
 /**
- * @param {string} input
  * @return {!recoil.util.regexp.Symbol}
  * @private
  */
-recoil.util.regexp.Scanner.prototype.nextHex_ = function(input) {
+recoil.util.regexp.Scanner.prototype.nextHex_ = function() {
     var s = recoil.util.regexp.SymbolType;
     if (this.pos_ + 1 < this.input_.length) {
         var d1 = this.input_[this.pos_];
         var d2 = this.input_[this.pos_ + 1];
         if (/[a-fA-F0-9]/.test(d1) && /[a-fA-F0-9]/.test(d2)) {
-            this.pos_+=2;
-        
+            this.pos_ += 2;
+
             return {type: s.char, val: String.fromCharCode(parseInt(d1 + d2, 16))};
         }
     }
-    throw "Unexpected Symbol " + this.getErrorPoint();
+    throw 'Unexpected Symbol ' + this.getErrorPoint();
 };
 
 /**
@@ -235,7 +233,7 @@ recoil.util.regexp.Scanner.prototype.nextUnicode_ = function() {
         offset++;
     }
     if (offset !== 4) {
-        throw "Unexpected Symbol " + this.getErrorPoint();
+        throw 'Unexpected Symbol ' + this.getErrorPoint();
     }
     /*
       while (this.pos_ + offset < this.input_.length && offset < 6 && /[a-fA-F0-9]/.test(this.input_[this.pos_ + offset])) {
@@ -272,31 +270,13 @@ recoil.util.regexp.Scanner.prototype.nextOctal_ = function() {
         return {type: s.char, val: '\0'};
     }
     if (offset !== 3) {
-        throw "Unexpected Symbol " + this.getErrorPoint();
+        throw 'Unexpected Symbol ' + this.getErrorPoint();
     }
     this.pos_ += offset;
     return {type: s.char, val: String.fromCharCode(parseInt(val, 8))};
 
 };
 
-
-/**
- * @return {!recoil.util.regexp.Symbol}
- * @private
- */
-recoil.util.regexp.Scanner.prototype.nextHex_ = function() {
-    var s = recoil.util.regexp.SymbolType;
-    if (this.pos_ + 1 < this.input_.length) {
-        var d1 = this.input_[this.pos_];
-        var d2 = this.input_[this.pos_ + 1];
-        if (/[a-fA-F0-9]/.test(d1) && /[a-fA-F0-9]/.test(d2)) {
-            this.pos_+=2;
-        
-            return {type: s.char, val: String.fromCharCode(parseInt(d1 + d2, 16))};
-        }
-    }
-    throw "Unexpected Symbol " + this.getErrorPoint();
-};
 
 /**
  * @param {string} input
@@ -340,9 +320,9 @@ recoil.util.regexp.Scanner.prototype.nextEscape_ = function(input) {
     case 'v':
         return {type: s.char, val: '\v'};
     case 'x':
-        return this.nextHex_(input);
+        return this.nextHex_();
     case 'u':
-        return this.nextUnicode_(input);
+        return this.nextUnicode_();
 
     default:
         // \0 null char

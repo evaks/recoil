@@ -114,35 +114,46 @@ recoil.util.regexp.CharRange.prototype.not = function() {
 /**
  * @interface
  */
-recoil.util.regexp.EdgeSet = function () {};
+recoil.util.regexp.EdgeSet = function() {};
 
 /**
- * @param {function(!recoil.util.regexp.CharRange,!recoil.util.regexp.Node)}
+ * @param {function(?recoil.util.regexp.CharRange,!recoil.util.regexp.Node)} callback
  */
-recoil.util.regexp.EdgeSet.prototype.forEachEdge = function (callback) {};
+recoil.util.regexp.EdgeSet.prototype.forEachEdge = function(callback) {};
 
 /**
- * @param {!recoil.util.regexp.CharRange} charSet
+ * @param {?recoil.util.regexp.CharRange} charSet null is lamda
  * @param {!recoil.util.regexp.Node} node
  */
-recoil.util.regexp.EdgeSet.prototype.addEdge = function (charSet, node) {};
+recoil.util.regexp.EdgeSet.prototype.addEdge = function(charSet, node) {};
 
 /**
  * @implements {recoil.util.regexp.EdgeSet}
  * @constructor
  */
-recoil.util.regexp.GenericEdgeSet = function () {
+recoil.util.regexp.GenericEdgeSet = function() {
     /**
-     * @type {!Array<{node:!recoil.util.regexp.Node,chars:!recoil.util.regexp.CharSet}}
+     * @private
+     * @type {!Array<{node:!recoil.util.regexp.Node,chars:?recoil.util.regexp.CharRange}>}
      */
     this.edges_ = [];
 };
 
 /**
- * @param {function(!recoil.util.regexp.CharRange,!recoil.util.regexp.Node)}
+ * @param {?recoil.util.regexp.CharRange} charSet
+ * @param {!recoil.util.regexp.Node} node
  */
-recoil.util.regexp.GenericEdgeSet.prototype.forEachEdge = function (callback) {
-    
+recoil.util.regexp.GenericEdgeSet.prototype.addEdge = function(charSet, node) {
+    this.edges_.push({node: node, chars: charSet});
+};
+
+/**
+ * @param {function(?recoil.util.regexp.CharRange,!recoil.util.regexp.Node)} callback
+ */
+recoil.util.regexp.GenericEdgeSet.prototype.forEachEdge = function(callback) {
+    this.edges_.forEach(function(e) {
+        callback(e.chars, e.node);
+    });
 };
 
 
@@ -156,6 +167,13 @@ recoil.util.regexp.Node = function(opt_node) {
 };
 
 /**
+ * @param {?recoil.util.regexp.CharRange} charSet
+ * @param {!recoil.util.regexp.Node} node
+ */
+recoil.util.regexp.Node.prototype.edge = function(charSet, node) {
+    this.edges_.addEdge(charSet, node);
+};
+/**
  * @interface
  */
 recoil.util.regexp.FA = function() {};
@@ -164,22 +182,20 @@ recoil.util.regexp.FA = function() {};
 /**
  * no recursion here we have no idea how big this is
  * @param {!recoil.util.regexp.Node} node
- * @param {!function(
+ * @param {!function(!recoil.util.regexp.Node)} cb
  */
-recoil.util.regexp.Node.traverse = function (node, cb) {
+recoil.util.regexp.Node.traverse = function(node, cb) {
     var todo = [node];
     var seen = new WeakMap();
     seen.set(node, node);
     while (todo.length > 0) {
         var cur = todo.shift();
         cb(cur);
-        node.edges_.forEachEdge(function (charRange, nodes) {
-            nodes.forEach(function (otherNode) {
-                if (!seen.get(otherNode)) {
-                    todo.push(otherNode);
-                    seen.set(otherNode, otherNode);
-                }
-            });
+        node.edges_.forEachEdge(function(charRange, otherNode) {
+            if (!seen.get(otherNode)) {
+                todo.push(otherNode);
+                seen.set(otherNode, otherNode);
+            }
         });
     }
 };
@@ -209,26 +225,26 @@ recoil.util.regexp.NFA = function(start, end) {
 recoil.util.regexp.NFA.prototype.clone = function() {
     var nodeMap = new WeakMap();
     // make a copy of all the nodes
-    recoil.util.regexp.Node.traverse(this.start_, function (node) {
+    recoil.util.regexp.Node.traverse(this.start_, function(node) {
         nodeMap.set(node, new recoil.util.regexp.Node(node));
     });
 
-    recoil.util.regexp.Node.traverse(this.start_, function (node) {
+    recoil.util.regexp.Node.traverse(this.start_, function(node) {
         var newMe = nodeMap.get(node);
-        
-        node.edges_.forEachEdge(function (node, charRange) {
-            newMe.addEdge(charRange, nodeMap.get(n));
+
+        node.edges_.forEachEdge(function(node, charRange) {
+            newMe.addEdge(charRange, nodeMap.get(node));
         });
     });
 
-    return new recoil.util.regexp.NFA(nodeMap.get(this.start_),nodeMap.get(this.end_));
+    return new recoil.util.regexp.NFA(nodeMap.get(this.start), nodeMap.get(this.end));
 };
 
 /**
  * @return {!recoil.util.regexp.NFA}
  */
-recoil.util.regexp.NFA.empty = function(x, y) {
-    var n = recoil.util.regexp.Node();
+recoil.util.regexp.NFA.empty = function() {
+    var n = new recoil.util.regexp.Node();
     return new recoil.util.regexp.NFA(n, n);
 };
 
@@ -240,10 +256,10 @@ recoil.util.regexp.NFA.empty = function(x, y) {
  * @return {!recoil.util.regexp.NFA}
  */
 recoil.util.regexp.NFA.repeat = function(toRepeat, min, max) {
-    var cur = y;
-    var prev = y;
+    var cur = toRepeat;
+    var prev = toRepeat;
     for (var i = 0; i < min; i++) {
-        prev = y.clone();
+        prev = toRepeat.clone();
         /*
          * (cur.start) ... (cur.end) -> (prev.start) ... (prev.end)
          */
@@ -252,25 +268,25 @@ recoil.util.regexp.NFA.repeat = function(toRepeat, min, max) {
 
     if (max === 0) {
         /*
-         *  ...  -> (prev.start) ... (prev.end) 
+         *  ...  -> (prev.start) ... (prev.end)
          *             \-----<---------/
          */
         cur.end.edge(null, prev.start);
     }
     else if (max < min) {
-        throw "Min > Max Range";
+        throw 'Min > Max Range';
     }
     else {
         for (; i < max; i++) {
-            var start = recoil.util.regexp.Node();
-            var end = recoil.util.regexp.Node();
-            var next = y.clone();
+            var start = new recoil.util.regexp.Node();
+            var end = new recoil.util.regexp.Node();
+            var next = toRepeat.clone();
             /*
              * can skip the middle bit because it is otional
              * (start) -> (next.start) ... (next.end) -> (end)
              *      \------------->-------------------- /
              */
-            
+
             start.edge(null, next.start);
             start.edge(null, end);
             next.end.edge(null, end);
@@ -282,7 +298,7 @@ recoil.util.regexp.NFA.repeat = function(toRepeat, min, max) {
         }
     }
     return cur;
-                                           
+
 };
 /**
  * @param {!recoil.util.regexp.NFA} x
@@ -292,7 +308,7 @@ recoil.util.regexp.NFA.repeat = function(toRepeat, min, max) {
 recoil.util.regexp.NFA.append = function(x, y) {
     x.end.edge(null, y.start);
     return new recoil.util.regexp.NFA(x.start, y.end);
-}
+};
 
 /**
  * @param {!recoil.util.regexp.NFA} x
@@ -300,8 +316,8 @@ recoil.util.regexp.NFA.append = function(x, y) {
  * @return {!recoil.util.regexp.NFA}
  */
 recoil.util.regexp.NFA.or = function(x, y) {
-    var start = recoil.util.regexp.Node();
-    var end = recoil.util.regexp.Node();
+    var start = new recoil.util.regexp.Node();
+    var end = new recoil.util.regexp.Node();
 
     start.edge(null, x.start);
     start.edge(null, y.start);
