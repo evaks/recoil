@@ -225,15 +225,20 @@ recoil.util.regexp.NFA = function(start, end) {
 recoil.util.regexp.NFA.prototype.clone = function() {
     var nodeMap = new WeakMap();
     // make a copy of all the nodes
-    recoil.util.regexp.Node.traverse(this.start_, function(node) {
-        nodeMap.set(node, new recoil.util.regexp.Node(node));
+    var keep = [];
+    recoil.util.regexp.Node.traverse(this.start, function(node) {
+        var n = new recoil.util.regexp.Node(node);
+        nodeMap.set(node, n);
+        // otherwize the map looses them
+        keep.push(n);
     });
 
-    recoil.util.regexp.Node.traverse(this.start_, function(node) {
+    
+    recoil.util.regexp.Node.traverse(this.start, function(node) {
         var newMe = nodeMap.get(node);
 
-        node.edges_.forEachEdge(function(node, charRange) {
-            newMe.addEdge(charRange, nodeMap.get(node));
+        node.edges_.forEachEdge(function(charRange, node) {
+            newMe.edge(charRange, nodeMap.get(node));
         });
     });
 
