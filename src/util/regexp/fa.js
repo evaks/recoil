@@ -3,6 +3,10 @@ goog.provide('recoil.util.regexp.DFA');
 goog.provide('recoil.util.regexp.EdgeSet');
 goog.provide('recoil.util.regexp.NFA');
 
+
+
+goog.require('goog.structs.AvlTree');
+
 /**
  * @constructor
  * @param {?boolean} start match start of string
@@ -332,15 +336,138 @@ recoil.util.regexp.NFA.or = function(x, y) {
 };
 
 /**
+ * @param {?recoil.util.CharRange} chars
+ * @param {!recoil.util.regexp.DFA.Closure} from
+ */
+recoil.util.regexp.NFA.closure = function (chars, from) {
+    var seen = new WeakMap();
+    var todo = from.nodes();
+    // follow chars first since the start closure would of already
+    // followed nulls
+    var closure = [];
+    
+    if (chars) {
+        while (todo.length > 0) {
+            var cur = todo.shift();
+            seen.set(cur, cur);
+            cur.forEachEgedInCharset(charset, function (to) {                
+                if (!seen.has(to)) {
+                    seen.put(to, to);
+                    todo.push(to);
+                    closure.push(to);
+                }
+                if (charset.isBegin() || charset.isEnd()) {
+                    to.followSeq_(charset, seen, todo, closure);
+                }
+
+            });
+        }
+    }
+    // now follow the lamdas
+    todo = closure.slice(0);
+    while (todo.length > 0) {
+        var cur = todo.shift();
+        cur.forEachLamdaEged(function (to) {
+            if (!seen.get(to)) {
+                closure.push(to);
+                todo.push(to);
+            }
+        });
+    }
+    return recoil.util.regexp.DFA.Closure(closure);
+};
+/**
  * @return {!recoil.util.regexp.DFA}
  */
 recoil.util.regexp.NFA.prototype.toDFA = function() {
-    return new recoil.util.regexp.DFA();
+    var NFA = recoil.util.regexp.NFA;
+    var DFA = recoil.util.regexp.DFA;
+    var seen = new goog.struct.AvlTree(recoil.util.regexp.NFA.closureCompare);
+    var start = NFA.closure(null, new DFA.Closure([this.start]));
+    var todo = [start];
+    var me = this;
+
+    // make closures 
+    while (todo.length > 0) {
+        var cur = todo.shift();
+        cur.forCharSet (function (charset) {
+            var nextClosure = NFA.closure(charset, cur);
+            var existing = seen.findFirst(nextClosure);
+            if (existing) {
+                nextClosure = existing;
+            }
+            else {
+                todo.push(nextClosure);
+                seen.add(nextClosure);
+            }
+            curNode.node.edge(charset, nextClosure.node);
+        });
+    }
+
+    // anything that contains the end node is accepting
+    seen.inOrderTraverse(function (n) {
+        if (n.contains(me.end)) {
+            n.node.accepting = true;
+        }
+    });
+
+    return new recoil.util.regexp.DFA(start.node);
+};
+
+
+/**
+ * @constructor
+ * @param {recoil.util.regexp.Node} start
+ */
+recoil.util.regexp.DFA = function(start) {
+    this.start = start;
+};
+/**
+ * each node contains a set original match or submatches it belongs to
+ * if it goes out of that match before accepting state then it is not added
+ *
+ * @return {?Object<number,{start:number, end:number}>}
+ */
+recoil.util.regexp.DFA.matchMap = function (str) {
+    var matches = {};
+    var pos = 0;
+    var cur = this.follow('bos');
+    var curMatches = {};
+    
+    while (cur && pos < str.length) {
+        if (cur.accepting) {
+            matches['?'] = {start:0,end:pos};
+        }
+        for (var match in curMatches) {
+            if (!cur.match[match]) {
+                delete curMatches[match];
+            }
+        }
+        for (var match in cur.matches) {
+            var matchInfo = cur.matches[match];
+            if (matchInfo.start) {
+                if (!curMatches[match]) {
+                    curMatches[match] = pos;
+                }
+            }                
+        }
+        cur = this.follow(str[pos++]);
+    }
+    for (var k in matches) {
+        return matches;
+    };
+    return null;
 };
 /**
  * @constructor
+ * @param {!Array<recoil.util.regexp.Node>} nodes
  */
-recoil.util.regexp.DFA = function() {};
-
-
+recoil.util.regexp.DFA.Closure = function (nodes) {
+    // this is used in constuction of the dfa, it should
+    // have no references to the nfa nodes the constructor
+    // should strip them and just leave the meta data
+    this.node = new recoil.util.regexp.Node(nodes);
+    // TODO sort these somehow so we can store them in a avl tree
+    this.nodes_ = nodes;
+};
 
