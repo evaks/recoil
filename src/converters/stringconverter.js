@@ -45,7 +45,7 @@ recoil.converters.DefaultStringConverter.prototype.unconvert = function(val) {
  *
  * @constructor
  * @implements {recoil.converters.StringConverter<string>}
- * @param {!recoil.converters.StringConverter<string>} subconverter
+ * @param {!recoil.converters.TypeConverter<?,string>} subconverter
  */
 
 recoil.converters.NullStringConverter = function(subconverter) {
