@@ -80,8 +80,8 @@ function testWriteTable() {
     });
 
     var mtable = table.unfreeze();
-    mtable.set([[1,0]], COL_C, 8);
-    mtable.set([[-1,1]], COL_C, 8);
+    mtable.set([1], COL_C, 8);
+    mtable.set([-1], COL_C, 8);
 
     var orig = testee.inverse(mtable.freeze(),{table1 : tbl1.freeze(), table2: tbl2.freeze()});
 
@@ -101,8 +101,8 @@ function testWriteTable() {
 
     // test swapping table
     mtable = table.unfreeze();
-    mtable.set([[1,0]], COL_A, -8);
-    mtable.set([[-1,1]], COL_A, 8);
+    mtable.set([1], COL_A, -8);
+    mtable.set([-1], COL_A, 8);
 
     orig = testee.inverse(mtable.freeze(),{table1 : tbl1.freeze(), table2: tbl2.freeze()});
 
