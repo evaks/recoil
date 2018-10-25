@@ -1770,7 +1770,18 @@ recoil.structs.table.MutableTableRow.prototype.setCell = function(columnKey, val
     this.changed_[columnKey] = val;
 };
 
-
+/**
+ * a helper that just transfers the columns from the source rows
+ * into this row
+ * @param {!Array<!recoil.structs.table.ColumnKey>} columnKeys
+ * @param {!recoil.structs.table.TableRowInterface} src
+ */
+recoil.structs.table.MutableTableRow.prototype.transfer = function(columnKeys, src) {
+    for (var i = 0; i < columnKeys.length; i++) {
+        var col = columnKeys[i];
+        this.set(col, src.get(col));
+    }
+};
 /**
  * @template CT
  * @param {!recoil.structs.table.ColumnKey<CT>} columnKey
