@@ -32,6 +32,16 @@ recoil.structs.table.ImmutablePk = function(opt_dupsCol) {
 };
 
 /**
+ * @return {recoil.structs.table.ImmutablePk}
+ */
+recoil.structs.table.ImmutablePk.prototype.clone = function() {
+    var res = recoil.structs.table.ImmutablePk(this.DUPLICATES);
+    res.pk_ = this.pk_;
+    res.origPk_ = this.origPk_;
+    return res;
+};
+
+/**
  * @type {!recoil.structs.table.ColumnKey<!Array<number>>}
  * @final
  */
