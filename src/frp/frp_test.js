@@ -118,6 +118,7 @@ function testEventLiftB () {
         E.set(1);
     }, E);
     assertEquals(1, evFired);
+    assertObjectEquals([], E.unsafeMetaGet().get());
 }
     
 function testEventDown() {

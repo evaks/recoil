@@ -13,8 +13,8 @@ goog.require('recoil.util.object');
  * what data in the table is. this assumes the primary key is unique across the tables
  *
  * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,
- !{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table},
- !{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}>}>}
+ !{tables:!Array<!recoil.structs.table.Table>},
+ !{tables:!Array<!recoil.structs.table.Table>}>}
  * @constructor
  * @param {!Array<recoil.structs.table.ColumnKey>} idCols columns that are set will come back the same primary keys may change if new row
  * @param {!function(!recoil.structs.table.TableRow):number} srcFunc function to determine which src the row should be written out to
@@ -36,14 +36,14 @@ recoil.structs.table.SwapUnion.prototype.clone = function() {
 };
 
 /**
- * @param {{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}} params
+ * @param {{tables:Array<!recoil.structs.table.Table>}} params
  * @return {!recoil.structs.table.Table}
  */
 recoil.structs.table.SwapUnion.prototype.calculate = function(params) {
     var me = this;
-    var tables = [params.table1, params.table2];
+    var tables = params.tables;
 
-    var result = params.table1.createEmpty();
+    var result = params.tables[0].createEmpty();
     this.order_.start();
     for (var i = 0; i < tables.length; i++) {
         var table = tables[i];
@@ -62,11 +62,16 @@ recoil.structs.table.SwapUnion.prototype.calculate = function(params) {
 
 /**
  * @param {!recoil.structs.table.Table} table
- * @param {!{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}} sources
- * @return {!{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}}
+ * @param {!{tables:!Array<!recoil.structs.table.Table>}} sources
+ * @return {!{tables:!Array<!recoil.structs.table.Table>}}
  */
 recoil.structs.table.SwapUnion.prototype.inverse = function(table, sources) {
-    var tables = [sources.table1.createEmpty(), sources.table2.createEmpty()];
+
+    var tables = [];
+
+    sources.tables.forEach(function(table) {
+        tables.push(table.createEmpty());
+    });
     var me = this;
     this.order_.rememberStart(this.idCols_);
     table.forEach(function(row) {
@@ -77,8 +82,49 @@ recoil.structs.table.SwapUnion.prototype.inverse = function(table, sources) {
         tables[src].addRow(row);
         me.order_.remember(row);
     });
-    return {table1: tables[0].freeze(), table2: tables[1].freeze()};
+    var res = [];
+
+    tables.forEach(function(table) {
+        res.push(table.freeze());
+    });
+    return {tables: res};
 };
 
+
+/**
+ * @param {!Array<recoil.structs.table.ColumnKey>} idCols columns that are set will come back the same primary keys may change if new row
+ * @param {!function(!recoil.structs.table.TableRow):number} srcFunc function to determine which src the row should be written out to
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>|!recoil.frp.Behaviour<recoil.structs.table.Table>} first
+ * @param {...(!recoil.frp.Behaviour<!recoil.structs.table.Table>|!recoil.frp.Behaviour<recoil.structs.table.Table>|recoil.structs.table.Table)} var_rest
+ * @return {!{tables:Array<!recoil.structs.table.Table>}}
+ */
+recoil.structs.table.SwapUnion.createB = function(idCols, srcFunc, first, var_rest) {
+    var frp = first.frp();
+    var util = new recoil.frp.Util(frp);
+    var tables = [];
+
+    for (var i = 2; i < arguments.length; i++) {
+        tables.push(util.toBehaviour(arguments[i]));
+    }
+    var args = [
+        function() {
+            var res = [];
+            tables.forEach(function(t) {
+                res.push(t.get());
+            });
+            return res;
+        },
+        function(out) {
+            for (var i = 0; i < out.length; i++) {
+                tables[i].set(out[i]);
+            }
+        }
+    ];
+
+
+    var tablesB = frp.liftBI.apply(frp, args.concat(tables));
+
+    return recoil.frp.Inversable.create(frp, new recoil.structs.table.SwapUnion(idCols, srcFunc), {tables: tablesB});
+};
 
 

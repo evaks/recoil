@@ -29,14 +29,13 @@ recoil.frp.Inversable.prototype.calculate = function(params) {
 
 recoil.frp.Inversable.prototype.inverse = function(val, sources) {
 };
-
 /**
  * create a behaviour from an inversable
- * @template Output, Input
+ * @template T, Output, Input
  * @param {!recoil.frp.Frp} frp
  * @param {!recoil.frp.Inversable} inversable
  * @param {Input} params
- * @return {Output}
+ * @return {T}
  */
 recoil.frp.Inversable.create = function(frp, inversable, params) {
     var paramStruct = {};
@@ -76,3 +75,4 @@ recoil.frp.Inversable.create = function(frp, inversable, params) {
     }
     return frp.liftBI.apply(frp, funcParams);
 };
+

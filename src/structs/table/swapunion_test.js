@@ -18,18 +18,18 @@ var COL_E = new recoil.structs.table.ColumnKey("e");
 
 function checkExpected(tbl, expected) {
     var i = 0;
-    assertEquals(expected.length, tbl.size());
+    assertEquals("length", expected.length, tbl.size());
     tbl.forEach(function (row) {
         var e = expected[i];
         if (e.r !== undefined) {
-            assertEquals(e.a === undefined ? e.r : e.a, row.get(COL_A));
-            assertEquals(e.b === undefined ? e.r : e.b, row.get(COL_B));
-            assertEquals(e.c === undefined ? e.r : e.c, row.get(COL_C));
+            assertEquals("A[" + i + "]", e.a === undefined ? e.r : e.a, row.get(COL_A));
+            assertEquals("B[" + i + "]", e.b === undefined ? e.r : e.b, row.get(COL_B));
+            assertEquals("C[" + i + "]", e.c === undefined ? e.r : e.c, row.get(COL_C));
         }
         else {
-            assertEquals(e, row.get(COL_A));
-            assertEquals(e, row.get(COL_B));
-            assertEquals(e, row.get(COL_C));
+            assertEquals("A[" + i + "]", e, row.get(COL_A));
+            assertEquals("B[" + i + "]", e, row.get(COL_B));
+            assertEquals("C[" + i + "]", e, row.get(COL_C));
         }
         i++;
     });
@@ -66,7 +66,7 @@ function testWriteTable() {
     
     var expected = [1,2,3,4,-1,-2, -3,-4];
     var i = 0;
-    var table = testee.calculate({table1 : tbl1.freeze(), table2 : tbl2.freeze()});
+    var table = testee.calculate({tables: [ tbl1.freeze(), tbl2.freeze()]});
 
     assertObjectEquals({left: true, right : true}, table.getMeta());
     assertObjectEquals({left: true, right : true}, table.getColumnMeta(COL_B));
@@ -83,12 +83,12 @@ function testWriteTable() {
     mtable.set([1], COL_C, 8);
     mtable.set([-1], COL_C, 8);
 
-    var orig = testee.inverse(mtable.freeze(),{table1 : tbl1.freeze(), table2: tbl2.freeze()});
+    var orig = testee.inverse(mtable.freeze(),{tables : [tbl1.freeze(),  tbl2.freeze()]});
 
     expected = [1,2,3,4];
     i = 0;
-    assertEquals(expected.length, orig.table1.size());
-    orig.table1.forEach(function (row) {
+    assertEquals(expected.length, orig.tables[0].size());
+    orig.tables[0].forEach(function (row) {
         assertEquals(expected[i], row.get(COL_A));
         assertEquals(expected[i], row.get(COL_B));
         assertEquals(i == 0 ? 8 : expected[i], row.get(COL_C));
@@ -96,7 +96,7 @@ function testWriteTable() {
     });
 
 
-    checkExpected(orig.table2, [{c: 8, r: -1},-2,-3,-4]);
+    checkExpected(orig.tables[1], [{c: 8, r: -1},-2,-3,-4]);
 
 
     // test swapping table
@@ -104,18 +104,101 @@ function testWriteTable() {
     mtable.set([1], COL_A, -8);
     mtable.set([-1], COL_A, 8);
 
-    orig = testee.inverse(mtable.freeze(),{table1 : tbl1.freeze(), table2: tbl2.freeze()});
+    orig = testee.inverse(mtable.freeze(),{tables : [tbl1.freeze(), tbl2.freeze()]});
 
-    checkExpected(orig.table1, [2,3,4,{a:8, r:-1}]); // goes to back because comes after last in src
-    checkExpected(orig.table2, [{a:-8, r:1},-2,-3,-4]);
+    checkExpected(orig.tables[0], [2,3,4,{a:8, r:-1}]); // goes to back because comes after last in src
+    checkExpected(orig.tables[1], [{a:-8, r:1},-2,-3,-4]);
 
-    table = testee.calculate({table1 : orig.table1, table2 : orig.table2});
+    table = testee.calculate({tables : [orig.tables[0], orig.tables[1]]});
 
     checkExpected(table, [{a:-8, r: 1}, 2,3,4,{a:8, r:-1},-2,-3,-4]); // goes to back because comes after last in src
 
     // check that the table comes back in the same order
 }
 
+
+function testBehaviour() {
+    var tbl1 = new recoil.structs.table.MutableTable([COL_A], [COL_B,COL_C]);
+    var tbl2 = new recoil.structs.table.MutableTable([COL_A], [COL_B,COL_C]);
+
+    tbl1.setMeta({left:true});
+    tbl1.setColumnMeta(COL_B, {left:true});
+    tbl2.setMeta({right:true});
+    tbl2.setColumnMeta(COL_B, {right:true});
+    var p = 0;
+    [1,2,3,4].forEach(function (val) {
+        var row = new recoil.structs.table.MutableTableRow(p++);
+        row.set(COL_A, val);
+        row.set(COL_B, val);
+        row.set(COL_C, val);
+        tbl1.addRow(row);
+    });
+
+    p = 0;
+    [-1,-2,-3,-4].forEach(function (val) {
+        var row = new recoil.structs.table.MutableTableRow(p++);
+        row.set(COL_A, val);
+        row.set(COL_B, val);
+        row.set(COL_C, val);
+        tbl2.addRow(row);
+    });
+
+    var chooser = function (row) {return row.get(COL_A) < 0 ? 1 : 0;};
+    var testee = new recoil.structs.table.SwapUnion([COL_A], chooser);
+    var frp = new recoil.frp.Frp();
+    var tbl1B = frp.createB(tbl1.freeze());
+    var tbl2B = frp.createB(tbl2.freeze());
+    var testeeB = recoil.structs.table.SwapUnion.createB([COL_A], chooser, tbl1B,  tbl2B);
+
+    frp.attach(testeeB);
+    var expected = [1,2,3,4,-1,-2, -3,-4];
+    var i = 0;
+
+    frp.accessTrans(function () {
+        var table = testeeB.get();
+        assertObjectEquals({left: true, right : true}, table.getMeta());
+        assertObjectEquals({left: true, right : true}, table.getColumnMeta(COL_B));
+        assertEquals(expected.length, table.size());
+
+        table.forEach(function (row) {
+            assertEquals(expected[i], row.get(COL_A));
+            assertEquals(expected[i], row.get(COL_B));
+            assertEquals(expected[i], row.get(COL_C));
+            i++;
+        });
+
+        var mtable = table.unfreeze();
+        mtable.set([1], COL_C, 8);
+        mtable.set([-1], COL_C, 8);
+
+        testeeB.set(mtable.freeze());
+        
+    }, testeeB);
+
+    frp.accessTrans(function () {
+        checkExpected(tbl1B.get(), [{c: 8, r: 1},2,3,4]);
+        checkExpected(tbl2B.get(), [{c: 8, r: -1},-2,-3,-4]);
+
+        var table = testeeB.get();
+
+        var mtable = table.unfreeze();
+        mtable.set([1], COL_A, -8);
+        mtable.set([-1], COL_A, 8);
+        // test swapping table
+        testeeB.set(mtable.freeze());
+    }, tbl1B, tbl2B, testeeB);
+
+
+    frp.accessTrans(function () {
+        checkExpected(tbl1B.get(), [2,3,4,{a:8, r:-1, c:8}]); // goes to back because comes after last in src
+        checkExpected(tbl2B.get(), [{a:-8, r:1, c: 8},-2,-3,-4]);
+
+        var table = testeeB.get();
+
+        checkExpected(table, [{a:-8, r: 1, c: 8}, 2,3,4,{a:8, r:-1, c:8},-2,-3,-4]); // goes to back because comes after last in src
+    }, tbl1B, tbl2B, testeeB);
+    // check that the table comes back in the same order
+}
 
 
 
