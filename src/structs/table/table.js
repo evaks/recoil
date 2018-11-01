@@ -103,7 +103,7 @@ recoil.structs.table.ColumnKey.createUnique = function(name) {
  * @param {!recoil.structs.table.ColumnKey} otherKey
  */
 recoil.structs.table.ColumnKey.prototype.setSameDefaultFunc = function(otherKey)  {
-    if (!goog.isFunction(this.defaultFunc_)) {
+    if (goog.isFunction(this.defaultFunc_)) {
         otherKey.defaultFunc_ = this.defaultFunc_;
         otherKey.hasDefault_ = true;
         return;

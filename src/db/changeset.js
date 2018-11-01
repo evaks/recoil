@@ -2562,7 +2562,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
 
         for (var i = 0; i < newObj.length; i++) {
             var origKey = newObj[i][pkColumn];
-            newRowMap[origKey] = newObj[i];
+            newRowMap[origKey] = {idx: i, val: newObj[i]};
         }
 
         // do any deletes first they are not going to conflict with any existing keys
@@ -2572,14 +2572,14 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
             var oldPk = oldChild[pkColumn];
             oldRowMap[oldPk] = oldChild;
             var newChildEntry = newRowMap[oldPk];
-            if (newChildEntry) {
-                var newKey = schema.createKeyPath(path, newChildEntry);
+            if (newChildEntry && newChildEntry.val) {
+                var newKey = schema.createKeyPath(path, newChildEntry.val);
                 used.push(oldKey);
                 if (!recoil.util.object.isEqual(newKey, oldKey)) {
-                    needed.push({idx: i, key: newKey, removeKey: oldKey});
+                    needed.push({idx: i, newIdx: newChildEntry.idx, key: newKey, removeKey: oldKey});
                 }
                 else {
-                    recoil.db.ChangeSet.diff(oldChild, newChildEntry, newKey, pkColumn, schema, changes);
+                    recoil.db.ChangeSet.diff(oldChild, newChildEntry.val, newKey, pkColumn, schema, changes);
                 }
             }
             else {
@@ -2591,7 +2591,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
             // this is a new item
             if (!oldRowMap[newChild[pkColumn]]) {
                 newKey = schema.createKeyPath(path, newChild);
-                needed.push({idx: i, key: newKey});
+                needed.push({idx: null, newIdx:i,  key: newKey});
             }
         }
 
@@ -2605,13 +2605,13 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
                 else {
                     var deps = {changes: [], errors: changes.errors};
                     if (info.removeKey) {
-                        recoil.db.ChangeSet.diff(oldObj[info.idx], newObj[info.idx], info.removeKey, pkColumn, schema,
+                        recoil.db.ChangeSet.diff(oldObj[info.idx], newObj[info.newIdx], info.removeKey, pkColumn, schema,
                                                  changes);
                         changes.changes.push(new recoil.db.ChangeSet.Move(schema.absolute(info.removeKey), schema.absolute(info.key)));
                         recoil.db.ChangeSet.removePath(info.removeKey, used);
                     }
                     else {
-                        recoil.db.ChangeSet.diff(null, newObj[info.idx], info.key, pkColumn, schema, changes);
+                        recoil.db.ChangeSet.diff(null, newObj[info.newIdx], info.key, pkColumn, schema, changes);
                     }
                     used.push(info.key);
                 }
@@ -2622,8 +2622,6 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
                 // first build up a map of dup needed or in used if they are in there then they are real duplicate
                 // add to errors
                 // the rest are just loops pick one and do a delete
-                needed.forEach(function(info) {
-                });
                 needed.forEach(function(info) {
                     changes.errors.push(new recoil.db.ChangeSet.DupPk(schema.absolute(info.key)));
                 });
