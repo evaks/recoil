@@ -611,6 +611,16 @@ recoil.db.ChangeSet.Change.prototype.isNoOp = function() {};
 
 recoil.db.ChangeSet.Change.prototype.inverse = function(schema) {};
 
+
+/**
+ * moves the path of this change dependants
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Change.prototype.move = function(from, to) {};
+
 /**
  * @param {!recoil.db.ChangeSet.PathChangeMap} pathChangeMap
  * @param {recoil.db.ChangeSet.Change} pAncestor
@@ -1018,7 +1028,7 @@ recoil.db.ChangeSet.Path.prototype.append = function(part) {
 };
 
 /**
- * if from is an ansestor if of this path changes the from part to the
+ * if from is an ansestor of this path changes the from part to the
  * to part
  * @param {!recoil.db.ChangeSet.Path} from
  * @param {!recoil.db.ChangeSet.Path} to
@@ -1409,6 +1419,15 @@ recoil.db.ChangeSet.Set = function(path, oldVal, newVal) {
 };
 
 /**
+ * moves the path of this
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Set.prototype.move = function(from, to) {
+    return new recoil.db.ChangeSet.Set(this.path_.move(from, to), this.oldVal_, this.newVal_);
+};
+/**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @return {!recoil.db.ChangeSet.Change}
@@ -1502,6 +1521,20 @@ recoil.db.ChangeSet.Add.prototype.changeCount = function() {
         res += d.changeCount();
     });
     return res;
+};
+
+/**
+ * moves the path of this add and all its dependants
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Add.prototype.move = function(from, to) {
+    var newDeps = [];
+    this.dependants_.forEach(function(d) {
+        newDeps.push(d.move(from, to));
+    });
+    return new recoil.db.ChangeSet.Add(this.path_.move(from, to), newDeps);
 };
 
 /**
@@ -1692,6 +1725,18 @@ recoil.db.ChangeSet.Delete = function(path, orig) {
 };
 
 /**
+ * moves the path of this change dependants
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Delete.prototype.move = function(from, to) {
+    return new recoil.db.ChangeSet.Delete(this.path_.move(from, to), this.orig_);
+};
+
+
+/**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @return {!recoil.db.ChangeSet.Change}
@@ -1828,6 +1873,16 @@ recoil.db.ChangeSet.Move = function(oldPath, newPath) {
 };
 
 /**
+ * moves the path of this change dependants
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Move.prototype.move = function(from, to) {
+    return new recoil.db.ChangeSet.Move(this.oldPath_.move(from, to), this.newPath_.move(from, to));
+};
+/**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @return {!recoil.db.ChangeSet.Change}
@@ -1894,8 +1949,26 @@ recoil.db.ChangeSet.Move.prototype.merge = function(pathChangeMap, pAncestor, ma
     // previous moves
     // just add this object there is nothing that conflicts
 
+    // we have to do previous adds because the could be invalid
+    var adds = pathChangeMap.findExact(this.oldPath_, recoil.db.ChangeSet.Add);
+    for (var i = adds.length - 1; i >= 0; i--) {
+        var add = /** @type {!recoil.db.ChangeSet.Add} */ (adds[i]);
+
+        var info = pathChangeMap.removeChangeInfo(add);
+        // adjust any sets or sub moves after that
+
+        if (info) {
+
+            var newAdd = add.move(this.path(), this.newPath_);
+            newAdd.merge(pathChangeMap, pAncestor, info.pos);
+            return;
+        }
+    }
+
+
 
     var moves = pathChangeMap.findExact(this.oldPath_, recoil.db.ChangeSet.Move);
+
 
     for (var i = moves.length - 1; i >= 0; i--) {
         var move = /** @type {recoil.db.ChangeSet.Move} */ (moves[i]);
@@ -2591,7 +2664,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
             // this is a new item
             if (!oldRowMap[newChild[pkColumn]]) {
                 newKey = schema.createKeyPath(path, newChild);
-                needed.push({idx: null, newIdx:i,  key: newKey});
+                needed.push({idx: null, newIdx: i, key: newKey});
             }
         }
 

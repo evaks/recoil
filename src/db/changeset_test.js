@@ -796,6 +796,8 @@ function testMergeChanges() {
         ]));
 
 
+    
+
     var addKey = fullListA.setKeys(['k'], [1]);
     var moveKey = addKey.appendName('m');
     
@@ -971,4 +973,40 @@ function testMergeChanges() {
         ]));
 
 
+}
+
+function testMergeAddThenMove() {
+    var ns = recoil.db.ChangeSet;
+    var fullListA = ns.Path.fromString('test/list-a');
+        // Add(a{1}), Set(a{1}/v/2), Move(a{1},a{2}) -> [Add(a{2})]) xxx
+
+    var res = ns.merge(schema,[
+            new ns.Add(fullListA.setKeys(['k'], [1]), []),
+            new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'), 20, 200),
+        new ns.Move(fullListA.setKeys(['k'], [1]), fullListA.setKeys(['k'],[2]))
+        ]);
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [2]), [
+                new ns.Set(fullListA.setKeys(['k'], [2]).appendName('v'), 20, 200)
+            ]),
+        ],res);
+    
+    
+
+}
+function testMergeAddChildrenStay () {
+    var ns = recoil.db.ChangeSet;
+    var fullListA = ns.Path.fromString('test/list-a');
+
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]), [
+                new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'), 20, 200)
+            ]),
+        ],ns.merge(schema,[
+            new ns.Add(fullListA.setKeys(['k'], [1]), [
+                new ns.Set(fullListA.setKeys(['k'], [1]).appendName('v'), 20, 200)
+            ]),
+        ]));
 }

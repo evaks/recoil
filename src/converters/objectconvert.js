@@ -24,12 +24,12 @@ recoil.converters.ObjectConverter.prototype.convert = function(val) {
  * @param {string} val
  * @return {!{error : recoil.ui.message.Message, value : *}}
  */
-recoil.converters.ObjectStringConverter.prototype.unconvert = function(val) {
+recoil.converters.ObjectConverter.prototype.unconvert = function(val) {
     try {
         return {error: null, value: val === '' ? null : JSON.parse(val)};
     }
     catch (e) {
-        return {error: recoil.ui.messge..getParamMsg('' + e)};
+        return {error: recoil.ui.message.getParamMsg('' + e)};
     }
 };
 
