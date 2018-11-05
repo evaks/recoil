@@ -1959,7 +1959,7 @@ recoil.db.ChangeSet.Move.prototype.merge = function(pathChangeMap, pAncestor, ma
 
         if (info) {
 
-            var newAdd = add.move(this.path(), this.newPath_);
+            var newAdd = add.move(this.oldPath_, this.newPath_);
             newAdd.merge(pathChangeMap, pAncestor, info.pos);
             return;
         }
@@ -3170,6 +3170,8 @@ recoil.db.PathMap.prototype.remove = function(path) {
 };
 
 /**
+ * gets the node for this path and all the value for its decendants
+ *
  * @param {!recoil.db.ChangeSet.Path} path
  * @return {!Array<T>}
  */
@@ -3183,6 +3185,8 @@ recoil.db.PathMap.prototype.get = function(path) {
 };
 
 /**
+ * note path is considered an ansestor of itself
+ *
  * @param {!recoil.db.ChangeSet.Path} path
  * @return {!Array<T>}
  */

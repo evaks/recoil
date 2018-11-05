@@ -76,7 +76,7 @@ recoil.structs.table.SwapUnion.prototype.inverse = function(table, sources) {
     this.order_.rememberStart(this.idCols_);
     table.forEach(function(row) {
         var src = me.srcFunc_(row);
-        if (src < 0 || src > 1) {
+        if (src < 0 || src >= tables.length) {
             throw 'Unknown destination';
         }
         tables[src].addRow(row);
@@ -96,7 +96,7 @@ recoil.structs.table.SwapUnion.prototype.inverse = function(table, sources) {
  * @param {!function(!recoil.structs.table.TableRow):number} srcFunc function to determine which src the row should be written out to
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>|!recoil.frp.Behaviour<recoil.structs.table.Table>} first
  * @param {...(!recoil.frp.Behaviour<!recoil.structs.table.Table>|!recoil.frp.Behaviour<recoil.structs.table.Table>|recoil.structs.table.Table)} var_rest
- * @return {!{tables:Array<!recoil.structs.table.Table>}}
+ * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>} }
  */
 recoil.structs.table.SwapUnion.createB = function(idCols, srcFunc, first, var_rest) {
     var frp = first.frp();

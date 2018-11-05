@@ -4,6 +4,7 @@
  * however the meta data will be read only
  */
 
+goog.provide('recoil.frp.table.Table');
 goog.provide('recoil.frp.table.TableCell');
 goog.provide('recoil.frp.table.TableRow');
 goog.require('goog.object');
@@ -171,4 +172,66 @@ recoil.frp.table.TableCell.getMeta = function(frp, cellB) {
             }
         },
         cellB);
+};
+
+
+
+/**
+ * makes a map from the key -> value column
+ * @template T
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB
+ * @param {recoil.structs.table.ColumnKey} key
+ * @param {recoil.structs.table.ColumnKey<T>} value
+ * @return {!recoil.frp.Behaviour<!Object<string,T>>}
+ */
+
+recoil.frp.table.Table.toMap = function(tableB, key, value) {
+    return tableB.frp().liftB(function(t) {
+        var res = {};
+        t.forEach(function(row) {
+            res[row.get(key)] = row.get(value);
+        });
+        return res;
+    }, tableB);
+};
+
+/**
+ * makes a map from the key -> value column
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB
+ * @param {recoil.structs.table.ColumnKey} key
+ * @return {!recoil.frp.Behaviour<!Object<string,!recoil.structs.table.TableRow>>}
+ */
+
+recoil.frp.table.Table.toRowMap = function(tableB, key) {
+    return tableB.frp().liftB(function(t) {
+        var res = {};
+        t.forEach(function(row) {
+            res[row.get(key)] = row;
+        });
+        return res;
+    }, tableB);
+};
+
+
+
+/**
+ * makes a map from the key -> value column
+ * @template T
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} allB
+ * @param {!recoil.frp.Behaviour<!Object>} usedB
+ * @param {recoil.structs.table.ColumnKey<T>} key
+ * @return {!recoil.frp.Behaviour<!Array<T>>}
+ */
+
+recoil.frp.table.Table.unused = function(allB,  usedB, key) {
+    return allB.frp().liftB(function(t, used) {
+        var res = [];
+        t.forEach(function(row) {
+            var v = row.get(key);
+            if (!used[v]) {
+                res.push(v);
+            }
+        });
+        return res;
+    }, allB, usedB);
 };

@@ -163,3 +163,43 @@ recoil.frp.Array.prototype.stripTag = function(array, tag) {
 
     return this.map(array, stripTag);
 };
+
+
+/**
+ * makes a map from the key -> value column
+ * @param {!recoil.frp.Behaviour<!Array<Object>>} arrB
+ * @param {string} key
+ * @return {!recoil.frp.Behaviour<!Object<string,?>>}
+ */
+
+recoil.frp.Array.prototype.toMap = function(arrB, key) {
+    return this.frp_.liftB(function(t) {
+        var res = {};
+        t.forEach(function(row) {
+            res[row[key]] = row;
+        });
+        return res;
+    }, arrB);
+};
+
+
+/**
+ * makes a map from the key -> value column
+ * @template T
+ * @param {!recoil.frp.Behaviour<!Array<T>>} allB
+ * @param {!recoil.frp.Behaviour<!Object>} usedB
+ * @param {function(?):string} keyGetter
+ * @return {!recoil.frp.Behaviour<!Array<T>>}
+ */
+
+recoil.frp.Array.prototype.unused = function(allB,  usedB, keyGetter) {
+    return this.frp_.liftB(function(t, used) {
+        var res = [];
+        t.forEach(function(item) {
+            if (!used[keyGetter(item)]) {
+                res.push(item);
+            }
+        });
+        return res;
+    }, allB, usedB);
+};
