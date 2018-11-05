@@ -5,6 +5,7 @@ goog.provide('recoil.util.regexp.NFA');
 
 
 
+goog.require('goog.array');
 goog.require('goog.structs.AvlTree');
 
 /**
@@ -91,6 +92,20 @@ recoil.util.regexp.CharRange.end = function() {
     return new recoil.util.regexp.CharRange(null, true, []);
 };
 
+
+/**
+ * @return {!boolean}
+ */
+recoil.util.regexp.CharRange.prototype.isStart = function() {
+    return !!this.start_;
+};
+
+/**
+ * @return {!boolean}
+ */
+recoil.util.regexp.CharRange.prototype.isEnd = function() {
+    return !!this.end_;
+};
 /**
  * @return {!recoil.util.regexp.CharRange}
  */
@@ -125,6 +140,14 @@ recoil.util.regexp.EdgeSet = function() {};
  */
 recoil.util.regexp.EdgeSet.prototype.forEachEdge = function(callback) {};
 
+
+/**
+ * this function can only be called on dfa nodes it assumes 1 char leads to 0 or 1 nodes
+ * @param {string} char
+ * @return {?recoil.util.regexp.Node}
+ */
+recoil.util.regexp.EdgeSet.prototype.follow = function(char) {};
+
 /**
  * @param {?recoil.util.regexp.CharRange} charSet null is lamda
  * @param {!recoil.util.regexp.Node} node
@@ -152,11 +175,134 @@ recoil.util.regexp.GenericEdgeSet.prototype.addEdge = function(charSet, node) {
 };
 
 /**
+ * this function can only be called on dfa nodes it assumes 1 char leads to 0 or 1 nodes
+ * @param {string} char
+ * @return {?recoil.util.regexp.Node}
+ */
+recoil.util.regexp.GenericEdgeSet.prototype.follow = function(char) {
+    throw "you haven't converted to a dfa yet";
+};
+
+/**
+ * @implements {recoil.util.regexp.EdgeSet}
+ * @constructor
+ */
+recoil.util.regexp.DFAEdgeSet = function() {
+    this.eos_ = null;
+    this.bos_ = null;
+    this.chars_ = [];
+};
+
+/**
+ * @param {?recoil.util.regexp.CharRange} charSet
+ * @param {!recoil.util.regexp.Node} node
+ */
+recoil.util.regexp.DFAEdgeSet.prototype.addEdge = function(charSet, node) {
+    if (charSet.isStart()) {
+        if (this.bos_ && this.bos_ !== node) {
+            throw 'non-deterministic start state';
+        }
+        this.bos_ = node;
+    }
+    if (charSet.isEnd()) {
+        if (this.eos_ && this.eos_ !== node) {
+            throw 'non-deterministic end state';
+        }
+        this.eos_ = node;
+    }
+
+    charSet.getRanges().forEach(function(range) {
+        this.edges_.push({node: node, start: range.start, end: range.end});
+    });
+};
+
+/**
+ * optimizes the edgeset by sorting the nodes
+ * and replacing itself if nessary a map or all edget it also
+ * performs check to see if the edgeset is deterministic
+ * @return {recoil.util.regexp.EdgeSet}
+ */
+recoil.util.regexp.DFAEdgeSet.prototype.finish = function() {
+    var charCount = 0;
+    charCount += this.eos_ ? 1 : 0;
+    charCount += this.bos_ ? 1 : 0;
+
+    var prev = null;
+    var newEdges = [];
+    this.edges_.sort(recoil.util.regexp.CharRange.compare_);
+    this.edges_.forEach(function(edge) {
+        if (prev) {
+            if (prev.end < edge.start) {
+                newEdges.push(prev);
+            }
+            else if (prev.node === edge.node) {
+                prev.end = edge.end;
+            }
+            else {
+                throw 'non-deterministic node found';
+            }
+        }
+        else {
+            prev = edge;
+        }
+    });
+
+    if (prev) {
+        newEdges.push(prev);
+    }
+    this.edges_ = newEdges;
+    return this;
+};
+
+/**
+ * @private
+ * @param {string} target
+ * @param {!{start:string, end:string}} range
+ * @return {number}
+ */
+recoil.util.regexp.DFAEdgeSet.findCompare_ = function(target, range) {
+    if (target < range.start) {
+        return -1;
+    }
+    else if (target > range.end) {
+        return 1;
+    }
+    return 0;
+};
+/**
+ * this function can only be called on dfa nodes it assumes 1 char leads to 0 or 1 nodes
+ * @param {string} char
+ * @return {?recoil.util.regexp.Node}
+ */
+recoil.util.regexp.DFAEdgeSet.prototype.follow = function(char) {
+
+    if (char === 'eos') {
+        return this.eos_;
+    }
+    if (char === 'bos') {
+        return this.bos_;
+    }
+    var idx = goog.array.binarySearch(this.edges_, char, recoil.util.regexp.findCompare_);
+    if (idx >= 0) {
+        return this.edges_[idx].node;
+    }
+    return null;
+};
+
+
+/**
  * @param {function(?recoil.util.regexp.CharRange,!recoil.util.regexp.Node)} callback
  */
-recoil.util.regexp.GenericEdgeSet.prototype.forEachEdge = function(callback) {
+recoil.util.regexp.DFAEdgeSet.prototype.forEachEdge = function(callback) {
+    if (this.eos_) {
+        callback(new recoil.util.regexp.CharRange(true, null, []), this.eos_);
+    }
+    if (this.bos_) {
+        callback(new recoil.util.regexp.CharRange(null, true), this.eos_);
+    }
+
     this.edges_.forEach(function(e) {
-        callback(e.chars, e.node);
+        callback(new recoil.util.regexp.CharRange(null, null, [{start: e.start, end: e.end}]));
     });
 };
 
@@ -177,6 +323,15 @@ recoil.util.regexp.Node = function(opt_node) {
 recoil.util.regexp.Node.prototype.edge = function(charSet, node) {
     this.edges_.addEdge(charSet, node);
 };
+
+/**
+ * this function can only be called on dfa nodes it assumes 1 char leads to 0 or 1 nodes
+ * @param {string} char
+ * @return {?recoil.util.regexp.Node}
+ */
+recoil.util.regexp.Node.prototype.follow = function(char) {
+    return this.edges_.follow(char);
+};
 /**
  * @interface
  */
@@ -187,14 +342,23 @@ recoil.util.regexp.FA = function() {};
  * no recursion here we have no idea how big this is
  * @param {!recoil.util.regexp.Node} node
  * @param {!function(!recoil.util.regexp.Node)} cb
+ * @param {boolean=} opt_skipFirst should we do the callback on the first node
+ * @param {function(!recoil.util.regexp.Node):boolean=} opt_edgeCheck
  */
-recoil.util.regexp.Node.traverse = function(node, cb) {
+recoil.util.regexp.Node.traverse = function(node, cb, opt_skipFirst, opt_edgeCheck) {
     var todo = [node];
     var seen = new WeakMap();
-    seen.set(node, node);
+    var first = true;
+    var edgeCheck = opt_edgeCheck || function() {return true;};
+    if (!opt_skipFirst) {
+        seen.set(node, node);
+    }
     while (todo.length > 0) {
         var cur = todo.shift();
-        cb(cur);
+        if (!first || !opt_skipFirst) {
+            cb(cur);
+        }
+        first = false;
         node.edges_.forEachEdge(function(charRange, otherNode) {
             if (!seen.get(otherNode)) {
                 todo.push(otherNode);
@@ -237,7 +401,7 @@ recoil.util.regexp.NFA.prototype.clone = function() {
         keep.push(n);
     });
 
-    
+
     recoil.util.regexp.Node.traverse(this.start, function(node) {
         var newMe = nodeMap.get(node);
 
@@ -336,27 +500,29 @@ recoil.util.regexp.NFA.or = function(x, y) {
 };
 
 /**
- * @param {?recoil.util.CharRange} chars
+ * @private
+ * @param {?recoil.util.regexp.CharRange} charset
  * @param {!recoil.util.regexp.DFA.Closure} from
+ * @return {recoil.util.regexp.DFA.Closure}
  */
-recoil.util.regexp.NFA.closure = function (chars, from) {
+recoil.util.regexp.NFA.closure_ = function(charset, from) {
     var seen = new WeakMap();
     var todo = from.nodes();
     // follow chars first since the start closure would of already
     // followed nulls
     var closure = [];
-    
-    if (chars) {
+
+    if (charset) {
         while (todo.length > 0) {
             var cur = todo.shift();
             seen.set(cur, cur);
-            cur.forEachEgedInCharset(charset, function (to) {                
+            cur.forEachEdgeInCharset(charset, function(to) {
                 if (!seen.has(to)) {
-                    seen.put(to, to);
+                    seen.set(to, to);
                     todo.push(to);
                     closure.push(to);
                 }
-                if (charset.isBegin() || charset.isEnd()) {
+                if (charset.isStart() || charset.isEnd()) {
                     to.followSeq_(charset, seen, todo, closure);
                 }
 
@@ -367,32 +533,37 @@ recoil.util.regexp.NFA.closure = function (chars, from) {
     todo = closure.slice(0);
     while (todo.length > 0) {
         var cur = todo.shift();
-        cur.forEachLamdaEged(function (to) {
+        cur.forEachLamdaEdge(function(to) {
             if (!seen.get(to)) {
                 closure.push(to);
                 todo.push(to);
             }
         });
     }
-    return recoil.util.regexp.DFA.Closure(closure);
+    return new recoil.util.regexp.DFA.Closure(closure);
 };
+
 /**
  * @return {!recoil.util.regexp.DFA}
  */
 recoil.util.regexp.NFA.prototype.toDFA = function() {
     var NFA = recoil.util.regexp.NFA;
     var DFA = recoil.util.regexp.DFA;
-    var seen = new goog.struct.AvlTree(recoil.util.regexp.NFA.closureCompare);
-    var start = NFA.closure(null, new DFA.Closure([this.start]));
-    var todo = [start];
+    var seen = {};
     var me = this;
-
-    // make closures 
+    var nodeIds = new WeakMap();
+    var curId = 0;
+    recoil.util.regexp.Node.traverse(this.start, function(node) {
+        nodeIds.set(node, curId++);
+    });
+    var start = NFA.closure_(null, new DFA.Closure([this.start], nodeIds));
+    var todo = [start];
+    // make closures
     while (todo.length > 0) {
         var cur = todo.shift();
-        cur.forCharSet (function (charset) {
-            var nextClosure = NFA.closure(charset, cur);
-            var existing = seen.findFirst(nextClosure);
+        cur.forEachUniqueCharSet(function(charset) {
+            var nextClosure = NFA.closure_(charset, cur);
+            var existing = seen[nextClosure.id()];
             if (existing) {
                 nextClosure = existing;
             }
@@ -400,16 +571,17 @@ recoil.util.regexp.NFA.prototype.toDFA = function() {
                 todo.push(nextClosure);
                 seen.add(nextClosure);
             }
-            curNode.node.edge(charset, nextClosure.node);
+            cur.node.edge(charset, nextClosure.node);
         });
     }
 
     // anything that contains the end node is accepting
-    seen.inOrderTraverse(function (n) {
+    for (var k in seen) {
+        var n = seen[k];
         if (n.contains(me.end)) {
             n.node.accepting = true;
         }
-    });
+    }
 
     return new recoil.util.regexp.DFA(start.node);
 };
@@ -426,48 +598,164 @@ recoil.util.regexp.DFA = function(start) {
  * each node contains a set original match or submatches it belongs to
  * if it goes out of that match before accepting state then it is not added
  *
+ * @param {string} str
  * @return {?Object<number,{start:number, end:number}>}
  */
-recoil.util.regexp.DFA.matchMap = function (str) {
+recoil.util.regexp.DFA.prototype.matchMap = function(str) {
     var matches = {};
     var pos = 0;
-    var cur = this.follow('bos');
+    var cur = this.start.follow('bos');
     var curMatches = {};
-    
+
     while (cur && pos < str.length) {
         if (cur.accepting) {
-            matches['?'] = {start:0,end:pos};
+            matches['?'] = {start: 0, end: pos};
         }
         for (var match in curMatches) {
             if (!cur.match[match]) {
                 delete curMatches[match];
             }
         }
-        for (var match in cur.matches) {
+        for (match in cur.matches) {
             var matchInfo = cur.matches[match];
             if (matchInfo.start) {
                 if (!curMatches[match]) {
                     curMatches[match] = pos;
                 }
-            }                
+            }
         }
-        cur = this.follow(str[pos++]);
+        cur = cur.follow(str[pos++]);
+    }
+
+    if (cur) {
+        cur = cur.follow('eos');
     }
     for (var k in matches) {
         return matches;
-    };
+    }
     return null;
 };
 /**
  * @constructor
- * @param {!Array<recoil.util.regexp.Node>} nodes
+ * @param {!Array<!recoil.util.regexp.Node>} nodes
+ * @param {WeakMap} idMap
  */
-recoil.util.regexp.DFA.Closure = function (nodes) {
+recoil.util.regexp.DFA.Closure = function(nodes, idMap) {
     // this is used in constuction of the dfa, it should
     // have no references to the nfa nodes the constructor
     // should strip them and just leave the meta data
     this.node = new recoil.util.regexp.Node(nodes);
-    // TODO sort these somehow so we can store them in a avl tree
     this.nodes_ = nodes;
+    var ids = [];
+    nodes.forEach(function(n) {
+        ids.push(idMap.get(n));
+    });
+    ids.sort(); // don't care what sort order just as long as it is consitent
+    this.id_ = ids.join('_');
 };
 
+/**
+ * @return {string}
+ */
+recoil.util.regexp.DFA.Closure.prototype.id = function() {
+    return this.id_;
+};
+
+/**
+ * follows lamba edges for each node in this closure and
+ * and calls the callback to indicate the nodes it can reach
+ * @param {function(!recoil.util.regexp.Node)} cb
+ */
+recoil.util.regexp.DFA.Closure.prototype.forEachLamdaEdge = function(cb) {
+    var seen = new WeakMap();
+    var doCb = function(node) {
+        if (!seen.get(node)) {
+            cb(node);
+        }
+    };
+    var onlyLamba = function(e) {
+        return e === null;
+    };
+    this.nodes_.forEach(function(node) {
+        recoil.util.regexp.Node.traverse(node, doCb, true, onlyLamba);
+    });
+};
+
+/**
+ * @param {!Array<!{start:number,end:number}>} charset
+ * @param {function(!recoil.util.regexp.Node)} cb
+ */
+recoil.util.regexp.DFA.Closure.prototype.forEachEdgeInCharset = function(charset, cb) {
+    var seen = new WeakMap();
+    var me = this;
+    charset.forEach(function (range) {
+        me.edges_.getDestNodes(charset).forEach(function (n) {
+            if (!seen.get(n)) {
+                cb(n);
+            }
+        });
+    });
+};
+
+// write test for this it is complex
+
+recoil.util.regexp.DFA.Closure.prototype.forEachUniqueCharSet = function () {
+    // get all ranges
+    var allRanges = [];
+    // sort
+    allRanges.sort(recoil.util.regexp.CharRange.compare_);
+    if (allRanges.length === 0) {
+        return;
+    }
+    // get rid of overlaps
+    var res = [];
+    var pushifnotempty = function (r) {
+        if (r.start <= r.end) {
+            res.push(r);
+        }
+    };
+    var addCh = function (c, amount) {
+        return String.fromCharCode(c.charCodeAt(0) + amount);
+    };
+    var workingRange = {start: allRanges[0].start, end: allRanges[0].end};
+    var workingStart = workingRange.start;
+    
+    for (var i = 1; i < allRanges.length; i++) {
+        var cur = allRanges[i];
+
+        if (workingRange.end < cur.start) {
+            
+            res.push({start: workingRange.start, end: workingRange.end});
+        }
+        else if (workingRange.start === cur.start) {
+            if (workingRange.end === cur.end) {
+                continue;
+            }
+            else if (cur.end < workingRange.end) {
+                pushifnotempty({start:workingStart, end: cur.end});
+                workingStart = addCh(cur.end, 1);
+            }
+            else {
+                pushifnotempty({start:workingStart, end: workingRange.end});
+                workingStart = addCh(workingRange.end, 1);
+            }
+        }
+        else if (workingRange.start < cur.start) {
+            if (workingRange.end < cur.start) {
+                pushifnotempty({start:workingStart, end: workingRange.end});
+            }
+            else { 
+                pushifnotempty({start:workingStart, end: addCh(curStart, -1)});
+            }
+            workingStart = cur.start;
+        }
+        else { // workingStart.start > cur.start
+            throw "unexpected state start must be <= nextstart";
+        }
+        workingRange.start = cur.start;
+        workingRange.end = Math.max(workingRange.end, cur.end);
+    };
+
+    pushifnotempty({start:workingStart, end:workingRange.end});
+    
+};

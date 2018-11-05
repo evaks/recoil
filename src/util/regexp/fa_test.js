@@ -30,4 +30,19 @@ function testClone() {
     assertTrue("clone", recoil.util.object.isEqual(nfa, nfa.clone()));
 }
 
+function checkRegExp(reg, tests) {
+    var testee = new recoil.util.regexp.parse(reg.toString());
+    tests.forEach(function (t) {
+        var expected = t.match(reg);
+        assertEquals(reg.toString() + " match '" + t + "'", t.match(reg), testee.match(t));
 
+    });
+}
+
+function testRegMatch() {
+
+    checkRegExp(/^abc$/, ["abc", "aabc", "abcc"]);
+    checkRegExp(/./, ["a", "bb"]);
+    checkRegExp(/.*/, ["abc", "abcd",""]);
+    
+};
