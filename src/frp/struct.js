@@ -14,7 +14,7 @@ goog.require('recoil.util.object');
  * @return {!recoil.frp.Behaviour<!T>}
  */
 recoil.frp.struct.get = function(name, value, opt_default) {
-    return value.frp().liftBI(function() {
+    var behavior = value.frp().liftBI(function() {
         var val = value.get();
         var res = val ? val[name] : undefined;
         if (res === undefined) {
@@ -26,7 +26,9 @@ recoil.frp.struct.get = function(name, value, opt_default) {
         var res = goog.object.clone(value.get());
         res[name] = newVal;
         value.set(res);
-    }, value);
+    }, value).setName('struct.get(\'' + name + '\')');
+
+    return behavior;
 };
 
 /**
@@ -283,8 +285,7 @@ recoil.frp.struct.flatten = function(frp, structB) {
     if (args.length === 2) {
         return frp.createConstB(structB);
     }
-    return frp.liftBI.apply(frp, args);
-
+    return frp.liftBI.apply(frp, args).setName('flatten');
 };
 
 /**

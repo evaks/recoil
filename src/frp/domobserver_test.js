@@ -40,6 +40,7 @@ function test01ExistsOnAttach() {
     visible = false;
     var skip = 2;
     observer.listen(element, function(v) {
+      console.log('observer',v, element);
         visible = v;
         if (skip === 0) {
             asyncTestCase.continueTesting();
@@ -92,11 +93,10 @@ function test03Move() {
     body.appendChild(element);
     assertEquals(false, visible_move);
     asyncTestCase.waitForAsync('test move');
-    
+
 }
 function test04Done() {
     assertEquals(true, visible);
     assertEquals(true, visible_move);
 
 }
-

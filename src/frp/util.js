@@ -254,7 +254,7 @@ recoil.frp.Util.prototype.isAllGoodExplain = function(var_values) {
 
         return new recoil.ui.BoolWithExplanation(false, recoil.ui.messages.join(errors));
 
-    }, arguments);
+    }, arguments).setName('isAllGoodExplain');
 };
 
 /*
@@ -472,6 +472,7 @@ recoil.frp.Util.Options = function(var_options) {
      */
     res.bind = function(frp, val) {
         var optionsB = recoil.frp.struct.flatten(frp, val);
+        optionsB.setName('bindOptionsB');
         var res = new recoil.frp.Util.OptionsType();
         for (var i = 0; i < args.length; i++)
             (function(name) {

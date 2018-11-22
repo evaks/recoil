@@ -57,6 +57,12 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
             }
         }
     };
+    this.listenFunc_.behaviours = function() {
+      if (me.attachedBehaviour_) {
+        return [me.attachedBehaviour_];
+      }
+      return [];
+    };
 
     /**
      * @private
@@ -248,7 +254,7 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
 
     this.behaviours_ = newBehaviours;
     this.attachedBehaviour_ = recoil.util.invokeOneParamAndArray(this.frp_, this.frp_.observeB, this.callback_, this.behaviours_);
-
+    this.attachedBehaviour_.setName('AttachedB in helper');
     if (hadBehaviour) {
         if (this.isAttached_) {
             this.frp_.attach(/** @type {!recoil.frp.Behaviour} */ (this.attachedBehaviour_));
@@ -357,7 +363,7 @@ recoil.ui.EventHelper.prototype.listen = function(callback) {
         this.listener_ = callback;
     }
 
-
+    this.listener_.setName('EventHelperB');
 };
 
 /**

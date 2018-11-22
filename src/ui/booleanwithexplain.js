@@ -130,9 +130,9 @@ recoil.ui.BoolWithExplanation.and = function(frp, var_behaviours) {
     if (behaviours.length > 0) {
         return recoil.util.invokeParamsAndArray(frp.liftB, frp, function(arg1) {
             return recoil.util.invokeParamsAndArray(arg1.and, arg1, goog.array.slice(arguments, 1));
-        }, behaviours);
+        }, behaviours).setName('BoolWithExplanation.and');
     }
-    return frp.createConstB(recoil.ui.BoolWithExplanation.TRUE);
+    return frp.createConstB(recoil.ui.BoolWithExplanation.TRUE).setName('BoolWithExplanation.and');
 };
 
 /**

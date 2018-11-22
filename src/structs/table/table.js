@@ -919,14 +919,20 @@ recoil.structs.table.MutableTable.prototype.getRow = function(keys) {
  * @param {!Array<?>} keys
  * @param {!recoil.structs.table.ColumnKey<CT>} column
  * @param {CT} value
+ * @param {Object=} opt_meta
  */
-recoil.structs.table.MutableTable.prototype.set = function(keys, column, value) {
+recoil.structs.table.MutableTable.prototype.set = function(keys, column, value, opt_meta) {
     var old = this.getCell(keys, column);
 
     if (old === null) {
         throw 'Cell Does not exist';
     }
-    this.setCell(keys, column, old.setValue(value));
+    if (opt_meta) {
+        this.setCell(keys, column, new recoil.structs.table.TableCell(value, opt_meta));
+    }
+    else {
+        this.setCell(keys, column, old.setValue(value));
+    }
 };
 
 /**
@@ -1751,15 +1757,21 @@ recoil.structs.table.MutableTableRow.prototype.setCell = function(columnKey, val
  * @template CT
  * @param {!recoil.structs.table.ColumnKey<CT>} columnKey
  * @param {CT} val the data of the cell
+ * @param {Object=} opt_meta
  */
 
-recoil.structs.table.MutableTableRow.prototype.set = function(columnKey, val) {
+recoil.structs.table.MutableTableRow.prototype.set = function(columnKey, val, opt_meta) {
     var old = this.getCell(columnKey);
     if (old === null) {
         old = new recoil.structs.table.TableCell(undefined);
     }
-
-    this.setCell(columnKey, old.setValue(columnKey.castTo(val)));
+    if (opt_meta) {
+        this.setCell(columnKey, new recoil.structs.table.TableCell(
+            columnKey.castTo(val), opt_meta));
+    }
+    else {
+        this.setCell(columnKey, old.setValue(columnKey.castTo(val)));
+    }
 };
 
 /**
