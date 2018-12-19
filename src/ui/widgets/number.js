@@ -598,22 +598,31 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
             if (!me.rangeB_.hasRefs() || !me.rangeB_.good()) {
                 return;
             }
+            var ranges = me.rangeB_.get().ranges;
+            if (!ranges || ranges.length === 0) {
+                ranges = [{min: me.rangeB_.get().min, max: me.rangeB_.get().max}];
+            }
+
+            var errors = [];
+            var hasValid = false;
+            ranges.forEach(function(range) {
+                if (range.min <= range.max) {
+                    hasValid = true;
+                }
+                errors.push(recoil.ui.messages.AND.resolve({first: range.min, second: range.max}));
+            });
+            var msg = recoil.ui.messages.join(errors, recoil.ui.messages.OR);
             if (me.rangeB_.get().step === 1) {
-                errorsB.set([recoil.ui.messages.NUMBER_NOT_IN_RANGE.resolve(
-                    {
-                        min: me.rangeB_.get().min,
-                        max: me.rangeB_.get().max
-                    })]);
+                msg = recoil.ui.messages.MUST_BE_RANGE.resolve({'ranges': msg});
             }
             else {
-                errorsB.set([recoil.ui.messages.NUMBER_NOT_IN_RANGE_STEP.resolve(
-                    {
-                        min: me.rangeB_.get().min,
-                        max: me.rangeB_.get().max,
-                        step: me.rangeB_.get().step
-
-                    })]);
+                msg = recoil.ui.messages.MUST_BE_RANGE_STEP.resolve({'ranges': msg, step: me.rangeB_.get().step});
             }
+
+            if (!hasValid) {
+                msg = recoil.ui.messages.NO_VALID_RANGES.resolve({'mesg': msg});
+            }
+            me.outErrorsB_.set([msg]);
         }
 
     }, errorsB, validatorB, me.allowNullB_, this.rangeB_, this.editableB_, this.enabledB_, me.valueB_);

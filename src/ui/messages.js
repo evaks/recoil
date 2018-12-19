@@ -51,6 +51,27 @@ recoil.ui.messages.NUMBER_NOT_IN_RANGE = recoil.ui.message.getParamMsg('Must be 
  */
 recoil.ui.messages.NUMBER_NOT_IN_RANGE_STEP = recoil.ui.message.getParamMsg('Must be between ', ['min'], ' and ', ['max'], ', step size ', ['step']);
 
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.MUST_BE_RANGE_STEP = recoil.ui.message.getParamMsg('Must be between ', ['ranges'], ', step size ', ['step']);
+
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.MUST_BE_RANGE = recoil.ui.message.getParamMsg('Must be between ', ['ranges']);
+
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.NO_VALID_RANGES = recoil.ui.message.getParamMsg('No Valid Ranges. ', ['mesg']);
+
 /**
  * @type {!recoil.ui.message.Message}
  * @final
