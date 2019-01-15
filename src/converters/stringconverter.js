@@ -1,5 +1,6 @@
 goog.provide('recoil.converters.DefaultStringConverter');
 goog.provide('recoil.converters.MinLength');
+goog.provide('recoil.converters.NullStringConverter');
 goog.provide('recoil.converters.RegExp');
 goog.provide('recoil.converters.StringConverter');
 goog.require('recoil.converters.TypeConverter');
@@ -45,11 +46,11 @@ recoil.converters.DefaultStringConverter.prototype.unconvert = function(val) {
  *
  * @constructor
  * @implements {recoil.converters.StringConverter<string>}
- * @param {!recoil.converters.TypeConverter<?,string>} subconverter
+ * @param {!recoil.converters.TypeConverter<?,string>=} opt_subconverter
  */
 
-recoil.converters.NullStringConverter = function(subconverter) {
-    this.subconverter_ = subconverter;
+recoil.converters.NullStringConverter = function(opt_subconverter) {
+    this.subconverter_ = opt_subconverter || new recoil.converters.DefaultStringConverter();
 };
 
 /**
