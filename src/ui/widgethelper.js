@@ -1,3 +1,4 @@
+goog.provide('recoil.ui.ElementEventHelper');
 goog.provide('recoil.ui.VisibleHelper');
 /**
  * a utility class that is used to update widgets based on a behaviour each time the the behaviour changes the callback
@@ -93,6 +94,7 @@ recoil.ui.WidgetHelper.prototype.setComponent = function(container) {
 
 };
 
+
 /**
  * @return {!Array<*>} an array of errors
  */
@@ -149,6 +151,13 @@ recoil.ui.WidgetHelper.prototype.forceUpdate = function() {
     if (this.behaviours_.length !== 0) {
         recoil.util.invokeOneParamAndArray(null, recoil.frp.Frp.access, this.callback_, this.behaviours_);
     }
+};
+
+/**
+ * @return {boolean}
+ */
+recoil.ui.WidgetHelper.prototype.isAttached = function() {
+    return this.isAttached_;
 };
 
 /**
@@ -253,4 +262,97 @@ recoil.ui.VisibleHelper = function(widgetScope, container, showElements, opt_hid
 recoil.ui.VisibleHelper.prototype.attach = function(visible) {
     this.visibleB_ = visible;
     this.helper_.attach(this.visibleB_);
+};
+
+
+/**
+ *
+ * @param {!recoil.ui.WidgetScope} scope
+ * @param {!Element} el
+ * @param {string|Array<string>|!goog.events.EventId<EVENTOBJ>|!Array<!goog.events.EventId<EVENTOBJ>>} type
+ *     Event type or array of event types.
+ * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
+ *     false).
+ * @template EVENTOBJ
+ * @constructor
+ */
+
+recoil.ui.ElementEventHelper = function(scope, el, type, opt_capt) {
+    this.listener_ = null;
+    this.type_ = type;
+    this.capt_ = opt_capt;
+    this.helper_ = new recoil.ui.WidgetHelper(scope, el, null, function() {});
+
+    switch (type) {
+        case goog.events.EventType.CLICK:
+            this.handler_ = el;
+            break;
+        case goog.ui.Component.EventType.CHANGE:
+            this.handler_ = el;
+            break;
+        case recoil.ui.EventHelper.EL_CHANGE:
+            // we have to override this because sometimes its on the component sometimes its on the
+            // element
+            this.handler_ = el;
+            this.type_ = goog.events.EventType.CHANGE;
+            break;
+        case goog.events.EventType.BLUR:
+        case goog.events.EventType.PASTE:
+        case goog.events.EventType.FOCUS:
+        case goog.events.EventType.KEYPRESS:
+        case goog.events.EventType.KEYDOWN:
+        case goog.events.EventType.KEYUP:
+            this.handler_ = el;
+            break;
+        case goog.ui.Component.EventType.ACTION: //goog.events.EventType.ACTION:
+            this.handler_ = el;
+            break;
+        case goog.events.InputHandler.EventType.INPUT:
+            this.handler_ = new goog.events.InputHandler(el);
+            break;
+        default:
+            throw new Error('Unsupported Event Type ' + type);
+    }
+
+    var me = this;
+    this.func_ = function(e) {
+        if (me.listener_) {
+            me.listener_.frp().accessTrans(function() {
+                // sometimes events fire when before it is on the screen
+                if (me.helper_.isAttached()) {
+                    me.listener_.set(e);
+                }
+            }, me.listener_);
+        }
+    };
+};
+
+/**
+ * @final
+ * @type {string}
+ */
+recoil.ui.ElementEventHelper.EL_CHANGE = 'el-change';
+
+
+/**
+ * @param {recoil.frp.Behaviour} callback the behaviour to set with the event
+ **/
+
+recoil.ui.ElementEventHelper.prototype.listen = function(callback) {
+    this.helper_.attach(callback);
+    if (this.listener_ !== null && callback === null) {
+
+        this.listener_ = callback;
+
+        goog.events.unlisten(this.handler_, this.type_, this.func_, this.capt_);
+    }
+    else if (this.listener_ === null && callback !== null) {
+        this.listener_ = callback;
+        goog.events.listen(this.handler_, this.type_, this.func_, this.capt_);
+    }
+    else {
+        this.listener_ = callback;
+    }
+
+    this.listener_.setName('ElementEventHelperB');
 };
