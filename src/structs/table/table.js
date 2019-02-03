@@ -596,6 +596,13 @@ recoil.structs.table.MutableTable.prototype.getPrimaryColumns = function() {
     return this.primaryColumns_;
 };
 
+/**
+ * @return {!Array<!recoil.structs.table.ColumnKey>}
+ */
+recoil.structs.table.MutableTable.prototype.getOtherColumns = function() {
+    return this.otherColumns_;
+};
+
 
 /**
  * this ensures the sort order, the parameters to the function are columnkey and column meta data
