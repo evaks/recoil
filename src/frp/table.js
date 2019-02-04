@@ -235,3 +235,20 @@ recoil.frp.table.Table.unused = function(allB,  usedB, key) {
         return res;
     }, allB, usedB);
 };
+
+
+/**
+ * gets 1 column and returns it as a list
+ * @param {recoil.frp.Behaviour<recoil.structs.table.TableInterface>} tblB
+ * @param {recoil.structs.table.ColumnKey} col
+ * @return {!recoil.frp.Behaviour<Array>}
+ */
+recoil.frp.table.colList = function(tblB, col) {
+    return tblB.frp().liftB(function(tbl) {
+        var res = [];
+        tbl.forEach(function(r) {
+            res.push(r.get(col));
+        });
+        return res;
+    }, tblB);
+};
