@@ -80,6 +80,47 @@ recoil.frp.Array.prototype.map = function(array, map, opt_inv) {
     }
 };
 
+/**
+ * gets an element from an array via the filer
+ * this element can be set or get but assumes only 1 element in array matches
+ * @template T
+ * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>|!Array<T>|!recoil.frp.Behaviour<!Array<T>>} array
+ * @param {(!function(T) : boolean|!recoil.frp.Behaviour<!function(T) : boolean>)} filter
+ * @param {boolean} nullDelete if true remove null values for array on inverse
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.Array.prototype.get = function(array, filter, nullDelete) {
+    var arrayB = this.util_.toBehaviour(array);
+    var filterB = this.util_.toBehaviour(filter);
+    return this.frp_.liftBI(
+        function(arr, filt) {
+            for (var i = 0; i < arr.length; i++) {
+                if (filt(arr[i])) {
+                    return arr[i];
+                }
+            }
+            return null;
+        },
+        function(v) {
+            var arr = arrayB.get();
+            var filt = filterB.get();
+            var res = [];
+            for (var i = 0; i < arr.length; i++) {
+                if (filt(arr[i])) {
+                    if (!nullDelete || v !== null) {
+                        res.push(v);
+                    }
+                }
+                else {
+                    res.push(arr[i]);
+                }
+                arrayB.set(res);
+            }
+
+
+        },
+        arrayB, filterB);
+};
 
 /**
  * @template T
