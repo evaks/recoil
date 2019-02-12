@@ -125,3 +125,22 @@ recoil.structs.table.Union.prototype.inverse = function(table, sources) {
     return {table1: tables[0].freeze(), table2: tables[1].freeze()};
 };
 
+
+/**
+ * @param {recoil.frp.Behaviour} table1B
+ * @param {recoil.frp.Behaviour} table2B
+ * @param {boolean} uniqPk if this is true we will use the primary key of table1, otherwize an integer primary key will be generated
+ *                         if this is true an error will be thrown if the union doesn't have a uniq primay key
+ * @param {boolean} uniq   this will remove duplicate rows if true
+ * @param {!recoil.structs.table.ColumnKey<!Array<!number>>=} opt_srcCol supply column for src, allows adding
+ * @param {!Array<string>=} opt_concatPk if exists overrides uniqPk and will concat the associated index to the pk to make the key uniqu
+ *                                      this only works if you have 1 string primary key that cannot end with the concatination
+ * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
+ */
+recoil.structs.table.Union.createB = function(table1B, table2B, uniqPk, uniq, opt_srcCol, opt_concatPk) {
+    return recoil.frp.Inversable.create(
+        table1B.frp(),
+        new recoil.structs.table.Union(uniqPk, uniq, opt_srcCol, opt_concatPk),
+
+        {table1: table1B, table2: table2B});
+};

@@ -40,13 +40,14 @@ recoil.ui.widgets.table.Column.prototype.getKey = function() {
  * create = new Widget(scope)
  * attachStruct = function ({value:*,...})
  * @template T
- * @param {function (new:recoil.ui.Widget,T):undefined} widgetCons
+ * @param {function (new:recoil.ui.Widget,T,?):undefined} widgetCons
+ * @param {?=} opt_options
  * @return {function(!recoil.structs.table.ColumnKey,string,Object=)}
  */
-recoil.ui.widgets.table.makeStructColumn = function(widgetCons) {
+recoil.ui.widgets.table.makeStructColumn = function(widgetCons, opt_options) {
     var factory = function(scope, cellB) {
         var frp = scope.getFrp();
-        var widget = new widgetCons(scope);
+        var widget = new widgetCons(scope, opt_options);
         var value = recoil.frp.table.TableCell.getValue(frp, cellB);
 
 
