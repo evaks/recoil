@@ -763,6 +763,7 @@ recoil.db.ChangeSet.Change.deserialize = function(object, schema, valSerializor,
             path,
             recoil.db.ChangeSet.Change.deserializeObject_(object.orig, schema, valSerializor, path));
     }
+
     if (object.type === ChangeType.ADD && object.deps !== undefined) {
         return new recoil.db.ChangeSet.Add(
             recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor),
@@ -778,7 +779,7 @@ recoil.db.ChangeSet.Change.deserialize = function(object, schema, valSerializor,
     }
 
 
-    throw 'unrecogined change type';
+    throw 'unrecoginized change type';
 };
 
 /**
@@ -2462,7 +2463,9 @@ recoil.db.ChangeSet.Set.prototype.merge = function(pathChangeMap, pAncestor, max
         var moves = pathChangeMap.findAncestors(this.path_);
         var ancestor = null;
 
+        var lastDel = false;
         for (var j = 0; j < moves.length; j++) {
+            lastDel = false;
             var move = moves[j];
             if (move instanceof recoil.db.ChangeSet.Move) {
                 if (move.to().isAncestor(this.path_, true)) {
@@ -2471,10 +2474,16 @@ recoil.db.ChangeSet.Set.prototype.merge = function(pathChangeMap, pAncestor, max
                 }
             }
             if (move instanceof recoil.db.ChangeSet.Delete) {
-                return;
+                lastDel = true;
+            }
+            if (move instanceof recoil.db.ChangeSet.Add) {
+                lastDel = false;
             }
         }
 
+        if (lastDel) {
+            return;
+        }
         if (ancestor) {
 
             var newPath = ancestor.beforeMovePath(this.path_);

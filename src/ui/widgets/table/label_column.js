@@ -13,11 +13,12 @@ goog.require('recoil.ui.widgets.table.Column');
  * @constructor
  * @param {recoil.structs.table.ColumnKey} key
  * @param {string|Node} name
- *
+ * @param {(recoil.frp.Behaviour<Object>|Object)=} opt_meta
  */
-recoil.ui.widgets.table.LabelColumn = function(key, name) {
+recoil.ui.widgets.table.LabelColumn = function(key, name, opt_meta) {
     this.key_ = key;
     this.name_ = name;
+    this.options_ = opt_meta || {};
 };
 
 /**
@@ -35,7 +36,7 @@ recoil.ui.widgets.table.LabelColumn.prototype.getMeta = function(curMeta) {
     var meta = {name: this.name_,
                 cellWidgetFactory: recoil.ui.widgets.table.LabelColumn.defaultWidgetFactory_};
 
-    goog.object.extend(meta, curMeta);
+    goog.object.extend(meta, this.options_, curMeta);
     return meta;
 };
 

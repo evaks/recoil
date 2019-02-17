@@ -861,6 +861,7 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
         goog.dom.removeChildren(oldRenderInfo.inner);
         if (row) {
             var cell = this.createRenderInfoCell_(tableMeta, row.key, row, columnMeta);
+            res.factory = cell.factory;
             this.moveChildren(cell.inner, res.inner);
         }
         else {
@@ -948,6 +949,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
         for (var i = 0; i < table.columnMeta.length; i++) {
             var columnMeta = table.columnMeta[i];
             var cellMeta = newRow.cellMeta[columnMeta.key];
+            var meta = {};
             var oldRenderInfo = row.cols[i];
             row.cols[i] = me.replaceWidgetAndDecorator_(oldRenderInfo, row.inner, i, tableMeta, newRow, columnMeta, row);
         }

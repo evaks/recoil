@@ -240,6 +240,7 @@ recoil.util.object.isEqual = function(a, b, opt_ignore) {
     return recoil.util.object.isEqual.isEqualRec_(a, b, [], [], [], opt_ignore || {});
 };
 
+
 /**
  * compares 2 objects
  *
@@ -397,6 +398,20 @@ goog.structs.AvlTree.prototype.clone = function(opt_used) {
         clone.add(recoil.util.object.clone(el, opt_used));
     });
     return clone;
+};
+
+/**
+ * use this for equals utility if you are a container, it will stop loops
+ * @param {*} a
+ * @param {*} b
+ * @param {!Array<Object>} aPath
+ * @param {!Array<Object>} bPath
+ * @param {!Array<!string>} debugPath
+ * @param {!Object} ignore
+ * @return {!boolean}
+ */
+recoil.util.object.isContainerEqual = function(a, b, aPath, bPath, debugPath, ignore) {
+    return recoil.util.object.isEqual.isEqualRec_(a, b, aPath, bPath, debugPath, ignore);
 };
 
 /**

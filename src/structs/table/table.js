@@ -578,7 +578,7 @@ recoil.structs.table.MutableTable.prototype.getColumns = function() {
 };
 
 /**
- * @return {Array} a more readable version of the table
+ * @return {?} a more readable version of the table
  */
 recoil.structs.table.MutableTable.prototype.toDebugObj = function() {
     var tableOut = [];
@@ -586,7 +586,7 @@ recoil.structs.table.MutableTable.prototype.toDebugObj = function() {
     this.forEach(function(row) {
         tableOut.push(row);
     });
-    return tableOut;
+    return {meta: this.meta_, colMeta: this.columnMeta_, tbl: tableOut};
 };
 
 /**
@@ -1187,7 +1187,7 @@ recoil.structs.table.Table.prototype.forEachPlacedColumn = function(func) {
 };
 
 /**
- * @return {!Array} a more readable version
+ * @return {?} a more readable version
  */
 recoil.structs.table.Table.prototype.toDebugObj = function() {
     var tableOut = [];
@@ -1195,7 +1195,7 @@ recoil.structs.table.Table.prototype.toDebugObj = function() {
     this.forEach(function(row) {
         tableOut.push(row);
     });
-    return tableOut;
+    return {meta: this.meta_, colMeta: this.columnMeta_, tbl: tableOut};
 };
 
 /**
@@ -1366,6 +1366,7 @@ recoil.structs.table.Table.getColumnKeys_ = function(array) {
  */
 recoil.structs.table.TableRow = function(opt_tableRow) {
     this.cells_ = {};
+    this.cells_[recoil.structs.table.ColumnKey.ROW_META] = new recoil.structs.table.TableCell(undefined, {});
     this.pos_ = undefined;
     if (opt_tableRow !== undefined) {
         for (var key in opt_tableRow.orig_) {
