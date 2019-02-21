@@ -13,13 +13,16 @@ goog.require('recoil.util.object');
 /**
  * data that describes the table, it contains the columns and how to contruct the render widget
  * for that column
+ * @param {boolean=} opt_reset if true will remove all previous shown columns when applied
  * @constructor
  */
-recoil.ui.widgets.TableMetaData = function() {
+recoil.ui.widgets.TableMetaData = function(opt_reset) {
     this.columns_ = [];
     this.colSeperators_ = [];
     this.colSeperatorsOpts_ = [];
+    this.reset_ = !!opt_reset;
 };
+
 
 /**
  * @template CT
@@ -82,6 +85,17 @@ recoil.ui.widgets.TableMetaData.prototype.add = function(key, name, opt_meta) {
 recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
     var mtable = table instanceof recoil.structs.table.MutableTable ? table : table.unfreeze();
     var pos = 0;
+    if (this.reset_) {
+        mtable.getColumns().forEach(function(col) {
+            var meta = mtable.getColumnMeta(col);
+            if (meta.hasOwnProperty('position')) {
+                var newMeta = goog.object.clone(meta);
+                delete newMeta.position;
+
+                mtable.setColumnMeta(col, newMeta);
+            }
+        });
+    }
     this.columns_.forEach(function(col) {
         var inMeta = {};
         goog.object.extend(inMeta, table.getMeta(), mtable.getColumnMeta(col.getKey()));
