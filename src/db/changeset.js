@@ -159,7 +159,10 @@ recoil.db.ChangeDb.prototype.applyAdd = function(path) {
         listNode = this.resolve_(path.parent(), false);
 
         if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
-            throw new Error("cannot add node '" + path.toString() + "' to non-container");
+            // a root container maybe added because it maybe an object and null
+            if (listNode !== null || !this.isRoot(path)) {
+                throw new Error("cannot add node '" + path.toString() + "' to non-container");
+            }
         }
         listNode = this.resolve_(path, true);
         if (listNode instanceof recoil.db.ChangeDbNode.Container) {
@@ -267,6 +270,21 @@ recoil.db.ChangeDb.prototype.applySet = function(path, val) {
 };
 
 
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @return {!boolean}
+ */
+recoil.db.ChangeDb.prototype.isRoot = function(path) {
+    var absolutePath = this.schema_.absolute(path);
+    for (var i = 0; i < this.roots_.length; i++) {
+        var root = this.roots_[i];
+        if (recoil.util.object.isEqual(absolutePath, this.schema_.absolute(root))) {
+            return true;
+        }
+    }
+    return false;
+};
 /**
  * @param {!recoil.db.ChangeSet.Path} path
  * @return {!Array<!recoil.db.ChangeSet.Path>}
