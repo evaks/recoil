@@ -134,11 +134,18 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.getSubRow = function(row) 
     this.subcols_.forEach(function(info) {
         var curVal = exists ? val : null;
         if (exists) {
-            info.path.parts().forEach(function(part) {
+            var parts = info.path.parts();
+            for (var i = 0; i < parts.length; i++) {
+                var part = parts[i];
                 if (curVal) {
-                    curVal = curVal[part];
+                    if (info.map && i === parts.length - 1) {
+                        curVal = curVal[info.map.from];
+                    }
+                    else {
+                        curVal = curVal[part];
+                    }
                 }
-            });
+            }
 
             res.addCellMeta(info.col, metaGetter(meta, col, info.path));
         }
@@ -169,7 +176,12 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row) 
                 prevVal = prevVal[parts[i]];
             }
 
-            prevVal[parts[parts.length - 1]] = newVal;
+            if (info.map) {
+                prevVal[info.map.from] = newVal;
+            }
+            else {
+                prevVal[parts[parts.length - 1]] = newVal;
+            }
         });
         row.set(this.col_, val);
     }
