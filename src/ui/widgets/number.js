@@ -49,6 +49,7 @@ recoil.ui.widgets.NumberWidget = function(scope) {
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.number_);
     this.readonlyHelper_ = new recoil.ui.VisibleHelper(scope, this.containerDiv_, [this.number_.getElement()], [this.readonly_.getComponent().getElement()]);
     this.keyPressHelper_ = new recoil.ui.EventHelper(scope, this.number_, goog.events.EventType.KEYDOWN);
+    this.keyUpHelper_ = new recoil.ui.EventHelper(scope, this.number_, goog.events.EventType.KEYUP);
 };
 
 /**
@@ -323,7 +324,8 @@ recoil.ui.widgets.NumberWidget.options = recoil.ui.util.StandardOptions(
         outErrors: [],
         validator: function(val) {return null;},
         readonlyFormatter: null,
-        classes: []
+        classes: [],
+        immediate: false
     }
 );
 
@@ -393,7 +395,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 
     this.valueB_ = bound.value();
     this.rangeB_ = bound.getGroup(
-        [bound.min, bound.max, bound.step, bound.ranges],
+        [bound.min, bound.max, bound.step, bound.ranges, bound.immediate],
         function(obj) {
             var min = obj.min;
             var max = obj.max;
@@ -409,7 +411,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
                     max = Math.max(max, r.max);
                 });
             }
-            return {min: min, max: max, step: step, ranges: ranges};
+            return {min: min, max: max, step: step, ranges: ranges, immediate: obj.immediate};
         });
     this.displayLengthB_ = bound.displayLength();
     this.editableB_ = bound.editable();
@@ -453,8 +455,7 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
         }
     }, this.valueB_, this.outErrorsB_, this.validatorB_, this.allowNullB_));
 
-    this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
-        var inputEl = v.target;
+    var setValue = function(inputEl) {
         if (inputEl.validity.valid && (inputEl.value !== '' || me.allowNullB_.get())) {
             var val = inputEl.value === '' ? null : parseFloat(inputEl.value);
             var error = me.validatorB_.get()(val);
@@ -469,7 +470,16 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
         else {
             me.updateErrors_(inputEl, me.outErrorsB_, me.validatorB_);
         }
+    };
+    this.keyUpHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
+        if (v.keyCode !== goog.events.KeyCodes.ESC && me.rangeB_.get().immediate) {
+            setValue(v.target);
+        }
+    }, this.valueB_, this.outErrorsB_, this.validatorB_, this.allowNullB_, this.rangeB_));
 
+    this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
+        var inputEl = v.target;
+        setValue(inputEl);
     }, this.valueB_, this.outErrorsB_, this.validatorB_, this.allowNullB_));
 
     var toolTipB = frp.liftB(function(enabled, range) {
