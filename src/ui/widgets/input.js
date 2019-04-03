@@ -101,7 +101,12 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
 recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal, setError) {
     var res = me.converterB_.get().unconvert(inputEl.value);
     var el = inputEl;
-    if (!res.error) {
+
+    var editable = true;
+    me.scope_.getFrp().accessTrans(function() {
+        editable = this.editableB_.metaGet().good() && this.editableB_.get();
+    }.bind(this), this.editableB_);
+    if (!res.error || !editable) {
         if (setVal) {
             me.valueB_.set(res.value);
         }
@@ -187,7 +192,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
         me.updateElement_(me, inputEl, me.immediateB_.get(), false);
-    }, this.valueB_, this.immediateB_, this.converterB_));
+    }, this.valueB_, this.immediateB_, this.converterB_, this.editableB_));
 
     var blurListener = function(v) {
         var inputEl = v.target;

@@ -39,16 +39,17 @@ recoil.ui.widgets.TableMetaData.prototype.addColumn = function(col) {
  * @param {string|Node} name if you pass a node this will allow better formating of header
  * @param {!Object=} opt_meta
  * @param {!Object=} opt_DecOptions the options passed to createDom when the decorator is created
+ * @param {!Object=} opt_RowMeta
  */
 
-recoil.ui.widgets.TableMetaData.prototype.addSeperatorCol = function(key, name, opt_meta, opt_DecOptions) {
+recoil.ui.widgets.TableMetaData.prototype.addSeperatorCol = function(key, name, opt_meta, opt_DecOptions, opt_RowMeta) {
     if (!key) {
         throw new Error('undefined column key');
     }
 
     this.addColumn(new recoil.ui.widgets.table.SeperatorColumn(key, name, opt_meta || {}));
     this.colSeperators_.push(key);
-    this.colSeperatorsOpts_.push({key: key, opt: opt_DecOptions || {class: 'recoil-table-group'}});
+    this.colSeperatorsOpts_.push({key: key, opt: opt_DecOptions || {class: 'recoil-table-group'}, row: opt_RowMeta || {}});
 };
 
 /**
@@ -122,6 +123,9 @@ recoil.ui.widgets.TableMetaData.prototype.applyMeta = function(table) {
                mrow.addCellMeta(col, {cellDecorator: null});
 
            });
+            me.colSeperatorsOpts_.forEach(function(opt) {
+                mrow.addRowMeta(opt.row);
+            });
            res.addRow(mrow);
         });
         return res.freeze();

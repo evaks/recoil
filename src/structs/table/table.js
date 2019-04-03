@@ -411,7 +411,20 @@ recoil.structs.table.Table.prototype.unfreeze = function() {
  */
 recoil.structs.table.Table.prototype.createEmpty = function(opt_extPrimaryCols, opt_extOtherCols, opt_removeCols) {
     var newPrimary = this.primaryColumns_.concat(opt_extPrimaryCols || []);
-    var newOther = this.otherColumns_.concat(opt_extOtherCols || []);
+    var seen = {};
+    var newOther = [];
+    // don't add already existing columns
+    this.otherColumns_.forEach(function(c) {
+        seen[c.getId()] = true;
+        newOther.push(c);
+    });
+    if (opt_extOtherCols) {
+        opt_extOtherCols.forEach(function(c) {
+            if (!seen[c.getId()]) {
+                newOther.push(c);
+            }
+        });
+    }
     var removeMap = {};
     if (opt_removeCols) {
         opt_removeCols.forEach(function(c) {

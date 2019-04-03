@@ -104,7 +104,9 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
             newRow.set(me.primaryKey_, col);
 
             newRow.set(me.nameKey_, table.getColumnMeta(col).name);
-            newRow.setCellMeta(me.nameKey_, table.getColumnMeta(col));
+            var colMeta = table.getColumnMeta(col);
+            newRow.addRowMeta({columnMeta: colMeta});
+            newRow.setCellMeta(me.nameKey_, colMeta);
             newRow.addCellMeta(me.nameKey_, {type: 'string', editable: false, errors: [],
                                              cellWidgetFactory: recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory });
             var colMappings = [];
