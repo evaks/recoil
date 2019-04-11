@@ -70,25 +70,14 @@ recoil.ui.widgets.ButtonWidget.prototype.getButton = function() {
  * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)=} opt_editable
  */
 recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt_enabledB, opt_editable) {
-    var BoolWithExplanation = recoil.ui.BoolWithExplanation;
-    var frp = this.helper_.getFrp();
-    var util = new recoil.frp.Util(frp);
-    var enabledB = util.toBehaviour(opt_enabledB || recoil.ui.BoolWithExplanation.TRUE);
-    var editableB = util.toBehaviour(opt_editable === undefined ? true : opt_editable);
-    this.textB_ = util.toBehaviour(textB);
-    this.callbackB_ = util.toBehaviour(callbackB);
-    this.enabledB_ = BoolWithExplanation.and(
-        frp,
-        BoolWithExplanation.createB(editableB), enabledB);
-
-
-
-    this.helper_.attach(this.textB_, this.callbackB_, this.enabledB_);
-    this.enabledHelper_.attach(
-        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
-        this.helper_);
-    var me = this;
-    this.changeHelper_.listen(this.callbackB_);
+    var options = {action: callbackB, text: textB};
+    if (opt_editable !== undefined) {
+        options. editable = opt_editable;
+    }
+    if (opt_enabledB !== undefined) {
+        options.enabled = opt_enabledB;
+    }
+    this.attachStruct(options);
 };
 
 
@@ -103,7 +92,9 @@ recoil.ui.widgets.ButtonWidget.options = recoil.frp.Util.Options(
     'action', 'text',
     {
         enabled: recoil.ui.BoolWithExplanation.TRUE,
-        editable: true
+        editable: true,
+        classes: [],
+        tooltip: null
     }
 );
 
@@ -111,9 +102,30 @@ recoil.ui.widgets.ButtonWidget.options = recoil.frp.Util.Options(
  * @param {!Object| !recoil.frp.Behaviour<Object>} value
  */
 recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
+
     var frp = this.helper_.getFrp();
     var bound = recoil.ui.widgets.ButtonWidget.options.bind(frp, value);
-    this.attach(bound.text(), bound.action(), bound.enabled(), bound.editable());
+
+    var BoolWithExplanation = recoil.ui.BoolWithExplanation;
+    var util = new recoil.frp.Util(frp);
+    var enabledB = bound.enabled();
+    var editableB = bound.editable();
+    this.textB_ = bound.text();
+    this.callbackB_ = bound.action();
+    this.classesB_ = bound.classes();
+    this.enabledB_ = BoolWithExplanation.and(
+        frp,
+        BoolWithExplanation.createTrueB(frp.createB(true), bound.tooltip()),
+        BoolWithExplanation.createB(editableB), enabledB);
+
+
+
+    this.helper_.attach(this.textB_, this.callbackB_, this.enabledB_, this.classesB_);
+    this.enabledHelper_.attach(
+        /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
+        this.helper_);
+    var me = this;
+    this.changeHelper_.listen(this.callbackB_);
 };
 
 /**
@@ -127,8 +139,10 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
 recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, textB, callbackB, enabledB) {
     if (this.button_) {
         if (textB.good()) {
-          this.button_.setContent(textB.get());
+            this.button_.setContent(textB.get());
         }
+        var classes = ['recoil-button-tooltip-padding'].concat(this.classesB_.good() ? this.classesB_.get() : []);
+        this.component_.getElement().setAttribute('class', classes.join(' '));
     }
 };
 
