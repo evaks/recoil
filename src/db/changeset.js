@@ -160,7 +160,7 @@ recoil.db.ChangeDb.prototype.applyAdd = function(path) {
 
         if (!(listNode instanceof recoil.db.ChangeDbNode.Container)) {
             // a root container maybe added because it maybe an object and null
-            if (listNode !== null || !this.isRoot(path)) {
+            if (listNode !== null) {
                 throw new Error("cannot add node '" + path.toString() + "' to non-container");
             }
         }
