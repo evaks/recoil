@@ -362,24 +362,7 @@ recoil.ui.widgets.NumberWidget.sizesMap_ = {};
  * @return {number}
  */
 recoil.ui.widgets.NumberWidget.calcWidth_ = function(parent, str) {
-    var style = window.getComputedStyle(parent, null);
-    var font = style.getPropertyValue('font-style') + ' ' +
-            style.getPropertyValue('font-variant') + ' ' +
-            style.getPropertyValue('font-size') + ' ' +
-            style.getPropertyValue('font-family');
-
-    var size = recoil.ui.widgets.NumberWidget.sizesMap_[font];
-    if (size === undefined) {
-        var c = document.createElement('canvas');
-        var ctx = c.getContext('2d');
-        ctx.font = font;
-        size = ctx.measureText('0').width;
-        recoil.ui.widgets.NumberWidget.sizesMap_[font] = size;
-
-    }
-    // 1 extra char for the arrows
-    return (1 + str.length) * (size);
-
+    return str.length;
 };
 
 /**
@@ -678,11 +661,12 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
             return '' + v;
         };
     var displayLen = this.displayLengthB_.good() ? this.displayLengthB_.get() : null;
+    var editable = this.editableB_.good() && this.editableB_.get();
     var calcWidth = function(width, val) {
         if (displayLen) {
             return null;
         }
-        var str = formatter(val);
+        var str = editable ? '' + val : formatter(val);
         return Math.max(width,
                         recoil.ui.widgets.NumberWidget.calcWidth_(el, str));
     };
@@ -701,12 +685,12 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         this.number_.getContentElement().style.width = '';
         this.readonly_.getComponent().getElement().style.width = '';
     } else if (displayLen) {
-        this.number_.getContentElement().style.width = (displayLen + 1) + 'em';
+        this.number_.getContentElement().style.width = (displayLen + 2) + 'ch';
         this.readonly_.getComponent().getElement().style.width = displayLen + 'em';
     }
     else {
-        this.number_.getContentElement().style.width = (width + 10) + 'px';
-        this.readonly_.getComponent().getElement().style.width = (width) + 'px';
+        this.number_.getContentElement().style.width = (width + 2) + 'ch';
+        this.readonly_.getComponent().getElement().style.width = (width) + 'em';
     }
     var hadErrors = this.hasErrors_;
     this.updateErrors_(this.number_.getElement(), this.outErrorsB_, this.validatorB_);

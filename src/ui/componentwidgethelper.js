@@ -284,11 +284,12 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
  *     Event type or array of event types.
  * @param {boolean=} opt_capt Whether to fire in capture phase (defaults to
  *     false).
+ * @param {boolean=} opt_long if the event may take a long time
  * @template EVENTOBJ
  * @constructor
  */
 
-recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
+recoil.ui.EventHelper = function(scope, comp, type, opt_capt, opt_long) {
     this.listener_ = null;
     this.type_ = type;
     this.capt_ = opt_capt;
@@ -329,7 +330,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
     }
 
     var me = this;
-    this.func_ = function(e) {
+    var cb = function(e) {
         if (me.listener_) {
             me.listener_.frp().accessTrans(function() {
                 // sometimes events fire when before it is on the screen
@@ -339,6 +340,7 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt) {
             }, me.listener_);
         }
     };
+    this.func_ = opt_long ? recoil.ui.events.makeLong(cb) : cb;
 };
 
 /**

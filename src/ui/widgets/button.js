@@ -18,9 +18,10 @@ goog.require('recoil.ui.events');
 /**
  * @constructor
  * @param {!recoil.ui.WidgetScope} scope
+ * @param {!boolean=} opt_long
  * @implements recoil.ui.Widget
  */
-recoil.ui.widgets.ButtonWidget = function(scope) {
+recoil.ui.widgets.ButtonWidget = function(scope, opt_long) {
     this.scope_ = scope;
 
     this.component_ = new goog.ui.Container();
@@ -36,7 +37,7 @@ recoil.ui.widgets.ButtonWidget = function(scope) {
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.button_, this.component_.getElement());
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_);
 
-    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.button_, goog.ui.Component.EventType.ACTION);
+    this.changeHelper_ = new recoil.ui.EventHelper(scope, this.button_, goog.ui.Component.EventType.ACTION, undefined, opt_long);
 };
 
 /**

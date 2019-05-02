@@ -937,7 +937,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
             children.forEach(function(child) {
                 newRowDec.inner.appendChild(child);
             });
-            recoil.ui.events.listen(newRowDec.outer, goog.events.EventType.CLICK,
+            recoil.ui.events.longListen(newRowDec.outer, goog.events.EventType.CLICK,
                                     me.rowClickEvent_, undefined, row.key);
             goog.dom.insertSiblingAfter(newRowDec.outer, row.outer);
             goog.dom.removeNode(row.outer);
@@ -1176,7 +1176,7 @@ recoil.ui.widgets.table.TableWidget.prototype.updateState_ = function(helper, ta
             // do this in order of the columns defined in the meta data
             var rowDecorator = me.getMetaValue('rowDecorator', tableMeta, row.meta);
             var rowComponent = rowDecorator();
-            recoil.ui.events.listen(rowComponent.outer, goog.events.EventType.CLICK,
+            recoil.ui.events.longListen(rowComponent.outer, goog.events.EventType.CLICK,
                                     me.rowClickEvent_, undefined, row.key);
 
             rowComponent.cols = [];
