@@ -97,6 +97,7 @@ header {
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.24);
 }
 
+/*
 header .branding {
 	flex: 0 0 256px;
 	-webkit-flex: 0 0 256px;
@@ -107,7 +108,7 @@ header .branding {
 	background: #282828;
 	cursor: pointer;
 }
-
+*/
 .recoil-debugger-label-slow{
         padding: 5px;
         color: lightgrey;
