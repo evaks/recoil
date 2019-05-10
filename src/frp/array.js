@@ -16,13 +16,13 @@ recoil.frp.Array = function(frp) {
 
 /**
  * @template T,O
- * @param {string | number} name the attribute name of the element to get out of the struct
+ * @param {number} idx the attribute name of the element to get out of the struct
  * @param {recoil.frp.Behaviour<O>} value the structure to get it out of
  * @param {T=} opt_default
  * @return {!recoil.frp.Behaviour<!T>}
  */
-recoil.frp.Array.get = function(name, value, opt_default) {
-    var storedName = name;
+recoil.frp.Array.get = function(idx, value, opt_default) {
+    var storedName = idx;
     var behavior = value.frp().liftBI(function(val) {
         // console.log('value', val);
         // console.log('storedName', storedName);
@@ -38,7 +38,7 @@ recoil.frp.Array.get = function(name, value, opt_default) {
         var res = goog.array.clone(value.get());
         res[storedName] = newVal;
         value.set(res);
-    }, value).setName('struct.get(\'' + storedName + '\')');
+    }, value).setName('array.get(\'' + storedName + '\')');
 
     return behavior;
 };
