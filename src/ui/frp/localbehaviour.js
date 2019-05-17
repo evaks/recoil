@@ -1,10 +1,10 @@
 goog.provide('recoil.ui.frp.LocalBehaviour');
 
 goog.require('goog.object');
+goog.require('recoil.db.Cache');
 goog.require('recoil.frp.util');
 goog.require('recoil.ui.message');
 goog.require('recoil.ui.message.MessageEnum');
-goog.require('recoil.db.Cache');
 
 
 /**

@@ -218,4 +218,33 @@ recoil.structs.table.Join.createKeyJoin = function(table1B, table2B, key1, opt_k
     var join = new recoil.structs.table.Join(keyGetter1, keyGetter2);
 
     return recoil.frp.Inversable.create(table1B.frp(), join, {left: table1B, right: table2B});
-}
+};
+
+
+/**
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} table1B
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} table2B
+ * @param {!Array<!recoil.structs.table.ColumnKey>} keys1
+ * @param {!Array<!recoil.structs.table.ColumnKey>=} opt_keys2
+ * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
+ */
+recoil.structs.table.Join.createMultiKeyJoin = function(table1B, table2B, keys1, opt_keys2) {
+    var keyGetter1 = function(row) {
+        var res = [];
+        keys1.forEach(function(key) {
+            res.push(row.get(key));
+        });
+        return res;
+    };
+    var keyGetter2 = function(row) {
+        var res = [];
+        (opt_keys2 || keys1).forEach(function(key) {
+            res.push(row.get(key));
+        });
+        return res;
+    };
+    var join = new recoil.structs.table.Join(keyGetter1, keyGetter2);
+
+    return recoil.frp.Inversable.create(table1B.frp(), join, {left: table1B, right: table2B});
+};
+

@@ -43,11 +43,15 @@ recoil.ui.events.makeLong = function(cb) {
     return function(e) {
 
         var doit = function() {
-            cb(e);
-            recoil.ui.events.longListen.busy_--;
-            if (recoil.ui.events.longListen.busy_ === 0) {
-                goog.dom.removeNode(recoil.ui.events.longListen.style_);
-                console.log('unsetting busy', new Date());
+            try {
+                cb(e);
+            }
+            finally {
+                recoil.ui.events.longListen.busy_--;
+                if (recoil.ui.events.longListen.busy_ === 0) {
+                    goog.dom.removeNode(recoil.ui.events.longListen.style_);
+                    console.log('unsetting busy', new Date());
+                }
             }
 
         };

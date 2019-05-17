@@ -14,9 +14,13 @@ goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
 
+/**
+ * @param {?} x
+ * @return {boolean}
+ */
 DataView.prototype.equals = function(x) {
   return x.buffer.byteLength === this.buffer.byteLength;
-}
+};
 
 /**
  * @constructor
@@ -27,7 +31,7 @@ recoil.ui.widgets.FileWidget = function(scope) {
 
 
   this.scope_ = scope;
-  var FORMATS =  {
+  var FORMATS = {
     'text': {
       start: function(reader, file) {
         reader.readAsText(file);
@@ -88,7 +92,7 @@ recoil.ui.widgets.FileWidget = function(scope) {
           format.start(reader, file);
         } catch (e) {
           me.valueB_.metaSet(recoil.frp.BStatus.notReady());
-          console.log("caught");
+          console.log('caught');
         }
       }
     }, me.valueB_, me.formatB_);
