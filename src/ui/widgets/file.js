@@ -19,8 +19,16 @@ goog.require('recoil.ui.events');
  * @return {boolean}
  */
 DataView.prototype.equals = function(x) {
-  return x.buffer.byteLength === this.buffer.byteLength;
-};
+  if(x.byteLength != this.byteLength) {
+    return false;
+  }
+  for (var i = 0; i < x.byteLength; i++) {
+    if (x.getInt8(i) != this.getInt8(i)) {
+      return false;
+    }
+  }
+  return true;
+}
 
 /**
  * @constructor
