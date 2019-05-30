@@ -172,7 +172,7 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row, 
     if (unChanged && !row.get(this.col_)) {
         return;
     }
-    
+
     var val = recoil.util.object.clone(row.get(this.col_) || {});
     if (exists) {
         this.subcols_.forEach(function(info) {
@@ -184,7 +184,7 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row, 
             var parts = info.path.parts();
 
             for (var i = 0; i < parts.length - 1; i++) {
-                var next =  prevVal[parts[i]];
+                var next = prevVal[parts[i]];
                 if (unChanged && !next) {
                     return; // don't set anything that we can't
                 }
