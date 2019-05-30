@@ -26,8 +26,9 @@ recoil.structs.table.ExpandColsDef.prototype.getSubRow = function(row) {};
 
 /**
  * @param {!recoil.structs.table.MutableTableRow} row
+ * @param {boolean} isNew
  */
-recoil.structs.table.ExpandColsDef.prototype.setSubRow = function(row) {};
+recoil.structs.table.ExpandColsDef.prototype.setSubRow = function(row, isNew) {};
 
 /**
  * @return {!Array<!{col:!recoil.structs.table.ColumnKey,meta:!Object}>}
@@ -95,8 +96,9 @@ recoil.structs.table.ExpandCols.prototype.inverse = function(table, sources) {
 
     table.forEach(function(row, pk) {
         var mrow = row.unfreeze();
+        var isNew = !sources.table.getRow(pk);
         expandInfos.forEach(function(info) {
-            info.setSubRow(mrow);
+            info.setSubRow(mrow, isNew);
         });
         dest.addRow(mrow);
     });
@@ -157,10 +159,20 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.getSubRow = function(row) 
 };
 
 /**
- * @param {!recoil.structs.table.MutableTableRow} row
+ * @final
  */
-recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row) {
+recoil.structs.table.ExpandCols.UNCHANGED = new Object();
+/**
+ * @param {!recoil.structs.table.MutableTableRow} row
+ * @param {boolean} isNew
+ */
+recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row, isNew) {
     var exists = this.check_(row, true);
+    var unChanged = exists === recoil.structs.table.ExpandCols.UNCHANGED && !isNew;
+    if (unChanged && !row.get(this.col_)) {
+        return;
+    }
+    
     var val = recoil.util.object.clone(row.get(this.col_) || {});
     if (exists) {
         this.subcols_.forEach(function(info) {
@@ -172,7 +184,11 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row) 
             var parts = info.path.parts();
 
             for (var i = 0; i < parts.length - 1; i++) {
-                prevVal[parts[i]] = prevVal[parts[i]] || {};
+                var next =  prevVal[parts[i]];
+                if (unChanged && !next) {
+                    return; // don't set anything that we can't
+                }
+                prevVal[parts[i]] = next || {};
                 prevVal = prevVal[parts[i]];
             }
 
