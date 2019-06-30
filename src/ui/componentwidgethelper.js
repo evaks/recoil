@@ -226,6 +226,20 @@ recoil.ui.ComponentWidgetHelper.prototype.forceUpdate = function() {
 };
 
 /**
+ * like frp access trans but will do attached behaviours and only if they are good
+ * @param {function()} cb
+ */
+
+recoil.ui.ComponentWidgetHelper.prototype.accessTrans = function(cb) {
+    var me = this;
+    this.frp_.accessTrans.apply(this.frp_, [function() {
+        if (me.isGood()) {
+            cb();
+        }}].concat(this.behaviours_));
+
+};
+
+/**
  * @param {...recoil.frp.Behaviour<T>} var_behaviour
  *
  * note the node we are watch must be in the dom by now, the reason for this is if it isn't and
