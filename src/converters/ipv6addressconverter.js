@@ -38,6 +38,13 @@ recoil.converters.IPv6AddressConverter.charValidator = function(c) {
 
 
 /**
+ *
+ * @param {!string} c
+ * @return {boolean}
+ */
+recoil.converters.IPv6AddressConverter.prototype.charValidator = recoil.converters.IPv6AddressConverter.charValidator;
+
+/**
  * @param {recoil.types.IPv6Address} val
  * @return {!string}
  */

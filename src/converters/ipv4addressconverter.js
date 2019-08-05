@@ -28,6 +28,16 @@ recoil.converters.IPv4AddressConverter.charValidator = function(c) {
     return (c >= '0' && c <= '9') || c === '.';
 };
 
+
+/**
+ *
+ * @param {!string} c
+ * @return {boolean}
+ */
+recoil.converters.IPv4AddressConverter.prototype.charValidator = function(c) {
+    return (c >= '0' && c <= '9') || c === '.';
+};
+
 /**
  * @param {recoil.types.IPv4Address} val
  * @return {!string}
