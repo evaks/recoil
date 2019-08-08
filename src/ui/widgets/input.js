@@ -83,7 +83,6 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
         immediate: false, // if false changes will not propogate until blur
         converter: new recoil.converters.DefaultStringConverter(),
         maxLength: undefined,
-        width: undefined,
         outErrors: [],
         displayLength: undefined,
         charValidator: function() {return true;}
@@ -164,7 +163,6 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.tooltipB_ = bound.tooltip();
     this.converterB_ = bound.converter();
     this.maxLengthB_ = bound.maxLength();
-    this.widthB_ = bound.width();
     this.outErrorsB_ = bound.outErrors();
     this.displayLengthB_ = bound.displayLength();
     this.charValidatorB_ = bound.charValidator();
@@ -184,7 +182,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_, formatter: formatterB});
     this.helper_.attach(this.editableB_, this.valueB_, this.enabledB_, this.immediateB_, this.converterB_,
-                        this.maxLengthB_, this.widthB_, this.displayLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_, this.outErrorsB_, this.placeholderB_);
+                        this.maxLengthB_, this.displayLengthB_, this.charValidatorB_, this.classesB_, this.spellcheckB_, this.outErrorsB_, this.placeholderB_);
 
 
     var me = this;
@@ -340,7 +338,6 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
     }
     var el = this.input_.getElement();
     var maxLength = this.maxLengthB_.metaGet().good() ? this.maxLengthB_.get() : undefined;
-    var width = this.widthB_.good() ? this.widthB_.get() : undefined;
 
     var displayLength = this.displayLengthB_.metaGet().good() ? this.displayLengthB_.get() : undefined;
     if (maxLength !== undefined) {
