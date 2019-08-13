@@ -26,7 +26,7 @@ recoil.db.PathItem.prototype.forEach = function(value, func) {};
 recoil.db.PathItem.FACTORY = {};
 /**
  * adds an item so that you can use strings to construct a path
- * @param {!string} prefix the name to be used inside []
+ * @param {string} prefix the name to be used inside []
  * @param {*} type the class of the item to use, it can take any arguments thes will be the
  *            string that is passed minus the first part, and split on space
  */
@@ -48,7 +48,7 @@ recoil.db.PathItem.addDefaultType = function(prefix, type) {
  *
  *  you may specify more tems by calling recoil.db.PathItem.addDefaultType
  *
- * @param {Array<!recoil.db.PathItem|!string>} parts
+ * @param {Array<!recoil.db.PathItem|string>} parts
  * @constructor
  */
 recoil.db.Path = function(parts) {
@@ -145,7 +145,7 @@ recoil.db.Path.prototype.forEachParent_ = function(value, func, opt_start, opt_p
 /**
  * clears the object at the path ready for new objects be put in
  * @param {!Object} object
- * @param {function(!IArrayLike<*>):!boolean} check used to we should run on this parent
+ * @param {function(!IArrayLike<*>):boolean} check used to we should run on this parent
  */
 recoil.db.Path.prototype.reset = function(object, check) {
     this.forEachParent_(object, function(part, value, parents) {
@@ -161,7 +161,7 @@ recoil.db.Path.prototype.reset = function(object, check) {
  * @param {!Object} object
  * @param {*} key
  * @param {*} val
- * @param {function(!IArrayLike<*>):!boolean} check used to we should run on this parent
+ * @param {function(!IArrayLike<*>):boolean} check used to we should run on this parent
  */
 recoil.db.Path.prototype.put = function(object, key, val, check) {
     this.forEachParent_(object, function(part, value, parents) {
@@ -176,7 +176,7 @@ recoil.db.Path.prototype.put = function(object, key, val, check) {
  * puts an item at the the path
  * @param {!Object} object
  * @param {*} key
- * @param {function(!IArrayLike<*>):!boolean} check used to we should run on this parent
+ * @param {function(!IArrayLike<*>):boolean} check used to we should run on this parent
  * @return {*}
  */
 recoil.db.Path.prototype.get = function(object, key, check) {
@@ -194,7 +194,7 @@ recoil.db.Path.prototype.get = function(object, key, check) {
  * this indicated that we should get every item in an array
  *
  * @constructor
- * @param {...!string} var_fields the key fields of the object it contains
+ * @param {...string} var_fields the key fields of the object it contains
  * @implements recoil.db.PathItem
  */
 recoil.db.Path.Array = function(var_fields) {
@@ -317,7 +317,7 @@ recoil.db.Path.Avl.prototype.get = function(parent, key)  {
 /**
  * basic item get it by name
  * @constructor
- * @param {!string} name the name of the item
+ * @param {string} name the name of the item
  */
 recoil.db.Path.Item = function(name) {
     this.name_ = name;

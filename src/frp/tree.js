@@ -5,7 +5,7 @@ goog.require('recoil.structs.Tree');
 /**
  * @template T
  * @param {!recoil.frp.Behaviour<!recoil.structs.Tree<T>>} treeB
- * @param {!Array<!string>|!recoil.frp.Behaviour<!Array<!string>>} path
+ * @param {!Array<string>|!recoil.frp.Behaviour<!Array<string>>} path
  * @return {!recoil.frp.Behaviour<T>}
  */
 recoil.frp.tree.getValueB = function(treeB, path) {

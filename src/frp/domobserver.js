@@ -16,7 +16,7 @@ recoil.frp.DomObserver = function() {
     this.observer_ = new MutationObserver(recoil.frp.DomObserver.observeFunc_(this));
     this.watchedNodes_ = new WeakMap();
     this.observer_.observe(goog.dom.getDocument(), {childList: true, subtree: true});
-    this.transFunc_ = function(f) {f()};
+    this.transFunc_ = function(f) {f();};
     if (recoil.frp.DomObserver.instance) {
         console.warn('multiple do observers');
     }
@@ -75,7 +75,7 @@ recoil.frp.DomObserver.observeFunc_ = function(me) {
 /**
  * sets a function that will be used to group callbacks into 1
  * transaction this is for effeciency
- * @param {!function(!function())} func
+ * @param {function(function())} func
  */
 recoil.frp.DomObserver.prototype.setTransactionFunc = function(func) {
     this.transFunc_ = func;

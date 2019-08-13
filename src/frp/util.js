@@ -183,7 +183,7 @@ recoil.frp.Util.prototype.getDefault = function(value, def) {
 /**
  * converts each item into a behaviour if it is not already one
  *
- * @param {!number} start only convert items >= this index
+ * @param {number} start only convert items >= this index
  * @param {Array<recoil.frp.Behaviour|*>|Arguments} items
  * @return {Array<recoil.frp.Behaviour>} items made into behaviours
  */
@@ -197,7 +197,7 @@ recoil.frp.Util.prototype.arrayToBehaviours = function(start, items) {
 
 /**
  *
- * @param {!number} start only convert items >= this index
+ * @param {number} start only convert items >= this index
  * @param {Array<recoil.frp.Behaviour>} items
  * @return {Array} an array of values stored in the behaviours
  */
@@ -212,7 +212,7 @@ recoil.frp.Util.arrayToValues = function(start, items) {
 /**
  *
  * @param {...recoil.frp.Behaviour} var_values
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.Util.prototype.isAllGood = function(var_values) {
 
@@ -310,7 +310,7 @@ recoil.frp.Util.OptionsType = function()
  *               the values, you can either specify multiple keys in 1 object or multiple object parameters.
  *               To specify defaults of functions (type 2) the default should be an object with fields matching the parameters
  *
- * @param {...(!string|!Object)} var_options
+ * @param {...(string|!Object)} var_options
  * @return {!recoil.frp.Util.OptionsType} this has dynamic fields based on the parameters, and struct, attach, and bind function
  *
  */
@@ -562,13 +562,13 @@ recoil.frp.Util.Options = function(var_options) {
 
 /**
  * @private
- * @type {recoil.frp.Behaviour<!number>}
+ * @type {recoil.frp.Behaviour<number>}
  */
 recoil.frp.util.timeB_ = null;
 /**
  * returns a behaviour that fires every second with the date time in it\
  * @param {!recoil.frp.Frp} frp
- * @return {!recoil.frp.Behaviour<!number>} time in miliseconds
+ * @return {!recoil.frp.Behaviour<number>} time in miliseconds
  */
 recoil.frp.util.timeB = function(frp) {
     if (recoil.frp.util.timeB_ === null) {
@@ -594,7 +594,7 @@ recoil.frp.util.timeB = function(frp) {
         });
     }
 
-    return /** @type {!recoil.frp.Behaviour<!number>} */ (recoil.frp.util.timeB_);
+    return /** @type {!recoil.frp.Behaviour<number>} */ (recoil.frp.util.timeB_);
 
 };
 
@@ -635,7 +635,7 @@ recoil.frp.util.getFrp = function(args) {
  * calls the member func on the first argument, applying al the other arguments
  * @template T
  * techically we could make func a behaviour as well but for now I will leave it
- * @param {!function(...):T} func
+ * @param {function(...):T} func
  * @param {!IArrayLike} args
  * @return {!recoil.frp.Behaviour<T>}
  */
@@ -655,7 +655,7 @@ recoil.frp.util.liftMemberFunc = function(func, args) {
  * calls the me func
  * @template T
  * techically we could make func a behaviour as well but for now I will leave it
- * @param {!function(...):T} func
+ * @param {function(...):T} func
  * @param {!IArrayLike} args
  * @return {!recoil.frp.Behaviour<T>}
  */

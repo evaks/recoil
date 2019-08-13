@@ -11,7 +11,7 @@ recoil.frp.Debugger = function() {};
  * this is called before each node is visited,
  * in order to stop return false,
  * @param {!recoil.frp.Behaviour} node
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.frp.Debugger.prototype.preVisit = function(node) {};
 /**

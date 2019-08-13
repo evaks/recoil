@@ -25,8 +25,8 @@ recoil.debugger.ObjectBrowser = function(container, opt_menuCreator, opt_window)
  * tries to convert an item into a string if it is not too long
  *
  * @param {?} val the thing to turn into a string
- * @param {!string} def what to return if anable to convert to string
- * @return {!string}
+ * @param {string} def what to return if anable to convert to string
+ * @return {string}
  */
 recoil.debugger.ObjectBrowser.prototype.shortStringify = function(val, def) {
     try {
@@ -233,7 +233,7 @@ recoil.debugger.ObjectBrowser.prototype.getChildKeys_ = function(obj) {
 /**
  * creates the safe html that goes in a tree node
  * @private
- * @param {!string} name
+ * @param {string} name
  * @param {?} obj
  * @return {!goog.html.SafeHtml}
  */

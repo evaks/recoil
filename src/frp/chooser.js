@@ -75,7 +75,7 @@ recoil.frp.Chooser.prototype.bind = function() {
 };
 /**
  * @template T
- * @param {!recoil.frp.Behaviour<!boolean>} condition
+ * @param {!recoil.frp.Behaviour<boolean>} condition
  * @param {!recoil.frp.Behaviour<T>|T} trueValue
  * @param {!recoil.frp.Behaviour<T>|T} falseValue
  * @return {!recoil.frp.Behaviour<T>}
@@ -92,7 +92,7 @@ recoil.frp.Chooser.if = function(condition, trueValue, falseValue) {
  * if both both true and false are behaviours the compiler doesn't
  * know if the result is a behaviour or a behaviour of a behaviour
  * @template T
- * @param {!recoil.frp.Behaviour<!boolean>} condition
+ * @param {!recoil.frp.Behaviour<boolean>} condition
  * @param {!recoil.frp.Behaviour<T>} trueValue
  * @param {!recoil.frp.Behaviour<T>} falseValue
  * @return {!recoil.frp.Behaviour<T>}
@@ -109,7 +109,7 @@ recoil.frp.Chooser.ifB = function(condition, trueValue, falseValue) {
  * if both both true and false are behaviours the compiler doesn't
  * know if the result is a behaviour or a behaviour of a behaviour
  * @template T
- * @param {!recoil.frp.Behaviour<!boolean>} condition
+ * @param {!recoil.frp.Behaviour<boolean>} condition
  * @param {!recoil.frp.Behaviour<T>} trueValue
  * @param {T} falseValue
  * @return {!recoil.frp.Behaviour<T>}
@@ -126,7 +126,7 @@ recoil.frp.Chooser.ifBS = function(condition, trueValue, falseValue) {
  * if both both true and false are behaviours the compiler doesn't
  * know if the result is a behaviour or a behaviour of a behaviour
  * @template T
- * @param {!recoil.frp.Behaviour<!boolean>} condition
+ * @param {!recoil.frp.Behaviour<boolean>} condition
  * @param {T} trueValue
  * @param {!recoil.frp.Behaviour<T>} falseValue
  * @return {!recoil.frp.Behaviour<T>}

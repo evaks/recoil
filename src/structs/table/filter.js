@@ -10,8 +10,8 @@ goog.require('recoil.util.object');
 
 /**
  * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,
- !{table:!recoil.structs.table.Table, filter : !function(!recoil.structs.table.TableRow):boolean},
- !{table:!recoil.structs.table.Table}>}>}
+ {table:!recoil.structs.table.Table, filter : function(!recoil.structs.table.TableRow):boolean},
+ {table:!recoil.structs.table.Table}>}>}
  * @constructor
  *
  */
@@ -21,7 +21,7 @@ recoil.structs.table.Filter = function() {
 };
 
 /**
- * @param {{table:!recoil.structs.table.Table, filter:!function(!recoil.structs.table.TableRow):boolean}} params
+ * @param {{table:!recoil.structs.table.Table, filter:function(!recoil.structs.table.TableRow):boolean}} params
  * @return {!recoil.structs.table.Table}
  */
 recoil.structs.table.Filter.prototype.calculate = function(params) {
@@ -37,7 +37,7 @@ recoil.structs.table.Filter.prototype.calculate = function(params) {
 
 /**
  * @param {!recoil.structs.table.Table} table
- * @param {{table:!recoil.structs.table.Table, filter:!function(!recoil.structs.table.TableRow):boolean}} sources
+ * @param {{table:!recoil.structs.table.Table, filter:function(!recoil.structs.table.TableRow):boolean}} sources
  * @return {{table:!recoil.structs.table.Table}} params
  */
 recoil.structs.table.Filter.prototype.inverse = function(table, sources) {
@@ -73,7 +73,7 @@ recoil.structs.table.Filter.prototype.inverse = function(table, sources) {
 
 /**
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB
- * @param {!recoil.frp.Behaviour<!function(!recoil.structs.table.TableRow):boolean>|!function(!recoil.structs.table.TableRow):boolean} filter
+ * @param {!recoil.frp.Behaviour<function(!recoil.structs.table.TableRow):boolean>|function(!recoil.structs.table.TableRow):boolean} filter
  * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
  */
 recoil.structs.table.Filter.createRowFilterB = function(tableB, filter) {
@@ -85,7 +85,7 @@ recoil.structs.table.Filter.createRowFilterB = function(tableB, filter) {
  * @template T
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.ColumnKey<T>>|!recoil.structs.table.ColumnKey<T>} column
- * @param {!recoil.frp.Behaviour<!function(T):boolean>|!function(T):boolean} filter
+ * @param {!recoil.frp.Behaviour<function(T):boolean>|function(T):boolean} filter
  * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
  */
 recoil.structs.table.Filter.createColFilterB = function(tableB, column, filter) {

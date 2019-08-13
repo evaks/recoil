@@ -65,7 +65,7 @@ recoil.ui.widgets.InputWidget.prototype.getComponent = function() {
 
 /**
  *
- * @param {recoil.frp.Behaviour<!string>|!string} value
+ * @param {recoil.frp.Behaviour<string>|string} value
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} enabled
  */
 recoil.ui.widgets.InputWidget.prototype.attach = function(value, enabled) {

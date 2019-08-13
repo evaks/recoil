@@ -98,7 +98,7 @@ recoil.util.map.safeRecRemove = function(map, keys, removeFunc) {
  * checks if the map is empty a bit better than getting all the keys
  * and then checking the length
  * @param {Object|IObject} map
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.util.map.isEmpty = function(map) {
     for (var k in map) {

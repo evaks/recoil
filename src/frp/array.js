@@ -67,7 +67,7 @@ recoil.frp.Array.prototype.append = function(array1, array2) {
 
 /**
  * @param {Array<?>|recoil.frp.Behaviour<Array>|recoil.frp.Behaviour<!Array>} array
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.Array.prototype.isNotEmpty = function(array) {
     return this.frp_.liftB(function(arr) {
@@ -80,8 +80,8 @@ recoil.frp.Array.prototype.isNotEmpty = function(array) {
  * @template FROM
  * @template TO
  * @param {!IArrayLike<FROM>|!Array<FROM>|!recoil.frp.Behaviour<!IArrayLike<FROM>>|!recoil.frp.Behaviour<!Array<FROM>>} array
- * @param {(!function(FROM) : TO|!recoil.frp.Behaviour<!function(FROM) : TO>)} map
- * @param {(!function(TO) : FROM|!recoil.frp.Behaviour<!function(TO) : FROM>)=} opt_inv
+ * @param {(function(FROM) : TO|!recoil.frp.Behaviour<function(FROM) : TO>)} map
+ * @param {(function(TO) : FROM|!recoil.frp.Behaviour<function(TO) : FROM>)=} opt_inv
  * @return {!recoil.frp.Behaviour<!Array<TO>>}
  */
 recoil.frp.Array.prototype.map = function(array, map, opt_inv) {
@@ -114,7 +114,7 @@ recoil.frp.Array.prototype.map = function(array, map, opt_inv) {
  * this element can be set or get but assumes only 1 element in array matches
  * @template T
  * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>|!Array<T>|!recoil.frp.Behaviour<!Array<T>>} array
- * @param {(!function(T) : boolean|!recoil.frp.Behaviour<!function(T) : boolean>)} filter
+ * @param {(function(T) : boolean|!recoil.frp.Behaviour<function(T) : boolean>)} filter
  * @param {boolean} nullDelete if true remove null values for array on inverse
  * @return {!recoil.frp.Behaviour<T>}
  */
@@ -154,8 +154,8 @@ recoil.frp.Array.prototype.get = function(array, filter, nullDelete) {
 /**
  * @template T
  * @param {!IArrayLike<T>|!recoil.frp.Behaviour<!IArrayLike<T>>|!Array<T>|!recoil.frp.Behaviour<!Array<T>>} array
- * @param {(!function(T) : boolean|!recoil.frp.Behaviour<!function(T) : boolean>)} filter
- * @param {!boolean=} opt_inversable if true then you can set the list, not the new filtered items will be at the end of the list
+ * @param {(function(T) : boolean|!recoil.frp.Behaviour<function(T) : boolean>)} filter
+ * @param {boolean=} opt_inversable if true then you can set the list, not the new filtered items will be at the end of the list
  * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
 recoil.frp.Array.prototype.filter = function(array, filter, opt_inversable) {
@@ -197,7 +197,7 @@ recoil.frp.Array.prototype.filter = function(array, filter, opt_inversable) {
 /**
  * @template T
  * @param {!IArrayLike<T>|!Array<T>|!recoil.frp.Behaviour<!IArrayLike<T>>|!recoil.frp.Behaviour<!Array<T>>} array
- * @param {!string} tag
+ * @param {string} tag
  * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
 recoil.frp.Array.prototype.tag = function(array, tag) {
@@ -217,8 +217,8 @@ recoil.frp.Array.prototype.tag = function(array, tag) {
 
 /**
  * @template T
- * @param {!IArrayLike<{tag:!string,value:T}>|!Array<!{tag:string,value:T}>|!recoil.frp.Behaviour<!IArrayLike<{tag:!string,value:T}>>|!Array<{tag:!string,value:T}>} array
- * @param {!string} tag
+ * @param {!IArrayLike<{tag:string,value:T}>|!Array<{tag:string,value:T}>|!recoil.frp.Behaviour<!IArrayLike<{tag:string,value:T}>>|!Array<{tag:string,value:T}>} array
+ * @param {string} tag
  * @return {!recoil.frp.Behaviour<!Array<T>>}
  */
 recoil.frp.Array.prototype.stripTag = function(array, tag) {

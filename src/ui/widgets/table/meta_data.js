@@ -53,7 +53,7 @@ recoil.ui.widgets.TableMetaData.prototype.addSeperatorCol = function(key, name, 
 };
 
 /**
- * @param {!function(recoil.structs.table.ColumnKey,recoil.ui.widgets.table.Column)} func
+ * @param {function(recoil.structs.table.ColumnKey,recoil.ui.widgets.table.Column)} func
  */
 recoil.ui.widgets.TableMetaData.prototype.forEachColumn = function(func) {
     this.columns_.forEach(function(col) {
@@ -142,7 +142,7 @@ recoil.ui.widgets.TableMetaData.SPAN_FUNC = recoil.util.object.uniq();
 /**
  * the default decorator for making cells
  * @final
- * @param {!number} size
+ * @param {number} size
  * @param {Object=} opt_extra
  * @return {function():recoil.ui.RenderedDecorator}
  */

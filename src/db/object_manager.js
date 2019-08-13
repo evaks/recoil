@@ -18,7 +18,7 @@ goog.require('recoil.structs.Pair');
  * @constructor
  * @param {?} key
  * @param {recoil.frp.Behaviour<T>} value
- * @param {!boolean} owned
+ * @param {boolean} owned
  */
 recoil.db.Entity = function(key, value, owned) {
 
@@ -45,7 +45,7 @@ recoil.db.Entity.prototype.setBehaviour_ = function(value) {
 };
 
 /**
- * @return {!boolean} true if the ref count was 0
+ * @return {boolean} true if the ref count was 0
  */
 recoil.db.Entity.prototype.addRef = function() {
     this.refs_++;
@@ -53,7 +53,7 @@ recoil.db.Entity.prototype.addRef = function() {
 };
 
 /**
- * @return {!boolean} true if the ref count became 0
+ * @return {boolean} true if the ref count became 0
  */
 recoil.db.Entity.prototype.removeRef = function() {
     this.refs_--;
@@ -88,7 +88,7 @@ recoil.db.QueryEntry = function(entity, query) {
 
 
 /**
- * @return {!boolean} true if the ref count was 0
+ * @return {boolean} true if the ref count was 0
  */
 recoil.db.QueryEntry.prototype.addRef = function() {
     this.refs_++;
@@ -96,7 +96,7 @@ recoil.db.QueryEntry.prototype.addRef = function() {
 };
 
 /**
- * @return {!boolean} true if the ref count became 0
+ * @return {boolean} true if the ref count became 0
  */
 recoil.db.QueryEntry.prototype.removeRef = function() {
     this.refs_--;
@@ -119,7 +119,7 @@ recoil.db.QueryEntry.comparator_ = function(x, y) {
  * @constructor
  * @template T
  * @param {T} value the value read from the database
- * @param {!boolean} toplevel
+ * @param {boolean} toplevel
  */
 recoil.db.SendInfo = function(value, toplevel) {
     this.value_ = value;
@@ -141,7 +141,7 @@ recoil.db.SendInfo.prototype.getSending = function() {
 
 /**
  * @param {T} value
- * @param {!boolean} toplevel
+ * @param {boolean} toplevel
  * @return {!recoil.db.SendInfo<T>}
  */
 recoil.db.SendInfo.prototype.setSending = function(value, toplevel) {
@@ -153,14 +153,14 @@ recoil.db.SendInfo.prototype.setSending = function(value, toplevel) {
 /**
  * returns if object is a top level object, this is used to determine
  * if we should send the data to the database
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.db.SendInfo.prototype.isToplevel = function() {
     return this.toplevel_;
 };
 /**
  * @param {T} value
- * @param {!boolean} toplevel
+ * @param {boolean} toplevel
  * @return {!recoil.db.SendInfo<T>}
  */
 recoil.db.SendInfo.prototype.setRead = function(value, toplevel) {
@@ -236,7 +236,7 @@ recoil.db.ObjectManager = function(frp) {
  * @param {!recoil.frp.Behaviour<T>} behaviour
  * @param {!recoil.db.QueryOptions} options
  * @param {!recoil.db.DatabaseComms} coms
- * @param {!boolean} doRegister
+ * @param {boolean} doRegister
  * @return {!IArrayLike<!Object>} each object contains a path, behaviour, key, parentKey
  */
 
@@ -291,7 +291,7 @@ recoil.db.ObjectManager.prototype.register = function(typeKey, key, options, com
  * @private
  * @param {*} outer the object to be updated
  * @param {!IArrayLike<!Object>} related list of paths and behaviours that are subobjects of
- * @param {!boolean} stored is the outer object stored value, or the sending value
+ * @param {boolean} stored is the outer object stored value, or the sending value
  */
 recoil.db.ObjectManager.updateWithSubObjects_ = function(outer, related, stored) {
     var prev = undefined;

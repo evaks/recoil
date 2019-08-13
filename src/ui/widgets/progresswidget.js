@@ -59,10 +59,10 @@ recoil.ui.widgets.ProgressWidget.options = recoil.ui.util.StandardOptions(
     });
 
 /**
- * @param {recoil.frp.Behaviour<!number>|!number} valueB
- * @param {recoil.frp.Behaviour<!number>|!number} maxB
- * @param {recoil.frp.Behaviour<!string>|!string} textB
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} opt_enabledB
+ * @param {recoil.frp.Behaviour<number>|number} valueB
+ * @param {recoil.frp.Behaviour<number>|number} maxB
+ * @param {recoil.frp.Behaviour<string>|string} textB
+ * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation=} opt_enabledB
  */
 recoil.ui.widgets.ProgressWidget.prototype.attach = function(valueB, maxB, textB,  opt_enabledB) {
     //this.passwordInput_.attachStruct({'name': name, 'value': value, 'enabled': enabled});

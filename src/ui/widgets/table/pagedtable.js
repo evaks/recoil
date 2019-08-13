@@ -92,8 +92,8 @@ recoil.ui.widgets.table.PagedTableWidget.prototype.getBottomPager = function() {
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} header
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} table
  * @param {!recoil.frp.Behaviour<!recoil.ui.widgets.TableMetaData> |!recoil.ui.widgets.TableMetaData} meta
- * @param {!recoil.frp.Behaviour<!number>} page
- * @param {!recoil.frp.Behaviour<!number>|!number} count
+ * @param {!recoil.frp.Behaviour<number>} page
+ * @param {!recoil.frp.Behaviour<number>|number} count
  */
 recoil.ui.widgets.table.PagedTableWidget.prototype.attach = function(header, table, meta, page, count) {
     this.headerWidget_.attach(header, meta);
@@ -250,9 +250,9 @@ recoil.ui.widgets.table.PagerWidget.prototype.getComponent = function() {
 
 
 /**
- * @param {!recoil.frp.Behaviour<!number>} page the page that need to be displayed, must be behaviour otherwise
+ * @param {!recoil.frp.Behaviour<number>} page the page that need to be displayed, must be behaviour otherwise
  8                                              we can't change the page
- * @param {!recoil.frp.Behaviour<!number> |!number} count
+ * @param {!recoil.frp.Behaviour<number> |number} count
  */
 recoil.ui.widgets.table.PagerWidget.prototype.attach = function(page, count) {
     var util = new recoil.frp.Util(this.scope_.getFrp());
@@ -328,9 +328,9 @@ recoil.ui.widgets.table.PagerWidget.prototype.updateState_ = function() {
  * a pager that takes a table with 2 extra rows
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB table to be paged, it should contain an extra row for before and after (if it exists)
  * @param {!recoil.frp.Behaviour<Object>} keyB an object specifies to do nextcan be null - first, page: _, prev: row, next: row
- * @param {!recoil.frp.Behaviour<!number>|!number} pageSize size of a page
- * @param {!recoil.frp.Behaviour<!number>|!number} tableSize size of the entire table
- * @return {{page:!recoil.frp.Behaviour<!number>,table: !recoil.frp.Behaviour<!recoil.structs.table.Table>, count : !recoil.frp.Behaviour<!number>}}
+ * @param {!recoil.frp.Behaviour<number>|number} pageSize size of a page
+ * @param {!recoil.frp.Behaviour<number>|number} tableSize size of the entire table
+ * @return {{page:!recoil.frp.Behaviour<number>,table: !recoil.frp.Behaviour<!recoil.structs.table.Table>, count : !recoil.frp.Behaviour<number>}}
  */
 
 recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, tableSize) {

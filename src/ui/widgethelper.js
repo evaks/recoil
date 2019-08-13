@@ -132,7 +132,7 @@ recoil.ui.WidgetHelper.prototype.clearContainer = function() {
 };
 
 /**
- * @return {!boolean} is the value good
+ * @return {boolean} is the value good
  */
 recoil.ui.WidgetHelper.prototype.isGood = function() {
     for (var key = 0; key < this.behaviours_.length; key++) {

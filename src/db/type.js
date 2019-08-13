@@ -111,7 +111,7 @@ recoil.db.BasicType.prototype.getParentKeys = function(parents) {
  * used for subpaths inorder so that we can determine which key should be used for
  * a subpath
  * @param {!recoil.db.Type} type
- * @param {!recoil.db.Path|!string|!Array<!string>} path the path to type if
+ * @param {!recoil.db.Path|string|!Array<string>} path the path to type if
  *                  the type is string it is split o /
  * @constructor
  */
@@ -120,7 +120,7 @@ recoil.db.TypePath = function(type, path) {
         this.path_ = new recoil.db.Path(path.split('/'));
     }
     else if (goog.isArrayLike(path)) {
-        this.path_ = new recoil.db.Path(/** @type {!Array<!string>} */(path));
+        this.path_ = new recoil.db.Path(/** @type {!Array<string>} */(path));
     }
     else {
         this.path_ = path;
@@ -140,7 +140,7 @@ recoil.db.TypePath.prototype.getType = function() {
  * calls itr for each item that matches the type path,
  *
  * @param {!Object} obj the object to iterate over
- * @param {!function(*,!IArrayLike<*>,*)} itr called for each item, the first paramter is the
+ * @param {function(*,!IArrayLike<*>,*)} itr called for each item, the first paramter is the
  *                             key the object, the second is the object
  */
 
@@ -212,7 +212,7 @@ recoil.db.TypePath.prototype.get = function(parentKeys, object, key) {
 };
 /***
  *
- * @param {...!Array<!string>} var_keys each element specifies the keys
+ * @param {...!Array<string>} var_keys each element specifies the keys
  *                                   this list is backwards, starting at the
  *                                   and working up through the ancestors
  * @return {function(*,*):!Array<*>}

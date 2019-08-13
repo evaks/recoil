@@ -21,7 +21,7 @@ goog.require('recoil.ui.widgets.table.StringColumn');
 
 
 /**
- * @typedef {{key:!Array,rowPos:!number, meta:!Object,keyCols: !Array<!recoil.structs.table.ColumnKey>,cellMeta:Object<string,Object>}}
+ * @typedef {{key:!Array,rowPos:number, meta:!Object,keyCols: !Array<!recoil.structs.table.ColumnKey>,cellMeta:Object<string,Object>}}
  */
 recoil.ui.widgets.table.RowAndCellMeta_;
 
@@ -318,7 +318,7 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory = recoil.ui.widge
  * @private
  * @param {!recoil.ui.widgets.table.RowAndCellMeta_} x
  * @param {!recoil.ui.widgets.table.RowAndCellMeta_} y
- * @return {!number}
+ * @return {number}
  */
 recoil.ui.widgets.table.TableWidget.rowMetaPosCompare_ = function(x, y) {
     return x.rowPos - y.rowPos;
@@ -330,7 +330,7 @@ recoil.ui.widgets.table.TableWidget.rowMetaPosCompare_ = function(x, y) {
  * @private
  * @param {!recoil.ui.widgets.table.RowAndCellMeta_} x
  * @param {!recoil.ui.widgets.table.RowAndCellMeta_} y
- * @return {!number}
+ * @return {number}
  */
 recoil.ui.widgets.table.TableWidget.rowMetaCompare_ = function(x, y) {
     var res;
@@ -476,8 +476,8 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfo_ = function(table
 
 /**
  * @private
- * @param {Array<!{key:!recoil.structs.table.ColumnKey}>} newColumnInfo the relevant meta data for the colun
- * @return {!Array<!{pos:!number, meta:!{key:!recoil.structs.table.ColumnKey}}>} an object containing the pos the position to delete,
+ * @param {Array<{key:!recoil.structs.table.ColumnKey}>} newColumnInfo the relevant meta data for the colun
+ * @return {!Array<{pos:number, meta:{key:!recoil.structs.table.ColumnKey}}>} an object containing the pos the position to delete,
  *       and the meta information for that column
  */
 recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves_ = function(newColumnInfo) {
@@ -508,8 +508,8 @@ recoil.ui.widgets.table.TableWidget.prototype.getColumnRemoves_ = function(newCo
  * all new columns have been added
  *
  * @private
- * @param {!Array<!{key:!recoil.structs.table.ColumnKey}>} newColumnInfo the column meta data of the new table
- * @return {!Array<!number>} this is a map the index is to the value is from
+ * @param {!Array<{key:!recoil.structs.table.ColumnKey}>} newColumnInfo the column meta data of the new table
+ * @return {!Array<number>} this is a map the index is to the value is from
  */
 recoil.ui.widgets.table.TableWidget.prototype.getColumnMoves_ = function(newColumnInfo) {
     var delColumns = [];
@@ -767,7 +767,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
  * @param {!Element} parent
  * @param {!Node} el
  * @param {?{cols:Array<!recoil.ui.RenderedDecorator>}} row
- * @param {!number} position
+ * @param {number} position
  */
 
 recoil.ui.widgets.table.TableWidget.prototype.insertChildAtPos_ = function(parent, el, row, position)  {
@@ -786,7 +786,7 @@ recoil.ui.widgets.table.TableWidget.prototype.insertChildAtPos_ = function(paren
  * @private
  * @param {Object} oldRenderInfo
  * @param {!Element} parent
- * @param {!number} position
+ * @param {number} position
  * @param {Object} tableMeta
  * @param {?recoil.ui.widgets.table.RowAndCellMeta_} row
  * @param {Object} columnMeta
@@ -959,8 +959,8 @@ recoil.ui.widgets.table.TableWidget.prototype.doUpdates_ = function(table) {
 /**
  * get columns that didn't exist but now do
  * @private
- * @param {!Array<!{key:!recoil.structs.table.ColumnKey}>} columnMeta
- * @return {!Array<!{key:!recoil.structs.table.ColumnKey}>}
+ * @param {!Array<{key:!recoil.structs.table.ColumnKey}>} columnMeta
+ * @return {!Array<{key:!recoil.structs.table.ColumnKey}>}
  */
 recoil.ui.widgets.table.TableWidget.prototype.getAddedColumns_ = function(columnMeta) {
     var oldColumns = this.state_.columnMeta;
@@ -1292,7 +1292,7 @@ recoil.ui.widgets.table.TableWidget.prototype.flatten = recoil.frp.struct.NO_FLA
 
 /**
  *
- * @enum {!number}
+ * @enum {number}
  * @final
  */
 recoil.ui.widgets.table.TableWidget.SelectionMode = {

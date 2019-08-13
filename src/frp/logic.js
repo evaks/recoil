@@ -40,7 +40,7 @@ recoil.frp.logic.getFrp_ = function(args) {
 /**
  * @param {(!recoil.frp.Behaviour|*)} first
  * @param {...(!recoil.frp.Behaviour|*)} var_args note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.logic.and = function(first, var_args) {
     var frp = recoil.frp.logic.getFrp_(arguments);
@@ -57,9 +57,9 @@ recoil.frp.logic.and = function(first, var_args) {
 
 /**
  * short circuit version of and i.e. does not evaluate all the arguments
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)} first
- * @param {...(!recoil.frp.Behaviour<!boolean>|!boolean)} var_args note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @param {(!recoil.frp.Behaviour<boolean>|boolean)} first
+ * @param {...(!recoil.frp.Behaviour<boolean>|boolean)} var_args note at least one parameter must be a behavior
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.logic.sc.and = function(first, var_args) {
     var frp = recoil.frp.logic.getFrp_(arguments);
@@ -74,9 +74,9 @@ recoil.frp.logic.sc.and = function(first, var_args) {
 };
 
 /**
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)} first
- * @param {...(!recoil.frp.Behaviour<!boolean>|!boolean)} var_args note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @param {(!recoil.frp.Behaviour<boolean>|boolean)} first
+ * @param {...(!recoil.frp.Behaviour<boolean>|boolean)} var_args note at least one parameter must be a behavior
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.logic.or = function(first, var_args) {
     var frp = recoil.frp.logic.getFrp_(arguments);
@@ -93,9 +93,9 @@ recoil.frp.logic.or = function(first, var_args) {
 
 /**
  * short circuit version of and i.e. does not evaluate all the arguments
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)} first
- * @param {...(!recoil.frp.Behaviour<!boolean>|!boolean)} var_args note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @param {(!recoil.frp.Behaviour<boolean>|boolean)} first
+ * @param {...(!recoil.frp.Behaviour<boolean>|boolean)} var_args note at least one parameter must be a behavior
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.logic.sc.or = function(first, var_args) {
     var frp = recoil.frp.logic.getFrp_(arguments);
@@ -111,7 +111,7 @@ recoil.frp.logic.sc.or = function(first, var_args) {
 
 /**
  * @param {!recoil.frp.Behaviour} x
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.logic.not = function(x) {
     return x.frp().liftB(function(x) {return !x;},x);
@@ -121,7 +121,7 @@ recoil.frp.logic.not = function(x) {
  * @template T
  * @param {(!recoil.frp.Behaviour<T>|T)} x
  * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.logic.equal = function(x, y) {
     var frp = recoil.frp.logic.getFrp_(arguments);
@@ -133,7 +133,7 @@ recoil.frp.logic.equal = function(x, y) {
  * @template T
  * @param {(!recoil.frp.Behaviour<T>|T)} x
  * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.logic.notEqual = function(x, y) {
     var frp = recoil.frp.logic.getFrp_(arguments);
@@ -145,7 +145,7 @@ recoil.frp.logic.notEqual = function(x, y) {
  * @template T
  * @param {(!recoil.frp.Behaviour<T>|T)} x
  * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 
 recoil.frp.logic.gt = function(x, y) {
@@ -158,7 +158,7 @@ recoil.frp.logic.gt = function(x, y) {
  * @template T
  * @param {(!recoil.frp.Behaviour<T>|T)} x
  * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 
 recoil.frp.logic.gte = function(x, y) {
@@ -172,7 +172,7 @@ recoil.frp.logic.gte = function(x, y) {
  * @template T
  * @param {(!recoil.frp.Behaviour<T>|T)} x
  * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 
 recoil.frp.logic.lt = function(x, y) {
@@ -186,7 +186,7 @@ recoil.frp.logic.lt = function(x, y) {
  * @template T
  * @param {(!recoil.frp.Behaviour<T>|T)} x
  * @param {(!recoil.frp.Behaviour<T>|T)} y note at least one parameter must be a behavior
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 
 recoil.frp.logic.lte = function(x, y) {

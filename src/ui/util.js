@@ -19,7 +19,7 @@ goog.require('recoil.ui.message');
  *     for language portablity
  *
  *
- * @param {...(!string|!Object)} var_options
+ * @param {...(string|!Object)} var_options
  * @return {!recoil.frp.Util.OptionsType} this has dynamic fields based on the parameters, and struct, attach, and bind function
  *
  */

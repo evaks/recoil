@@ -13,11 +13,11 @@ goog.require('recoil.util.object');
  * what data in the table is. this assumes the primary key is unique across the tables
  *
  * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,
- !{tables:!Array<!recoil.structs.table.Table>},
- !{tables:!Array<!recoil.structs.table.Table>}>}
+ {tables:!Array<!recoil.structs.table.Table>},
+ {tables:!Array<!recoil.structs.table.Table>}>}
  * @constructor
  * @param {!Array<recoil.structs.table.ColumnKey>} idCols columns that are set will come back the same primary keys may change if new row
- * @param {!function(!recoil.structs.table.TableRow):number} srcFunc function to determine which src the row should be written out to
+ * @param {function(!recoil.structs.table.TableRow):number} srcFunc function to determine which src the row should be written out to
  */
 
 recoil.structs.table.SwapUnion = function(idCols, srcFunc) {
@@ -62,8 +62,8 @@ recoil.structs.table.SwapUnion.prototype.calculate = function(params) {
 
 /**
  * @param {!recoil.structs.table.Table} table
- * @param {!{tables:!Array<!recoil.structs.table.Table>}} sources
- * @return {!{tables:!Array<!recoil.structs.table.Table>}}
+ * @param {{tables:!Array<!recoil.structs.table.Table>}} sources
+ * @return {{tables:!Array<!recoil.structs.table.Table>}}
  */
 recoil.structs.table.SwapUnion.prototype.inverse = function(table, sources) {
 
@@ -93,7 +93,7 @@ recoil.structs.table.SwapUnion.prototype.inverse = function(table, sources) {
 
 /**
  * @param {!Array<recoil.structs.table.ColumnKey>} idCols columns that are set will come back the same primary keys may change if new row
- * @param {!function(!recoil.structs.table.TableRow):number} srcFunc function to determine which src the row should be written out to
+ * @param {function(!recoil.structs.table.TableRow):number} srcFunc function to determine which src the row should be written out to
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>|!recoil.frp.Behaviour<recoil.structs.table.Table>} first
  * @param {...(!recoil.frp.Behaviour<!recoil.structs.table.Table>|!recoil.frp.Behaviour<recoil.structs.table.Table>|recoil.structs.table.Table)} var_rest
  * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>} }

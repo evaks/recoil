@@ -134,7 +134,7 @@ recoil.ui.widgets.NumberWidget.NumberInput = function() {
 goog.inherits(recoil.ui.widgets.NumberWidget.NumberInput, goog.ui.LabelInput);
 
 /**
- *
+ * called when added to dom
  */
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.enterDocument = function() {
   recoil.ui.widgets.NumberWidget.NumberInput.superClass_.enterDocument.call(this);
@@ -142,7 +142,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.enterDocument = function() 
 
 
 /**
- *
+ * called when removed from dom
  */
 
 recoil.ui.widgets.NumberWidget.NumberInput.prototype.exitDocument = function() {
@@ -517,8 +517,8 @@ recoil.ui.widgets.NumberWidget.prototype.updateValidator_ = function(helper) {
  * @private
  * @param {Element} el
  * @param {!recoil.frp.Behaviour<!Array>} errorsB
- * @param {!recoil.frp.Behaviour<!function(number):recoil.ui.message.Message>} validatorB
- * @return {!boolean} true if no error
+ * @param {!recoil.frp.Behaviour<function(number):recoil.ui.message.Message>} validatorB
+ * @return {boolean} true if no error
  */
 recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, validatorB) {
     var me = this;

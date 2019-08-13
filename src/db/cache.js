@@ -14,9 +14,9 @@ goog.require('recoil.frp.BStatus');
  *
  * @constructor
  * @suppress {undefinedVars}
- * @param {!string} version use this old values are lost if you upgrade
+ * @param {string} version use this old values are lost if you upgrade
  * @param {!recoil.db.Cache.Serializer=} opt_serializer
- * @param {!boolean=} opt_local if true uses local storage else session storage
+ * @param {boolean=} opt_local if true uses local storage else session storage
  */
 recoil.db.Cache = function(version, opt_serializer, opt_local) {
     this.serializer_ = opt_serializer || new recoil.db.Cache.DefaultSerializer();
@@ -33,7 +33,7 @@ recoil.db.Cache.prototype.clear = function() {
 };
 /**
  * @template T
- * @param {!string} key
+ * @param {string} key
  * @param {!recoil.frp.Behaviour<T>} sourceB
  * @param {T=} opt_def
  * @return {!recoil.frp.Behaviour<T>}
@@ -71,7 +71,7 @@ recoil.db.Cache.prototype.get = function(key, sourceB, opt_def) {
 recoil.db.Cache.Serializer = function() {};
 /**
  * @param {?} val
- * @return {!string}
+ * @return {string}
  */
 recoil.db.Cache.Serializer.prototype.serialize = function(val) {};
 /**
@@ -88,7 +88,7 @@ recoil.db.Cache.DefaultSerializer = function() {
 
 /**
  * @param {?} val
- * @return {!string}
+ * @return {string}
  */
 recoil.db.Cache.DefaultSerializer.prototype.serialize = function(val) {
     return JSON.stringify(val);

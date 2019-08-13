@@ -31,13 +31,13 @@ recoil.ui.widgets.TreeView = function(scope) {
     this.component_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.componentDiv_);
     /**
      * @private
-     * @type goog.ui.tree.TreeControl
+     * @type {goog.ui.tree.TreeControl}
      *
      */
     this.tree_ = null;
     /**
      * @private
-     * @type recoil.structs.Tree
+     * @type {recoil.structs.Tree}
      */
     this.oldTree_ = null;
     this.config_ = new recoil.ui.WidgetHelper(scope, this.componentDiv_, this, this.updateConfig_);
@@ -102,7 +102,7 @@ recoil.ui.widgets.TreeView.scrollIfNeeded = function(el) {
 /**
  * This creates a TreeControl object. A tree control provides a way to
  * view a hierarchical set of data.
- * @param {!string} key
+ * @param {string} key
  * @param {string|!goog.html.SafeHtml} content The content of the node label.
  *     Strings are treated as plain-text and will be HTML escaped.
  * @param {Object=} opt_config The configuration for the tree. See
@@ -183,14 +183,14 @@ recoil.ui.widgets.TreeNode.prototype.onClick_ = function(e) {
     e.preventDefault();
 };
 /**
- * @return {!string}
+ * @return {string}
  */
 recoil.ui.widgets.TreeNode.prototype.key = function() {
     return this.key_;
 };
 
 /**
- * @return {!Array<!string>}
+ * @return {!Array<string>}
  */
 recoil.ui.widgets.TreeNode.prototype.path = function() {
     var res = [this.key_];
@@ -269,7 +269,7 @@ recoil.ui.widgets.TreeNode.prototype.setExpanded = function(expanded) {
             ce = this.getChildrenElement();
             if (ce) {
 
-                if (!expandOverride) {goog.style.setElementShown(ce, expanded)}
+                if (!expandOverride) {goog.style.setElementShown(ce, expanded);}
                 // Make sure we have the HTML for the children here.
                 if (expanded && this.isInDocument() && !ce.hasChildNodes()) {
                     var children = [];
@@ -508,7 +508,7 @@ recoil.ui.widgets.TreeView.prototype.updateExpanded_ = function() {
 /**
  * @private
  * @param {recoil.ui.WidgetHelper} helper
- * @param {!recoil.frp.Behaviour<!{expanded:(Object|boolean),internal:(undefined|boolean)}>} newValueB
+ * @param {!recoil.frp.Behaviour<{expanded:(Object|boolean),internal:(undefined|boolean)}>} newValueB
  */
 recoil.ui.widgets.TreeView.prototype.updateExpand_ = function(helper, newValueB) {
     if (!helper.isGood() || newValueB.get().internal) {
@@ -591,7 +591,7 @@ recoil.ui.widgets.TreeView.options = recoil.ui.util.StandardOptions(
     'state', {config: recoil.ui.widgets.TreeView.defaultConfig});
 /**
  * @param {!recoil.frp.Behaviour<Object>|!Object} options
- * @param {!recoil.frp.Behaviour<!{expanded:Object,internal:(boolean|undefined)}>=} opt_expandedB
+ * @param {!recoil.frp.Behaviour<{expanded:Object,internal:(boolean|undefined)}>=} opt_expandedB
  */
 recoil.ui.widgets.TreeView.prototype.attach = function(options, opt_expandedB) {
     var frp = this.scope_.getFrp();
@@ -612,13 +612,13 @@ recoil.ui.widgets.TreeView.prototype.attach = function(options, opt_expandedB) {
  * @private
  * @param {recoil.structs.Tree} a
  * @param {recoil.structs.Tree} b
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.ui.widgets.TreeView.same_ = function(a, b) {
     return recoil.util.isEqual(a.key(), b.key());
 };
 /**
- * @param {!string} key
+ * @param {string} key
  * @return {!recoil.ui.widgets.TreeNode}
  */
 recoil.ui.widgets.TreeView.prototype.createNode = function(key) {
@@ -655,7 +655,7 @@ recoil.ui.widgets.TreeView.prototype.setNodeContent = function(node, widget) {
  * @private
  * @param {goog.ui.tree.BaseNode} parent
  * @param {goog.ui.tree.BaseNode} node
- * @param {!Array<!string>} path
+ * @param {!Array<string>} path
  * @param {recoil.structs.Tree} oldValue
  * @param {recoil.structs.Tree} newValue
  */
@@ -768,7 +768,7 @@ recoil.ui.widgets.TreeView.prototype.populateTreeRec_ = function(parent, node, p
  * isEqual is a function that takes 2 items and return if 2 items in the input list are equal.
  * @param {!Array<?>} origList
  * @param {!Array<?>} newList
- * @param {function (?,?) : !boolean} isEqual
+ * @param {function (?,?) : boolean} isEqual
  * @return {!Array<Object>}
  */
 

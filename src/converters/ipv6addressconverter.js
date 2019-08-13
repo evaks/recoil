@@ -9,9 +9,9 @@ goog.require('recoil.ui.messages');
 
 /**
  *
- * @param {!boolean} removeZeroSeq
- * @param {!boolean} stripLeadingZeros
- * @param {!boolean} ipV4 whether or not to display ipv4 segment to user
+ * @param {boolean} removeZeroSeq
+ * @param {boolean} stripLeadingZeros
+ * @param {boolean} ipV4 whether or not to display ipv4 segment to user
  * @constructor
  * @implements {recoil.converters.TypeConverter<recoil.types.IPv6Address, string>}
  */
@@ -29,7 +29,7 @@ recoil.converters.IPv6AddressConverter.maxLength = 45;
 
 /**
  *
- * @param {!string} c
+ * @param {string} c
  * @return {boolean}
  */
 recoil.converters.IPv6AddressConverter.charValidator = function(c) {
@@ -39,14 +39,14 @@ recoil.converters.IPv6AddressConverter.charValidator = function(c) {
 
 /**
  *
- * @param {!string} c
+ * @param {string} c
  * @return {boolean}
  */
 recoil.converters.IPv6AddressConverter.prototype.charValidator = recoil.converters.IPv6AddressConverter.charValidator;
 
 /**
  * @param {recoil.types.IPv6Address} val
- * @return {!string}
+ * @return {string}
  */
 recoil.converters.IPv6AddressConverter.prototype.convert = function(val) {
     var parts = [];
@@ -101,7 +101,7 @@ recoil.converters.IPv6AddressConverter.prototype.convert = function(val) {
 
 /**
  * @param {string} val
- * @return {!{error : recoil.ui.message.Message, value : recoil.types.IPv6Address}}
+ * @return {{error : recoil.ui.message.Message, value : recoil.types.IPv6Address}}
  */
 recoil.converters.IPv6AddressConverter.prototype.unconvert = function(val) {
     // if more than 1 part is "" not at beginning or end then fail

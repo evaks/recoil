@@ -2,17 +2,17 @@ goog.provide('recoil.types');
 goog.provide('recoil.types.IPAddress');
 goog.provide('recoil.types.IPAddressType');
 /**
- * @typedef {Array<!number>}
+ * @typedef {Array<number>}
  */
 recoil.types.IPv4Address;
 
 /**
- * @typedef {Array<!number>}
+ * @typedef {Array<number>}
  */
 recoil.types.IPv6Address;
 
 /**
- * @typedef {{type:!string, value:!Array<!number>}}
+ * @typedef {{type:string, value:!Array<number>}}
  */
 recoil.types.IPAddress;
 

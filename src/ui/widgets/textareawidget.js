@@ -77,9 +77,9 @@ recoil.ui.widgets.TextAreaWidget.prototype.getLabel = function() {
     return this.label_;
 };
 /**
- * @param {recoil.frp.Behaviour<!string>|!string} nameB
- * @param {recoil.frp.Behaviour<!string>|!string} valueB
- * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} opt_enabledB
+ * @param {recoil.frp.Behaviour<string>|string} nameB
+ * @param {recoil.frp.Behaviour<string>|string} valueB
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>=} opt_enabledB
  */
 recoil.ui.widgets.TextAreaWidget.prototype.attach = function(nameB, valueB, opt_enabledB) {
     var frp = this.helper_.getFrp();

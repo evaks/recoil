@@ -15,9 +15,9 @@ recoil.util.Sequence = function() {
  * @return {string}
  */
 recoil.util.Sequence.prototype.next = function() {
-    var res = new String(this.val_);
+    var res = this.val_ + '';
     this.val_ = this.val_.add(goog.math.Long.getOne());
-    return res.toString();
+    return res;
 };
 
 /**

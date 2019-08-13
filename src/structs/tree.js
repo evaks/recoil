@@ -13,7 +13,7 @@ goog.require('recoil.util');
 /**
  * I would like to make this use a template but the closure compiler
  * throws a stack overflow exception grrr
- * @param {!string} key
+ * @param {string} key
  * @param {?} value
  * @param {Array<recoil.structs.Tree>=} opt_children
  * @constructor
@@ -42,7 +42,7 @@ recoil.structs.Tree.prototype.children = function() {
   return this.children_;
 };
 /**
- * @param {!Array<!string>} path
+ * @param {!Array<string>} path
  * @return {?}
  */
 recoil.structs.Tree.prototype.getValue = function(path) {
@@ -61,7 +61,7 @@ recoil.structs.Tree.prototype.getValue = function(path) {
 };
 
 /**
- * @param {!Array<!string>} path
+ * @param {!Array<string>} path
  * @param {?} val
  * @return {!recoil.structs.Tree}
  */
@@ -98,7 +98,7 @@ recoil.structs.Tree.prototype.value = function() {
 
 /**
  *
- * @return {!string}
+ * @return {string}
  */
 recoil.structs.Tree.prototype.key = function() {
   return this.key_;

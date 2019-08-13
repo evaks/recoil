@@ -9,12 +9,12 @@ goog.require('recoil.util.object');
 
 /**
  * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,
- !{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table},
- !{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}>}
+ {left:!recoil.structs.table.Table, right:!recoil.structs.table.Table},
+ {left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}>}
  * @constructor
- * @param {!function (!recoil.structs.table.TableRow) : ?} keyGetter1 gets the join key out of the
+ * @param {function (!recoil.structs.table.TableRow) : ?} keyGetter1 gets the join key out of the
  *             left table
- * @param {!function (!recoil.structs.table.TableRow) : ?} keyGetter2 gets the join key out of the
+ * @param {function (!recoil.structs.table.TableRow) : ?} keyGetter2 gets the join key out of the
  *             right table
  * @param {Array<!recoil.structs.table.ColumnKey>=} opt_table2Pks extra primay keys from right table
                this is nessecary the right table can result in more than 1 row for each left table row
@@ -39,7 +39,7 @@ recoil.structs.table.Join = function(keyGetter1,  keyGetter2, opt_table2Pks, opt
 /**
  * @private
  * @param {!recoil.structs.table.Table} table
- * @param {!function (!recoil.structs.table.TableRow) : !Object} keyGetter
+ * @param {function (!recoil.structs.table.TableRow) : !Object} keyGetter
  * @return {goog.structs.AvlTree}
  */
 recoil.structs.table.Join.makeMap_ = function(table, keyGetter) {
@@ -124,8 +124,8 @@ recoil.structs.table.Join.prototype.calculate = function(tables) {
 
 /**
  * @param {!recoil.structs.table.Table} table
- * @param {!{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}} sources
- * @return {!{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}} objects to set
+ * @param {{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}} sources
+ * @return {{left:!recoil.structs.table.Table, right:!recoil.structs.table.Table}} objects to set
  */
 recoil.structs.table.Join.prototype.inverse = function(table, sources) {
     var leftRes = sources.left.createEmpty();

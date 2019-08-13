@@ -10,8 +10,8 @@ goog.require('recoil.ui.message.MessageEnum');
 /**
  * @constructor
  * @param {!recoil.frp.Frp} frp
- * @param {!string} version use this old values are lost if you upgrade
- * @param {!string} key the key to store this var under
+ * @param {string} version use this old values are lost if you upgrade
+ * @param {string} key the key to store this var under
  * @param {?} defVal
  * @param {?} storage
  * @param {!recoil.db.Cache.Serializer=} opt_serializer
@@ -50,8 +50,8 @@ recoil.ui.frp.LocalBehaviour.items_ = {};
  *
  * @suppress {undefinedVars}
  * @param {!recoil.frp.Frp} frp
- * @param {!string} version use this old values are lost if you upgrade
- * @param {!string} key the key to store this var under
+ * @param {string} version use this old values are lost if you upgrade
+ * @param {string} key the key to store this var under
  * @param {?} defVal
  * @param {!recoil.db.Cache.Serializer=} opt_serializer
  * @return {!recoil.frp.Behaviour}
@@ -64,8 +64,8 @@ recoil.ui.frp.LocalBehaviour.createLocal = function(frp, version, key, defVal, o
  * creates a session storage
  * @suppress {undefinedVars}
  * @param {!recoil.frp.Frp} frp
- * @param {!string} version use this old values are lost if you upgrade
- * @param {!string} key the key to store this var under
+ * @param {string} version use this old values are lost if you upgrade
+ * @param {string} key the key to store this var under
  * @param {?} defVal
  * @param {!recoil.db.Cache.Serializer=} opt_serializer
  * @return {!recoil.frp.Behaviour}
@@ -82,8 +82,8 @@ recoil.ui.frp.LocalBehaviour.createSession = function(frp, version, key, defVal,
  *
  * @suppress {undefinedVars}
  * @param {!recoil.frp.Frp} frp
- * @param {!string} version use this old values are lost if you upgrade
- * @param {!string} key the key to store this var under
+ * @param {string} version use this old values are lost if you upgrade
+ * @param {string} key the key to store this var under
  * @param {?} defVal
  * @param {!recoil.db.Cache.Serializer=} opt_serializer
  * @return {!recoil.frp.Behaviour}

@@ -12,13 +12,13 @@ goog.require('recoil.util.object');
  * and make it look like another
  *
  * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,
- !{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table},
- !{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}>}>}
+ {table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table},
+ {table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}>}>}
  * @constructor
  * @param {boolean} uniqPk if this is true we will use the primary key of table1, otherwize an integer primary key will be generated
  *                         if this is true an error will be thrown if the union doesn't have a uniq primay key
  * @param {boolean} uniq   this will remove duplicate rows if true
- * @param {!recoil.structs.table.ColumnKey<!Array<!number>>=} opt_srcCol supply column for src, allows adding
+ * @param {!recoil.structs.table.ColumnKey<!Array<number>>=} opt_srcCol supply column for src, allows adding
  * @param {!Array<string>=} opt_concatPk if exists overrides uniqPk and will concat the associated index to the pk to make the key uniqu
  *                                      this only works if you have 1 string primary key that cannot end with the concatination
  */
@@ -98,8 +98,8 @@ recoil.structs.table.Union.prototype.calculate = function(params) {
 
 /**
  * @param {!recoil.structs.table.Table} table
- * @param {!{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}} sources
- * @return {!{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}}
+ * @param {{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}} sources
+ * @return {{table1:!recoil.structs.table.Table, table2:!recoil.structs.table.Table}}
  */
 recoil.structs.table.Union.prototype.inverse = function(table, sources) {
     var tables = [sources.table1.createEmpty(), sources.table2.createEmpty()];
@@ -132,7 +132,7 @@ recoil.structs.table.Union.prototype.inverse = function(table, sources) {
  * @param {boolean} uniqPk if this is true we will use the primary key of table1, otherwize an integer primary key will be generated
  *                         if this is true an error will be thrown if the union doesn't have a uniq primay key
  * @param {boolean} uniq   this will remove duplicate rows if true
- * @param {!recoil.structs.table.ColumnKey<!Array<!number>>=} opt_srcCol supply column for src, allows adding
+ * @param {!recoil.structs.table.ColumnKey<!Array<number>>=} opt_srcCol supply column for src, allows adding
  * @param {!Array<string>=} opt_concatPk if exists overrides uniqPk and will concat the associated index to the pk to make the key uniqu
  *                                      this only works if you have 1 string primary key that cannot end with the concatination
  * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}

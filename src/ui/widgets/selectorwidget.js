@@ -51,7 +51,7 @@ recoil.ui.widgets.SelectorWidget = function(scope) {
  * this has to come before options
  *
  * @param {?} obj
- * @param {!boolean} valid
+ * @param {boolean} valid
  * @param {!recoil.ui.BoolWithExplanation} enabled
  * @return {!Element}
  * @constructor
@@ -93,12 +93,12 @@ recoil.ui.widgets.SelectorWidget.prototype.getComponent = function() {
 };
 
 /**
- * @param {recoil.frp.Behaviour<!string>|!string} nameB
+ * @param {recoil.frp.Behaviour<string>|string} nameB
  * @param {recoil.frp.Behaviour<!T>|!T} valueB
  * @param {recoil.frp.Behaviour<!Array<T>>|Array<T>} listB
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} opt_enabledB
- * @param {recoil.frp.Behaviour<!function(T) : string>| !function(T) : string} opt_rendererB
- * @param {recoil.frp.Behaviour<!Array<recoil.ui.BoolWithExplanation>>} opt_enabledItemsB
+ * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation=} opt_enabledB
+ * @param {recoil.frp.Behaviour<function(T) : string>| function(T) : string=} opt_rendererB
+ * @param {recoil.frp.Behaviour<!Array<recoil.ui.BoolWithExplanation>>=} opt_enabledItemsB
  */
 recoil.ui.widgets.SelectorWidget.prototype.attach = function(nameB, valueB, listB, opt_enabledB, opt_rendererB, opt_enabledItemsB) {
     this.attachStruct({name: nameB, value: valueB, list: listB, enabled: opt_enabledB, renderer: opt_rendererB, enabledItems: opt_enabledItemsB});

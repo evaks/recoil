@@ -46,7 +46,7 @@ recoil.structs.table.UniqKeyGenerator = function(table) {
 };
 
 /**
- * @return {!number}
+ * @return {number}
  */
 recoil.structs.table.UniqKeyGenerator.prototype.nextPk = function() {
     var res = this.curPk_;
@@ -72,7 +72,7 @@ recoil.structs.table.UniqKeyGenerator.prototype.nextPk = function() {
  * a helper sets the list metadata of tables that have foreign keys that must be unique
  * @constructor
  * @param {!recoil.structs.table.Table|!recoil.structs.table.TableInterface} table
- * @param {!Array<!{col:!recoil.structs.table.ColumnKey,options:Array}>} infos
+ * @param {!Array<{col:!recoil.structs.table.ColumnKey,options:Array}>} infos
  */
 
 recoil.structs.table.UniqueForeignKey = function(table, infos) {

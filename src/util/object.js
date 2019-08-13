@@ -28,7 +28,7 @@ recoil.util.object.safeFreeze = function(value) {
  *
  * @param {?} a
  * @param {?} b
- * @return {!number}
+ * @return {number}
  */
 recoil.util.object.compare = function(a, b) {
     return recoil.util.object.compare_(a, b, [], []);
@@ -37,8 +37,8 @@ recoil.util.object.compare = function(a, b) {
 /**
  * calls compare on all arguments, returns the first non-zero result
  *
- * @param {!Array<!{x:*,y:*}>} values
- * @return {!number}
+ * @param {!Array<{x:*,y:*}>} values
+ * @return {number}
  */
 recoil.util.object.compareAll = function(values) {
     for (var i = 0; i < values.length; i++) {
@@ -55,9 +55,9 @@ recoil.util.object.compareAll = function(values) {
  * a generic compare function that compares only the key
  * field in the object
  *
- * @param {!{key}} a
- * @param {!{key}} b
- * @return {!number}
+ * @param {{key}} a
+ * @param {{key}} b
+ * @return {number}
  */
 recoil.util.object.compareKey = function(a, b) {
     return recoil.util.object.compare(a.key, b.key);
@@ -82,7 +82,7 @@ recoil.util.object.UniqObject_.prototype.clone = function() {
 
 /**
  * @param {*} that
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.util.object.UniqObject_.prototype.equal = function(that) {
     return this === that;
@@ -233,7 +233,7 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
  * @param {?} a
  * @param {?} b
  * @param {Object=} opt_ignore a map of fields to ignore
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.util.object.isEqual = function(a, b, opt_ignore) {
 
@@ -245,8 +245,8 @@ recoil.util.object.isEqual = function(a, b, opt_ignore) {
  * compares 2 objects
  *
  * @param {?} obj
- * @param {!Array<?>} opt_path
- * @return {!string}
+ * @param {!Array<?>=} opt_path
+ * @return {string}
  */
 recoil.util.object.toString = function(obj, opt_path) {
     var func1 = {}.toString;
@@ -309,7 +309,7 @@ goog.structs.AvlTree.prototype.safeFind = function(val) {
 };
 /**
  * @param {?} other
- * @return {!boolean}
+ * @return {boolean}
  */
 Date.prototype.equals = function(other) {
 
@@ -321,7 +321,7 @@ Date.prototype.equals = function(other) {
 
 /**
  * @param {?} other
- * @return {!number}
+ * @return {number}
  */
 Date.prototype.compare = function(other) {
 
@@ -333,7 +333,7 @@ Date.prototype.compare = function(other) {
 
 /**
  * @param {?} other
- * @return {!boolean}
+ * @return {boolean}
  */
 goog.structs.AvlTree.prototype.equals = function(other) {
     if (other instanceof goog.structs.AvlTree) {
@@ -358,7 +358,7 @@ goog.structs.AvlTree.prototype.equals = function(other) {
 
 /**
  * @param {?} other
- * @return {!number}
+ * @return {number}
  */
 goog.structs.AvlTree.prototype.compare = function(other) {
     if (other instanceof goog.structs.AvlTree) {
@@ -406,9 +406,9 @@ goog.structs.AvlTree.prototype.clone = function(opt_used) {
  * @param {*} b
  * @param {!Array<Object>} aPath
  * @param {!Array<Object>} bPath
- * @param {!Array<!string>} debugPath
+ * @param {!Array<string>} debugPath
  * @param {!Object} ignore
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.util.object.isContainerEqual = function(a, b, aPath, bPath, debugPath, ignore) {
     return recoil.util.object.isEqual.isEqualRec_(a, b, aPath, bPath, debugPath, ignore);
@@ -420,9 +420,9 @@ recoil.util.object.isContainerEqual = function(a, b, aPath, bPath, debugPath, ig
  * @param {*} b
  * @param {!Array<Object>} aPath
  * @param {!Array<Object>} bPath
- * @param {!Array<!string>} debugPath
+ * @param {!Array<string>} debugPath
  * @param {!Object} ignore
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath, ignore) {
 
@@ -507,9 +507,9 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath,
 /**
  * turn this on to debug equal failing
  * @private
- * @param {!boolean} val
+ * @param {boolean} val
  * @param {!Array<string>} path
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.util.object.isEqualDebug_ = function(val, path) {
 /*    if (!val) {

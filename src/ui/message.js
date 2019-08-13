@@ -5,7 +5,7 @@ goog.provide('recoil.ui.message.MessageEnum');
 
 /**
  * @constructor
- * @param {!Array<!Array<!string>|!string|!Object>} parts
+ * @param {!Array<!Array<string>|string|!Object>} parts
  */
 recoil.ui.message.Message = function(parts) {
     this.parts_ = parts;
@@ -58,7 +58,7 @@ recoil.ui.message.toMessage = function(message) {
 /**
  * partially resolve a message some paramters may still be present, this will handle, messages inside messages
  * @private
- * @param {Array<Array<!string>|!string|!Object>} res
+ * @param {Array<Array<string>|string|!Object>} res
  * @param {!Object} data
  * @return {number}
  */
@@ -124,7 +124,7 @@ recoil.ui.message.Message.prototype.toString = function() {
 
 /**
  * returns a structure that can be used to messages with substution
- * @param {...(!Array<!string>|!string|!Object)} var_parts
+ * @param {...(!Array<string>|string|!Object)} var_parts
  * @return {!recoil.ui.message.Message}
  */
 recoil.ui.message.getParamMsg = function(var_parts) {
@@ -132,7 +132,7 @@ recoil.ui.message.getParamMsg = function(var_parts) {
     for (var i = 0; i < arguments.length; i++) {
         parts.push(arguments[i]);
     }
-    return new recoil.ui.message.Message(/** @type {!Array<!Array<!string>|!string|!Object>}*/(parts));
+    return new recoil.ui.message.Message(/** @type {!Array<!Array<string>|string|!Object>}*/(parts));
 };
 
 /**
@@ -155,7 +155,7 @@ recoil.ui.message.MessageEnum.prototype.resolve = function(val) {};
  * @implements {recoil.ui.message.MessageEnum}
  * @template T
  * @param {!Object<T,recoil.ui.message.Message>} map
- * @param {{key:!string,msg:recoil.ui.message.Message}} unknown
+ * @param {{key:string,msg:recoil.ui.message.Message}} unknown
  */
 
 recoil.ui.message.BasicMessageEnum = function(map, unknown) {

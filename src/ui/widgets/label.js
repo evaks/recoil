@@ -92,7 +92,7 @@ recoil.ui.widgets.LabelWidget.options = recoil.frp.Util.Options(
 recoil.ui.widgets.LabelWidget.prototype.options = recoil.ui.widgets.LabelWidget.options;
 
 /**
- * @param {!recoil.frp.Behaviour<string>|!string} name
+ * @param {!recoil.frp.Behaviour<string>|string} name
  * @param {(!recoil.ui.BoolWithExplanation|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>)=} opt_enabled
  */
 recoil.ui.widgets.LabelWidget.prototype.attach = function(name, opt_enabled) {
@@ -170,7 +170,7 @@ recoil.ui.widgets.LabelWidgetHelper = function(scope) {
 
 /**
  *
- * @param {!string|!recoil.frp.Behaviour<!string>} name
+ * @param {string|!recoil.frp.Behaviour<string>} name
  * @param {!recoil.ui.BoolWithExplanation|!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} enabled
  * @return {recoil.ui.widgets.LabelWidget}
  */

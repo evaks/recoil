@@ -15,10 +15,10 @@ goog.require('recoil.util.object');
  * The first column will be considered column header
  *
  * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,
- !{table:!recoil.structs.table.Table},
- !{table:!recoil.structs.table.Table}>}>}
+ {table:!recoil.structs.table.Table},
+ {table:!recoil.structs.table.Table}>}>}
  * @constructor
- * @param {!boolean} firstIsHeader if true first column the column header otherwize the header is removed, and
+ * @param {boolean} firstIsHeader if true first column the column header otherwize the header is removed, and
  *   the first column is data
  * @param {!recoil.structs.table.ColumnKey<!recoil.structs.table.ColumnKey>=} opt_keyCol
  * @param {!recoil.structs.table.ColumnKey<string>=} opt_nameCol
@@ -134,8 +134,8 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
  * column, or adding new columns
  *
  * @param {!recoil.structs.table.Table} table
- * @param {!{table:!recoil.structs.table.Table}} sources
- * @return {!{table:!recoil.structs.table.Table}}
+ * @param {{table:!recoil.structs.table.Table}} sources
+ * @return {{table:!recoil.structs.table.Table}}
  */
 recoil.structs.table.Rotate.prototype.inverse = function(table, sources) {
     var dest = sources.table.unfreeze();

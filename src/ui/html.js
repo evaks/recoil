@@ -34,8 +34,8 @@ recoil.ui.HtmlHelper.prototype.class = function(element, classesB) {
 
 /**
  * @private
- * @param {!number} skip number of args to skip
- * @param {!string} elType type of element to create
+ * @param {number} skip number of args to skip
+ * @param {string} elType type of element to create
  * @param {!IArrayLike} args
  * @return {!Element}
  */
@@ -156,7 +156,7 @@ recoil.ui.HtmlHelper.prototype.createInnerHtmlDiv = function(innerHtmlB, opt_opt
 };
 
 /**
- * @param {!string} type
+ * @param {string} type
  * @param {!recoil.frp.Behaviour<string>} innerHtmlB
  * @param {(Object|Array<string>|string)=} opt_options
  * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
@@ -187,7 +187,7 @@ recoil.ui.HtmlHelper.prototype.appendInnerHtmlDiv = function(parent, innerHtmlB,
 /**
  * sets the display to none/undefined depending on {@code showB}
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<!boolean>} showB
+ * @param {!recoil.frp.Behaviour<boolean>} showB
  * @return {!recoil.ui.WidgetHelper}
  */
 recoil.ui.HtmlHelper.prototype.show = function(element, showB) {
@@ -206,7 +206,7 @@ recoil.ui.HtmlHelper.prototype.show = function(element, showB) {
  * sets the disabled field, I hav called it enabled because I don't like
  * negative logic in code
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<!boolean>} enabledB
+ * @param {!recoil.frp.Behaviour<boolean>} enabledB
  * @return {!recoil.ui.WidgetHelper}
  */
 recoil.ui.HtmlHelper.prototype.enabled = function(element, enabledB) {
@@ -222,7 +222,7 @@ recoil.ui.HtmlHelper.prototype.enabled = function(element, enabledB) {
 
 
 /**
- * @param {!recoil.frp.Behaviour<!boolean>} showB
+ * @param {!recoil.frp.Behaviour<boolean>} showB
  * @param {(Object|Array<string>|string)=} opt_options
  * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
  *     strings for text nodes. If one of the var_args is an array or NodeList,
@@ -237,7 +237,7 @@ recoil.ui.HtmlHelper.prototype.createShowDiv = function(showB, opt_options, var_
 
 /**
  * @param {!Node} parent
- * @param {!recoil.frp.Behaviour<!boolean>} showB
+ * @param {!recoil.frp.Behaviour<boolean>} showB
  * @param {(Object|Array<string>|string)=} opt_options
  * @param {...(Object|string|Array|NodeList)} var_args Further DOM nodes or
  *     strings for text nodes. If one of the var_args is an array or NodeList,

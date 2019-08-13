@@ -424,7 +424,7 @@ recoil.debugger.ui.prototype.finishExecute = function() {
 
 /**
  *clean the localStorage and reset the debugger
- * @param {Object} opt_rootNodes
+ * @param {Object=} opt_rootNodes
  */
 recoil.debugger.ui.prototype.resetDebugger = function(opt_rootNodes) {
     console.log('resetDebugger');
@@ -506,7 +506,7 @@ recoil.debugger.ui.Debugger.prototype.initialiseDebugger = function() {
  * this is called before each node is visited,
  * in order to stop return false,
  * @param {!recoil.frp.Behaviour} node
- * @return {!boolean}
+ * @return {boolean}
  * @suppress {deprecated}
  */
 
@@ -1397,7 +1397,7 @@ recoil.debugger.ui.prototype.hideProviders = function(rootNode) {
             delete paths[key];
             if (node.selected.length > 1) {
                 //selected by multiple providers, don't remove the node
-                node.selected = node.selected.filter(function(t) { return t !== rootNode.seq_ });
+                node.selected = node.selected.filter(function(t) { return t !== rootNode.seq_; });
             }else {
                 node.selected = [];
                 node.dot.getElement().remove();

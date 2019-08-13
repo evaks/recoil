@@ -18,7 +18,7 @@ goog.require('recoil.ui.events');
 /**
  * @constructor
  * @param {!recoil.ui.WidgetScope} scope
- * @param {!boolean=} opt_long
+ * @param {boolean=} opt_long
  * @implements recoil.ui.Widget
  */
 recoil.ui.widgets.ButtonWidget = function(scope, opt_long) {
@@ -65,10 +65,10 @@ recoil.ui.widgets.ButtonWidget.prototype.getButton = function() {
 //};
 
 /**
- * @param {recoil.frp.Behaviour<!string>|!string|!recoil.frp.Behaviour<!Element>|Node} textB
+ * @param {recoil.frp.Behaviour<string>|string|!recoil.frp.Behaviour<!Element>|Node} textB
  * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {(!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation)=} opt_enabledB
- * @param {(!recoil.frp.Behaviour<!boolean>|!boolean)=} opt_editable
+ * @param {(!recoil.frp.Behaviour<boolean>|boolean)=} opt_editable
  */
 recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt_enabledB, opt_editable) {
     var options = {action: callbackB, text: textB};
@@ -132,7 +132,7 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
- * @param {recoil.frp.Behaviour<!string>} textB
+ * @param {recoil.frp.Behaviour<string>} textB
  * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplanation>} enabledB
  * @private

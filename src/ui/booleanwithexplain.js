@@ -12,7 +12,7 @@ goog.require('recoil.ui.messages');
 
 /**
  *
- * @param {!boolean} val
+ * @param {boolean} val
  * @param {recoil.ui.message.Message=} opt_true if opt_false is undefined this is used to define why it true of false depending on the value
  * @param {recoil.ui.message.Message=} opt_false
  * @constructor
@@ -57,7 +57,7 @@ recoil.ui.BoolWithExplanation.prototype.reason = function() {
 };
 
 /**
- * @param {!recoil.frp.Behaviour<!boolean>} valB the boolean value
+ * @param {!recoil.frp.Behaviour<boolean>} valB the boolean value
  * @param {(!recoil.frp.Behaviour<!recoil.ui.message.Message>|!recoil.ui.message.Message)=} opt_true the message to display if true
  * @param {(!recoil.frp.Behaviour<!recoil.ui.message.Message>|!recoil.ui.message.Message)=} opt_false the message to display if false
  * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
@@ -70,7 +70,7 @@ recoil.ui.BoolWithExplanation.createB = function(valB, opt_true, opt_false) {
     }, valB, util.toBehaviour(opt_true), util.toBehaviour(opt_false));
 };
 /**
- * @param {!recoil.frp.Behaviour<!boolean>} valB the boolean value
+ * @param {!recoil.frp.Behaviour<boolean>} valB the boolean value
  * @param {(!recoil.frp.Behaviour<!recoil.ui.message.Message>|!recoil.ui.message.Message)=} trueM the message to display if true
  * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
  */
@@ -79,7 +79,7 @@ recoil.ui.BoolWithExplanation.createTrueB = function(valB, trueM) {
 };
 
 /**
- * @param {!recoil.frp.Behaviour<!boolean>} valB the boolean value
+ * @param {!recoil.frp.Behaviour<boolean>} valB the boolean value
  * @param {(!recoil.frp.Behaviour<!recoil.ui.message.Message>|!recoil.ui.message.Message)=} falseM the message to display if false
  * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
  */
@@ -138,7 +138,7 @@ recoil.ui.BoolWithExplanation.and = function(frp, var_behaviours) {
 /**
  *
  * @param {recoil.frp.Frp} frp
- * @param {recoil.frp.Behaviour<!boolean>|!boolean} val
+ * @param {recoil.frp.Behaviour<boolean>|boolean} val
  * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
  */
 recoil.ui.BoolWithExplanation.fromBool = function(frp, val) {
@@ -188,7 +188,7 @@ recoil.ui.BoolWithExplanation.prototype.not = function() {
 /**
  * @private
  * @param {Array<!recoil.ui.message.Message>} all
- * @param {!boolean} shouldAdd
+ * @param {boolean} shouldAdd
  * @param {recoil.ui.message.Message} explain
  */
 recoil.ui.BoolWithExplanation.prototype.addExplain_ = function(all, shouldAdd, explain) {

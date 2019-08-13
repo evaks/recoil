@@ -18,7 +18,7 @@ recoil.util.safeFreeze = recoil.util.object.safeFreeze;
  *
  * @param {*} a
  * @param {*} b
- * @return {!number}  A negative number, zero, or a positive number as the first
+ * @return {number}  A negative number, zero, or a positive number as the first
  *     argument is less than, equal to, or greater than the second,
  *     respectively.
  */
@@ -61,7 +61,7 @@ recoil.util.invokeParamsAndArray = recoil.util.func.invokeParamsAndArray;
  * @param {?} a
  * @param {?} b
  * @param {Object=} opt_ignore a map of fields to ignore
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.util.isEqual = recoil.util.object.isEqual;
 

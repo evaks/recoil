@@ -100,9 +100,9 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
  * updates the classes on an elemnt it will remove all old classes that are in cur classes but not
  * in classesB
  * @param {Element} element the element to update the class list for
- * @param {!recoil.frp.Behaviour<!Array<!string>>} classesB the behaviour that stores the classes in
- * @param {!Array<!string>} curClasses
- * @return {!Array<!string>} the new classes
+ * @param {!recoil.frp.Behaviour<!Array<string>>} classesB the behaviour that stores the classes in
+ * @param {!Array<string>} curClasses
+ * @return {!Array<string>} the new classes
  */
 recoil.ui.ComponentWidgetHelper.updateClasses = function(element, classesB, curClasses) {
     var newClasses = classesB.metaGet().good() ? classesB.get() : [];
@@ -127,14 +127,14 @@ recoil.ui.ComponentWidgetHelper.prototype.getFrp = function() {
     return this.frp_;
 };
 /**
- * @param {!string} debug the tag to print when debugging
+ * @param {string} debug the tag to print when debugging
  */
 recoil.ui.ComponentWidgetHelper.prototype.debug = function(debug) {
     this.debug_ = debug;
 };
 
 /**
- * @return {!boolean}
+ * @return {boolean}
  */
 recoil.ui.ComponentWidgetHelper.prototype.isAttached = function() {
     return this.isAttached_;
@@ -166,7 +166,7 @@ recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function() {
 };
 
 /**
- * @return {!boolean} is the value good
+ * @return {boolean} is the value good
  */
 recoil.ui.ComponentWidgetHelper.prototype.isGood = function() {
     for (var key = 0; key < this.behaviours_.length; key++) {

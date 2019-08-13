@@ -36,8 +36,8 @@ recoil.ui.widgets.PasswordWidget.prototype.getComponent = function() {
 };
 
 /**
- * @param {recoil.frp.Behaviour<!string>|!string} name
- * @param {recoil.frp.Behaviour<!string>|!string} value
+ * @param {recoil.frp.Behaviour<string>|string} name
+ * @param {recoil.frp.Behaviour<string>|string} value
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} enabled
  */
 recoil.ui.widgets.PasswordWidget.prototype.attach = function(name, value, enabled) {

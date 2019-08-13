@@ -25,7 +25,7 @@ recoil.converters.NullableIntToStringConverter.prototype.convert = function(val)
 
 /**
  * @param {string} val
- * @return {!{error : recoil.ui.message.Message, value : number?}}
+ * @return {{error : recoil.ui.message.Message, value : number?}}
  */
 recoil.converters.NullableIntToStringConverter.prototype.unconvert = function(val) {
     if (val === '') {

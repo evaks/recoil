@@ -88,8 +88,8 @@ recoil.debugger.StateWatcher.prototype.popUpMenu = function(debuggerUI, rowEleme
 
 /**
  * @private
- * @param {!Array<!recoil.frp.Behaviour|!{name:!string,val:?}>} items
- * @return {!Array<!{name:!string,val:?}>}
+ * @param {!Array<!recoil.frp.Behaviour|{name:string,val:?}>} items
+ * @return {!Array<{name:string,val:?}>}
  */
 recoil.debugger.StateWatcher.prototype.nameItems_ = function(items) {
     var res = [];
@@ -106,9 +106,9 @@ recoil.debugger.StateWatcher.prototype.nameItems_ = function(items) {
 };
 
 /**
- * @param {!Array<!recoil.frp.Behaviour|!{name:!string,val:?}>} curNode
- * @param {!Array<!recoil.frp.Behaviour|!{name:!string,val:?}>} selectNode
- * @param {!Array<!recoil.frp.Behaviour|!{name:!string,val:?}>} watches
+ * @param {!Array<!recoil.frp.Behaviour|{name:string,val:?}>} curNode
+ * @param {!Array<!recoil.frp.Behaviour|{name:string,val:?}>} selectNode
+ * @param {!Array<!recoil.frp.Behaviour|{name:string,val:?}>} watches
  * @param {!Array<!recoil.frp.Behaviour>} pendingUp
  * @param {!Array<!recoil.frp.Behaviour>} pendingDown
  */

@@ -33,7 +33,7 @@ recoil.converters.And.prototype.convert = function(val) {
 
 /**
  * @param {TO} val
- * @return {!{error : recoil.ui.message.Message, value : FROM}}
+ * @return {{error : recoil.ui.message.Message, value : FROM}}
  */
 recoil.converters.And.prototype.unconvert = function(val) {
     var res = this.converter_.unconvert(val);

@@ -60,7 +60,7 @@ recoil.ui.widgets.CheckboxWidget.prototype.getComponent = function() {
 
 
 /**
- * @param {recoil.frp.Behaviour<!string>|!string} name
+ * @param {recoil.frp.Behaviour<string>|string} name
  * @param {recoil.frp.Behaviour<boolean>|boolean} value
  * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|boolean} enabled
  */

@@ -15,13 +15,13 @@ recoil.converters.IPv4AddressConverter = function() {
 
 /**
  *
- * @type {!number}
+ * @type {number}
  */
 recoil.converters.IPv4AddressConverter.maxLength = 15;
 
 /**
  *
- * @param {!string} c
+ * @param {string} c
  * @return {boolean}
  */
 recoil.converters.IPv4AddressConverter.charValidator = function(c) {
@@ -31,7 +31,7 @@ recoil.converters.IPv4AddressConverter.charValidator = function(c) {
 
 /**
  *
- * @param {!string} c
+ * @param {string} c
  * @return {boolean}
  */
 recoil.converters.IPv4AddressConverter.prototype.charValidator = function(c) {
@@ -40,7 +40,7 @@ recoil.converters.IPv4AddressConverter.prototype.charValidator = function(c) {
 
 /**
  * @param {recoil.types.IPv4Address} val
- * @return {!string}
+ * @return {string}
  */
 recoil.converters.IPv4AddressConverter.prototype.convert = function(val) {
 
@@ -55,7 +55,7 @@ recoil.converters.IPv4AddressConverter.prototype.convert = function(val) {
 
 /**
  * @param {string} val
- * @return {!{error : recoil.ui.message.Message, value : recoil.types.IPv4Address}}
+ * @return {{error : recoil.ui.message.Message, value : recoil.types.IPv4Address}}
  */
 recoil.converters.IPv4AddressConverter.prototype.unconvert = function(val) {
     /**

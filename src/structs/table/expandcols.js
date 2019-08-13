@@ -31,7 +31,7 @@ recoil.structs.table.ExpandColsDef.prototype.getSubRow = function(row) {};
 recoil.structs.table.ExpandColsDef.prototype.setSubRow = function(row, isNew) {};
 
 /**
- * @return {!Array<!{col:!recoil.structs.table.ColumnKey,meta:!Object}>}
+ * @return {!Array<{col:!recoil.structs.table.ColumnKey,meta:!Object}>}
  */
 recoil.structs.table.ExpandColsDef.prototype.getColumns = function() {};
 
@@ -42,8 +42,8 @@ recoil.structs.table.ExpandColsDef.prototype.getSrcCol = function() {};
 
 /**
  * @implements {recoil.frp.Inversable<!recoil.structs.table.Table,
- !{table:!recoil.structs.table.Table,expand:!Array<!recoil.structs.table.ExpandColsDef>},
- !{table:!recoil.structs.table.Table}>}>}
+ {table:!recoil.structs.table.Table,expand:!Array<!recoil.structs.table.ExpandColsDef>},
+ {table:!recoil.structs.table.Table}>}>}
  * @constructor
  */
 recoil.structs.table.ExpandCols = function() {
@@ -87,8 +87,8 @@ recoil.structs.table.ExpandCols.prototype.calculate = function(params) {
  * column, or adding new columns
  *
  * @param {!recoil.structs.table.Table} table
- * @param {!{table:!recoil.structs.table.Table,expand:!Array<!recoil.structs.table.ExpandColsDef>}} sources
- * @return {!{table:!recoil.structs.table.Table}}
+ * @param {{table:!recoil.structs.table.Table,expand:!Array<!recoil.structs.table.ExpandColsDef>}} sources
+ * @return {{table:!recoil.structs.table.Table}}
  */
 recoil.structs.table.ExpandCols.prototype.inverse = function(table, sources) {
     var dest = sources.table.createEmpty();
@@ -109,11 +109,11 @@ recoil.structs.table.ExpandCols.prototype.inverse = function(table, sources) {
 /**
  * @constructor
  * @implements {recoil.structs.table.ExpandColsDef}
- * @param {!function(recoil.structs.table.TableRowInterface,boolean):?} check function to check outer object exists, the first parameter is the row that we are setting/getting the second is true if we are setting, this should return true or false, or null if we should set the container to null
+ * @param {function(recoil.structs.table.TableRowInterface,boolean):?} check function to check outer object exists, the first parameter is the row that we are setting/getting the second is true if we are setting, this should return true or false, or null if we should set the container to null
  * @param {!recoil.structs.table.ColumnKey} col
  * @param {function (!Object,!recoil.structs.table.ColumnKey,!recoil.db.ChangeSet.Path): !Object} metaGetter this extracts meta data from the cell meta for the subcell
  *  for example errors
- * @param {!Array<!{col:!recoil.structs.table.ColumnKey,path:!recoil.db.ChangeSet.Path,defaultVal:*,meta:(!Object|undefined)}>} subcols
+ * @param {!Array<{col:!recoil.structs.table.ColumnKey,path:!recoil.db.ChangeSet.Path,defaultVal:*,meta:(!Object|undefined)}>} subcols
  */
 recoil.structs.table.ExpandCols.PresenceDef = function(check, col, metaGetter, subcols) {
     this.metaGetter_ = metaGetter || function(meta, col, path) {return {};};
@@ -207,7 +207,7 @@ recoil.structs.table.ExpandCols.PresenceDef.prototype.setSubRow = function(row, 
 
 };
 /**
- * @return {!Array<!{col:!recoil.structs.table.ColumnKey,meta:!Object}>}
+ * @return {!Array<{col:!recoil.structs.table.ColumnKey,meta:!Object}>}
  */
 recoil.structs.table.ExpandCols.PresenceDef.prototype.getColumns = function() {
     var res = [];

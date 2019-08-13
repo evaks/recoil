@@ -334,7 +334,7 @@ recoil.db.Query.prototype.or$ = function(var_others) {
 };
 
 /**
- * @param {recoil.db.Query|recoil.db.QueryExp} opt_x
+ * @param {recoil.db.Query|recoil.db.QueryExp=} opt_x
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.not = function(opt_x) {
@@ -346,7 +346,7 @@ recoil.db.Query.prototype.not = function(opt_x) {
 };
 
 /**
- * @param {recoil.db.Query|recoil.db.QueryExp} opt_x
+ * @param {recoil.db.Query|recoil.db.QueryExp=} opt_x
  * @return {!recoil.db.Query}
  */
 
@@ -362,7 +362,7 @@ recoil.db.Query.prototype.True = function() {
 };
 
 /**
- * @param {recoil.db.Query|recoil.db.QueryExp} opt_x
+ * @param {recoil.db.Query|recoil.db.QueryExp=} opt_x
  * @return {!recoil.db.Query}
  */
 
@@ -381,7 +381,7 @@ recoil.db.Query.prototype.val = function(val) {
 };
 
 /**
- * @param {!string} field
+ * @param {string} field
  * @return {!recoil.db.Query}
  */
 
@@ -390,7 +390,7 @@ recoil.db.Query.prototype.field = function(field) {
 };
 
 /**
- * @param {!string} field
+ * @param {string} field
  * @return {!recoil.db.Query}
  */
 
@@ -400,7 +400,7 @@ recoil.db.Query.prototype.field$ = function(field) {
 /**
  * checks if a field exists in the object
  * nulls and undefined exist
- * @param {!string} field
+ * @param {string} field
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.exists = function(field) {
@@ -409,7 +409,7 @@ recoil.db.Query.prototype.exists = function(field) {
 /**
  * checks if a field exists in the object, also sets the result to this query
  * nulls and undefined exist
- * @param {!string} field
+ * @param {string} field
  * @return {!recoil.db.Query}
  */
 
@@ -550,7 +550,7 @@ recoil.db.Query.prototype.notExists = function(field) {
  * checks if a field does not exist in the object, also sets the result to this query
  * nulls and undefined exist
  *
- * @param {!string} field
+ * @param {string} field
  * @return {!recoil.db.Query}
  */
 
@@ -561,7 +561,7 @@ recoil.db.Query.prototype.notExists$ = function(field) {
 /**
  * runs a boolean javascript expression on each object
  * the current object can be referenced via this, or obj
- * @param {!string} expr
+ * @param {string} expr
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.where = function(expr) {
@@ -583,7 +583,7 @@ recoil.db.Query.prototype.where$ = function(expr) {
 /**
  * @param {string} field
  * @param {string|RegExp} pattern
- * @param {?string} opt_options
+ * @param {?string=} opt_options
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.regex = function(field, pattern, opt_options) {
@@ -592,7 +592,7 @@ recoil.db.Query.prototype.regex = function(field, pattern, opt_options) {
 /**
  * @param {string} field
  * @param {string|RegExp} pattern
- * @param {?string} opt_options
+ * @param {?string=} opt_options
  * @return {!recoil.db.Query}
  */
 
@@ -951,7 +951,7 @@ recoil.db.expr.Value.prototype.eval = function(scope) {
  * @constructor
  * @param {string} field this can be a dot seperated and use [] to acces arrays or maps
  * @param {RegExp|string} pattern the pattern to match
- * @param {?string} opt_options extra options for matching only used when pattern is a string
+ * @param {?string=} opt_options extra options for matching only used when pattern is a string
  * @implements recoil.db.QueryExp
  */
 recoil.db.expr.RegExp = function(field, pattern, opt_options) {

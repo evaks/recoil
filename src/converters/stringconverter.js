@@ -33,7 +33,7 @@ recoil.converters.DefaultStringConverter.prototype.convert = function(val) {
 
 /**
  * @param {string} val
- * @return {!{error : recoil.ui.message.Message, value : string}}
+ * @return {{error : recoil.ui.message.Message, value : string}}
  */
 recoil.converters.DefaultStringConverter.prototype.unconvert = function(val) {
     return {error: null, value: val};
@@ -66,7 +66,7 @@ recoil.converters.NullStringConverter.prototype.convert = function(val) {
 
 /**
  * @param {string} val
- * @return {!{error : recoil.ui.message.Message, value:?(string)}}
+ * @return {{error : recoil.ui.message.Message, value:?(string)}}
  */
 recoil.converters.NullStringConverter.prototype.unconvert = function(val) {
     if (val === '') {
@@ -105,7 +105,7 @@ recoil.converters.RegExp.prototype.clone = function() {
 
 /**
  * @param {string} val
- * @return {!{error : recoil.ui.message.Message, value : string}}
+ * @return {{error : recoil.ui.message.Message, value : string}}
  */
 recoil.converters.RegExp.prototype.unconvert = function(val) {
     if (val && val.match(this.regExp_)) {
@@ -118,7 +118,7 @@ recoil.converters.RegExp.prototype.unconvert = function(val) {
 /**
  * @constructor
  * @implements {recoil.converters.StringConverter<string>}
- * @param {!number} len
+ * @param {number} len
  */
 
 recoil.converters.MinLength = function(len) {
@@ -134,7 +134,7 @@ recoil.converters.MinLength.prototype.convert = function(val) {
 
 /**
  * @param {string} val
- * @return {!{error : recoil.ui.message.Message, value : string}}
+ * @return {{error : recoil.ui.message.Message, value : string}}
  */
 recoil.converters.MinLength.prototype.unconvert = function(val) {
     if (val && val.length >= this.len_) {
