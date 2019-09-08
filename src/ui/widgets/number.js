@@ -689,7 +689,7 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         this.readonly_.getComponent().getElement().style.width = displayLen + 'em';
     }
     else {
-        this.number_.getContentElement().style.width = (width + 2) + 'ch';
+        this.number_.getContentElement().style.width = (width + 3) + 'ch';
         this.readonly_.getComponent().getElement().style.width = (width) + 'em';
     }
     var hadErrors = this.hasErrors_;
