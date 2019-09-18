@@ -1,0 +1,7 @@
+.recoil-button-disabled button {
+    background-color: #9B9B9B;
+    color: #ccc !important;
+    cursor: not-allowed;
+    text-shadow: none;
+}
+

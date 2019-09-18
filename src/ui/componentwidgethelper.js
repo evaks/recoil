@@ -394,10 +394,12 @@ recoil.ui.EventHelper.prototype.listen = function(callback) {
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
  * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Element=} opt_element
+ * @param {function(boolean)=} opt_setEnabled alternate way of enabling
  */
 
-recoil.ui.TooltipHelper = function(widgetScope, component, opt_element) {
+recoil.ui.TooltipHelper = function(widgetScope, component, opt_element, opt_setEnabled) {
     this.behaviours_ = [];
+    this.setEnabled_ = opt_setEnabled;
     this.enabledB_ = null;
     this.tooltip_ = null;
     this.element_ = opt_element;
@@ -429,7 +431,7 @@ recoil.ui.TooltipHelper.prototype.attach = function(enabledB, var_helpers) {
  */
 recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     var tooltip = null;
-    var enabled;
+    var enabled = false;
     if (helper.isGood()) {
         var reason = this.enabledB_.get().reason();
         tooltip = reason === null ? null : reason.toString();
@@ -465,7 +467,9 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
         this.tooltip_ = new goog.ui.Tooltip(element, tooltip);
 //        this.tooltip_.setEnabled(enabled);
     }
-    if (this.component_.setEnabled) {
+    if (this.setEnabled_) {
+        this.setEnabled_(enabled);
+    } else if (this.component_.setEnabled) {
         this.component_.setEnabled(enabled);
     }
 };

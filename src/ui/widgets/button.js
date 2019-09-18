@@ -30,11 +30,10 @@ recoil.ui.widgets.ButtonWidget = function(scope, opt_long) {
      * @private
      */
     this.button_ = new goog.ui.Button();
-    this.button_.setEnabled(false);
     this.button_.setContent('??');
     this.component_.getElement().setAttribute('class', 'recoil-button-tooltip-padding');
     this.component_.addChild(this.button_, true);
-    this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.button_, this.component_.getElement());
+    this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.button_, this.component_.getElement(), function(enabled) {});
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_);
 
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.button_, goog.ui.Component.EventType.ACTION, undefined, opt_long);
@@ -112,12 +111,29 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
     var enabledB = bound.enabled();
     var editableB = bound.editable();
     this.textB_ = bound.text();
-    this.callbackB_ = bound.action();
-    this.classesB_ = bound.classes();
+    var callbackB = bound.action();
+    var me = this;
     this.enabledB_ = BoolWithExplanation.and(
         frp,
         BoolWithExplanation.createTrueB(frp.createB(true), bound.tooltip()),
         BoolWithExplanation.createB(editableB), enabledB);
+
+    this.callbackB_ = frp.liftBI(function(v) {
+        return v;
+    }, function(v) {
+        if (me.enabledB_.good() && me.enabledB_.get().val()) {
+            callbackB.set(v);
+        }
+    }, callbackB, this.enabledB_);
+
+    this.classesB_ = frp.liftB(function(cls, enabled) {
+        var res = [];
+        if (!enabled.val()) {
+            res.push('recoil-button-disabled');
+        }
+        res = res.concat(cls);
+        return res;
+    }, bound.classes(), this.enabledB_);
 
 
 
@@ -125,7 +141,6 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
     this.enabledHelper_.attach(
         /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
         this.helper_);
-    var me = this;
     this.changeHelper_.listen(this.callbackB_);
 };
 
@@ -143,6 +158,9 @@ recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, textB, 
             this.button_.setContent(textB.get());
         }
         var classes = ['recoil-button-tooltip-padding'].concat(this.classesB_.good() ? this.classesB_.get() : []);
+        if (!this.helper_.isGood()) {
+            classes.push('recoil-button-disabled');
+        }
         this.component_.getElement().setAttribute('class', classes.join(' '));
     }
 };
