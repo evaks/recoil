@@ -63,3 +63,40 @@ recoil.util.func.makeEqualFunc = function(func, key, data) {
     return func;
 
 };
+
+/**
+ * this will stop the function cb being called more than once every minTimeMs
+ * @suppress {undefinedVars}
+ * @suppress {undefinedNames}
+ * @param {number} minTimeMs
+ * @param {function()} cb
+ * @return {function()}
+ */
+recoil.util.func.calm = function(minTimeMs, cb) {
+    // different function for node or browser
+    // we need monitomic time here otherwize it may go funny if the time is changed
+    var getTime = typeof (window) === 'undefined' ? function() {return process['hrtime']()[0] * 1000;} : function() {return Math.round(performance.now());};
+    var last = null;
+    var timeout = null;
+    return function() {
+        if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+        }
+        var doit = function() {
+            try {
+                cb();
+            } finally {
+                last = getTime();
+                timeout = null;
+            }
+        };
+        var now = getTime();
+        if (last === null || last + minTimeMs < now) {
+            doit();
+        }
+        else {
+            timeout = setTimeout(doit, Math.max(0, (last + minTimeMs - now)));
+        }
+    };
+};
