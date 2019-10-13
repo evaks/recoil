@@ -31,6 +31,7 @@ recoil.ui.widgets.ButtonWidget = function(scope, opt_long) {
      */
     this.button_ = new goog.ui.Button();
     this.button_.setContent('??');
+    this.component_.setFocusable(false);
     this.component_.getElement().setAttribute('class', 'recoil-button-tooltip-padding');
     this.component_.addChild(this.button_, true);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.button_, this.component_.getElement(), function(enabled) {});
