@@ -189,7 +189,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
-        me.updateElement_(me, inputEl, me.immediateB_.get(), false);
+        me.updateElement_(me, inputEl, me.immediateB_.get(), me.immediateB_.get());
     }, this.valueB_, this.immediateB_, this.converterB_, this.editableB_));
 
     var blurListener = function(v) {

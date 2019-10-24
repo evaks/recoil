@@ -141,8 +141,14 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
         function(selected, table) {
             var res = [];
             selected.forEach(function(key) {
-                if (table.getRow(key) !== null) {
-                    res.push(key);
+                try {
+                    if (table.getRow(key) !== null) {
+                        res.push(key);
+                    }
+                }
+                catch (e) {
+                    // maybe the table has changed number of pk since we generated selected
+                    // so this may throw ignore
                 }
             });
             return res;
