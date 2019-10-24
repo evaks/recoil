@@ -616,6 +616,26 @@ recoil.frp.util.memoryB = function(val, memory) {
         val, memory);
 };
 
+/**
+ * creates a behaviour that can be set without updating the original behaviour
+ *
+ * @template T
+ * @param {!recoil.frp.Behaviour<T>} val
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.util.memoryOnlyB = function(val) {
+    var frp = val.frp();
+    var uniq = {};
+    var memory = frp.createB(uniq);
+    return val.frp().liftBI(
+        function(v, m) {
+            if (m === uniq) {return v;}
+            return m;
+        },
+        function(v) {memory.set(v);},
+        val, memory);
+};
+
 
 /**
  * utilty to get the frp engin out of the arguments
