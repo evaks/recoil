@@ -436,7 +436,7 @@ recoil.ui.widgets.TreeView.prototype.updateConfig_ = function(helper) {
         me.tree_.setShowLines(treeConfig.showLines === undefined || treeConfig.showLines);
         me.tree_.setShowExpandIcons(treeConfig.showExpandIcons === undefined || treeConfig.showExpandIcons);
         me.tree_.render(me.componentDiv_);
-        me.nodeFactory_ = treeConfig.nodeFactory_ || recoil.ui.widgets.TreeView.defaultNodeFactory;
+        me.nodeFactory_ = treeConfig.nodeFactory_ || treeConfig.nodeFactory || recoil.ui.widgets.TreeView.defaultNodeFactory;
         // and created a new one
         me.state_.forceUpdate();
     } else if (me.tree_ !== null) {
