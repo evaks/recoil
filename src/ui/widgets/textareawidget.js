@@ -97,18 +97,20 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
     var structs = recoil.frp.struct;
     var optionsB = structs.flatten(frp, options);
 
+    this.maxLengthB_ = structs.get('maxLength', optionsB, null);
     this.valueB_ = structs.get('value', optionsB);
     this.minHeightB_ = structs.get('minHeight', optionsB, 70);
     this.immediateB_ = structs.get('immediate', optionsB, false);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
     this.editableB_ = structs.get('editable', optionsB, true);
+    this.placeholderB_ = structs.get('placeholder', optionsB, null);
     var readyB = util.isAllGoodExplain(this.valueB_, this.enabledB_);
 
     this.label_.attach(
           structs.get('name', optionsB),
           recoil.ui.BoolWithExplanation.and(frp, this.enabledB_, readyB));
 
-    this.helper_.attach(this.valueB_, this.immediateB_, this.enabledB_, this.editableB_);
+    this.helper_.attach(this.valueB_, this.immediateB_, this.enabledB_, this.editableB_, this.placeholderB_, this.maxLengthB_);
     this.configHelper_.attach(this.minHeightB_);
 
     var me = this;
@@ -135,6 +137,15 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
  */
 recoil.ui.widgets.TextAreaWidget.prototype.updateState_ = function(helper) {
 
+    var len = this.maxLengthB_.good() && this.maxLengthB_.get() ? this.maxLengthB_.get() : undefined;
+    if (!this.textarea_.getElement()) {
+        this.textarea_.createDom();
+    }
+    this.textarea_.getElement().maxLength = len;
+
+
+    this.textarea_.setPlaceholder(
+        this.placeholderB_.good() && this.placeholderB_.get() ? this.placeholderB_.get() : '');
     if (helper.isGood()) {
         this.textarea_.setContent(this.valueB_.get());
         this.textarea_.setEnabled(this.enabledB_.get().val() && this.editableB_.get());
