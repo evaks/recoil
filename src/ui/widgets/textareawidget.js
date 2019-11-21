@@ -141,7 +141,12 @@ recoil.ui.widgets.TextAreaWidget.prototype.updateState_ = function(helper) {
     if (!this.textarea_.getElement()) {
         this.textarea_.createDom();
     }
-    this.textarea_.getElement().maxLength = len;
+    if (len) {
+        this.textarea_.getElement().maxLength = len;
+    }
+    else {
+        this.textarea_.getElement().removeAttribute('maxlength');
+    }
 
 
     this.textarea_.setPlaceholder(
