@@ -498,7 +498,7 @@ recoil.frp.VisibleObserver.prototype.unlisten = function(node, callback) {
     var me = this;
 
     if (state !== null) {
-        for (var i = 0; i < state.callbacks.length; i--) {
+        for (var i = state.callbacks.length - 1; i >= 0; i--) {
             if (state.callbacks[i] === callback) {
               state.callbacks.splice(i, 1);
               break;

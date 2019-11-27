@@ -143,7 +143,7 @@ recoil.frp.DomObserver.prototype.getBehaviours = function(node, opt_map) {
  */
 recoil.frp.DomObserver.prototype.unlisten = function(node, callback) {
     var entry = this.watchedNodes_.get(node) || {callabacks: []};
-    for (var i = 0; i < entry.callbacks.length; i--) {
+    for (var i = entry.callbacks.length - 1; i >= 0; i--) {
         if (entry.callbacks[i] === callback) {
             entry.callbacks.splice(i, 1);
             break;
