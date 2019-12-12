@@ -1,5 +1,6 @@
 goog.provide('recoil.debugger.ObjectBrowser');
 
+goog.require('Spinner');
 goog.require('goog.dom');
 goog.require('goog.ui.tree.TreeControl');
 goog.require('goog.ui.tree.TreeNode');

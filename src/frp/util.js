@@ -475,7 +475,7 @@ recoil.frp.Util.Options = function(var_options) {
      *
      * @param {!recoil.frp.Frp} frp
      * @param {!recoil.frp.Behaviour<!Object>|!Object} val
-     * @return {!Object}
+     * @return {!Object<string,?>}
      */
     res.bind = function(frp, val) {
         var optionsB = recoil.frp.struct.flatten(frp, val);
