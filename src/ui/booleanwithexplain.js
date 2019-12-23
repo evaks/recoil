@@ -88,6 +88,25 @@ recoil.ui.BoolWithExplanation.createFalseB = function(valB, falseM) {
 };
 
 /**
+ * @param {...!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} var_args
+ * @return {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>}
+ */
+recoil.ui.BoolWithExplanation.orB = function(var_args) {
+    var args = [];
+    for (var i = 0; i < arguments.length; i++) {
+        args.push(arguments[i]);
+    }
+    var frp = args[0].frp();
+    return frp.liftB.apply(frp, [function() {
+        var params = [];
+        for (var i = 1; i < arguments.length; i++) {
+            params.push(args[i]);
+        }
+        return arguments[0].or.apply(arguments[0], params);
+    }].concat(args));
+};
+
+/**
  *
  * @param {...!recoil.ui.BoolWithExplanation} var_values
  * @return {!recoil.ui.BoolWithExplanation}

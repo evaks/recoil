@@ -104,11 +104,14 @@ recoil.ui.message.Message.prototype.clone = function() {
 /**
  * turn this message into a string if parameters are not assigned
  *       they will be enclosed in {$}
- *
+ * @param {!Object=} opt_data
  * @return {string}
  */
 
-recoil.ui.message.Message.prototype.toString = function() {
+recoil.ui.message.Message.prototype.toString = function(opt_data) {
+    if (opt_data) {
+        return this.resolve(opt_data).toString();
+    }
     var res = [];
     for (var i = 0; i < this.parts_.length; i++) {
         var part = this.parts_[i];
