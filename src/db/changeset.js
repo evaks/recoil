@@ -50,6 +50,15 @@ recoil.db.ChangeDbInterface.prototype.applyDelete = function(path) {};
 recoil.db.ChangeDbInterface.prototype.applyMove = function(from, to) {};
 
 
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {recoil.db.ChangeSet.Path} to
+ * @param {!recoil.db.ChangeSet.Change.Position} position
+ */
+recoil.db.ChangeDbInterface.prototype.applyReorder = function(from, to, position) {};
+
+
 /**
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
@@ -209,6 +218,27 @@ recoil.db.ChangeDb.prototype.applyDelete = function(path) {
 
     throw new Error("cannot remove node '" + path.toString() + "' from a leaf");
 
+
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {recoil.db.ChangeSet.Path} to
+ * @param {!recoil.db.ChangeSet.Change.Position} position
+ */
+recoil.db.ChangeDb.prototype.applyReorder = function(from, to, position) {
+    var listNode = this.resolve_(from.unsetKeys(), false);
+    if (!listNode) {
+        return;
+    }
+
+    if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
+        throw new Error("move node '" + from.unsetKeys().toString() + "' is not a list");
+    }
+
+    if (this.schema_.isOrderedList(from)) {
+        listNode.reorder(this.schema_, from.last(), to ? to.last() : null, position);
+    }
 
 };
 
@@ -642,7 +672,7 @@ recoil.db.ChangeSet.Change.prototype.isNoOp = function() {};
 /**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
- * @return {!recoil.db.ChangeSet.Change}
+ * @return {recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Change.prototype.inverse = function(schema) {};
@@ -694,6 +724,7 @@ recoil.db.ChangeSet.Change.prototype.absolute = function(schema) {};
  */
 recoil.db.ChangeSet.Change.prototype.serialize = function(keepOld, schema, valSerializor, opt_compressor, opt_pathSerializer) {
 };
+
 /**
  * @enum {number}
  */
@@ -701,7 +732,16 @@ recoil.db.ChangeSet.Change.Type = {
     SET: 0,
     ADD: 1,
     DEL: 2,
-    MOVE: 3
+    MOVE: 3,
+    REORDER: 4
+};
+
+/**
+ * @enum {number}
+ */
+recoil.db.ChangeSet.Change.Position = {
+    AFTER: 0,
+    BEFORE: 1
 };
 
 /**
@@ -793,6 +833,12 @@ recoil.db.ChangeSet.Change.deserialize = function(object, schema, valSerializor,
         return new recoil.db.ChangeSet.Move(
             recoil.db.ChangeSet.Path.deserialize(object.from, schema, valSerializor, compressor),
             recoil.db.ChangeSet.Path.deserialize(object.to, schema, valSerializor, compressor));
+    }
+
+    if (object.type === ChangeType.REORDER) {
+        return new recoil.db.ChangeSet.Reorder(
+            recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor),
+            object.to ? recoil.db.ChangeSet.Path.deserialize(object.to, schema, valSerializor, compressor) : null, object.pos);
     }
     if (object.type === ChangeType.DEL) {
         path = recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor);
@@ -1476,7 +1522,7 @@ recoil.db.ChangeSet.Set.prototype.move = function(from, to) {
 /**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
- * @return {!recoil.db.ChangeSet.Change}
+ * @return {recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Set.prototype.inverse = function(schema) {
@@ -1550,7 +1596,7 @@ recoil.db.ChangeSet.Add = function(path, dependants) {
 /**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
- * @return {!recoil.db.ChangeSet.Change}
+ * @return {recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Add.prototype.inverse = function(schema) {
@@ -1787,7 +1833,7 @@ recoil.db.ChangeSet.Delete.prototype.move = function(from, to) {
 /**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
- * @return {!recoil.db.ChangeSet.Change}
+ * @return {recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Delete.prototype.inverse = function(schema) {
@@ -1934,7 +1980,7 @@ recoil.db.ChangeSet.Move.prototype.move = function(from, to) {
 /**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
- * @return {!recoil.db.ChangeSet.Change}
+ * @return {recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Move.prototype.inverse = function(schema) {
@@ -2082,6 +2128,128 @@ recoil.db.ChangeSet.Move.prototype.serialize = function(keepOld, schema, valSeri
     return {type: recoil.db.ChangeSet.Change.Type.MOVE, from: this.oldPath_.serialize(valSerializor, compressor, opt_pathSerializer),
             to: this.newPath_.serialize(valSerializor, compressor, opt_pathSerializer)};
 };
+
+/**
+ * @constructor
+ * @implements {recoil.db.ChangeSet.Change}
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {recoil.db.ChangeSet.Path} toPath
+ * @param {!recoil.db.ChangeSet.Change.Position} position
+ */
+
+recoil.db.ChangeSet.Reorder = function(path, toPath, position) {
+    this.path_ = path;
+    this.toPath_ = toPath;
+    this.position_ = position;
+};
+
+/**
+ * moves the path of this
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {!recoil.db.ChangeSet.Path} to
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Reorder.prototype.move = function(from, to) {
+    return new recoil.db.ChangeSet.Reorder(this.path_.move(from, to), this.toPath_ ? this.toPath_.move(from, to) : null, this.position_);
+};
+
+/**
+ * creates an inverse of the change
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @return {recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Reorder.prototype.inverse = function(schema) {
+    // todo this won't work but should be ok
+    return null;
+};
+/**
+ * returns the number of changes in this change
+ * @return {number}
+ */
+recoil.db.ChangeSet.Reorder.prototype.changeCount = function() {
+    return 1;
+};
+
+/**
+ * true if this change has no effect
+ * @return {boolean}
+ */
+recoil.db.ChangeSet.Reorder.prototype.isNoOp = function() {
+    return recoil.util.object.isEqual(this.path_, this.toPath_);
+};
+/**
+ * convert all paths to absolute values and returns a copy
+ *
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+recoil.db.ChangeSet.Reorder.prototype.absolute = function(schema) {
+    return new recoil.db.ChangeSet.Reorder(schema.absolute(this.path_), this.toPath_ ? schema.absolute(this.toPath_) : null, this.position_);
+};
+
+
+/**
+ * @param {!recoil.db.ChangeSet.PathChangeMap} pathChangeMap
+ * @param {recoil.db.ChangeSet.Change} pAncestor
+ * @param {!Array<number>} maxPos
+ */
+recoil.db.ChangeSet.Reorder.prototype.merge = function(pathChangeMap, pAncestor, maxPos) {
+    // can't really do much here multiple reorders cannot be merged because other reorders may depend on it
+
+    // todo when moving we may change our path or the dest path
+    // when deleting may remove path but then that is still dodgy because other dependant reorder
+    // really best not to have ordered list at all and have a field that is the order
+    pathChangeMap.add(this.path_, this, pAncestor, maxPos);
+
+};
+
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Reorder.prototype.path = function() {
+    return this.path_;
+};
+/**
+ * @return {recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Reorder.prototype.toPos = function() {
+    return this.toPath_;
+};
+/**
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Reorder.prototype.from = function() {
+    return this.path_;
+};
+/**
+ * @param {!recoil.db.ChangeSet.PathChangeMap} pathMap
+ */
+recoil.db.ChangeSet.Reorder.prototype.sortDesendants = function(pathMap) {
+};
+
+/**
+ * @param {!recoil.db.ChangeDbInterface} db
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ */
+recoil.db.ChangeSet.Reorder.prototype.applyToDb = function(db, schema) {
+    db.applyReorder(this.path_, this.toPath_, this.position_);
+};
+/**
+ * converts a path to an object that can be turned into json
+ * @param {boolean} keepOld do we need the undo information
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.ValueSerializor} valSerializor
+ * @param {!recoil.db.ChangeSet.PathCompressor=} opt_compressor
+ * @param {!recoil.db.ChangeSet.PathSerializer=} opt_pathSerializer
+ * @return {!Object}
+ */
+recoil.db.ChangeSet.Reorder.prototype.serialize = function(keepOld, schema, valSerializor, opt_compressor, opt_pathSerializer) {
+    var compressor = opt_compressor || new recoil.db.ChangeSet.DefaultPathCompressor();
+    return {type: recoil.db.ChangeSet.Change.Type.REORDER, path: this.path_.serialize(valSerializor, compressor, opt_pathSerializer),
+            to: this.toPath_ ? this.toPath_.serialize(valSerializor, compressor, opt_pathSerializer) : null, pos: this.position_};
+};
+
 
 /**
  * remove a path from the list
@@ -2623,7 +2791,10 @@ recoil.db.ChangeSet.merge = function(schema, changes) {
 recoil.db.ChangeSet.inverseChanges = function(schema, changes) {
     var res = [];
     for (var i = changes.length - 1; i >= 0; i--) {
-        res.push(changes[i].inverse(schema));
+        var c = changes[i].inverse(schema);
+        if (c) {
+            res.push(c);
+        }
     }
     return res;
 };
@@ -2690,6 +2861,8 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
         var used = [];
         var newRowMap = {};
         var oldRowMap = {};
+        var oldRowPos = {};
+        var curOrder = [];
 
         for (var i = 0; i < newObj.length; i++) {
             var origKey = newObj[i][pkColumn];
@@ -2702,10 +2875,12 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
             var oldKey = schema.createKeyPath(path, oldChild);
             var oldPk = oldChild[pkColumn];
             oldRowMap[oldPk] = oldChild;
+            oldRowPos[oldPk] = i;
             var newChildEntry = newRowMap[oldPk];
             if (newChildEntry && newChildEntry.val) {
                 var newKey = schema.createKeyPath(path, newChildEntry.val);
                 used.push(oldKey);
+                curOrder.push(oldChild);
                 if (!recoil.util.object.isEqual(newKey, oldKey)) {
                     needed.push({idx: i, newIdx: newChildEntry.idx, key: newKey, removeKey: oldKey});
                 }
@@ -2721,6 +2896,7 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
             var newChild = newObj[i];
             // this is a new item
             if (!oldRowMap[newChild[pkColumn]]) {
+                curOrder.push(newChild);
                 newKey = schema.createKeyPath(path, newChild);
                 needed.push({idx: null, newIdx: i, key: newKey});
             }
@@ -2759,6 +2935,37 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
                 break;
             }
             needed = newNeeded;
+        }
+        if (schema.isOrderedList(path)) {
+            var prev = null;
+            var nextCur = 0;
+            var seen = {};
+            for (i = 0; i < newObj.length; i++) {
+                var child = newObj[i];
+                if (nextCur < curOrder.length) {
+                    var old = curOrder[nextCur];
+
+
+                    var newPk = child[pkColumn];
+                    var curPk = old[pkColumn];
+
+                    if (curPk === newPk) {
+                        seen[newPk] = true;
+                        while (nextCur < curOrder.length && seen[curOrder[nextCur][pkColumn]]) {
+                            nextCur++;
+                        }
+
+
+                        continue;
+                    }
+                    seen[newPk] = true;
+                    var childKey = schema.createKeyPath(path, child);
+                    var prevKey = prev ? schema.createKeyPath(path, child) : null;
+                    changes.changes.push(new recoil.db.ChangeSet.Reorder(schema.absolute(childKey), prevKey ? schema.absolute(prevKey) : null, recoil.db.ChangeSet.Change.Position.AFTER));
+                }
+                prev = child;
+            }
+            console.log('ordered adjust', needed);
         }
         return changes;
 
@@ -2996,6 +3203,11 @@ recoil.db.ChangeDbNode.List = function() {
      * @private
      **/
     this.keys_ = new goog.structs.AvlTree(recoil.util.object.compareKey);
+    /**
+     * @type {goog.structs.AvlTree<number>}
+     * @private
+     **/
+
     this.positions_ = new goog.structs.AvlTree(recoil.util.object.compare);
 };
 
@@ -3039,6 +3251,78 @@ recoil.db.ChangeDbNode.List.prototype.move = function(from, to) {
     else {
         throw new Error("move node '" + from.toString() + "' does not exist");
     }
+};
+
+
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.PathItem} from
+ * @param {recoil.db.ChangeSet.PathItem} to
+ * @param {!recoil.db.ChangeSet.Change.Position} position
+ */
+recoil.db.ChangeDbNode.List.prototype.reorder = function(schema, from, to, position) {
+    var changeEntry = this.keys_.findFirst({key: from.keys(), pos: 0, value: null});
+    var pos = 0;
+    var newPos = null;
+    // new order of the list
+    var order = [];
+    var after = recoil.db.ChangeSet.Change.Position.AFTER;
+    var before = recoil.db.ChangeSet.Change.Position.BEFORE;
+    if (!changeEntry) {
+        // the entry we are trying to reorder doesn't exist do nothing
+        return;
+    }
+
+    var entries = [];
+    this.keys_.inOrderTraverse(function(entry) {
+        entries.push(entry);
+    });
+    entries.sort(function(e1, e2) {
+        return e1.pos - e2.pos;
+    });
+    var found = false;
+    if (position === after && !to) {
+        // gos in the first position
+        order.push({key: changeEntry.key, pos: pos++, value: changeEntry.value});
+        found = true;
+    }
+
+    entries.forEach(function(entry) {
+        if (recoil.util.object.isEqual(from.keys(), entry.key)) {
+            // ignore this one it will be added later
+            return;
+        }
+
+        if (to && recoil.util.object.isEqual(to.keys(), entry.key)) {
+            found = true;
+            if (position === after) {
+                order.push({key: entry.key, pos: pos++, value: entry.value});
+                order.push({key: changeEntry.key, pos: pos++, value: changeEntry.value});
+            }
+            else if (position === before) {
+                order.push({key: changeEntry.key, pos: pos++, value: changeEntry.value});
+                order.push({key: entry.key, pos: pos++, value: entry.value});
+            }
+        }
+        else {
+            order.push({key: entry.key, pos: pos++, value: entry.value});
+        }
+    });
+    if (position === before && !to) {
+        found = true;
+        order.push({key: changeEntry.key, pos: pos++, value: changeEntry.value});
+    }
+    if (found) {
+        var me = this;
+        this.positions_ = new goog.structs.AvlTree(recoil.util.object.compare);
+        this.keys_ = new goog.structs.AvlTree(recoil.util.object.compareKey);
+        order.forEach(function(e) {
+            me.keys_.add(e);
+            me.positions_.add(e.pos);
+        });
+    }
+
 };
 
 /**

@@ -233,6 +233,9 @@ recoil.structs.table.ColumnKey.prototype.valCompare = function(a, b) {
  * @return {number|undefined}
  */
 recoil.structs.table.ColumnKey.prototype.compare = function(a) {
+    if (a instanceof recoil.structs.table.CombinedColumnKey) {
+        return -a.compare(this);
+    }
     if (a instanceof recoil.structs.table.ColumnKey) {
         return this.id_ - a.id_;
     }
@@ -287,7 +290,134 @@ recoil.structs.table.ColumnKey.comparator = function(a , b) {
     return 0;
 };
 
-//recoil.structs.table.Ta
+
+/**
+ * @template T
+ * @extends {recoil.structs.table.ColumnKey}
+ * @param {!Array<recoil.structs.table.ColumnKey>} columnKeys
+ * @constructor
+ **/
+recoil.structs.table.CombinedColumnKey = function(columnKeys) {
+    this.name_ = columnKeys.map(function(c) {return c.getName();}).join(',');
+    this.subKeys_ = columnKeys;
+};
+
+
+/**
+ * not implemented for combined keys set the column keys to be the same
+ * @param {!recoil.structs.table.ColumnKey} otherKey
+ */
+recoil.structs.table.CombinedColumnKey.prototype.setSameDefaultFunc = function(otherKey)  {
+    throw new Error('not supported fro combined keys');
+};
+/**
+ * @return {T}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.getDefault = function() {
+    return this.subKeys_.map(function(c) {return c.getDefault();});
+};
+
+/**
+ * @return {!recoil.structs.table.ColumnKey}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.clone = function() {
+    return this;
+};
+/**
+ * @return {boolean}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.hasDefault = function() {
+    return this.subKeys_.reduce(function(acc, v) {return acc && v;},true);
+};
+
+
+/**
+ * compares to values for column
+ * @param {T} a
+ * @param {T} b
+ * @return {number}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.valCompare = function(a, b) {
+    if (a instanceof Array && b instanceof Array) {
+        if (a.length === this.subKeys_.length && b.length === this.subKeys_.length) {
+            for (var i = 0; i < this.subKeys_.length; i++) {
+                var res = this.subKeys_[i].valCompare(a[i], b[i]);
+                if (res !== 0) {
+                    return res;
+                }
+            }
+            return 0;
+        }
+    }
+    return recoil.util.object.compare(a, b);
+};
+
+/**
+ * compares to values for column
+ * @param {T} a
+ * @return {number|undefined}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.compare = function(a) {
+    if (a instanceof recoil.structs.table.CombinedColumnKey) {
+        var res = this.subKeys_.length - a.subKeys_.length;
+        if (res !== 0) {
+            return res;
+        }
+        for (var i = 0; i < this.subKeys_.length; i++) {
+            res = this.subKeys_[i].compare(a.subKeys_[i]);
+            if (res !== 0) {
+                return res;
+            }
+        }
+        return 0;
+    }
+    if (a instanceof recoil.structs.table.ColumnKey) {
+        return -1;
+    }
+    return undefined;
+};
+
+/**
+ * @return {string}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.equals = function() {
+    return this.toString();
+};
+
+
+/**
+ * @return {string}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.getId = function() {
+    return this.toString();
+};
+
+/**
+ * @return {string}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.toString = function() {
+    return '[' + this.subKeys_.map(function(c) {return c.toString();}).join(',') + ']';
+};
+
+
+/**
+ * @param {*} a
+ * @return {T}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.castTo = function(a) {
+    var res = [];
+    for (var i = 0; i < this.subKeys_.length; i++) {
+        res.push(this.subKeys_[i].castTo(a[i]));
+    }
+    return res;
+};
+
+/**
+ * @return {string}
+ */
+recoil.structs.table.CombinedColumnKey.prototype.getName = function() {
+    return this.name_;
+};
 
 /**
  * construct a table which cannot change, provide a mutable table to get the value
