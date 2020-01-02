@@ -67,7 +67,6 @@ recoil.util.func.makeEqualFunc = function(func, key, data) {
 /**
  * this will stop the function cb being called more than once every minTimeMs
  * @suppress {undefinedVars}
- * @suppress {undefinedNames}
  * @param {number} minTimeMs
  * @param {function()} cb
  * @return {function()}

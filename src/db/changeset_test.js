@@ -110,6 +110,12 @@ var schema = {
                 }
             }
         },
+        'ordered': {
+            children: {
+                k :{},
+                v :{},
+            }
+        },
         'list-a': {
             children: {
                 k :{},
@@ -255,6 +261,12 @@ var schema = {
         return schema.children(path).length === 0;
     },
     isOrderedList: function (path) {
+        var parts = path.parts();
+        for (var i = 0; i < parts.length; i++) {
+            if (parts[i] === 'ordered') {
+                return true;
+            }
+        }
         return false;
     }
     
@@ -995,6 +1007,65 @@ function testMergeAddThenMove() {
     
 
 }
+
+function testOrderThenMove() {
+    var ns = recoil.db.ChangeSet;
+    var fullListA = ns.Path.fromString('test/ordered');
+        // Add(a{1}), Set(a{1}/v/2), Move(a{1},a{2}) -> [Add(a{2})]) xxx
+    // reorders cannot be rearranged or moved
+    var res = ns.merge(schema,[
+        new ns.Reorder(fullListA.setKeys(['k'], [2]), null, ns.Change.Position.AFTER ,null),
+        new ns.Move(fullListA.setKeys(['k'], [2]),fullListA.setKeys(['k'], [3])),
+    ]);
+    assertObjectEquals(
+        [
+            new ns.Reorder(fullListA.setKeys(['k'], [2]), null, ns.Change.Position.AFTER ,null),
+            new ns.Move(fullListA.setKeys(['k'], [2]),fullListA.setKeys(['k'], [3]))
+        ],res);
+    
+
+
+    
+
+
+}
+
+
+function testOrderThenRemove() {
+    var ns = recoil.db.ChangeSet;
+    var fullListA = ns.Path.fromString('test/ordered');
+        // Add(a{1}), Set(a{1}/v/2), Move(a{1},a{2}) -> [Add(a{2})]) xxx
+
+    var res = ns.merge(schema,[
+        new ns.Add(fullListA.setKeys(['k'], [1]), []),
+        new ns.Add(fullListA.setKeys(['k'], [2]),[]),
+        new ns.Reorder(fullListA.setKeys(['k'], [2]), null, ns.Change.Position.AFTER ,fullListA.setKeys(['k'], [1] ), null),
+        new ns.Delete(fullListA.setKeys(['k'], [2]),[]),
+    ]);
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]), []),
+        ],res);
+    
+
+
+    res = ns.merge(schema,[
+        new ns.Add(fullListA.setKeys(['k'], [1]), []),
+        new ns.Add(fullListA.setKeys(['k'], [2]),[]),
+        new ns.Add(fullListA.setKeys(['k'], [3]),[]),
+        new ns.Reorder(fullListA.setKeys(['k'], [2]), fullListA.setKeys(['k'], [3]), ns.Change.Position.AFTER ,fullListA.setKeys(['k'], [1] ), null),
+        new ns.Delete(fullListA.setKeys(['k'], [3]),[]),
+    ]);
+    assertObjectEquals(
+        [
+            new ns.Add(fullListA.setKeys(['k'], [1]), []),
+            new ns.Add(fullListA.setKeys(['k'], [2]), []),
+        ],res);
+    
+
+
+}
+
 function testMergeAddChildrenStay () {
     var ns = recoil.db.ChangeSet;
     var fullListA = ns.Path.fromString('test/list-a');

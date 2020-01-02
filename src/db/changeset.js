@@ -838,7 +838,7 @@ recoil.db.ChangeSet.Change.deserialize = function(object, schema, valSerializor,
     if (object.type === ChangeType.REORDER) {
         return new recoil.db.ChangeSet.Reorder(
             recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor),
-            object.to ? recoil.db.ChangeSet.Path.deserialize(object.to, schema, valSerializor, compressor) : null, object.pos);
+            object.to ? recoil.db.ChangeSet.Path.deserialize(object.to, schema, valSerializor, compressor) : null, object.pos, null);
     }
     if (object.type === ChangeType.DEL) {
         path = recoil.db.ChangeSet.Path.deserialize(object.path, schema, valSerializor, compressor);
@@ -1890,6 +1890,19 @@ recoil.db.ChangeSet.Delete.prototype.merge = function(pathChangeMap, pAncestor, 
                 return;
             }
         }
+    else if (relation instanceof recoil.db.ChangeSet.Reorder) {
+        if (this.path_.isAncestor(relation.path(), true)) {
+            pathChangeMap.removeChangeInfo(relation);
+        }
+        else {
+            var toPos = relation.toPos();
+            if (toPos && this.path_.isAncestor(toPos, true)) {
+                // technically deleting the 2 should places after the previous one
+                // but we don't have that info
+                pathChangeMap.removeChangeInfo(relation);
+            }
+        }
+    }
         else {
             if (this.path_.isAncestor(relation.path(), false)) {
                 pathChangeMap.removeChangeInfo(relation);
@@ -2135,11 +2148,13 @@ recoil.db.ChangeSet.Move.prototype.serialize = function(keepOld, schema, valSeri
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {recoil.db.ChangeSet.Path} toPath
  * @param {!recoil.db.ChangeSet.Change.Position} position
+ * @param {recoil.db.ChangeSet.Path} oldAfter
  */
 
-recoil.db.ChangeSet.Reorder = function(path, toPath, position) {
+recoil.db.ChangeSet.Reorder = function(path, toPath, position, oldAfter) {
     this.path_ = path;
     this.toPath_ = toPath;
+    this.oldAfter_ = oldAfter;
     this.position_ = position;
 };
 
@@ -2150,7 +2165,7 @@ recoil.db.ChangeSet.Reorder = function(path, toPath, position) {
  * @return {!recoil.db.ChangeSet.Change}
  */
 recoil.db.ChangeSet.Reorder.prototype.move = function(from, to) {
-    return new recoil.db.ChangeSet.Reorder(this.path_.move(from, to), this.toPath_ ? this.toPath_.move(from, to) : null, this.position_);
+    return new recoil.db.ChangeSet.Reorder(this.path_.move(from, to), this.toPath_ ? this.toPath_.move(from, to) : null, this.position_, this.oldAfter_);
 };
 
 /**
@@ -2160,8 +2175,7 @@ recoil.db.ChangeSet.Reorder.prototype.move = function(from, to) {
  */
 
 recoil.db.ChangeSet.Reorder.prototype.inverse = function(schema) {
-    // todo this won't work but should be ok
-    return null;
+    return new recoil.db.ChangeSet.Reorder(this.path_, this.oldAfter_, recoil.db.ChangeSet.Change.Position.AFTER, null);
 };
 /**
  * returns the number of changes in this change
@@ -2185,7 +2199,7 @@ recoil.db.ChangeSet.Reorder.prototype.isNoOp = function() {
  * @return {!recoil.db.ChangeSet.Change}
  */
 recoil.db.ChangeSet.Reorder.prototype.absolute = function(schema) {
-    return new recoil.db.ChangeSet.Reorder(schema.absolute(this.path_), this.toPath_ ? schema.absolute(this.toPath_) : null, this.position_);
+    return new recoil.db.ChangeSet.Reorder(schema.absolute(this.path_), this.toPath_ ? schema.absolute(this.toPath_) : null, this.position_, this.oldAfter_ ? schema.absolute(this.oldAfter_) : null);
 };
 
 
@@ -2201,6 +2215,9 @@ recoil.db.ChangeSet.Reorder.prototype.merge = function(pathChangeMap, pAncestor,
     // when deleting may remove path but then that is still dodgy because other dependant reorder
     // really best not to have ordered list at all and have a field that is the order
     pathChangeMap.add(this.path_, this, pAncestor, maxPos);
+    if (this.toPath_) {
+    pathChangeMap.add(this.toPath_, this, pAncestor, maxPos);
+    }
 
 };
 
@@ -2408,6 +2425,14 @@ recoil.db.ChangeSet.PathChangeMap.prototype.removeChangeInfo = function(change) 
     if (change instanceof recoil.db.ChangeSet.Move) {
         removeInternal(change.to());
         return removeInternal(change.from());
+    }
+
+    if (change instanceof recoil.db.ChangeSet.Reorder) {
+    if (change.toPos()) {
+        removeInternal(change.toPos());
+    }
+        return removeInternal(change.path());
+
     }
 
     if (change) {
@@ -2961,11 +2986,10 @@ recoil.db.ChangeSet.diff = function(oldObj, newObj, path, pkColumn, schema, opt_
                     seen[newPk] = true;
                     var childKey = schema.createKeyPath(path, child);
                     var prevKey = prev ? schema.createKeyPath(path, child) : null;
-                    changes.changes.push(new recoil.db.ChangeSet.Reorder(schema.absolute(childKey), prevKey ? schema.absolute(prevKey) : null, recoil.db.ChangeSet.Change.Position.AFTER));
+                    changes.changes.push(new recoil.db.ChangeSet.Reorder(schema.absolute(childKey), prevKey ? schema.absolute(prevKey) : null, recoil.db.ChangeSet.Change.Position.AFTER, null));
                 }
                 prev = child;
             }
-            console.log('ordered adjust', needed);
         }
         return changes;
 
