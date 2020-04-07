@@ -1153,6 +1153,21 @@ recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
     };
     this.transactionManager_.doTrans(func);
 };
+
+/**
+ * like access Trans however creates a function to this usefull
+ * for things like putting it in a callback
+ *
+ * @param {function()} callback
+ * @param {...recoil.frp.Behaviour} var_behaviours
+ * @return {function()}
+ */
+
+recoil.frp.Frp.prototype.accessTransFunc = function(callback, var_behaviours) {
+    var me = this;
+    var args = arguments;
+    return function() {me.accessTrans.apply(me, args);};
+};
 /**
  * @param {function()} callback
  * @param {...recoil.frp.Behaviour} var_behaviours
