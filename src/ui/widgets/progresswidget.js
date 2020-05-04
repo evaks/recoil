@@ -16,6 +16,7 @@ recoil.ui.widgets.ProgressWidget = function(scope) {
     this.scope_ = scope;
     this.progress_ = new goog.ui.ProgressBar();
     this.text_ = goog.dom.createDom('div', {class: 'progress-bar-text'});
+
     this.progressDiv_ = goog.dom.createDom(
         'div', {},
         goog.dom.createDom('div', {class: 'progress-bar-thumb'}),
@@ -41,7 +42,14 @@ recoil.ui.widgets.ProgressWidget.prototype.updateState_ = function(helper) {
     if (helper.isGood()) {
         this.progress_.setMaximum(this.maxB_.get());
         this.progress_.setValue(this.valueB_.get());
-        goog.dom.setTextContent(this.text_, this.textB_.get());
+        let val = this.textB_.get();
+
+        if (goog.dom.isElement(val)) {
+            goog.dom.setTextContent(this.text_, '' /*this.textB_.get().innerText*/);
+            this.text_.appendChild(this.textB_.get());
+        } else {
+            goog.dom.setTextContent(this.text_, this.textB_.get());
+        }
     }
     else {
         goog.dom.setTextContent(this.text_, '');
@@ -61,7 +69,7 @@ recoil.ui.widgets.ProgressWidget.options = recoil.ui.util.StandardOptions(
 /**
  * @param {recoil.frp.Behaviour<number>|number} valueB
  * @param {recoil.frp.Behaviour<number>|number} maxB
- * @param {recoil.frp.Behaviour<string>|string} textB
+ * @param {recoil.frp.Behaviour<string>|string|Element} textB
  * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation=} opt_enabledB
  */
 recoil.ui.widgets.ProgressWidget.prototype.attach = function(valueB, maxB, textB,  opt_enabledB) {

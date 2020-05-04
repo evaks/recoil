@@ -1132,6 +1132,11 @@ recoil.frp.Frp.prototype.createConstB = function(initial) {
 
 /**
  * allows access to behaviours and also puts the callback in a transaction
+ * Warning: DO NOT USE When you just need access to a behaviour, since you will not
+ * receive updates from the behaviour.
+ * It should only  be used when an event external to the frp system needs to update the
+ * behaviours.
+ * E.g: a user clicks on an element and you want to set a value based on the behaviour.
  *
  * @param {function()} callback
  * @param {...recoil.frp.Behaviour} var_behaviours
