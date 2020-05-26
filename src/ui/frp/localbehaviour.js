@@ -28,7 +28,11 @@ recoil.ui.frp.LocalBehaviour.create = function(frp, version, key, defVal, storag
     res = frp.liftBI(
         function() {
             if (storage.hasOwnProperty(k)) {
-                return serializer.deserialize(storage[k]);
+                try {
+                    return serializer.deserialize(storage[k]);
+                } catch (e) {
+                    return defVal;
+                }
             }
             return defVal;
         }, function(val) {
@@ -75,6 +79,11 @@ recoil.ui.frp.LocalBehaviour.createSession = function(frp, version, key, defVal,
 };
 
 /**
+ * @private
+ */
+recoil.ui.frp.LocalBehaviour.def_ = new Object();
+
+/**
  * creates a local session storage, this will use both session
  * local, session will override the local storage, but will write to both
  * this write to both, this is useful if you want to new tabs have information
@@ -89,7 +98,7 @@ recoil.ui.frp.LocalBehaviour.createSession = function(frp, version, key, defVal,
  * @return {!recoil.frp.Behaviour}
  */
 recoil.ui.frp.LocalBehaviour.createSessionLocal = function(frp, version, key, defVal, opt_serializer) {
-    var def = new Object();
+    var def = recoil.ui.frp.LocalBehaviour.def_;
     var sessionB = recoil.ui.frp.LocalBehaviour.create(frp, version, 'session.' + key, def, sessionStorage, opt_serializer);
     var localB = recoil.ui.frp.LocalBehaviour.create(frp, version, 'local.' + key, def, localStorage, opt_serializer);
 
@@ -103,6 +112,24 @@ recoil.ui.frp.LocalBehaviour.createSessionLocal = function(frp, version, key, de
     }, localB, sessionB);
 };
 
+
+/**
+ * creates a local session storage, this will use both session
+ * local, session will override the local storage, but will write to both
+ * this write to both, this is useful if you want to new tabs have information
+ * of the old tab when opened but maintain its new copy
+ *
+ * @suppress {undefinedVars}
+ * @param {!recoil.frp.Frp} frp
+ * @param {string} version use this old values are lost if you upgrade
+ * @param {string} key the key to store this var under
+ * @param {?} defVal
+ * @return {!recoil.frp.Behaviour}
+ */
+recoil.ui.frp.LocalBehaviour.createSessionLocalBool = function(frp, version, key, defVal) {
+    return recoil.ui.frp.LocalBehaviour.createSessionLocal(frp, version, key, defVal, new recoil.ui.frp.LocalBehaviour.BoolSerializer());
+};
+
 /**
  * clears all local storage
  */
@@ -110,4 +137,30 @@ recoil.ui.frp.LocalBehaviour.clear = function() {
     console.log('clearing storage');
     localStorage.clear();
     sessionStorage.clear();
+};
+
+
+
+/**
+ * @constructor
+ * @implements {recoil.db.Cache.Serializer}
+ */
+recoil.ui.frp.LocalBehaviour.BoolSerializer = function() {
+};
+
+/**
+ * @param {?} val
+ * @return {string}
+ */
+recoil.ui.frp.LocalBehaviour.BoolSerializer.prototype.serialize = function(val) {
+    return val ? 'true' : 'false';
+};
+
+/**
+ * @param {string} val
+ * @return {?}
+ */
+
+recoil.ui.frp.LocalBehaviour.BoolSerializer.prototype.deserialize = function(val) {
+    return val === 'true';
 };

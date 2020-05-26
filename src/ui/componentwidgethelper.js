@@ -24,7 +24,7 @@ goog.require('recoil.ui.messages');
  * @template T
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
  * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
- * @param {Object} obj the this pointer callback will be called with
+ * @param {Object} obj the this pointer 'callback' will be called with
  * @param {function(...?)} callback
  * @param {function()=} opt_detachCallback
  * @constructor

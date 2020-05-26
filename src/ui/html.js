@@ -378,3 +378,29 @@ recoil.ui.HtmlHelper.prototype.onEvent = function(element, event, callbackB) {
     helper.attach(callbackB);
 
 };
+
+/**
+ * @param {!Element} element
+ * @param {!recoil.frp.Behaviour<recoil.ui.message.Message>|recoil.ui.message.Message} tooltip
+ */
+recoil.ui.HtmlHelper.prototype.tooltip = function(element, tooltip) {
+    var tooltipEl = null;
+    var tooltipB = new recoil.frp.Util(this.scope_.getFrp()).toBehaviour(tooltip);
+    var helper = new recoil.ui.WidgetHelper(this.scope_, element, this, function(helper) {
+
+        if (tooltipEl) {
+            tooltipEl.dispose();
+        }
+        tooltipEl = null;
+        if (tooltipB.good() && tooltipB.get()) {
+            tooltipEl = new goog.ui.Tooltip(element, tooltip.toString());
+        }
+
+    }, function() {
+        if (tooltipEl) {
+            tooltipEl.dispose();
+        }
+        tooltipEl = null;
+    });
+    helper.attach(tooltipB);
+};

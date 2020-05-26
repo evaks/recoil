@@ -21,14 +21,20 @@ goog.require('recoil.ui.WidgetScope');
  * @param {Element} container when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {T} obj the this pointer callback will be called with
  * @param {function(this:T, !recoil.ui.WidgetHelper,...)} callback
+ * @param {function()=} opt_detachCallback
  * @constructor
  */
 
-recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
+recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback, opt_detachCallback) {
     this.observer_ = widgetScope.getObserver();
     this.frp_ = widgetScope.getFrp();
     this.component_ = container;
     var me = this;
+    this.detachCallback_ = function() {
+        if (opt_detachCallback) {
+            opt_detachCallback.apply(obj, []);
+        }
+    };
     this.listenFunc_ = function(visible) {
         if (visible != me.isAttached_) {
             me.isAttached_ = visible;
@@ -36,6 +42,7 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
                 me.frp_.attach(/** @type {!recoil.frp.Behaviour} */ (me.attachedBehaviour_));
             } else {
                 me.frp_.detach(/** @type {!recoil.frp.Behaviour} */ (me.attachedBehaviour_));
+                me.detachCallback_();
             }
         }
     };
@@ -186,6 +193,7 @@ recoil.ui.WidgetHelper.prototype.attach = function(var_behaviour) {
     if (hadBehaviour) {
         if (this.isAttached_) {
             this.frp_.detach(/** @type {!recoil.frp.Behaviour} */(this.attachedBehaviour_));
+            this.detachCallback_();
         }
     }
 
