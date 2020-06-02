@@ -52,6 +52,14 @@ recoil.db.ChangeDbInterface.prototype.applyMove = function(from, to) {};
 
 
 /**
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {recoil.db.ChangeSet.Path} to
+ * @param {!recoil.db.ChangeSet.Change.Position} position
+ */
+recoil.db.ChangeDbInterface.prototype.applyReorder = function(from, to, position) {};
+
+
+/**
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
  */
@@ -210,6 +218,27 @@ recoil.db.ChangeDb.prototype.applyDelete = function(path) {
 
     throw new Error("cannot remove node '" + path.toString() + "' from a leaf");
 
+
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Path} from
+ * @param {recoil.db.ChangeSet.Path} to
+ * @param {!recoil.db.ChangeSet.Change.Position} position
+ */
+recoil.db.ChangeDb.prototype.applyReorder = function(from, to, position) {
+    var listNode = this.resolve_(from.unsetKeys(), false);
+    if (!listNode) {
+        return;
+    }
+
+    if (!(listNode instanceof recoil.db.ChangeDbNode.List)) {
+        throw new Error("move node '" + from.unsetKeys().toString() + "' is not a list");
+    }
+
+    if (this.schema_.isOrderedList(from)) {
+        listNode.reorder(this.schema_, from.last(), to ? to.last() : null, position);
+    }
 
 };
 
@@ -2221,7 +2250,7 @@ recoil.db.ChangeSet.Reorder.prototype.sortDesendants = function(pathMap) {
  * @param {!recoil.db.ChangeSet.Schema} schema
  */
 recoil.db.ChangeSet.Reorder.prototype.applyToDb = function(db, schema) {
-    //db.applyReorder(this.path_, this.toPath_, this.position_);
+    db.applyReorder(this.path_, this.toPath_, this.position_);
 };
 /**
  * converts a path to an object that can be turned into json
