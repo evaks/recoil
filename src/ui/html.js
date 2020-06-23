@@ -294,7 +294,7 @@ recoil.ui.HtmlHelper.prototype.createDom = function(tagName, opt_attributes, var
 
 /**
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onClick = function(element, callbackB) {
   this.onEvent(element, goog.events.EventType.CLICK, callbackB);
@@ -302,7 +302,7 @@ recoil.ui.HtmlHelper.prototype.onClick = function(element, callbackB) {
 
 /**
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onDragStart = function(element, callbackB) {
   this.onEvent(element, goog.events.EventType.DRAGSTART, callbackB);
@@ -310,7 +310,7 @@ recoil.ui.HtmlHelper.prototype.onDragStart = function(element, callbackB) {
 
 /**
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onDrag = function(element, callbackB) {
   this.onEvent(element, goog.events.EventType.DRAG, callbackB);
@@ -318,7 +318,7 @@ recoil.ui.HtmlHelper.prototype.onDrag = function(element, callbackB) {
 
 /**
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onDragEnd = function(element, callbackB) {
   this.onEvent(element, goog.events.EventType.DRAGEND, callbackB);
@@ -326,7 +326,7 @@ recoil.ui.HtmlHelper.prototype.onDragEnd = function(element, callbackB) {
 
 /**
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onDragEnter = function(element, callbackB) {
   this.onEvent(element, goog.events.EventType.DRAGENTER, callbackB);
@@ -334,7 +334,7 @@ recoil.ui.HtmlHelper.prototype.onDragEnter = function(element, callbackB) {
 
 /**
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onDragOver = function(element, callbackB) {
   this.onEvent(element, goog.events.EventType.DRAGOVER, callbackB);
@@ -342,7 +342,7 @@ recoil.ui.HtmlHelper.prototype.onDragOver = function(element, callbackB) {
 
 /**
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onDragLeave = function(element, callbackB) {
   this.onEvent(element, goog.events.EventType.DRAGLEAVE, callbackB);
@@ -350,7 +350,7 @@ recoil.ui.HtmlHelper.prototype.onDragLeave = function(element, callbackB) {
 
 /**
  * @param {!Element} element
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onDrop = function(element, callbackB) {
   this.onEvent(element, goog.events.EventType.DROP, callbackB);
@@ -359,7 +359,7 @@ recoil.ui.HtmlHelper.prototype.onDrop = function(element, callbackB) {
 /**
  * @param {!Element} element
  * @param {!goog.events.EventType} event
- * @param {!recoil.frp.Behaviour<string>} callbackB
+ * @param {!recoil.frp.Behaviour<?>} callbackB
  */
 recoil.ui.HtmlHelper.prototype.onEvent = function(element, event, callbackB) {
     var helper = new recoil.ui.WidgetHelper(this.scope_, element, this, function(helper) {
