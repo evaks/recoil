@@ -42,7 +42,7 @@ recoil.ui.widgets.ProgressWidget.prototype.updateState_ = function(helper) {
     if (helper.isGood()) {
         this.progress_.setMaximum(this.maxB_.get());
         this.progress_.setValue(this.valueB_.get());
-        let val = this.textB_.get();
+        var val = this.textB_.get();
 
         if (goog.dom.isElement(val)) {
             goog.dom.setTextContent(this.text_, '' /*this.textB_.get().innerText*/);

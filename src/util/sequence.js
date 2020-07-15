@@ -35,7 +35,7 @@ recoil.util.Sequence.prototype.reset = function() {
  */
 recoil.util.Sequence.prototype.seen = function(val) {
     if (typeof(val) === 'string') {
-        let v = goog.math.Long.fromString(val);
+        var v = goog.math.Long.fromString(val);
         if (this.val_.lessThanOrEqual(v)) {
             this.val_ = v.add(goog.math.Long.getOne());
         }

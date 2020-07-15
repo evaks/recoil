@@ -965,6 +965,16 @@ recoil.db.ChangeSet.Schema.prototype.exists = function(path) {
 };
 
 /**
+ * this is a partial list and may set only the keys in this path
+ * this does not mean the other items get deleted
+ * @param {recoil.db.ChangeSet.Path} path
+ * @return {boolean} true if the path exist for this path
+ */
+recoil.db.ChangeSet.Schema.prototype.isPartial = function(path) {
+
+};
+
+/**
  * returns a list of keys at the path level not parent keys
  * @param {recoil.db.ChangeSet.Path} path
  * @return {!Array<string>} keys
@@ -3245,16 +3255,46 @@ recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
     // we could schemas that filter nodes but not yet
     var newKeys = new goog.structs.AvlTree(recoil.util.object.compareKey);
     var newPositions = new goog.structs.AvlTree(recoil.util.object.compare);
+    var partial = schema.isPartial(path);
     if (val) {
         var pos = 0;
+        var maxPos = 0;
+        if (partial) {
+            this.keys_.inOrderTraverse(function(val) {
+                maxPos = Math.max(val.pos + 1, maxPos);
+            });
+        }
         val.forEach(function(val) {
-            newPositions.add(pos);
+            var ourPos = pos;
+            // if this partial then our pos needs to be calculated
             var subKey = schema.createKeyPath(path, val);
-            var newNode = keys.safeFind({key: subKey.lastKeys(), pos: pos++, value: new recoil.db.ChangeDbNode.Container()});
+            if (partial) {
+                var oldNode = keys.findFirst({key: subKey.lastKeys(), pos: ourPos, value: new recoil.db.ChangeDbNode.Container()});
+                if (oldNode) {
+                    ourPos = oldNode.pos;
+                }
+                else {
+                    ourPos = maxPos;
+                    maxPos++;
+                }
+            }
+
+
+            newPositions.add(ourPos);
+            var newNode = keys.safeFind({key: subKey.lastKeys(), pos: ourPos, value: new recoil.db.ChangeDbNode.Container()});
+            pos++;
             newNode.value.set(schema, subKey, val);
             newKeys.add(newNode);
         });
     }
+    if (partial) {
+        this.keys_.inOrderTraverse(function(item) {
+            if (!newKeys.findFirst(item)) {
+                newKeys.add(item);
+            }
+        });
+    }
+
     this.keys_ = newKeys;
     this.positions_ = newPositions;
 };

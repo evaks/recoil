@@ -223,6 +223,9 @@ var schema = {
         });
         return path.setKeys(keys, keyValues);
     },
+    isPartial : function (path) {
+        return false;
+    },
     absolute : function (path) {
         if (path.parts()[0] === 'full' || path.parts()[0] === 'test') {
             return path;
