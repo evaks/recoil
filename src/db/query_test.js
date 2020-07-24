@@ -10,7 +10,7 @@ function testField() {
     var q = new recoil.db.Query();
 
     assertEquals(7, q.field('a').eval(scope));
-    assertEquals('hello', q.field('b.c').eval(scope));
+    assertEquals('hello', q.field(['b','c']).eval(scope));
     assertEquals(2, q.field('d[1]').eval(scope));
 
     q.field$('a');
@@ -83,6 +83,7 @@ function testExists() {
     assertTrue(q.exists('u').eval(scope));
     assertTrue(q.exists('a[0]').eval(scope));
     assertFalse(q.exists('a[7]').eval(scope));
+    assertFalse(q.exists('a[7].b').eval(scope));
     assertTrue(q.exists('a[3].a').eval(scope));
     assertFalse(q.exists('a[3].b').eval(scope));
     assertFalse(q.exists('fred').eval(scope));

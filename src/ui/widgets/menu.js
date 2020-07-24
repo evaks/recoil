@@ -28,7 +28,7 @@ recoil.ui.widgets.MenuBarWidget = function(scope) {
 
     /**
      * @private
-     * @type !goog.ui.Component
+     * @type {!goog.ui.Component}
      *
      */
     this.menuBar_ = goog.ui.menuBar.create();
@@ -53,7 +53,7 @@ recoil.ui.widgets.MenuBarWidget.prototype.getComponent = function() {
 };
 
 /**
- * @type Object
+ * @type {Object}
  */
 recoil.ui.widgets.MenuBarWidget.defaultConfig = {
     renderer: null,
@@ -64,7 +64,7 @@ recoil.ui.widgets.MenuBarWidget.defaultConfig = {
  *
  * @param {!recoil.frp.Behaviour<!Object>|!Object} config
  * @param {!recoil.frp.Behaviour<!Array<!recoil.ui.widgets.MenuButtonWidget>> | !Array<recoil.ui.widgets.MenuButtonWidget>} menus
- * @param {!recoil.frp.Behaviour<!boolean> | !boolean} enabled
+ * @param {!recoil.frp.Behaviour<boolean>|boolean} enabled
  */
 recoil.ui.widgets.MenuBarWidget.prototype.attach = function(config, menus, enabled) {
     var util = new recoil.frp.Util(this.scope_.getFrp());
@@ -97,7 +97,7 @@ recoil.ui.widgets.MenuBarWidget.prototype.updateConfig_ = function(helper, confi
  * @private
  * @param {recoil.ui.WidgetHelper} helper
  * @param {recoil.frp.Behaviour<Array<recoil.ui.Widget>>} menusB
- * @param {recoil.frp.Behaviour<Boolean>} enabledB
+ * @param {recoil.frp.Behaviour<boolean>} enabledB
  */
 recoil.ui.widgets.MenuBarWidget.prototype.updateState_ = function(helper, menusB, enabledB) {
     if (this.menuBar_) {
@@ -109,7 +109,11 @@ recoil.ui.widgets.MenuBarWidget.prototype.updateState_ = function(helper, menusB
             goog.array.forEach(menusB.get(), function(menuWidget) {
                 menuWidget.getComponent().setDispatchTransitionEvents(goog.ui.Component.State.ALL, true);
                 me.menuBar_.addChild(menuWidget.getComponent(), true);
+                if (menuWidget.reposition) {
+                    menuWidget.reposition();
+                }
             });
+
         }
     }
 };
@@ -123,10 +127,21 @@ recoil.ui.widgets.MenuBarWidget.prototype.updateState_ = function(helper, menusB
 recoil.ui.widgets.MenuButtonWidget = function(scope) {
     /**
      * @private
-     * @type !goog.ui.MenuButton
+     * @type {!goog.ui.MenuButton}
      *
      */
     this.menuBtn_ = new goog.ui.MenuButton();
+    
+
+    goog.events.listen(this.menuBtn_, goog.ui.Component.EventType.OPEN, function () {
+        setTimeout(function () {
+            this.menuBtn_.getMenu();
+            this.menuBtn_.invalidateMenuSize();
+            this.menuBtn_.positionMenu();
+        }.bind(this), 1);
+    }.bind(this));
+    this.menuBtn_.setRenderMenuAsSibling(true);
+    this.menuBtn_.setScrollOnOverflow(true);
     this.state_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuBtn_, this, this.updateState_);
 };
 
@@ -139,7 +154,7 @@ recoil.ui.widgets.MenuButtonWidget = function(scope) {
 recoil.ui.widgets.MenuButtonWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
 
 /**
- * @type !Object
+ * @type {!Object}
  */
 recoil.ui.widgets.MenuButtonWidget.defaultConfig = {
     renderer: null,
@@ -147,19 +162,46 @@ recoil.ui.widgets.MenuButtonWidget.defaultConfig = {
 };
 
 /**
- * Associates a list of menu items widget with this Menu Widget
- *
- * @param {String} name the name of the menuItem
- * @param {Array<recoil.ui.widgets.MenuItemActionWidget>|recoil.frp.Behaviour<Array<recoil.ui.widgets.MenuItemWidget>>} menuItems
+ * attachable behaviours for widget
  */
-recoil.ui.widgets.MenuButtonWidget.prototype.attach = function(name, menuItems) {
-    var util = new recoil.frp.Util(this.state_.getFrp());
+recoil.ui.widgets.MenuButtonWidget.options = recoil.ui.util.StandardOptions(
+    'name', 'items',
+    {
+        action: null,
+    }
+);
 
-    this.nameB_ = util.toBehaviour(name);
-    this.itemsB_ = util.toBehaviour(menuItems);
+/**
+ * Associates a list of menu items widget with this Menu Widget
+ * @param {!Object| !recoil.frp.Behaviour<Object>} options
+ */
+recoil.ui.widgets.MenuButtonWidget.prototype.attachStruct = function(options) {
+    var util = new recoil.frp.Util(this.state_.getFrp());
+    var frp = this.state_.getFrp();
+
+    var bound = recoil.ui.widgets.MenuButtonWidget.options.bind(frp, options);
+
+    this.nameB_ = bound.name();
+    this.itemsB_ = bound.items();
     this.state_.attach(this.itemsB_, this.nameB_);
+
 };
 
+/**
+ * Associates a list of menu items widget with this Menu Widget
+ *
+ * @param {string|recoil.frp.Behaviour<string>} name the name of the menuItem
+ * @param {!Array<!recoil.ui.widgets.MenuItemActionWidget>|!recoil.frp.Behaviour<!Array<!recoil.ui.widgets.MenuItemWidget>>} menuItems
+ */
+recoil.ui.widgets.MenuButtonWidget.prototype.attach = function(name, menuItems) {
+    this.attachStruct({name: name, items: menuItems});
+};
+
+/**
+ *  repositions menu under button
+ */
+recoil.ui.widgets.MenuButtonWidget.prototype.reposition = function () {
+};
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
@@ -182,7 +224,7 @@ recoil.ui.widgets.MenuButtonWidget.prototype.updateState_ = function(helper) {
         });
         this.menuBtn_.setMenu(menu);
     }
-
+    
 };
 
 /**
@@ -190,6 +232,79 @@ recoil.ui.widgets.MenuButtonWidget.prototype.updateState_ = function(helper) {
  * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.MenuButtonWidget.prototype.getComponent = function() {
+    return this.menuBtn_;
+};
+
+
+/**
+ * looks like a top level menu but is actually just button
+ * @constructor
+ * @implements recoil.ui.Widget
+ * @param {!recoil.ui.WidgetScope} scope
+ */
+recoil.ui.widgets.MenuActionButtonWidget = function(scope) {
+    /**
+     * @private
+     * @type {!goog.ui.Button}
+     *
+     */
+    this.menuBtn_ = new goog.ui.Button(undefined, goog.ui.MenuButtonRenderer.getInstance());
+    this.state_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuBtn_, this, this.updateState_);
+    this.actionB_ = new recoil.util.Handle();
+    recoil.ui.events.listenH(this.menuBtn_, goog.ui.Component.EventType.ACTION,
+                this.actionB_);
+
+};
+
+/**
+ * all widgets should not allow themselves to be flatterned
+ *
+ * @type {!Object}
+ */
+
+recoil.ui.widgets.MenuActionButtonWidget.prototype.flatten = recoil.frp.struct.NO_FLATTEN;
+
+
+/**
+ * attachable behaviours for widget
+ */
+recoil.ui.widgets.MenuActionButtonWidget.options = recoil.ui.util.StandardOptions(
+    'name', 'action',
+);
+
+/**
+ * Associates a list of menu items widget with this Menu Widget
+ * @param {!Object| !recoil.frp.Behaviour<Object>} options
+ */
+recoil.ui.widgets.MenuActionButtonWidget.prototype.attachStruct = function(options) {
+    var util = new recoil.frp.Util(this.state_.getFrp());
+    var frp = this.state_.getFrp();
+
+    var bound = recoil.ui.widgets.MenuButtonWidget.options.bind(frp, options);
+
+    this.nameB_ = bound.name();
+    let actionB = bound.action();
+    this.actionB_.set(actionB);
+    this.state_.attach(this.nameB_, actionB);
+
+};
+
+/**
+ *
+ * @param {recoil.ui.WidgetHelper} helper
+ * @private
+ */
+recoil.ui.widgets.MenuActionButtonWidget.prototype.updateState_ = function(helper) {
+    if (helper.isGood()) {
+        this.menuBtn_.setContent(this.nameB_.get());
+    }
+};
+
+/**
+ *
+ * @return {!goog.ui.Component}
+ */
+recoil.ui.widgets.MenuActionButtonWidget.prototype.getComponent = function() {
     return this.menuBtn_;
 };
 
@@ -202,7 +317,7 @@ recoil.ui.widgets.MenuButtonWidget.prototype.getComponent = function() {
 recoil.ui.widgets.MenuItemActionWidget = function(scope) {
     /**
      * @private
-     * @type !goog.ui.MenuItem
+     * @type {!goog.ui.MenuItem}
      *
      */
 
@@ -239,8 +354,8 @@ recoil.ui.widgets.MenuItemActionWidget.prototype.getComponent = function() {
 
 /**
  *
- * @param {recoil.frp.Behaviour<String>} name
- * @param {recoil.frp.Behaviour<!boolean>|!boolean} enabledB
+ * @param {recoil.frp.Behaviour<string>|string} name
+ * @param {recoil.frp.Behaviour<boolean>|boolean} enabledB
  * @param {!recoil.frp.Behaviour<?>} actionB
  */
 recoil.ui.widgets.MenuItemActionWidget.prototype.attach = function(name, enabledB, actionB) {
@@ -254,8 +369,8 @@ recoil.ui.widgets.MenuItemActionWidget.prototype.attach = function(name, enabled
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
- * @param {recoil.frp.Behaviour<String>} nameB
- * @param {recoil.frp.Behaviour<Boolean>} enabledB
+ * @param {recoil.frp.Behaviour<string>} nameB
+ * @param {recoil.frp.Behaviour<boolean>} enabledB
  * @param {!recoil.frp.Behaviour<?>} actionB
  * @private
  */
@@ -313,7 +428,7 @@ recoil.ui.widgets.SubMenuWidget.prototype.getComponent = function() {
 /**
  *
  * @param {recoil.frp.Behaviour<string>|string} name
- * @param {recoil.frp.Behaviour<!boolean>|boolean} enabledB
+ * @param {recoil.frp.Behaviour<boolean>|boolean} enabledB
  */
 recoil.ui.widgets.SubMenuWidget.prototype.attach = function(name, enabledB) {
     var util = new recoil.frp.Util(this.state_.getFrp());

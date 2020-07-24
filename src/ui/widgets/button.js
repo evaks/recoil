@@ -65,7 +65,7 @@ recoil.ui.widgets.ButtonWidget.prototype.getButton = function() {
 //};
 
 /**
- * @param {recoil.frp.Behaviour<string>|string|!recoil.frp.Behaviour<!Element>|Node} textB
+ * @param {recoil.frp.Behaviour<string>|string|!recoil.frp.Behaviour<!Element>|Node|!recoil.ui.message.Message} textB
  * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {(!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation)=} opt_enabledB
  * @param {(!recoil.frp.Behaviour<boolean>|boolean)=} opt_editable
@@ -148,7 +148,7 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
- * @param {recoil.frp.Behaviour<string>} textB
+ * @param {recoil.frp.Behaviour<string|!recoil.ui.message.Message|Node>} textB
  * @param {recoil.frp.Behaviour<*>} callbackB
  * @param {recoil.frp.Behaviour<recoil.ui.BoolWithExplanation>} enabledB
  * @private
@@ -156,7 +156,12 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
 recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, textB, callbackB, enabledB) {
     if (this.button_) {
         if (textB.good()) {
-            this.button_.setContent(textB.get());
+            var text = textB.get();
+            if (text instanceof recoil.ui.message.Message) {
+                text = text.toString();
+            }
+            this.button_.setContent(text);
+            
         }
         var classes = ['recoil-button-tooltip-padding'].concat(this.classesB_.good() ? this.classesB_.get() : []);
         if (!this.helper_.isGood()) {

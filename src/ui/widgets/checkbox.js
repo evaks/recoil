@@ -23,7 +23,7 @@ recoil.ui.widgets.CheckboxWidget = function(scope) {
     this.checkBox_ = new goog.ui.Checkbox();
     this.editableDiv_ = goog.dom.createDom('span');
     this.readonlyDiv_ = goog.dom.createDom('span');
-    this.containerDiv_ = goog.dom.createDom('span', {class: 'foo'});
+    this.containerDiv_ = goog.dom.createDom('span');
     this.container_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.containerDiv_);
     this.container_.addClassName('goog-inline-block');
     this.checkBox_.setEnabled(false);

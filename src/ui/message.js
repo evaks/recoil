@@ -102,6 +102,16 @@ recoil.ui.message.Message.prototype.clone = function() {
 };
 
 /**
+ * like toString but with a : on the end (at least for english
+ * @param {!Object=} opt_data
+ * @return {string}
+ */
+
+recoil.ui.message.Message.prototype.toField = function(opt_data) {
+    return recoil.ui.messages.FIELD.toString({'txt' :this.toString(opt_data)});
+};
+
+/**
  * turn this message into a string if parameters are not assigned
  *       they will be enclosed in {$}
  * @param {!Object=} opt_data

@@ -19,6 +19,12 @@ recoil.ui.messages.OR = recoil.ui.message.getParamMsg(['first'], ' or ', ['secon
  * @type {!recoil.ui.message.Message}
  * @final
  */
+recoil.ui.messages.FIELD = recoil.ui.message.getParamMsg(['txt'], ':');
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
 recoil.ui.messages.PAGE_X_OF_Y = recoil.ui.message.getParamMsg('Page ', ['x'], ' of ', ['y']);
 
 /**
