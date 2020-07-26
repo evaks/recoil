@@ -108,7 +108,7 @@ recoil.ui.message.Message.prototype.clone = function() {
  */
 
 recoil.ui.message.Message.prototype.toField = function(opt_data) {
-    return recoil.ui.messages.FIELD.toString({'txt' :this.toString(opt_data)});
+    return recoil.ui.messages.FIELD.toString({'txt' : this.toString(opt_data)});
 };
 
 /**

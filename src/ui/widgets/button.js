@@ -161,7 +161,7 @@ recoil.ui.widgets.ButtonWidget.prototype.updateState_ = function(helper, textB, 
                 text = text.toString();
             }
             this.button_.setContent(text);
-            
+
         }
         var classes = ['recoil-button-tooltip-padding'].concat(this.classesB_.good() ? this.classesB_.get() : []);
         if (!this.helper_.isGood()) {

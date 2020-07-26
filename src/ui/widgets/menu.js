@@ -131,10 +131,10 @@ recoil.ui.widgets.MenuButtonWidget = function(scope) {
      *
      */
     this.menuBtn_ = new goog.ui.MenuButton();
-    
 
-    goog.events.listen(this.menuBtn_, goog.ui.Component.EventType.OPEN, function () {
-        setTimeout(function () {
+
+    goog.events.listen(this.menuBtn_, goog.ui.Component.EventType.OPEN, function() {
+        setTimeout(function() {
             this.menuBtn_.getMenu();
             this.menuBtn_.invalidateMenuSize();
             this.menuBtn_.positionMenu();
@@ -200,7 +200,7 @@ recoil.ui.widgets.MenuButtonWidget.prototype.attach = function(name, menuItems) 
 /**
  *  repositions menu under button
  */
-recoil.ui.widgets.MenuButtonWidget.prototype.reposition = function () {
+recoil.ui.widgets.MenuButtonWidget.prototype.reposition = function() {
 };
 /**
  *
@@ -224,7 +224,7 @@ recoil.ui.widgets.MenuButtonWidget.prototype.updateState_ = function(helper) {
         });
         this.menuBtn_.setMenu(menu);
     }
-    
+
 };
 
 /**
@@ -269,7 +269,7 @@ recoil.ui.widgets.MenuActionButtonWidget.prototype.flatten = recoil.frp.struct.N
  * attachable behaviours for widget
  */
 recoil.ui.widgets.MenuActionButtonWidget.options = recoil.ui.util.StandardOptions(
-    'name', 'action',
+    'name', 'action'
 );
 
 /**

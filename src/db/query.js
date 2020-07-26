@@ -26,19 +26,40 @@ goog.require('recoil.db.Escaper');
 /**
  * @interface
  */
-recoil.db.QueryHelper = function () {};
+recoil.db.QueryHelper = function() {};
 
 /**
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.true = function () {};
+recoil.db.QueryHelper.prototype.true = function() {};
+
+/**
+ * @param {string} x
+ * @param {string} y
+ * @return {string}
+ */
+recoil.db.QueryHelper.prototype.and = function(x, y) {};
+
+/**
+ * @param {string} x
+ * @param {string} y
+ * @return {string}
+ */
+recoil.db.QueryHelper.prototype.or = function(x, y) {};
 
 
 /**
- * @param {?} val
+ * @param {string} x
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.value = function (val) {};
+recoil.db.QueryHelper.prototype.not = function(x) {};
+
+/**
+ * @param {string} x
+ * @param {string} y
+ * @return {string}
+ */
+recoil.db.QueryHelper.prototype.notEquals = function(x, y) {};
 
 
 /**
@@ -46,36 +67,7 @@ recoil.db.QueryHelper.prototype.value = function (val) {};
  * @param {string} y
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.and = function (x, y) {};
-
-/**
- * @param {string} x
- * @param {string} y
- * @return {string}
- */
-recoil.db.QueryHelper.prototype.or = function (x, y) {};
-
-
-/**
- * @param {string} x
- * @return {string}
- */
-recoil.db.QueryHelper.prototype.not = function (x) {};
-
-/**
- * @param {string} x
- * @param {string} y
- * @return {string}
- */
-recoil.db.QueryHelper.prototype.notEquals = function (x, y) {};
-
-
-/**
- * @param {string} x
- * @param {string} y
- * @return {string}
- */
-recoil.db.QueryHelper.prototype.equals = function (x, y) {};
+recoil.db.QueryHelper.prototype.equals = function(x, y) {};
 
 
 
@@ -84,7 +76,7 @@ recoil.db.QueryHelper.prototype.equals = function (x, y) {};
  * @param {!Array<string>} path
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.field = function (scope, path) {};
+recoil.db.QueryHelper.prototype.field = function(scope, path) {};
 
 
 /**
@@ -92,14 +84,23 @@ recoil.db.QueryHelper.prototype.field = function (scope, path) {};
  * @param {!Array<string>} list
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.in = function (value, list) {};
+recoil.db.QueryHelper.prototype.in = function(value, list) {};
 
 /**
  * @param {string} value
  * @param {!Array<string>} list
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.notIn = function (value, list) {};
+recoil.db.QueryHelper.prototype.notIn = function(value, list) {};
+
+
+/**
+ * @param {string} value
+ * @param {boolean} exists
+ * @return {string}
+ */
+recoil.db.QueryHelper.prototype.exists = function(value, exists) {};
+
 
 
 
@@ -108,28 +109,28 @@ recoil.db.QueryHelper.prototype.notIn = function (value, list) {};
  * @param {string} y
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.lessThanOrEqual = function (x, y) {};
+recoil.db.QueryHelper.prototype.lessThanOrEqual = function(x, y) {};
 
 /**
  * @param {string} x
  * @param {string} y
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.lessThan = function (x, y) {};
+recoil.db.QueryHelper.prototype.lessThan = function(x, y) {};
 
 /**
  * @param {string} x
  * @param {string} y
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.greaterThanOrEqual = function (x, y) {};
+recoil.db.QueryHelper.prototype.greaterThanOrEqual = function(x, y) {};
 
 /**
  * @param {string} x
  * @param {string} y
  * @return {string}
  */
-recoil.db.QueryHelper.prototype.greaterThan = function (x, y) {};
+recoil.db.QueryHelper.prototype.greaterThan = function(x, y) {};
 
 
 /**
@@ -137,7 +138,7 @@ recoil.db.QueryHelper.prototype.greaterThan = function (x, y) {};
  * @constructor
  * @param {!recoil.db.Escaper} escaper
  */
-recoil.db.SQLQueryHelper = function (escaper) {
+recoil.db.SQLQueryHelper = function(escaper) {
     this.escaper_ = escaper;
 };
 
@@ -147,8 +148,8 @@ recoil.db.SQLQueryHelper = function (escaper) {
  * @param {string} y
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.and = function (x, y) {
-    return '(' + x + ' AND ' + y  + ')';
+recoil.db.SQLQueryHelper.prototype.and = function(x, y) {
+    return '(' + x + ' AND ' + y + ')';
 };
 
 
@@ -157,8 +158,8 @@ recoil.db.SQLQueryHelper.prototype.and = function (x, y) {
  * @param {!Array<string>} list
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.in = function (value, list) {
-    return '(' + value + ' IN (' + list.join(',') + '))'; 
+recoil.db.SQLQueryHelper.prototype.in = function(value, list) {
+    return '(' + value + ' IN (' + list.join(', ') + '))';
 };
 
 /**
@@ -166,8 +167,8 @@ recoil.db.SQLQueryHelper.prototype.in = function (value, list) {
  * @param {!Array<string>} list
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.notIn = function (value, list) {
-    return '(' + value + ' NOT IN (' + list.join(',') + '))'; 
+recoil.db.SQLQueryHelper.prototype.notIn = function(value, list) {
+    return '(' + value + ' NOT IN (' + list.join(', ') + '))';
 };
 
 
@@ -176,15 +177,15 @@ recoil.db.SQLQueryHelper.prototype.notIn = function (value, list) {
  * @param {string} y
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.or = function (x, y) {
-    return '(' + x + ' OR ' + y  + ')';
+recoil.db.SQLQueryHelper.prototype.or = function(x, y) {
+    return '(' + x + ' OR ' + y + ')';
 };
 
 /**
  * @param {string} x
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.not = function (x) {
+recoil.db.SQLQueryHelper.prototype.not = function(x) {
     return '(NOT ' + x + ')';
 };
 
@@ -195,8 +196,8 @@ recoil.db.SQLQueryHelper.prototype.not = function (x) {
  * @param {string} y
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.lessThanOrEqual = function (x, y) {
-    return '(' + x + " <= " + y + ')';
+recoil.db.SQLQueryHelper.prototype.lessThanOrEqual = function(x, y) {
+    return '(' + x + ' <= ' + y + ')';
 };
 
 /**
@@ -204,8 +205,8 @@ recoil.db.SQLQueryHelper.prototype.lessThanOrEqual = function (x, y) {
  * @param {string} y
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.lessThan = function (x, y) {
-    return '(' + x + " < " + y + ')';
+recoil.db.SQLQueryHelper.prototype.lessThan = function(x, y) {
+    return '(' + x + ' < ' + y + ')';
 };
 
 /**
@@ -213,8 +214,8 @@ recoil.db.SQLQueryHelper.prototype.lessThan = function (x, y) {
  * @param {string} y
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.greaterThanOrEqual = function (x, y) {
-    return '(' + x + " >= " + y + ')';
+recoil.db.SQLQueryHelper.prototype.greaterThanOrEqual = function(x, y) {
+    return '(' + x + ' >= ' + y + ')';
 };
 
 /**
@@ -222,15 +223,15 @@ recoil.db.SQLQueryHelper.prototype.greaterThanOrEqual = function (x, y) {
  * @param {string} y
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.greaterThan = function (x, y) {
-    return '(' + x + " > " + y + ')';
+recoil.db.SQLQueryHelper.prototype.greaterThan = function(x, y) {
+    return '(' + x + ' > ' + y + ')';
 };
 
 
 /**
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.true = function () {
+recoil.db.SQLQueryHelper.prototype.true = function() {
     return '1 = 1';
 };
 
@@ -239,7 +240,7 @@ recoil.db.SQLQueryHelper.prototype.true = function () {
  * @param {?} val
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.value = function (val) {
+recoil.db.SQLQueryHelper.prototype.value = function(val) {
     return this.escaper_.escape(val);
 };
 
@@ -250,9 +251,23 @@ recoil.db.SQLQueryHelper.prototype.value = function (val) {
  * @param {!Array<string>} path
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.field = function (scope, path) {
+recoil.db.SQLQueryHelper.prototype.field = function(scope, path) {
     var escaper = this.escaper_;
-    return scope.resolve(path).map(function (v) { return escaper.escapeId(v);}).join('.');
+    return scope.resolve(path).map(function(v) { return escaper.escapeId(v);}).join('.');
+};
+
+
+/**
+ * @param {string} value
+ * @param {boolean} exists
+ * @return {string}
+ */
+recoil.db.SQLQueryHelper.prototype.exists = function(value, exists) {
+    if (exists) {
+        return '(EXISTS ' + value + ')';
+    }
+    return '(NOT EXISTS ' + value + ')';
+
 };
 
 /**
@@ -260,9 +275,9 @@ recoil.db.SQLQueryHelper.prototype.field = function (scope, path) {
  * @param {string} y
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.notEquals = function (x, y) {
+recoil.db.SQLQueryHelper.prototype.notEquals = function(x, y) {
     return '(' + x + ' <> ' + y + ')';
-    
+
 };
 
 
@@ -271,7 +286,7 @@ recoil.db.SQLQueryHelper.prototype.notEquals = function (x, y) {
  * @param {string} y
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.equals = function (x, y) {
+recoil.db.SQLQueryHelper.prototype.equals = function(x, y) {
     return '(' + x + ' = ' + y + ')';
 
 };
@@ -372,7 +387,7 @@ recoil.db.QueryScope.parts = function(exp) {
  * @return {!recoil.db.QueryHelper}
  */
 recoil.db.QueryScope.prototype.query = function() {
-    return  this.query_;
+    return this.query_;
 };
 
 /**
@@ -381,6 +396,57 @@ recoil.db.QueryScope.prototype.query = function() {
  */
 recoil.db.QueryScope.prototype.resolve = function(parts) {
     return parts;
+};
+
+/**
+ * @extends {recoil.db.QueryScope}
+ * @constructor
+ * @param {Object} map
+ * @param {!recoil.db.QueryHelper} helper
+ */
+recoil.db.DBQueryScope = function(map, helper) {
+    recoil.db.QueryScope.call(this, map, helper);
+    this.dbMap_ = {children: {}, table: null};
+};
+goog.inherits(recoil.db.DBQueryScope, recoil.db.QueryScope);
+
+/**
+ * @param {!Array<string>} path
+ * @param {string} table
+*/
+recoil.db.DBQueryScope.prototype.addPathTable = function(path, table) {
+    var cur = this.dbMap_;
+    for (var i = 0; i < path.length; i++) {
+        var item = path[i];
+        var next = cur.children[item];
+        if (!next) {
+            next = {table: null, children: {}};
+            cur.children[item] = next;
+        }
+        cur = next;
+    }
+    cur.table = table;
+};
+
+/**
+ * @param {!Array<string>} parts indexes to get the object
+ * @return {!Array<string>}
+ */
+recoil.db.DBQueryScope.prototype.resolve = function(parts) {
+    if (parts.length === 1) {
+        return parts;
+    }
+    var base = [...parts];
+    var last = base.pop();
+    var cur = this.dbMap_;
+    for (var i = 0; i < base.length && cur; i++) {
+        cur = cur.children[base[i]];
+    }
+    var tbl = cur ? cur.table : null;
+    if (!tbl) {
+        throw 'Unable to find table for ' + base.join('/');
+    }
+    return [tbl, last];
 };
 
 /**
@@ -513,6 +579,14 @@ recoil.db.Query = function(opt_expr) {
      * @private
      */
     this.expr_ = opt_expr || null;
+};
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.Query.prototype.query = function(scope) {
+    return this.expr_.query(scope);
 };
 
 /**
@@ -666,6 +740,7 @@ recoil.db.Query.prototype.val = function(val) {
 recoil.db.Query.prototype.field = function(field) {
     return this.query_(new recoil.db.expr.Field(field));
 };
+
 
 /**
  * @param {string} field
@@ -859,13 +934,13 @@ recoil.db.Query.prototype.where$ = function(expr) {
 
 
 /**
- * @param {string} field
+ * @param {string|!Array<string>|!recoil.db.Query} field
  * @param {string|RegExp} pattern
  * @param {?string=} opt_options
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.regex = function(field, pattern, opt_options) {
-    return this.query_(new recoil.db.expr.RegExp(field, pattern, opt_options));
+    return this.query_(new recoil.db.expr.RegExp(this.fromFieldOrValue_(field), pattern, opt_options));
 };
 /**
  * @param {string} field
@@ -885,7 +960,7 @@ recoil.db.Query.prototype.regex$ = function(field, pattern, opt_options) {
  * @return {!recoil.db.expr.Field}
  */
 recoil.db.Query.prototype.fromField_ = function(field) {
-    if (typeof (field) === 'string' || field instanceof Array ) {
+    if (typeof (field) === 'string' || field instanceof Array) {
         return new recoil.db.expr.Field(field);
     }
     if (field.expr_ === null) {
@@ -899,11 +974,26 @@ recoil.db.Query.prototype.fromField_ = function(field) {
 
 /**
  * @private
+ * @param {string|!Array<string>|!recoil.db.Query} field
+ * @return {!recoil.db.QueryExp}
+ */
+recoil.db.Query.prototype.fromFieldOrValue_ = function(field) {
+    if (typeof (field) === 'string' || field instanceof Array) {
+        return new recoil.db.expr.Field(field);
+    }
+    if (field.expr_ === null) {
+        throw 'unexpected null in expression';
+    }
+    return field.expr_;
+};
+
+/**
+ * @private
  * @param {!Array<*>|Array<!recoil.db.Query>} values non query values are assumed to be values
  * @return {!Array<!recoil.db.QueryExp>}
  */
 recoil.db.Query.prototype.fromArray_ = function(values) {
-    return values.map(function (value) {
+    return values.map(function(value) {
         if (value instanceof recoil.db.Query) {
             if (value.expr_ === null) {
                 throw 'unexpected null in expression';
@@ -916,12 +1006,12 @@ recoil.db.Query.prototype.fromArray_ = function(values) {
 
 
 /**
- * @param {string|!Array|!recoil.db.Query} field string is assumed to be a field
+ * @param {string|!Array|!recoil.db.Query} value string is assumed to be a value
  * @param {!Array<*>|Array<!recoil.db.Query>} values non query values are assumed to be values
  * @return {!recoil.db.Query}
  */
-recoil.db.Query.prototype.isIn = function(field, values) {
-    return this.query_(new recoil.db.expr.In(this.fromField_(field), this.fromArray_(values)));
+recoil.db.Query.prototype.isIn = function(value, values) {
+    return this.query_(new recoil.db.expr.In(this.fromFieldOrValue_(value), this.fromArray_(values)));
 };
 /**
  * function with $ after replace self
@@ -940,7 +1030,7 @@ recoil.db.Query.prototype.isIn$ = function(field, values) {
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.notIn = function(field, values) {
-    return this.query_(new recoil.db.expr.NotIn(this.fromField_(field), this.fromArray_(values)));
+    return this.query_(new recoil.db.expr.NotIn(this.fromFieldOrValue_(field), this.fromArray_(values)));
 };
 /**
  * @param {string|!Array|!recoil.db.Query} field string is assumed to be a field
@@ -1090,7 +1180,7 @@ recoil.db.expr.Exists.prototype.eval = function(scope) {
  * @return {string}
  */
 recoil.db.expr.Exists.prototype.query = function(scope) {
-    return scope.query().exists(this.val_.query(scope));
+    return scope.query().exists(this.val_.query(scope), this.exists_);
 };
 
 
@@ -1176,7 +1266,7 @@ recoil.db.expr.GreaterThan.prototype.eval = function(scope) {
  * @return {string}
  */
 recoil.db.expr.GreaterThan.prototype.query = function(scope) {
-    return scope.query().greaterThanOrEqual(this.x_.query(scope), this.y_.query(scope));
+    return scope.query().greaterThan(this.x_.query(scope), this.y_.query(scope));
 };
 /**
  * @constructor
@@ -1279,7 +1369,7 @@ recoil.db.expr.In = function(field, list) {
  */
 recoil.db.expr.In.prototype.eval = function(scope) {
     var v = this.field_.eval(scope);
-    return this.list_.map(function (v) {return v.eval(scope);}).indexOf(v) !== -1;
+    return this.list_.map(function(v) {return v.eval(scope);}).indexOf(v) !== -1;
 };
 
 
@@ -1288,7 +1378,7 @@ recoil.db.expr.In.prototype.eval = function(scope) {
  * @return {string}
  */
 recoil.db.expr.In.prototype.query = function(scope) {
-    return scope.query().notIn(this.field_.query(scope), this.list_.map(function (v) { return v.query(scope); }));
+    return scope.query().in (this.field_.query(scope), this.list_.map(function(v) { return v.query(scope); }));
 };
 
 
@@ -1309,7 +1399,7 @@ recoil.db.expr.NotIn = function(field, list) {
  */
 recoil.db.expr.NotIn.prototype.eval = function(scope) {
     var v = this.field_.eval(scope);
-    return this.list_.map(function (v) {return v.eval(scope);}).indexOf(v) === -1;
+    return this.list_.map(function(v) {return v.eval(scope);}).indexOf(v) === -1;
 };
 
 
@@ -1318,7 +1408,7 @@ recoil.db.expr.NotIn.prototype.eval = function(scope) {
  * @return {string}
  */
 recoil.db.expr.NotIn.prototype.query = function(scope) {
-    return scope.query().notIn(this.field_.query(scope), this.list_.map(function (v) { return v.query(scope); }));
+    return scope.query().notIn(this.field_.query(scope), this.list_.map(function(v) { return v.query(scope); }));
 };
 
 
@@ -1338,7 +1428,7 @@ recoil.db.expr.Field = function(name) {
 /**
  * @return {!Array<string>}
  */
-recoil.db.expr.Field.prototype.path = function () {
+recoil.db.expr.Field.prototype.path = function() {
     return this.parts_;
 };
 /**
@@ -1386,14 +1476,14 @@ recoil.db.expr.Value.prototype.query = function(scope) {
 
 /**
  * @constructor
- * @param {string} field this can be a dot seperated and use [] to acces arrays or maps
+ * @param {!recoil.db.QueryExp} field this can be a dot seperated and use [] to acces arrays or maps
  * @param {RegExp|string} pattern the pattern to match
  * @param {?string=} opt_options extra options for matching only used when pattern is a string
  * @implements {recoil.db.QueryExp}
  */
 recoil.db.expr.RegExp = function(field, pattern, opt_options) {
 
-    this.field_ = recoil.db.QueryScope.parts(field);
+    this.field_ = field;
 
     if (pattern instanceof RegExp) {
 
@@ -1405,19 +1495,19 @@ recoil.db.expr.RegExp = function(field, pattern, opt_options) {
 };
 
 /**
- * @param {recoil.db.QueryScope} scope
+ * @param {!recoil.db.QueryScope} scope
  * @return {*}
  */
 recoil.db.expr.RegExp.prototype.eval = function(scope) {
-    return scope.get(this.field_).search(this.pattern_) !== -1;
+    return this.field_.eval(scope).search(this.pattern_) !== -1;
 };
 
 /**
- * @param {recoil.db.QueryScope} scope
+ * @param {!recoil.db.QueryScope} scope
  * @return {string}
  */
 recoil.db.expr.RegExp.prototype.query = function(scope) {
-    throw "Not implemented yet";
+    throw 'Not implemented yet';
 };
 
 /**
@@ -1442,7 +1532,7 @@ recoil.db.expr.Where.prototype.eval = function(scope) {
  * @return {string}
  */
 recoil.db.expr.Where.prototype.query = function(scope) {
-    throw "Not implemented yet";
+    throw 'Not implemented yet';
 };
 
 /**
@@ -1495,7 +1585,7 @@ recoil.db.expr.Search.prototype.eval = function(scope) {
  * @return {string}
  */
 recoil.db.expr.Search.prototype.query = function(scope) {
-    throw 'not implemented yet';    
+    throw 'not implemented yet';
 };
 
 
