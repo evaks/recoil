@@ -294,6 +294,34 @@ recoil.util.object.toString = function(obj, opt_path) {
 
 
 /**
+ * @template T
+ * @param {!Array<T>} list
+ * @param {function(?,?):number=} opt_compareFn
+ * @return {!goog.structs.AvlTree<T>}
+ */
+goog.structs.AvlTree.fromList = function(list, opt_compareFn) {
+    var res = new goog.structs.AvlTree(opt_compareFn || recoil.util.object.compare);
+    list.forEach(function(v) {
+        res.add(v);
+    });
+
+    return res;
+};
+
+/**
+ * @return {!Array<T>} list
+ */
+goog.structs.AvlTree.prototype.toList = function() {
+    var res = [];
+
+    this.inOrderTraverse(function(v) {
+        res.push(v);
+    });
+
+    return res;
+};
+
+/**
  * finds an element, if it does not exist inserts it into
  * the AvlTree and returns it
  * @param {T} val

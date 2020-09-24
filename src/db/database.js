@@ -29,7 +29,7 @@ recoil.db.Database.prototype.makeKey = function(values) {
  * gets an individual object from the database
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>=} primaryKeys primary keys of the object you want to get
+ * @param {!Array<?>|!recoil.db.Query=} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
@@ -60,7 +60,7 @@ recoil.db.ReadOnlyDatabase.prototype.makeKey = function(values) {
  * gets an individual object from the database
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>=} opt_primaryKeys primary keys of the object you want to get
+ * @param {(!Array<?>|!recoil.db.Query)=} opt_primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
@@ -142,7 +142,7 @@ recoil.db.ReadWriteDatabase.showSending_ = function(frp, uniq) {
  * it seperates
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>} primaryKeys primary keys of the object you want to get
+ * @param {(!Array<?>|!recoil.db.Query)} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<!recoil.db.SendInfo<T>>} the corisponding object
  */
@@ -175,7 +175,7 @@ recoil.db.ReadWriteDatabase.prototype.getSendInfo = function(id, primaryKeys, op
  * gets an individual object from the database
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>=} opt_primaryKeys primary keys of the object you want to get
+ * @param {(!Array<?>|!recoil.db.Query)=} opt_primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */
@@ -208,7 +208,7 @@ recoil.db.DelayedDatabase = function(frp, source) {
  * Returns a behaviour, with a value that we can get, set etc
  * @template T
  * @param {!recoil.db.Type<T>} id an id to identify the type of object you want
- * @param {!Array<?>=} primaryKeys primary keys of the object you want to get
+ * @param {(!Array<?>|!recoil.db.Query)=} primaryKeys primary keys of the object you want to get
  * @param {recoil.db.QueryOptions=} opt_options extra option to the query such as poll rate or notify
  * @return {!recoil.frp.Behaviour<T>} the corisponding object
  */

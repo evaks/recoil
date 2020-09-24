@@ -532,6 +532,28 @@ recoil.structs.table.Table.prototype.unfreeze = function() {
     return res;
 };
 
+
+/**
+ * creates an empty mutable table with the same columns
+ * @param {IArrayLike<!recoil.structs.table.ColumnKey>} cols
+ * @return {!recoil.structs.table.MutableTable}
+ */
+recoil.structs.table.Table.prototype.createEmptyKeep = function(cols) {
+    var remove = [];
+    var seen = {};
+    cols.forEach(function(col) {
+        seen[col.getId()] = true;
+    });
+    this.otherColumns_.forEach(function(c) {
+        if (!seen[c.getId()]) {
+            remove.push(c);
+        }
+    });
+
+
+    return this.createEmpty([], [], remove);
+};
+
 /**
  * creates an empty mutable table with the same columns
  * @param {IArrayLike<!recoil.structs.table.ColumnKey>=} opt_extPrimaryCols
@@ -1883,7 +1905,7 @@ recoil.structs.table.MutableTableRow.prototype.setRowMeta = function(meta) {
 recoil.structs.table.MutableTableRow.prototype.addRowMeta = function(meta) {
     var newMeta = {};
     recoil.util.object.addProps(newMeta, this.getRowMeta(), meta);
-    this.setRowMeta(meta);
+    this.setRowMeta(newMeta);
 };
 /**
  * @return {!Object}

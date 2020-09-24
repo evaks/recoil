@@ -42,7 +42,7 @@ recoil.ui.widgets.table.Column.prototype.getKey = function() {
  * @template T
  * @param {function (new:recoil.ui.Widget,T,?):undefined} widgetCons
  * @param {?=} opt_options
- * @return {function(!recoil.structs.table.ColumnKey,string,Object=)}
+ * @return {function(!recoil.structs.table.ColumnKey,(string|!recoil.ui.message.Message),Object=)}
  */
 recoil.ui.widgets.table.makeStructColumn = function(widgetCons, opt_options) {
     var factory = function(scope, cellB) {
@@ -58,7 +58,7 @@ recoil.ui.widgets.table.makeStructColumn = function(widgetCons, opt_options) {
     /**
      * @constructor
      * @param {!recoil.structs.table.ColumnKey} column
-     * @param {string} name
+     * @param {string|!recoil.ui.message.Message} name
      * @param {Object=} opt_meta
      * @implements {recoil.ui.widgets.table.Column}
      */

@@ -121,6 +121,13 @@ recoil.ui.messages.INVALID_VALUE = recoil.ui.message.getParamMsg('Invalid Value'
  */
 recoil.ui.messages.__UNKNOWN_VAL = recoil.ui.message.getParamMsg('?');
 
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.UNKNOWN_VAL = recoil.ui.message.getParamMsg('Unknown ', ['val']);
+
 /**
  * @type {!recoil.ui.message.Message}
  * @final

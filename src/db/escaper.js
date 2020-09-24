@@ -13,7 +13,7 @@ recoil.db.Escaper = function() {};
 recoil.db.Escaper.prototype.escapeId = function(str) {};
 
 /**
- * @param {string} str
+ * @param {?} str
  * @return {string}
  */
 recoil.db.Escaper.prototype.escape = function(str) {};

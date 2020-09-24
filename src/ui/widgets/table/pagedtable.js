@@ -30,9 +30,10 @@ goog.require('recoil.ui.widgets.table.TableWidget');
 /**
  * @constructor
  * @param {!recoil.ui.WidgetScope} scope
+ * @param {boolean=} opt_new use new layout
  * @implements recoil.ui.Widget
  */
-recoil.ui.widgets.table.PagedTableWidget = function(scope) {
+recoil.ui.widgets.table.PagedTableWidget = function(scope, opt_new) {
     this.scope_ = scope;
     this.container_ = new goog.ui.Component();
     this.container_.createDom();
@@ -45,19 +46,38 @@ recoil.ui.widgets.table.PagedTableWidget = function(scope) {
 
     var tableDiv = goog.dom.createDom('div');
     this.tableWidget_.getComponent().render(tableDiv);
-
-    goog.dom.classlist.add(tableDiv, 'flex-grow');
+    if (!opt_new) {
+        goog.dom.classlist.add(tableDiv, 'flex-grow');
+    }
     goog.dom.classlist.add(this.container_.getElement(), 'flex-display');
 
-    var headerDiv = goog.dom.createDom('div');
-    this.headerWidget_.getComponent().render(headerDiv);
-
+    var headerDiv = goog.dom.createDom('div', {class: 'recoil-table-pager-header'});
+    if (!opt_new) {
+        this.headerWidget_.getComponent().render(headerDiv);
+    }
     var div = goog.dom.createDom('div', {class: 'recoil-table-pager-container'});
 
     this.container_.getElement().appendChild(div);
-    div.appendChild(this.topPager_.getComponent().getElement());
-    div.appendChild(headerDiv);
-    div.appendChild(tableDiv);
+    if (opt_new) {
+        var actionsDiv = goog.dom.createDom('div', {class: 'recoil-table-pager-actions'});
+        this.addButton_ = new recoil.ui.widgets.ButtonWidget(scope);
+        this.addButton_.getComponent().render(actionsDiv);
+        this.removeButton_ = new recoil.ui.widgets.ButtonWidget(scope);
+        this.removeButton_.getComponent().render(actionsDiv);
+
+        div.appendChild(goog.dom.createDom(
+            'div', {class: 'recoil-table-pager-top'},
+            goog.dom.createDom('div', {class: 'recoil-table-pager-top-scroller'},
+                               this.topPager_.getComponent().getElement())));
+        div.appendChild(actionsDiv);
+
+        div.appendChild(goog.dom.createDom('div', {class: 'recoil-table-pager-content'}, headerDiv, tableDiv));
+    }
+    else {
+        div.appendChild(this.topPager_.getComponent().getElement());
+        div.appendChild(headerDiv);
+        div.appendChild(tableDiv);
+    }
     div.appendChild(this.bottomPager_.getComponent().getElement());
 
     var me = this;
@@ -89,18 +109,48 @@ recoil.ui.widgets.table.PagedTableWidget.prototype.getBottomPager = function() {
 };
 
 /**
- * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} header
- * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} table
- * @param {!recoil.frp.Behaviour<!recoil.ui.widgets.TableMetaData> |!recoil.ui.widgets.TableMetaData} meta
- * @param {!recoil.frp.Behaviour<number>} page
- * @param {!recoil.frp.Behaviour<number>|number} count
+ * @param {!recoil.frp.Behaviour|!Object} addB 
+ * @param {!recoil.frp.Behaviour|!Object} removeB 
  */
-recoil.ui.widgets.table.PagedTableWidget.prototype.attach = function(header, table, meta, page, count) {
-    this.headerWidget_.attach(header, meta);
-    this.tableWidget_.attach(table, meta);
-    this.topPager_.attach(page, count);
-    this.bottomPager_.attach(page, count);
+recoil.ui.widgets.table.PagedTableWidget.prototype.attachAdd = function(addB, removeB) {
+    this.addButton_.attachStruct(addB);
+    this.removeButton_.attachStruct(removeB);
 };
+
+
+
+/**
+ * the optional parameter is really meta, if not provide it is assumed that header and table include there meta data
+ * this is the way is should be done however for backward compatablity I am leaving it the old way too
+ *
+ * @param {?recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} header
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table> | !recoil.structs.table.Table} table
+ * @param {!recoil.frp.Behaviour<!recoil.ui.widgets.TableMetaData>|!recoil.ui.widgets.TableMetaData|recoil.frp.Behaviour<number>} metaOrPage
+ * @param {!recoil.frp.Behaviour<number>|number} pageOrCount
+ * @param {(!recoil.frp.Behaviour<number>|number)=} opt_count
+ */
+recoil.ui.widgets.table.PagedTableWidget.prototype.attach = function(header, table, metaOrPage, pageOrCount, opt_count) {
+    if (opt_count === undefined) {
+        if (header) {
+            this.headerWidget_.attachStruct(header);
+        }
+        this.tableWidget_.attachStruct(table);
+        this.topPager_.attach(/** @type {!recoil.frp.Behaviour<number>}*/(metaOrPage), pageOrCount);
+        this.bottomPager_.attach(/** @type {!recoil.frp.Behaviour<number>}*/(metaOrPage), pageOrCount);
+    }
+    else {
+        if (header) {
+            this.headerWidget_.attach(
+                header,
+                /** @type {!recoil.frp.Behaviour<!recoil.ui.widgets.TableMetaData>|!recoil.ui.widgets.TableMetaData} */ (metaOrPage));
+        }
+        this.tableWidget_.attach(
+            table, /** @type {!recoil.frp.Behaviour<!recoil.ui.widgets.TableMetaData>|!recoil.ui.widgets.TableMetaData} */(metaOrPage));
+        this.topPager_.attach(/** @type {!recoil.frp.Behaviour<number>} */(pageOrCount), opt_count);
+        this.bottomPager_.attach(/** @type {!recoil.frp.Behaviour<number>} */(pageOrCount), opt_count);
+    }
+};
+
 
 /**
  * this should be called after the attach this way it can filter out the
@@ -126,7 +176,7 @@ recoil.ui.widgets.table.PagerWidget = function(scope) {
     this.container_.createDom();
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
     var me = this;
-
+    this.container_.getElement().className = 'recoil-table-pager-scroller';
     this.first_ = goog.dom.createDom('a', {
         class: 'first'},'\u00ab');
     this.last_ = goog.dom.createDom('a', {
@@ -362,7 +412,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
             if (val.orig + 1 === val.val) {
                 // value has increased by 1 just get the next page
                 if (last) {
-                    keyB.set({next: last});
+                    keyB.set({next: last, page: val.val});
                     memoryB.set(val.val);
                 }
             }
@@ -373,7 +423,7 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
             }
             else if (val.orig - 1 === val.val) {
                 // went back 1 use prev
-                keyB.set({prev: first});
+                keyB.set({prev: first, page: val.val});
                 memoryB.set(val.val);
             }
             else {

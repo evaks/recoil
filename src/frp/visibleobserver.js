@@ -17,7 +17,7 @@ recoil.frp.VisibleObserver = function() {
     this.watched_ = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
     /**
      * @private
-     * @type goog.structs.AvlTree<recoil.frp.VisibleObserver.State_>
+     * @type {goog.structs.AvlTree<recoil.frp.VisibleObserver.State_>}
      */
     this.states_ = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
 
@@ -106,7 +106,7 @@ recoil.frp.VisibleObserver.State_ = function(node, callback) {
     this.visible = false;
     this.callbacks = [callback];
     /**
-     * @type Array<Node>
+     * @type {Array<Node>}
      */
     this.ancestors = [];
 };
@@ -124,7 +124,7 @@ recoil.frp.VisibleObserver.State_.prototype.update = function(exists, visible) {
 };
 
 /**
- * @type Node
+ * @type {Node}
  */
 
 recoil.frp.VisibleObserver.NodeAndValues_.prototype.node = null;
@@ -465,7 +465,7 @@ recoil.frp.VisibleObserver.prototype.listen = function(node, callback) {
         if (!found) {
             this.watched_.add(recoil.frp.VisibleObserver.createWatched_(cur, node));
         }
-        cur = goog.dom.getParentElement(/** @type Element */
+        cur = goog.dom.getParentElement(/** @type {Element} */
         (cur));
     }
 
@@ -551,7 +551,7 @@ recoil.frp.VisibleObserver.prototype.unlisten = function(node, callback) {
  * @return {recoil.frp.VisibleObserver.NodeAndValues_}
  */
 recoil.frp.VisibleObserver.createWatched_ = function(watching, effected) {
-    /** @type recoil.frp.VisibleObserver.NodeAndValues_ */
+    /** @type {recoil.frp.VisibleObserver.NodeAndValues_} */
     var node = new recoil.frp.VisibleObserver.NodeAndValues_(watching);
     node.effected = new goog.structs.AvlTree(recoil.frp.VisibleObserver.WATCHED_COMPARATOR_);
 
@@ -569,7 +569,7 @@ recoil.frp.VisibleObserver.createWatched_ = function(watching, effected) {
  * @param {Node} node
  */
 recoil.frp.VisibleObserver.prototype.observe_ = function(node) {
-    this.observer_.observe(node, /** @type MutationObserverInit */
+    this.observer_.observe(node, /** @type {MutationObserverInit} */
     ({
         attributes: true,
         childList: true,
@@ -600,7 +600,7 @@ recoil.frp.VisibleObserver.visible = function(node) {
         if (cur.style) {
             visible = cur.style.display !== 'none';
         }
-        cur = goog.dom.getParentElement(/** @type Element */
+        cur = goog.dom.getParentElement(/** @type {Element} */
         (cur));
     }
     return visible;

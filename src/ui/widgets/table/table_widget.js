@@ -63,6 +63,8 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
 //            applyClass(children.item(i), cls);
         }
     };
+    var SelectionMode = recoil.ui.widgets.table.TableWidget.SelectionMode;
+    
     this.selectionHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, function(helper, selectedB, selectMetaB) {
         var i = 0;
         var row;
@@ -100,22 +102,72 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     };
     this.curSelected_ = [];
     this.selected_ = this.scope_.getFrp().createB([]);
+    this.lastClickedB_ = this.scope_.getFrp().createB(null);
     // this will keep the current table in it, it will allow us to get selected before
     // we have attached a table
     this.tableBB_ = this.scope_.getFrp().createNotReadyB();
-    this.rowClickEvent_ = scope.getFrp().createCallback(function(e, selectedB, tableB) {
+    
+    this.rowClickEvent_ = scope.getFrp().createCallback(function(e, selectedB, tableB, lastB) {
         this.selectNewRow_ = false;
         var oldSelected = selectedB.get();
-        var mode = tableB.get().getMeta().selectionMode || recoil.ui.widgets.table.TableWidget.SelectionMode.SINGLE;
-        if (mode !== recoil.ui.widgets.table.TableWidget.SelectionMode.NONE) {
-            if (!goog.array.find(oldSelected, function(x) {
+        var mode = tableB.get().getMeta().selectionMode || SelectionMode.SINGLE;
+        var clickRow = tableB.get().getRow(e.data);
+        if (!clickRow || clickRow.getMeta().selectable === false) {
+            return;
+        }
+        var keyEqual = function(x) {
                 return recoil.util.isEqual(x, e.data);
-            })) {
+        };
+        if (mode === SelectionMode.SINGLE) {
+            if (!goog.array.find(oldSelected, keyEqual)) {
                 selectedB.set([e.data]);
             }
+            lastB.set(e.data);
         }
+        else if (mode === SelectionMode.MULTI) {
+            if (e.event.ctrlKey) {
 
-    }, this.selected_, this.scope_.getFrp().switchB(this.tableBB_));
+                var found = goog.array.find(oldSelected, keyEqual);
+                if (found) {
+                    selectedB.set(oldSelected.filter(function (v) {
+                        return !keyEqual(v);
+                    }));
+                }
+                else {
+                    selectedB.set(oldSelected.concat([e.data]));
+                }
+                lastB.set(e.data);
+            }
+            else if (e.event.shiftKey && lastB.get() !== null && tableB.get().getRow(lastB.get())) {
+                var newSelected = [];
+                var started = false;
+                var finished = false;
+                var tbl = tableB.get();
+                tbl.forEach(function (row, pks) {
+                    if (finished) {
+                        return;
+                    }
+                        
+                    let matches = recoil.util.isEqual(pks, lastB.get()) || recoil.util.isEqual(pks, e.data);
+                    if (matches) {
+                        newSelected.push(pks);
+                        finished  = started;
+                        started = true;
+                    }
+                    else if (started) {
+                        newSelected.push(pks);
+                    }
+                });
+                selectedB.set(newSelected);
+            }
+            else {
+                selectedB.set([e.data]);
+                lastB.set(e.data);
+            }
+        }
+        
+
+    }, this.selected_, this.scope_.getFrp().switchB(this.tableBB_), this.lastClickedB_);
     this.rowClickHelper_.attach(this.rowClickEvent_);
 };
 
@@ -600,7 +652,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createRenderInfoCell_ =
     renderInfo.decorator = cellDecorator;
     renderInfo.factory = cellFactory;
 
-    if (renderInfo.inner) {
+    if (renderInfo.inner && renderInfo.factory) {
         var widget = renderInfo.factory(
             this.scope_,
             recoil.frp.table.TableCell.create(
@@ -1303,5 +1355,6 @@ recoil.ui.widgets.table.TableWidget.prototype.flatten = recoil.frp.struct.NO_FLA
  */
 recoil.ui.widgets.table.TableWidget.SelectionMode = {
     NONE: 1,
-    SINGLE: 2
+    SINGLE: 2,
+    MULTI: 3
 };

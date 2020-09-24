@@ -20,8 +20,8 @@ goog.require('recoil.structs.table.Table');
 
 recoil.structs.table.ImmutablePk = function(opt_dupsCol) {
     this.pk_ = new recoil.structs.table.ColumnKey('$immutable.key');
-    this.origPk_ = new recoil.structs.table.ColumnKey('$orig.key', undefined, undefined, /** @type Array */ (null));
-    this.DUPLICATES = opt_dupsCol || new recoil.structs.table.ColumnKey('$duplicate', undefined, undefined,  /** @type Array<!number> */ ([]));
+    this.origPk_ = new recoil.structs.table.ColumnKey('$orig.key', undefined, undefined, /** @type {Array} */ (null));
+    this.DUPLICATES = opt_dupsCol || new recoil.structs.table.ColumnKey('$duplicate', undefined, undefined,  /** @type {Array<!number>} */ ([]));
     // a map from the primary key to the generated primary key
     this.pkMap_ = new goog.structs.AvlTree(recoil.util.object.compareKey);
     /**
@@ -45,7 +45,7 @@ recoil.structs.table.ImmutablePk.prototype.clone = function() {
  * @type {!recoil.structs.table.ColumnKey<!Array<number>>}
  * @final
  */
-recoil.structs.table.ImmutablePk.DUPLICATES = new recoil.structs.table.ColumnKey('$duplicate', undefined, undefined,/** @type !Array<!number> */ ([]));
+recoil.structs.table.ImmutablePk.DUPLICATES = new recoil.structs.table.ColumnKey('$duplicate', undefined, undefined,/** @type {!Array<!number>} */ ([]));
 
 /**
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} tableB

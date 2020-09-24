@@ -17,7 +17,7 @@ recoil.db.DatabaseComms = function() {
  * @param {function(!recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database, maybe called multiple times
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
  * @param {?} key the information we need to get the object/objects
- * @param {*} options
+ * @param {recoil.db.QueryOptions} options
  *
  */
 recoil.db.DatabaseComms.prototype.get = function(successFunction, failFunction, id, key, options) {
@@ -32,7 +32,7 @@ recoil.db.DatabaseComms.prototype.get = function(successFunction, failFunction, 
  * @param {function(recoil.frp.BStatus)} failFunction called when the data fails to be retrieved from the database
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
  * @param {?} key the information we need to get the object/objects
- * @param {*} options
+ * @param {recoil.db.QueryOptions} options
  */
 
 recoil.db.DatabaseComms.prototype.set = function(data, oldData, successFunction, failFunction, id, key, options) {
@@ -50,7 +50,22 @@ recoil.db.DatabaseComms.prototype.makeKey = function(values) {
  * @template T
  * @param {!recoil.db.Type<T>} id identifier of the object that to be retrieve from the database
  * @param {?} key the key to stop
- * @param {*} options the key to stop
+ * @param {recoil.db.QueryOptions} options the key to stop
  */
 recoil.db.DatabaseComms.prototype.stop = function(id, key, options) {
+};
+
+
+/**
+ * called when a frp transaction is started
+ */
+recoil.db.DatabaseComms.prototype.startTrans = function() {
+};
+
+
+/**
+ * called when a frp transaction is ended, if you want to store changes up until every thing
+ * is propogated use this
+ */
+recoil.db.DatabaseComms.prototype.stopTrans = function() {
 };

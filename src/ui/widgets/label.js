@@ -15,6 +15,7 @@ goog.require('recoil.ui.Widget');
 goog.require('recoil.ui.WidgetHelper');
 goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.events');
+goog.require('recoil.ui.message.Message');
 
 /**
  * @constructor
@@ -67,6 +68,9 @@ recoil.ui.widgets.LabelWidget = function(scope) {
 recoil.ui.widgets.LabelWidget.defaultFormatter_ = function(value) {
     if (goog.isString(value)) {
         return value;
+    }
+    else if (value instanceof recoil.ui.message.Message) {
+        return value.toString();
     }
     else if (value instanceof Node) {
         return value;

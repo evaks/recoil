@@ -509,6 +509,7 @@ recoil.db.ChangeSet.prototype.applyChanges = function(changes) {
 
 };
 
+
 /**
  * @interface
  * @template T
@@ -1408,7 +1409,7 @@ recoil.db.ChangeSet.Path.prototype.pathAsString = function() {
 
 
 /**
- * sets the keys on the las child
+ * sets the keys on the last child
  * @param {!Array<string>} keyNames
  * @param {!Array<?>} keyValues
  * @return {!recoil.db.ChangeSet.Path}
@@ -1529,6 +1530,24 @@ recoil.db.ChangeSet.Set = function(path, oldVal, newVal) {
 recoil.db.ChangeSet.Set.prototype.move = function(from, to) {
     return new recoil.db.ChangeSet.Set(this.path_.move(from, to), this.oldVal_, this.newVal_);
 };
+
+
+/**
+ * @return {?}
+ */
+recoil.db.ChangeSet.Set.prototype.value = function() {
+    return this.newVal_;
+};
+
+
+
+/**
+ * @return {?}
+ */
+recoil.db.ChangeSet.Set.prototype.orig = function() {
+    return this.oldVal_;
+};
+
 /**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema

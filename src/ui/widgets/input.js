@@ -19,10 +19,11 @@ goog.require('recoil.ui.widgets.LabelWidget');
 /**
  *
  * @param {!recoil.ui.WidgetScope} scope
+ * @param {boolean=} opt_autocomplete this has to be static since chrome doesn't update this when it changes
  * @constructor
  * @implements {recoil.ui.Widget}
  */
-recoil.ui.widgets.InputWidget = function(scope) {
+recoil.ui.widgets.InputWidget = function(scope, opt_autocomplete) {
     this.scope_ = scope;
     this.containerDiv_ = goog.dom.createDom('div');
     var toControl = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl;
@@ -33,6 +34,9 @@ recoil.ui.widgets.InputWidget = function(scope) {
     this.readonly_ = new recoil.ui.widgets.LabelWidget(scope);
 
     this.input_.render(this.containerDiv_);
+    if (!opt_autocomplete) {
+        this.input_.getContentElement().setAttribute('autocomplete', 'new-password');
+    }
     this.readonly_.getComponent().render(this.containerDiv_);
 
 

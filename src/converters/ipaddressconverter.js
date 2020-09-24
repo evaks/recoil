@@ -57,7 +57,7 @@ recoil.converters.IPAddressConverter.prototype.unconvert = function(val) {
         res = converter.unconvert(val);
 
         return res.error ? {error: res.error, value: null} : {
-            error: null, value: {type: recoil.types.IPAddressType.ipv6, value: /** @type !recoil.types.IPv6Address*/ (res.value)}};
+            error: null, value: {type: recoil.types.IPAddressType.ipv6, value: /** @type {!recoil.types.IPv6Address}*/ (res.value)}};
 
     } else {
         converter = new recoil.converters.IPv4AddressConverter();
@@ -65,7 +65,7 @@ recoil.converters.IPAddressConverter.prototype.unconvert = function(val) {
         res = converter.unconvert(val);
 
         return res.error ? {error: res.error, value: null} : { error: null,
-                value: {type: recoil.types.IPAddressType.ipv4, value: /** @type !recoil.types.IPv4Address*/ (res.value)}};
+                value: {type: recoil.types.IPAddressType.ipv4, value: /** @type {!recoil.types.IPv4Address}*/ (res.value)}};
 
     }
 };

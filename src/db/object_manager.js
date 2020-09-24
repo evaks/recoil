@@ -73,47 +73,6 @@ recoil.db.Entity.comparator_ = function(x, y) {
 };
 
 /**
- * @constructor
- * @template T
- * @param {T?} entity
- * @param {recoil.db.Query<T>?} query
- * takes either a query or an entity (really an entity is a query that only ever
- * returns one item
- */
-recoil.db.QueryEntry = function(entity, query) {
-    this.query_ = query;
-    this.entities_ = new goog.structs.AvlTree(recoil.db.Entity.comparator_);
-    this.refs_ = 0;
-};
-
-
-/**
- * @return {boolean} true if the ref count was 0
- */
-recoil.db.QueryEntry.prototype.addRef = function() {
-    this.refs_++;
-    return this.refs_ === 0;
-};
-
-/**
- * @return {boolean} true if the ref count became 0
- */
-recoil.db.QueryEntry.prototype.removeRef = function() {
-    this.refs_--;
-    return this.refs_ === 0;
-};
-
-/**
- * @private
- * @param {!recoil.db.QueryEntry} x
- * @param {!recoil.db.QueryEntry} y
- * @return {number}
- */
-
-recoil.db.QueryEntry.comparator_ = function(x, y) {
-    return recoil.util.compare(x.query_, y.query_);
-};
-/**
  * data that represents the current value read from
  * the database and any information that was sent
  * @constructor
@@ -225,8 +184,6 @@ recoil.db.ObjectManager = function(frp) {
 
 // {avl: new goog.structs.AvlTree(recoil.db.Entity.comparator_), created: created
 
-
-
 /**
  * based on the key type get all behaviours that are inside
  * @private
@@ -253,7 +210,7 @@ recoil.db.ObjectManager.prototype.getRelatedBehaviours_ = function(keyType, valu
                 b = me.register_(path.getType(), key, options, coms, val);
             }
             else {
-                b = behaviours.getBehaviours().findFirst(new recoil.db.Entity(key, null, false));
+                b = behaviours.getBehaviours().findFirst(new recoil.db.Entity({key: key, options: options}, null, false));
             }
             if (b) {
                 res.push(
@@ -346,7 +303,7 @@ recoil.db.ObjectManager.setSubObjects_ = function(outer, related, opt_frp) {
  * @template T
  * @private
  * @param {!recoil.db.Type<T>} typeKey
- * @param {!IArrayLike<?>} key
+ * @param {!IArrayLike<?>|!recoil.db.Query} key
  * @param {!recoil.db.QueryOptions} options
  * @param {!recoil.db.DatabaseComms} coms
  * @param {*=} opt_val
@@ -369,7 +326,7 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
 
     var childAdded = this.frp_.createE();
 
-    var entity = new recoil.db.Entity(key, null, hasVal);
+    var entity = new recoil.db.Entity({key: key, options: options}, null, hasVal);
     var behavioursList = behaviours.getBehaviours();
 
     var oldEntity = behavioursList.findFirst(entity);
@@ -534,7 +491,7 @@ recoil.db.ObjectManager.prototype.register_ = function(typeKey, key, options, co
  * @template T
  * @param {!recoil.db.Type<T>} typeKey
  * @param {?} key
- * @param {*} options
+ * @param {recoil.db.QueryOptions} options
  * @param {!recoil.db.DatabaseComms} coms
  */
 recoil.db.ObjectManager.prototype.unregister = function(typeKey, key, options, coms) {
@@ -543,7 +500,7 @@ recoil.db.ObjectManager.prototype.unregister = function(typeKey, key, options, c
         return;
     }
 
-    var entity = new recoil.db.Entity(key, null, true);
+    var entity = new recoil.db.Entity({key: key, options: options}, null, true);
     var behavioursList = behaviours.getBehaviours();
     var oldEntity = behavioursList.findFirst(entity);
 

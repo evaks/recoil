@@ -10,7 +10,7 @@ function testField() {
     
     var scope = new recoil.db.QueryScope({'a' : 7, b: { c: 'hello'}, d: [1, 2, 3] }, helper);
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
+    dbScope.addPathTable(['a','b'], 't1',[]);
     var q = new recoil.db.Query();
     
     assertEquals(7, q.field('a').eval(scope));
@@ -33,7 +33,7 @@ function testField() {
 function testNot() {
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
+    dbScope.addPathTable(['a','b'], 't1',[]);
         
     var scope = new recoil.db.QueryScope({t: true, f: false });
     var q = new recoil.db.Query();
@@ -70,8 +70,8 @@ function testAnd() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` AND `t2`.`x`)", q.and(q.field(['a','b','a']), q.field(['b','x'])).query(dbScope));
@@ -100,8 +100,8 @@ function testOr() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` OR `t2`.`x`)", q.or(q.field(['a','b','a']), q.field(['b','x'])).query(dbScope));
@@ -136,8 +136,8 @@ function testExists() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(EXISTS `t1`.`a`)", q.exists(q.field(['a','b','a'])).query(dbScope));
@@ -161,8 +161,8 @@ function testEquals() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` = `t2`.`x`)", q.eq(q.field(['a','b','a']), q.field(['b','x'])).query(dbScope));
@@ -187,8 +187,8 @@ function testNotEquals() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` <> `t2`.`x`)", q.neq(q.field(['a','b','a']), q.field(['b','x'])).query(dbScope));
@@ -213,8 +213,8 @@ function testLessThan() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` < `t2`.`x`)", q.lt(q.field(['a','b','a']), q.field(['b','x'])).query(dbScope));
@@ -241,8 +241,8 @@ function testLessThanEquals() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` <= `t2`.`x`)", q.lte(q.field(['a','b','a']), q.field(['b','x'])).query(dbScope));
@@ -271,8 +271,8 @@ function testGreaterThan() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` > `t2`.`x`)", q.gt(q.field(['a','b','a']), q.field(['b','x'])).query(dbScope));
@@ -289,8 +289,8 @@ function testIn() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return typeof(v) === 'number' ? v : '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` IN (`t2`.`x`, 1, 2))", q.isIn(q.field(['a','b','a']), [q.field(['b','x']), q.val(1), q.val(2)]).query(dbScope));
     assertEquals("(`t1`.`a` NOT IN (`t2`.`x`, 1, 2))", q.notIn(q.field(['a','b','a']), [q.field(['b','x']), q.val(1), q.val(2)]).query(dbScope));
@@ -322,8 +322,8 @@ function testRegExp() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertThrows(function () {
@@ -351,8 +351,8 @@ function testWhere() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
     q = new recoil.db.Query();
     
     assertThrows(function () {
@@ -379,8 +379,8 @@ function testGreaterThanEquals() {
 
     var helper = new recoil.db.SQLQueryHelper({escapeId: function (v) {return '`' + v + '`';}, escape: function (v) {return '\'' + v + '\'';}});
     var dbScope = new recoil.db.DBQueryScope({'a/b' : 't1', 'b' : 't2'}, helper);
-    dbScope.addPathTable(['a','b'], 't1');
-    dbScope.addPathTable(['b'], 't2');
+    dbScope.addPathTable(['a','b'], 't1',[]);
+    dbScope.addPathTable(['b'], 't2',[]);
 
     q = new recoil.db.Query();
     assertEquals("(`t1`.`a` >= `t2`.`x`)", q.gte(q.field(['a','b','a']), q.field(['b','x'])).query(dbScope));

@@ -566,7 +566,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
         return myValue;
     };
     if (!(this.calc_ instanceof Function)) {
-        throw 'calc not function';
+        throw new Error('calc not function');
     }
 
     this.inv_ = inverse || function(newVal) {
@@ -574,7 +574,7 @@ recoil.frp.Behaviour = function(frp, value, calc, inverse, sequence, providers) 
     };
 
     if (!(this.inv_ instanceof Function)) {
-        throw 'inverse not function';
+        throw new Error('inverse not function');
     }
 
     // we have called set on this behaviour and we need to recalculate
@@ -702,7 +702,7 @@ recoil.frp.Behaviour.prototype.checkProvidersBefore_ = function() {
     for (var i = 0; i < this.providers_.length; i++) {
         var prov = this.providers_[i];
         if (comp(this, prov) <= 0) {
-            throw 'provider not before';
+            throw new Error('provider not before');
         }
     }
 };
@@ -987,7 +987,7 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
     var hasProviders = this.providers_.length > 0;
 
     if (!value) {
-        throw 'value must be of type status';
+        throw new Error('value must be of type status');
     }
     if (!hasTm && hasProviders) {
         // if it has providers then it is not ok to set it with no
@@ -1070,6 +1070,19 @@ recoil.frp.Behaviour.prototype.set = function(value) {
  */
 recoil.frp.Frp.prototype.setDebugger = function(dbugger) {
     this.transactionManager_.debugger_ = dbugger;
+};
+/**
+ * @param {function(boolean)} cb called with true if started false if ended
+ */
+recoil.frp.Frp.prototype.addTransactionWatcher = function(cb) {
+    this.transactionManager_.watchers_.push(cb);
+};
+
+/**
+ * @param {function(boolean)} cb called with true if started false if ended
+ */
+recoil.frp.Frp.prototype.removeTransactionWatcher = function(cb) {
+    goog.array.removeIf(this.transactionManager_.watchers_, function(v) { return v === cb; });
 };
 
 /**
@@ -1581,6 +1594,11 @@ recoil.frp.TransactionManager = function(frp) {
     this.providers_ = [];
     this.level_ = 0;
     this.watching_ = 0;
+    /**
+     * @private
+     * @type {!Array<function(boolean)>}
+     */
+    this.watchers_ = [];
     this.pending_ = [new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.UP.heapComparator()),
                      new recoil.structs.UniquePriorityQueue(recoil.frp.Frp.Direction_.DOWN.heapComparator())];
     this.dependancyMap_ = {};
@@ -1684,6 +1702,7 @@ recoil.frp.TransactionManager.prototype.resume = function() {
         this.debugState_.pendingTrans = [];
         if (this.transDone_()) {
             this.level_--;
+            this.notifyWatchers_(false);
             for (var i = 0; i < pending.length; i++) {
                 this.doTrans(pending[i]);
             }
@@ -1695,6 +1714,23 @@ recoil.frp.TransactionManager.prototype.resume = function() {
         }
     }
 };
+
+/**
+ * notify the transaction watcher if a transaction is about to start
+ * @private
+ * @param {boolean} start
+ */
+recoil.frp.TransactionManager.prototype.notifyWatchers_ = function(start) {
+    if (this.level_ === 0) {
+        try {
+            this.watchers_.forEach(function(cb) { cb(start);});
+        }
+        catch (e) {
+            console.error(e);
+        }
+    }
+};
+
 /**
  * to a transaction nothing should fire until we exit out the top level
  *
@@ -1707,7 +1743,9 @@ recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
         this.debugState_.pendingTrans.push(callback);
         return;
     }
+    this.notifyWatchers_(true);
     this.level_++;
+
 
     try {
         callback();
@@ -1720,6 +1758,7 @@ recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
         } finally {
             if (decrement) {
                 this.level_--;
+                this.notifyWatchers_(false);
             }
         }
     }
@@ -2120,7 +2159,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
     dependant.providers_.shift();
     dependant.providers_.forEach(function(v) {
         if (!(v instanceof recoil.frp.Behaviour)) {
-            throw 'provider not a behaviour in switch for ' + dependant.origSeq_;
+            throw new Error('provider not a behaviour in switch for ' + dependant.origSeq_);
         }
     });
     var newVisited = this.visit(dependant);

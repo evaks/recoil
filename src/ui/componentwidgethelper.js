@@ -227,16 +227,22 @@ recoil.ui.ComponentWidgetHelper.prototype.forceUpdate = function() {
 
 /**
  * like frp access trans but will do attached behaviours and only if they are good
- * @param {function()} cb
+ * @param {function():?} cb
+ * @param {?=} opt_def
+ * @return {?}
  */
 
-recoil.ui.ComponentWidgetHelper.prototype.accessTrans = function(cb) {
+recoil.ui.ComponentWidgetHelper.prototype.accessTrans = function(cb, opt_def) {
     var me = this;
+    var res = opt_def;
+    if (!this.isAttached_) {
+        return res;
+    }
     this.frp_.accessTrans.apply(this.frp_, [function() {
         if (me.isGood()) {
-            cb();
+            res = cb();
         }}].concat(this.behaviours_));
-
+    return res;
 };
 
 /**
