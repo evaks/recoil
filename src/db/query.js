@@ -334,6 +334,7 @@ recoil.db.QueryScope = function(map, opt_helper) {
     this.map_ = map;
     this.query_ = opt_helper;
     /**
+     * @private
      * @type {Object<string,!Array<string>>}
      */
     this.colKeyMap_ = {};

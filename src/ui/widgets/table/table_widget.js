@@ -148,7 +148,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
                         return;
                     }
 
-                    let matches = recoil.util.isEqual(pks, lastB.get()) || recoil.util.isEqual(pks, e.data);
+                    var matches = recoil.util.isEqual(pks, lastB.get()) || recoil.util.isEqual(pks, e.data);
                     if (matches) {
                         newSelected.push(pks);
                         finished = started;

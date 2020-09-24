@@ -384,7 +384,7 @@ recoil.ui.HtmlHelper.prototype.onEvent = function(element, event, callbackB) {
  * @param {string|!recoil.ui.message.Message} tooltip
  */
 recoil.ui.HtmlHelper.tooltip = function(element, tooltip) {
-    let component = null;
+    var component = null;
     recoil.frp.DomObserver.instance.listen(element, function(b) {
         if (b) {
             if (!component) {
