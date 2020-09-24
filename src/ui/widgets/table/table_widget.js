@@ -64,7 +64,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
         }
     };
     var SelectionMode = recoil.ui.widgets.table.TableWidget.SelectionMode;
-    
+
     this.selectionHelper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, function(helper, selectedB, selectMetaB) {
         var i = 0;
         var row;
@@ -106,7 +106,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
     // this will keep the current table in it, it will allow us to get selected before
     // we have attached a table
     this.tableBB_ = this.scope_.getFrp().createNotReadyB();
-    
+
     this.rowClickEvent_ = scope.getFrp().createCallback(function(e, selectedB, tableB, lastB) {
         this.selectNewRow_ = false;
         var oldSelected = selectedB.get();
@@ -129,7 +129,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
 
                 var found = goog.array.find(oldSelected, keyEqual);
                 if (found) {
-                    selectedB.set(oldSelected.filter(function (v) {
+                    selectedB.set(oldSelected.filter(function(v) {
                         return !keyEqual(v);
                     }));
                 }
@@ -143,15 +143,15 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
                 var started = false;
                 var finished = false;
                 var tbl = tableB.get();
-                tbl.forEach(function (row, pks) {
+                tbl.forEach(function(row, pks) {
                     if (finished) {
                         return;
                     }
-                        
+
                     let matches = recoil.util.isEqual(pks, lastB.get()) || recoil.util.isEqual(pks, e.data);
                     if (matches) {
                         newSelected.push(pks);
-                        finished  = started;
+                        finished = started;
                         started = true;
                     }
                     else if (started) {
@@ -165,7 +165,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
                 lastB.set(e.data);
             }
         }
-        
+
 
     }, this.selected_, this.scope_.getFrp().switchB(this.tableBB_), this.lastClickedB_);
     this.rowClickHelper_.attach(this.rowClickEvent_);

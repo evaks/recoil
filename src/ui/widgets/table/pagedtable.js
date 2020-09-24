@@ -109,8 +109,8 @@ recoil.ui.widgets.table.PagedTableWidget.prototype.getBottomPager = function() {
 };
 
 /**
- * @param {!recoil.frp.Behaviour|!Object} addB 
- * @param {!recoil.frp.Behaviour|!Object} removeB 
+ * @param {!recoil.frp.Behaviour|!Object} addB
+ * @param {!recoil.frp.Behaviour|!Object} removeB
  */
 recoil.ui.widgets.table.PagedTableWidget.prototype.attachAdd = function(addB, removeB) {
     this.addButton_.attachStruct(addB);
