@@ -686,3 +686,46 @@ recoil.frp.util.liftFunc = function(func, args) {
         return func.apply(null, arguments);
     }, recoil.frp.util.toBehaviours(frp, args));
 };
+
+/**
+ * ensures the result does not fire more than once in ms
+ * @template T
+ * @param {!recoil.frp.Behaviour<T>} valB
+ * @param {number} ms time  in milliseconds
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.util.calm = function(valB, ms) {
+    var frp = valB.frp();
+    var timer = null;
+    var tmpE = frp.createE();
+    var tmp = null;
+    var redo = false;
+
+    return frp.liftBI(function(val, tmps) {
+        if (timer) {
+            redo = true;
+            return tmp;
+        }
+        redo = false;
+        if (tmps.length > 0) {
+            // this was triggered by a timeout so don't start a new timer
+            return val;
+        }
+
+        tmp = val;
+        timer = setTimeout(function() {
+            timer = null;
+            tmp = null;
+            if (redo) {
+                frp.accessTrans(function() {
+                    tmpE.set(true);
+                }, tmpE);
+            }
+        }, ms);
+        return val;
+    }, function(v) {
+        valB.set(v);
+    }, valB, tmpE);
+
+
+};

@@ -1227,7 +1227,9 @@ recoil.frp.Frp.accessList = function(callback, behaviours) {
 };
 
 /**
- *
+ * converts a behaviour that has a behaviour as its value, into a behaviour with the value of the inner behaviour
+ * e.g. Behaviour<Behaviour<1>> -> Behaviour<1>
+ * this is useful when you don't know what the inner behaviour is until some other behaviour(s) are updated
  * @template T
  * @param {!recoil.frp.Behaviour<!recoil.frp.Behaviour<T>>} Bb
  * @return {T}

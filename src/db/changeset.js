@@ -147,6 +147,19 @@ recoil.db.ChangeDb = function(schema) {
 
 
 /**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!Array<?>} keys
+ */
+recoil.db.ChangeDb.prototype.updatePk = function(schema, path, keys) {
+    var node = this.resolve_(path.unsetKeys(), false);
+    if (node) {
+        node.updatePk(schema, path, keys);
+    }
+
+};
+
+/**
  * @param {!recoil.db.ChangeSet.Path} path
  */
 recoil.db.ChangeDb.prototype.applyAdd = function(path) {
@@ -375,14 +388,15 @@ recoil.db.ChangeDb.prototype.applyChanges = function(changes) {
 /**
  * @param {!recoil.db.ChangeSet.Path} rootPath
  * @param {?} val
+ * @param {function(?):boolean=} opt_filter
  * @return {!Array<!recoil.db.ChangeSet.Path>} returns a list of roots that have changed
  */
-recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
+recoil.db.ChangeDb.prototype.set = function(rootPath, val, opt_filter) {
     // don't create path if val is null
     var cur = this.resolve_(rootPath, true);
 
     var absolutePath = this.schema_.absolute(rootPath);
-    cur.set(this.schema_, rootPath, val);
+    cur.set(this.schema_, rootPath, val, opt_filter);
     var found = false;
     var changed = [];
     for (var i = 0; i < this.roots_.length; i++) {
@@ -406,15 +420,16 @@ recoil.db.ChangeDb.prototype.set = function(rootPath, val) {
  * this checks for null value set and if so does not create ansestors
  * @param {!recoil.db.ChangeSet.Path} rootPath
  * @param {?} val
+ * @param {function(?):boolean=} opt_filter
  * @return {!Array<!recoil.db.ChangeSet.Path>} returns a list of roots that have changed
  */
-recoil.db.ChangeDb.prototype.setRoot = function(rootPath, val) {
+recoil.db.ChangeDb.prototype.setRoot = function(rootPath, val, opt_filter) {
     // don't create path if val is null
     var cur = this.resolve_(rootPath, val !== null);
 
     var absolutePath = this.schema_.absolute(rootPath);
     if (cur) {
-        cur.set(this.schema_, rootPath, val);
+        cur.set(this.schema_, rootPath, val, opt_filter);
     }
     var found = false;
     var changed = [];
@@ -1080,6 +1095,15 @@ recoil.db.ChangeSet.PathItem.prototype.keys = function() {
  */
 recoil.db.ChangeSet.PathItem.prototype.unsetKeys = function() {
     return new recoil.db.ChangeSet.PathItem(this.name_, [], []);
+};
+
+
+/**
+ * @param {!Array<?>} keys
+ * @return {!recoil.db.ChangeSet.PathItem}
+ */
+recoil.db.ChangeSet.PathItem.prototype.setKeys = function(keys) {
+    return new recoil.db.ChangeSet.PathItem(this.name_, this.keyNames_, keys);
 };
 
 /**
@@ -3054,6 +3078,13 @@ recoil.db.ChangeDbNode.prototype.get = function(schema, path) {};
 
 /**
  * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!Array<?>} keys
+ */
+recoil.db.ChangeDbNode.prototype.updatePk = function(schema, path, keys) {};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.PathItem} item the item to create or get
  * @param {recoil.db.ChangeSet.Path} path if not null then specifies what type to create
  *                                        otherwize creates container
@@ -3067,8 +3098,9 @@ recoil.db.ChangeDbNode.prototype.getChildNode = function(schema, item, path, cre
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
+ * @param {function(?):boolean=} opt_filter
  */
-recoil.db.ChangeDbNode.prototype.set = function(schema, path, val) {};
+recoil.db.ChangeDbNode.prototype.set = function(schema, path, val, opt_filter) {};
 
 /**
  * @param {!recoil.db.ChangeSet.Schema} schema
@@ -3097,9 +3129,19 @@ recoil.db.ChangeDbNode.Leaf = function() {
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
+ * @param {function(?):boolean=} opt_filter
  */
-recoil.db.ChangeDbNode.Leaf.prototype.set = function(schema, path, val) {
+recoil.db.ChangeDbNode.Leaf.prototype.set = function(schema, path, val, opt_filter) {
     this.value_ = val;
+};
+
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!Array<?>} keys
+ */
+recoil.db.ChangeDbNode.Leaf.prototype.updatePk = function(schema, path, keys) {
+    // leaves don't have primary keys
 };
 
 /**
@@ -3145,6 +3187,29 @@ recoil.db.ChangeDbNode.Container = function() {
 };
 
 /**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {!Array<?>} keys
+ */
+recoil.db.ChangeDbNode.Container.prototype.updatePk = function(schema, path, keys) {
+    // update the keys in the node
+    var item = path.last();
+    var names = item.keyNames();
+    var children = this.children_;
+
+    for (var i = 0; i < names.length; i++) {
+        var child = names[i];
+        var val = keys[i];
+        if (!children[child]) {
+            children[child] = new recoil.db.ChangeDbNode.Leaf();
+            this.useVal_ = false;
+        }
+        children[child].setValue(val);
+    }
+
+};
+
+/**
  * @param {!recoil.db.ChangeSet.PathItem} item
  */
 recoil.db.ChangeDbNode.Container.prototype.setKeys = function(item) {
@@ -3168,8 +3233,9 @@ recoil.db.ChangeDbNode.Container.prototype.setKeys = function(item) {
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.Path} path
  * @param {?} val
+ * @param {function(?):boolean=} opt_filter
  */
-recoil.db.ChangeDbNode.Container.prototype.set = function(schema, path, val) {
+recoil.db.ChangeDbNode.Container.prototype.set = function(schema, path, val, opt_filter) {
     var children = this.children_;
     if (val) {
         this.useVal_ = false;
@@ -3267,9 +3333,28 @@ recoil.db.ChangeDbNode.List = function() {
 /**
  * @param {!recoil.db.ChangeSet.Schema} schema
  * @param {!recoil.db.ChangeSet.Path} path
- * @param {?} val
+ * @param {!Array<?>} keys
  */
-recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
+recoil.db.ChangeDbNode.List.prototype.updatePk = function(schema, path, keys) {
+    var removed = this.keys_.remove({key: path.lastKeys(), pos: 0, value: null});
+    if (removed) {
+        var last = path.last();
+        var newNode = /** @type {{key:?Array,pos:number, value:?recoil.db.ChangeDbNode}}*/ (goog.object.clone(removed));
+        newNode.key = keys;
+        if (newNode.value) {
+            newNode.value.setKeys(last.setKeys(keys));
+        }
+        this.keys_.add(newNode);
+    }
+
+};
+/**
+ * @param {!recoil.db.ChangeSet.Schema} schema
+ * @param {!recoil.db.ChangeSet.Path} path
+ * @param {?} val
+ * @param {function(?):boolean=} opt_filter
+ */
+recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val, opt_filter) {
     var keys = this.keys_;
     // we could schemas that filter nodes but not yet
     var newKeys = new goog.structs.AvlTree(recoil.util.object.compareKey);
@@ -3278,7 +3363,7 @@ recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
     if (val) {
         var pos = 0;
         var maxPos = 0;
-        if (partial) {
+        if (partial || opt_filter) {
             this.keys_.inOrderTraverse(function(val) {
                 maxPos = Math.max(val.pos + 1, maxPos);
             });
@@ -3287,7 +3372,7 @@ recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
             var ourPos = pos;
             // if this partial then our pos needs to be calculated
             var subKey = schema.createKeyPath(path, val);
-            if (partial) {
+            if (partial || opt_filter) {
                 var oldNode = keys.findFirst({key: subKey.lastKeys(), pos: ourPos, value: new recoil.db.ChangeDbNode.Container()});
                 if (oldNode) {
                     ourPos = oldNode.pos;
@@ -3306,7 +3391,19 @@ recoil.db.ChangeDbNode.List.prototype.set = function(schema, path, val) {
             newKeys.add(newNode);
         });
     }
-    if (partial) {
+    if (opt_filter) {
+        this.keys_.inOrderTraverse(function(item) {
+            var subKey = schema.createKeyPath(path, item.value);
+            // leave anything that doesn't match the query here we are not replacing these
+
+            if (!opt_filter(item.value.get(schema, subKey))) {
+                if (!newKeys.findFirst(item)) {
+                    newKeys.add(item);
+                }
+            }
+        });
+    }
+    else if (partial) {
         this.keys_.inOrderTraverse(function(item) {
             if (!newKeys.findFirst(item)) {
                 newKeys.add(item);

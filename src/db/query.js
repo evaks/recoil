@@ -20,6 +20,7 @@ goog.provide('recoil.db.expr.True');
 goog.provide('recoil.db.expr.Value');
 goog.provide('recoil.db.expr.Where');
 
+goog.require('goog.array');
 goog.require('goog.string');
 goog.require('recoil.db.Escaper');
 goog.require('recoil.structs.table.ColumnKey');
@@ -69,6 +70,21 @@ recoil.db.QueryHelper.prototype.notEquals = function(x, y) {};
  * @return {string}
  */
 recoil.db.QueryHelper.prototype.equals = function(x, y) {};
+
+
+/**
+ * @param {string} x
+ * @param {string} y
+ * @return {string}
+ */
+recoil.db.QueryHelper.prototype.startsWith = function(x, y) {};
+
+/**
+ * @param {string} x
+ * @param {string} y
+ * @return {string}
+ */
+recoil.db.QueryHelper.prototype.containsStr = function(x, y) {};
 
 
 
@@ -162,6 +178,53 @@ recoil.db.SQLQueryHelper.prototype.and = function(x, y) {
 recoil.db.SQLQueryHelper.prototype.in = function(value, list) {
     return '(' + value + ' IN (' + list.join(', ') + '))';
 };
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @param {string} value
+ * @param {!Array<string>} list
+ * @return {string}
+ */
+recoil.db.SQLQueryHelper.prototype.containsAll = function(scope, value, list) {
+    if (list.length === 0) {
+        return '(1=1)';
+    }
+    let col = function(t, col) {
+        return t + '.' + col;
+    };
+    let t1 = scope.nextTable();
+    let t2 = scope.nextTable();
+    let t3 = scope.nextTable();
+
+    let childPath = scope.getChildPath(value);
+    if (childPath.length === 0) {
+        return '(1=2)';
+    }
+    let last = childPath[childPath.length - 1];
+
+    let eValueCol = this.escaper_.escapeId(last.col);
+    let eParentCol = this.escaper_.escapeId(last.parent);
+    let eValTable = this.escaper_.escapeId(last.table);
+
+    let me = this;
+    let itemSelect = 'SELECT DISTINCT ' + col(t1, eParentCol) + ',' + col(t1, eValueCol)
+        + ' FROM ' + eValTable + ' ' + t1 + ' WHERE ' + col(t1, eValueCol) + ' IN (' + list.map(function(v) {
+        return v;
+    }).join(',') + ')';
+    let countSelect = 'SELECT ' + col(t2, eParentCol) + ' parent, count(' + col(t2, eValueCol) + ') c  FROM (' + itemSelect + ') ' + t2 + ' GROUP BY ' + col(t2, eParentCol);
+    let parentSelect = '(SELECT ' + col(t3, 'parent') + ' FROM (' + countSelect + ')  ' + t3 + ' WHERE ' + col(t3, 'c') + ' = ' + me.escaper_.escape(list.length) + ')';
+
+    // go up the parent hierachy antil it is the root object
+    for (let i = childPath.length - 2; i >= 0; i--) {
+        let cur = childPath[i];
+        parentSelect = me.escaper_.escapeId(cur.id) + ' IN ' + parentSelect;
+        if (i > 1) {
+            parentSelect = '(SELECT ' + me.escaper_.escapeId(cur.parent) + ' FROM ' + me.escaper_.escapeId(cur.parent) + ' WHERE ' + parentSelect + ')';
+        }
+    }
+    return parentSelect;
+};
+
 
 /**
  * @param {string} value
@@ -289,6 +352,24 @@ recoil.db.SQLQueryHelper.prototype.notEquals = function(x, y) {
 
 };
 
+/**
+ * @param {string} x
+ * @param {string} y
+ * @return {string}
+ */
+recoil.db.SQLQueryHelper.prototype.startsWith = function(x, y) {
+    return '(' + x + ' like ' + this.escaper_.escape(y + '%') + ')';
+};
+
+
+/**
+ * @param {string} x
+ * @param {string} y
+ * @return {string}
+ */
+recoil.db.SQLQueryHelper.prototype.containsStr = function(x, y) {
+    return '(' + x + ' like ' + this.escaper_.escape('%' + y + '%') + ')';
+};
 
 /**
  * @param {string} x
@@ -321,10 +402,11 @@ recoil.db.QueryExp.prototype.eval = function(scope) {
 recoil.db.QueryExp.prototype.query = function(scope) {};
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.QueryExp.prototype.serialize = function(colSerializer) {};
+recoil.db.QueryExp.prototype.serialize = function(serializer) {};
+
 /**
  * @constructor
  * @param {Object} map
@@ -440,20 +522,46 @@ recoil.db.QueryScope.prototype.resolve = function(parts) {
  * @constructor
  * @param {Object} map
  * @param {!recoil.db.QueryHelper} helper
+ * @param {function(?):!Array<{id: string, parent: string, col: string, table:string}>} childPath
  */
-recoil.db.DBQueryScope = function(map, helper) {
+recoil.db.DBQueryScope = function(map, helper, childPath) {
     recoil.db.QueryScope.call(this, map, helper);
     this.dbMap_ = {children: {}, table: null};
     this.colMap_ = {};
+    this.tableCount_ = 0;
+    this.childPath_ = childPath;
 };
 goog.inherits(recoil.db.DBQueryScope, recoil.db.QueryScope);
 
+
+
+/**
+ * @param {!recoil.db.expr.Field} field
+ * @return {!Array<{id: string, parent: string, col: string, table:string}>}
+ */
+recoil.db.DBQueryScope.prototype.getChildPath = function(field) {
+    return this.childPath_(field.path());
+};
+
 /**
  * @param {!Array<string>} path
- * @param {string} table
  * @param {!Array<!recoil.structs.table.ColumnKey>} columns
-*/
-recoil.db.DBQueryScope.prototype.addPathTable = function(path, table, columns) {
+ * @return {string} the name of the table added
+ */
+recoil.db.DBQueryScope.prototype.addPathTable = function(path, columns) {
+    return this.addPathNamedTable(path, columns, undefined);
+};
+
+
+
+/**
+ * @param {!Array<string>} path
+ * @param {!Array<!recoil.structs.table.ColumnKey>} columns
+ * @param {string|undefined} tname
+ * @return {string} the name of the table added
+ */
+recoil.db.DBQueryScope.prototype.addPathNamedTable = function(path, columns, tname) {
+    let table = tname === undefined ? this.nextTable() : tname;
     var cur = this.dbMap_;
     for (var i = 0; i < path.length; i++) {
         var item = path[i];
@@ -469,8 +577,19 @@ recoil.db.DBQueryScope.prototype.addPathTable = function(path, table, columns) {
     columns.forEach(function(c) {
         me.colMap_[c.getId()] = table;
     });
+    return table;
 };
 
+
+/**
+ * gets a unique table name from the scope
+ * @return {string}
+ */
+recoil.db.DBQueryScope.prototype.nextTable = function() {
+    let table = 't' + this.tableCount_;
+    this.tableCount_++;
+    return table;
+};
 /**
  * @param {!Array<string|!recoil.structs.table.ColumnKey>} parts indexes to get the object
  * @return {{field:(!Array<string>|undefined),value:(?|undefined)}}
@@ -640,7 +759,7 @@ recoil.db.QueryOptions.prototype.size = function() {
 };
 
 /**
- * @return {{next:?, page:number}}
+ * @return {?{next:?, page:number}}
  */
 recoil.db.QueryOptions.prototype.start = function() {
     return this.options_.start;
@@ -650,7 +769,7 @@ recoil.db.QueryOptions.prototype.start = function() {
  * @return {?Array<!recoil.db.Query>}
  */
 recoil.db.QueryOptions.prototype.sortOrder = function() {
-    return this.options_.start;
+    return this.options_.sortOrder || [];
 };
 
 
@@ -661,6 +780,21 @@ recoil.db.QueryOptions.prototype.serialize = function() {
     return this.options_;
 };
 
+
+
+/**
+ * @return {!recoil.db.QueryOptions}
+ */
+recoil.db.QueryOptions.prototype.cleanStart = function() {
+    var options = Object.assign({}, this.options_);
+
+    if (options.start) {
+        if (options.start.page !== undefined) {
+            options.start = {page: options.start.page};
+        }
+    }
+    return new recoil.db.QueryOptions(options);
+};
 
 /**
  * @param {Object} obj
@@ -690,44 +824,75 @@ recoil.db.Query = function(opt_expr) {
 };
 
 /**
+ * @interface
+ */
+recoil.db.Query.Serializer = function() {};
+
+/**
+ * @param {?} val
+ * @return {!recoil.structs.table.ColumnKey}
+ */
+recoil.db.Query.Serializer.prototype.deserializeCol = function(val) {};
+
+/**
+ * @param {!recoil.structs.table.ColumnKey} col
+ * @return {?}
+ */
+recoil.db.Query.Serializer.prototype.serializeCol = function(col) {};
+
+
+/**
+ * @param {?} val
+ * @return {?}
+ */
+recoil.db.Query.Serializer.prototype.deserializeValue = function(val) {};
+
+/**
+ * @param {?} val
+ * @return {?}
+ */
+recoil.db.Query.Serializer.prototype.serializeValue = function(val) {};
+
+
+/**
  *
  * @param {?} cls
- * @return {function(?, function(?):!recoil.structs.table.ColumnKey):recoil.db.QueryExp} ;
+ * @return {function(?, !recoil.db.Query.Serializer):recoil.db.QueryExp} ;
  */
 
 recoil.db.Query.binaryDeserializer = function(cls) {
-    return function(data, colDeserializer) {
-        return new cls(recoil.db.Query.deserializeExp(data.x, colDeserializer), recoil.db.Query.deserializeExp(data.y, colDeserializer));
+    return function(data, serializer) {
+        return new cls(recoil.db.Query.deserializeExp(data.x, serializer), recoil.db.Query.deserializeExp(data.y, serializer));
     };
 };
 /**
  * @param {?} data
- * @param {function(?):!recoil.structs.table.ColumnKey} colDeserializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {!recoil.db.Query}
  */
-recoil.db.Query.deserialize = function(data, colDeserializer) {
+recoil.db.Query.deserialize = function(data, serializer) {
     var factory = recoil.db.Query.deserializeMap[data.op];
 
     if (!factory) {
         throw new Error('Unknown Expression Type ' + data.op);
     }
 
-    return new recoil.db.Query(factory(data, colDeserializer));
+    return new recoil.db.Query(factory(data, serializer));
 };
 
 /**
  * @param {?} data
- * @param {function(?):!recoil.structs.table.ColumnKey} colDeserializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {!recoil.db.QueryExp}
  */
-recoil.db.Query.deserializeExp = function(data, colDeserializer) {
+recoil.db.Query.deserializeExp = function(data, serializer) {
     var factory = recoil.db.Query.deserializeMap[data.op];
 
     if (!factory) {
         throw new Error('Unknown Expression Type ' + data.op);
     }
 
-    return factory(data, colDeserializer);
+    return factory(data, serializer);
 };
 
 /**
@@ -748,11 +913,11 @@ recoil.db.Query.prototype.eval = function(scope) {
 
 /**
  * returns a basic object that can stringified and sent over the wire
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.Query.prototype.serialize = function(colSerializer) {
-    return this.expr_.serialize(colSerializer);
+recoil.db.Query.prototype.serialize = function(serializer) {
+    return this.expr_.serialize(serializer);
 };
 
 
@@ -804,6 +969,7 @@ recoil.db.Query.prototype.query_ = function(query) {
 
     return new recoil.db.Query(query);
 };
+
 
 /**
  * @param {...(!recoil.db.Query|!recoil.db.QueryExp|!recoil.structs.table.ColumnKey)} var_others
@@ -946,6 +1112,35 @@ recoil.db.Query.prototype.exists$ = function(field) {
 recoil.db.Query.prototype.eq = function(left, right) {
     return this.query_(new recoil.db.expr.Equals(this.toExpr(left), this.toExpr(right)));
 };
+
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp|!recoil.structs.table.ColumnKey|*} left
+ * @param {string} match
+ * @return {!recoil.db.Query}
+ */
+recoil.db.Query.prototype.startsWith = function(left, match) {
+    return this.query_(new recoil.db.expr.StartsWith(this.toExpr(left), match));
+};
+
+
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp|!recoil.structs.table.ColumnKey|*} left
+ * @param {string} match
+ * @return {!recoil.db.Query}
+ */
+recoil.db.Query.prototype.containsStr = function(left, match) {
+    return this.query_(new recoil.db.expr.ContainsStr(this.toExpr(left), match));
+};
+
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp|!recoil.structs.table.ColumnKey|*} field
+ * @param {!Array<*>|Array<!recoil.db.Query>} values non query values are assumed to be values
+ * @return {!recoil.db.Query}
+ */
+recoil.db.Query.prototype.containsAll = function(field, values) {
+    return this.query_(new recoil.db.expr.ContainsAll(this.toField(field), this.fromArray_(values)));
+};
+
 /**
  * @param {*} left
  * @param {*} right
@@ -1240,6 +1435,33 @@ recoil.db.Query.prototype.toExpr = function(exp) {
     return new recoil.db.expr.Value(exp);
 };
 
+
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp|!recoil.structs.table.ColumnKey|*} exp
+ * @return {!recoil.db.expr.Field}
+ */
+recoil.db.Query.prototype.toField = function(exp) {
+    if (exp instanceof recoil.db.Query) {
+        if (exp.expr_ === null) {
+            throw 'unexpected null in expression';
+        }
+        exp = exp.expr_;
+    }
+    if (exp instanceof recoil.db.expr.Field) {
+        return exp;
+    }
+    if (exp instanceof recoil.structs.table.ColumnKey) {
+        return new recoil.db.expr.Field(exp);
+    }
+    if (exp instanceof String) {
+        return new recoil.db.expr.Field(exp.toString());
+    }
+    if (typeof(exp) === 'string') {
+        return new recoil.db.expr.Field(exp.toString());
+    }
+    throw new Error('unexpected type');
+};
+
 /**
  * @constructor
  * @implements {recoil.db.QueryExp}
@@ -1268,11 +1490,11 @@ recoil.db.expr.And.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.And.prototype.serialize = function(colSerializer) {
-    return {op: '&', x: this.x_.serialize(colSerializer), y: this.y_.serialize(colSerializer)};
+recoil.db.expr.And.prototype.serialize = function(serializer) {
+    return {op: '&', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
 
 /**
@@ -1304,11 +1526,11 @@ recoil.db.expr.Or.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.Or.prototype.serialize = function(colSerializer) {
-    return {op: '|', x: this.x_.serialize(colSerializer), y: this.y_.serialize(colSerializer)};
+recoil.db.expr.Or.prototype.serialize = function(serializer) {
+    return {op: '|', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
 
 
@@ -1339,11 +1561,11 @@ recoil.db.expr.Not.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.Not.prototype.serialize = function(colSerializer) {
-    return {op: '!', x: this.x_.serialize(colSerializer)};
+recoil.db.expr.Not.prototype.serialize = function(serializer) {
+    return {op: '!', x: this.x_.serialize(serializer)};
 };
 
 /**
@@ -1377,11 +1599,11 @@ recoil.db.expr.Exists.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.Exists.prototype.serialize = function(colSerializer) {
-    return {op: '?', x: this.val_.serialize(colSerializer), exists: this.exists_};
+recoil.db.expr.Exists.prototype.serialize = function(serializer) {
+    return {op: '?', x: this.val_.serialize(serializer), exists: this.exists_};
 };
 
 
@@ -1401,9 +1623,26 @@ recoil.db.expr.Equals = function(x, y) {
  * @return {*}
  */
 recoil.db.expr.Equals.prototype.eval = function(scope) {
-    return this.x_.eval(scope) === this.y_.eval(scope);
+    return recoil.db.expr.Equals.isEqual(this.x_.eval(scope), this.y_.eval(scope));
 };
 
+/**
+ * @param {?} x
+ * @param {?} y
+ * @return {boolean}
+ */
+recoil.db.expr.Equals.isEqual = function(x, y) {
+    if (x === y) {
+        return true;
+    }
+    let typex = typeof(x);
+    let typey = typeof(y);
+
+    if (typex !== typey && ((typex === 'bigint' && typey === 'number') || (typey === 'bigint' && typex === 'number'))) {
+        return x == y;
+    }
+    return false;
+};
 
 /**
  * @param {!recoil.db.QueryScope} scope
@@ -1415,11 +1654,108 @@ recoil.db.expr.Equals.prototype.query = function(scope) {
 
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.Equals.prototype.serialize = function(colSerializer) {
-    return {op: '=', x: this.x_.serialize(colSerializer), y: this.y_.serialize(colSerializer)};
+recoil.db.expr.Equals.prototype.serialize = function(serializer) {
+    return {op: '=', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
+};
+
+
+/**
+ * @constructor
+ * @param {!recoil.db.QueryExp} x
+ * @param {string} y
+ * @implements {recoil.db.QueryExp}
+ */
+recoil.db.expr.StartsWith = function(x, y) {
+    this.x_ = x;
+    this.y_ = y;
+};
+
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.StartsWith.prototype.eval = function(scope) {
+    return (this.x_.eval(scope) + '').toLowerCase().indexOf((this.y_ + '').toLowerCase()) === 0;
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {string}
+ */
+recoil.db.expr.StartsWith.prototype.query = function(scope) {
+    return scope.query().startsWith(this.x_.query(scope), this.y_);
+};
+
+
+/**
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {?}
+ */
+recoil.db.expr.StartsWith.prototype.serialize = function(serializer) {
+    return {op: 'startsWith', x: this.x_.serialize(serializer), y: this.y_};
+};
+
+/**
+ * @param {?} data
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {!recoil.db.expr.StartsWith}
+ */
+recoil.db.expr.StartsWith.deserialize = function(data, serializer) {
+    return new recoil.db.expr.StartsWith(recoil.db.Query.deserializeExp(data.x, serializer), data.y + '');
+};
+
+
+/**
+ * @constructor
+ * @param {!recoil.db.QueryExp} x
+ * @param {string} y
+ * @implements {recoil.db.QueryExp}
+ */
+recoil.db.expr.ContainsStr = function(x, y) {
+    this.x_ = x;
+    this.y_ = y;
+};
+
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.ContainsStr.prototype.eval = function(scope) {
+    return (this.x_.eval(scope) + '').toLowerCase().indexOf((this.y_ + '').toLowerCase()) !== -1;
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {string}
+ */
+recoil.db.expr.ContainsStr.prototype.query = function(scope) {
+    return scope.query().containsStr(this.x_.query(scope), this.y_);
+};
+
+
+/**
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {?}
+ */
+recoil.db.expr.ContainsStr.prototype.serialize = function(serializer) {
+    return {op: 'containsStr', x: this.x_.serialize(serializer), y: this.y_};
+};
+/**
+ * @param {?} data
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {!recoil.db.expr.ContainsStr}
+ */
+recoil.db.expr.ContainsStr.deserialize = function(data, serializer) {
+    return new recoil.db.expr.ContainsStr(recoil.db.Query.deserializeExp(data.x, serializer), data.y + '');
 };
 
 /**
@@ -1438,7 +1774,7 @@ recoil.db.expr.NotEquals = function(x, y) {
  * @return {*}
  */
 recoil.db.expr.NotEquals.prototype.eval = function(scope) {
-    return this.x_.eval(scope) !== this.y_.eval(scope);
+    return !recoil.db.expr.Equals.isEqual(this.x_.eval(scope), this.y_.eval(scope));
 };
 
 
@@ -1451,11 +1787,11 @@ recoil.db.expr.NotEquals.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.NotEquals.prototype.serialize = function(colSerializer) {
-    return {op: '!=', x: this.x_.serialize(colSerializer), y: this.y_.serialize(colSerializer)};
+recoil.db.expr.NotEquals.prototype.serialize = function(serializer) {
+    return {op: '!=', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
 
 /**
@@ -1471,11 +1807,11 @@ recoil.db.expr.GreaterThan = function(x, y) {
 
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.GreaterThan.prototype.serialize = function(colSerializer) {
-    return {op: '>', x: this.x_.serialize(colSerializer), y: this.y_.serialize(colSerializer)};
+recoil.db.expr.GreaterThan.prototype.serialize = function(serializer) {
+    return {op: '>', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
 
 /**
@@ -1514,11 +1850,11 @@ recoil.db.expr.GreaterThanOrEquals.prototype.eval = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.GreaterThanOrEquals.prototype.serialize = function(colSerializer) {
-    return {op: '>=', x: this.x_.serialize(colSerializer), y: this.y_.serialize(colSerializer)};
+recoil.db.expr.GreaterThanOrEquals.prototype.serialize = function(serializer) {
+    return {op: '>=', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
 
 /**
@@ -1558,11 +1894,11 @@ recoil.db.expr.LessThan.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.LessThan.prototype.serialize = function(colSerializer) {
-    return {op: '<', x: this.x_.serialize(colSerializer), y: this.y_.serialize(colSerializer)};
+recoil.db.expr.LessThan.prototype.serialize = function(serializer) {
+    return {op: '<', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
 /**
 
@@ -1594,11 +1930,11 @@ recoil.db.expr.LessThanOrEquals.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.LessThanOrEquals.prototype.serialize = function(colSerializer) {
-    return {op: '<=', x: this.x_.serialize(colSerializer), y: this.y_.serialize(colSerializer)};
+recoil.db.expr.LessThanOrEquals.prototype.serialize = function(serializer) {
+    return {op: '<=', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
 /**
  * @constructor
@@ -1614,23 +1950,23 @@ recoil.db.expr.In = function(field, list) {
 
 /**
  * @param {?} data
- * @param {function(?):!recoil.structs.table.ColumnKey} colDeserializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {!recoil.db.expr.In}
  */
-recoil.db.expr.In.deserialize = function(data, colDeserializer) {
-    return new recoil.db.expr.In(recoil.db.Query.deserializeExp(data.field, colDeserializer), data.list.map(
+recoil.db.expr.In.deserialize = function(data, serializer) {
+    return new recoil.db.expr.In(recoil.db.Query.deserializeExp(data.field, serializer), data.list.map(
         function(v) {
-            return recoil.db.Query.deserializeExp(v, colDeserializer);
+            return recoil.db.Query.deserializeExp(v, serializer);
         }));
 };
 
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.In.prototype.serialize = function(colSerializer) {
-    return {op: 'in', field: this.field_.serialize(colSerializer), list: this.list_.map(function(v) {return v.serialize(colSerializer);})};
+recoil.db.expr.In.prototype.serialize = function(serializer) {
+    return {op: 'in', field: this.field_.serialize(serializer), list: this.list_.map(function(v) {return v.serialize(serializer);})};
 };
 
 /**
@@ -1639,9 +1975,7 @@ recoil.db.expr.In.prototype.serialize = function(colSerializer) {
  */
 recoil.db.expr.In.prototype.eval = function(scope) {
     var v = this.field_.eval(scope);
-    var list = this.list_.map(function(v) {return v.eval(scope);});
-    var res = list.indexOf(v) !== -1;
-    return res;
+    return recoil.db.expr.In.contains(scope, v, this.list_);
 
 };
 
@@ -1654,6 +1988,20 @@ recoil.db.expr.In.prototype.query = function(scope) {
     return scope.query().in (this.field_.query(scope), this.list_.map(function(v) { return v.query(scope); }));
 };
 
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @param {?} val
+ * @param {!Array<!recoil.db.QueryExp>} expList
+ * @return {boolean}
+ */
+recoil.db.expr.In.contains = function(scope, val, expList) {
+    for (var i = 0; i < expList.length; i++) {
+        if (recoil.db.expr.Equals.isEqual(val, expList[i].eval(scope))) {
+            return true;
+        }
+    }
+    return false;
+};
 
 /**
  * @constructor
@@ -1665,14 +2013,13 @@ recoil.db.expr.NotIn = function(field, list) {
     this.field_ = field;
     this.list_ = list;
 };
-
 /**
  * @param {!recoil.db.QueryScope} scope
  * @return {*}
  */
 recoil.db.expr.NotIn.prototype.eval = function(scope) {
     var v = this.field_.eval(scope);
-    return this.list_.map(function(v) {return v.eval(scope);}).indexOf(v) === -1;
+    return !recoil.db.expr.In.contains(scope, v, this.list_ || []);
 };
 
 
@@ -1686,22 +2033,22 @@ recoil.db.expr.NotIn.prototype.query = function(scope) {
 
 /**
  * @param {?} data
- * @param {function(?):!recoil.structs.table.ColumnKey} colDeserializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {!recoil.db.expr.NotIn}
  */
-recoil.db.expr.NotIn.deserialize = function(data, colDeserializer) {
-    return new recoil.db.expr.NotIn(recoil.db.Query.deserializeExp(data.field, colDeserializer), data.list.map(
+recoil.db.expr.NotIn.deserialize = function(data, serializer) {
+    return new recoil.db.expr.NotIn(recoil.db.Query.deserializeExp(data.field, serializer), data.list.map(
         function(v) {
-            return recoil.db.Query.deserializeExp(v, colDeserializer);
+            return recoil.db.Query.deserializeExp(v, serializer);
         }));
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.NotIn.prototype.serialize = function(colSerializer) {
-    return {op: '!in', field: this.field_.serialize(colSerializer), list: this.list_.map(function(v) {return v.serialize(colSerializer);})};
+recoil.db.expr.NotIn.prototype.serialize = function(serializer) {
+    return {op: '!in', field: this.field_.serialize(serializer), list: this.list_.map(function(v) {return v.serialize(serializer);})};
 };
 
 /**
@@ -1733,24 +2080,24 @@ recoil.db.expr.Field.prototype.eval = function(scope) {
 
 /**
  * @param {?} data
- * @param {function(?):!recoil.structs.table.ColumnKey} colDeserializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {!recoil.db.expr.Field}
  */
-recoil.db.expr.Field.deserialize = function(data, colDeserializer) {
+recoil.db.expr.Field.deserialize = function(data, serializer) {
     return new recoil.db.expr.Field(data.parts.map(
         function(v, idx) {
             if (idx === 0 && v.path) {
-                return colDeserializer(v.path);
+                return serializer.deserializeCol(v.path);
             }
             return v;
         }));
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.Field.prototype.serialize = function(colSerializer) {
+recoil.db.expr.Field.prototype.serialize = function(serializer) {
     return {op: 'field', parts: this.parts_.map(
 
         function(v) {
@@ -1758,7 +2105,7 @@ recoil.db.expr.Field.prototype.serialize = function(colSerializer) {
                 return v;
             }
 
-            return {path: colSerializer(v)};
+            return {path: serializer.serializeCol(v)};
 
         })};
 };
@@ -1798,20 +2145,20 @@ recoil.db.expr.Value.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.Value.prototype.serialize = function(colSerializer) {
-    return {op: 'value', x: this.val_};
+recoil.db.expr.Value.prototype.serialize = function(serializer) {
+    return {op: 'value', x: serializer.serializeValue(this.val_)};
 };
 
 /**
  * @param {?} data
- * @param {function(?):!recoil.structs.table.ColumnKey} colDeserializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {!recoil.db.expr.Value}
  */
-recoil.db.expr.Value.deserialize = function(data, colDeserializer) {
-    return new recoil.db.expr.Value(data.x);
+recoil.db.expr.Value.deserialize = function(data, serializer) {
+    return new recoil.db.expr.Value(serializer.deserializeValue(data.x));
 };
 
 /**
@@ -1844,20 +2191,20 @@ recoil.db.expr.RegExp.prototype.eval = function(scope) {
 
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.RegExp.prototype.serialize = function(colSerializer) {
+recoil.db.expr.RegExp.prototype.serialize = function(serializer) {
     return {op: 'reg', field: this.field_, pat: this.pattern_};
 };
 
 /**
  * @param {?} data
- * @param {function(?):!recoil.structs.table.ColumnKey} colDeserializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {!recoil.db.expr.RegExp} ;
  */
-recoil.db.expr.RegExp.deserialize = function(data, colDeserializer) {
-    return new recoil.db.expr.RegExp(recoil.db.Query.deserializeExp(data.field, colDeserializer), data.pat);
+recoil.db.expr.RegExp.deserialize = function(data, serializer) {
+    return new recoil.db.expr.RegExp(recoil.db.Query.deserializeExp(data.field, serializer), data.pat);
 };
 
 
@@ -1897,10 +2244,10 @@ recoil.db.expr.Where.prototype.query = function(scope) {
 
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.Where.prototype.serialize = function(colSerializer) {
+recoil.db.expr.Where.prototype.serialize = function(serializer) {
     throw new Error('this is dangerous we need to fix this in order to send to server');
 };
 
@@ -1930,20 +2277,75 @@ recoil.db.expr.True.prototype.query = function(scope) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.True.prototype.serialize = function(colSerializer) {
+recoil.db.expr.True.prototype.serialize = function(serializer) {
     return {op: 'true'};
 };
 
 /**
  * @param {?} data
- * @param {function(?):!recoil.structs.table.ColumnKey} colDeserializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {recoil.db.expr.True} ;
  */
-recoil.db.expr.True.deserialize = function(data, colDeserializer) {
+recoil.db.expr.True.deserialize = function(data, serializer) {
     return new recoil.db.expr.True();
+};
+
+
+
+/**
+ * @constructor
+ * @param {!recoil.db.expr.Field} field
+ * @param {Array<!recoil.db.expr.Value>} list
+ * @implements {recoil.db.QueryExp}
+ */
+recoil.db.expr.ContainsAll = function(field, list) {
+    this.field_ = field;
+    this.list_ = list;
+};
+
+
+/**
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {?}
+ */
+recoil.db.expr.ContainsAll.prototype.serialize = function(serializer) {
+    return {op: 'contains-all', field: this.field_.serialize(serializer), list: this.list_.map(function(v) {return v.serialize(serializer);})};
+};
+
+/**
+ * @param {?} data
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {!recoil.db.expr.ContainsAll}
+ */
+recoil.db.expr.ContainsAll.deserialize = function(data, serializer) {
+    var field = recoil.db.Query.deserializeExp(data.field, serializer);
+    if (!(field instanceof recoil.db.expr.Field)) {
+        throw new Error('invalid field type');
+    }
+    return new recoil.db.expr.ContainsAll(/** @type {!recoil.db.expr.Field} */(field), data.list.map(
+        function(v) {
+            return recoil.db.Query.deserializeExp(v, serializer);
+        }));
+};
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.ContainsAll.prototype.eval = function(scope) {
+    throw 'not implemented yet';
+};
+
+/**
+ * generates a query for the scope
+ * @param {recoil.db.QueryScope} scope
+ * @return {string}
+ */
+recoil.db.expr.ContainsAll.prototype.query = function(scope) {
+    return scope.query().containsAll(scope, this.field_, this.list_.map(function(v) {return v.query(scope);}));
 };
 
 
@@ -1957,10 +2359,10 @@ recoil.db.expr.Search = function(expr) {
 };
 
 /**
- * @param {function(!recoil.structs.table.ColumnKey)} colSerializer
+ * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.Search.prototype.serialize = function(colSerializer) {
+recoil.db.expr.Search.prototype.serialize = function(serializer) {
     return {op: 'search', exp: this.expr_};
 };
 
@@ -1989,7 +2391,7 @@ recoil.db.Query.True = new recoil.db.Query().True();
 
 
 /**
- * @type {Object<string,function(?,function(?):!recoil.structs.table.ColumnKey):!recoil.db.QueryExp>}
+ * @type {Object<string,function(?,recoil.db.Query.Serializer):!recoil.db.QueryExp>}
  */
 recoil.db.Query.deserializeMap = (function() {
     var ns = recoil.db.expr;
@@ -2001,6 +2403,9 @@ recoil.db.Query.deserializeMap = (function() {
         '<': recoil.db.Query.binaryDeserializer(ns.LessThan),
         '<=': recoil.db.Query.binaryDeserializer(ns.GreaterThanOrEquals),
         '>=': recoil.db.Query.binaryDeserializer(ns.LessThanOrEquals),
+        'startsWith': ns.StartsWith.deserialize,
+        'containsStr': ns.ContainsStr.deserialize,
+        'contains-all': ns.ContainsAll.deserialize,
         'in': ns.In.deserialize,
         '!in': ns.NotIn.deserialize,
         'reg': ns.RegExp.deserialize,

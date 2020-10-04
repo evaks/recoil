@@ -102,6 +102,10 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
  * @private
  */
 recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, setVal, setError) {
+    if (!me.converterB_.metaGet().good()) {
+        return;
+    }
+
     var res = me.converterB_.get().unconvert(inputEl.value);
     var el = inputEl;
 

@@ -389,9 +389,16 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
     var pageSizeB = util.toBehaviour(pageSize);
     var tableSizeB = util.toBehaviour(tableSize);
     var memoryB = frp.createB(1);
+    var countB = frp.liftB(function(size, pageSize) {
+            return Math.ceil(size / pageSize);
+    }, tableSizeB, pageSizeB);
 
     var rememberPageB = tableB.frp().liftBI(
         function()  {
+            if (countB.get() < memoryB.get()) {
+                keyB.set({page: Math.max(1, countB.get())});
+                memoryB.set(Math.max(1, countB.get()));
+            }
             return {orig: memoryB.get(), val: memoryB.get()};
         },
         function(val) {
@@ -431,10 +438,11 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
                 keyB.set({page: val.val});
                 memoryB.set(val.val);
             }
-        }, tableB, keyB, memoryB, pageSizeB);
+        }, tableB, keyB, memoryB, pageSizeB, countB);
+
 
     var pageB = frp.liftBI(
-        function() {
+        function(page) {
             return rememberPageB.get().val;
         },
         function(val) {
@@ -448,8 +456,6 @@ recoil.ui.widgets.table.createNextTablePager = function(tableB, keyB, pageSize, 
     return {
         table: tableB,
         page: pageB,
-        count: frp.liftB(function(size, pageSize) {
-            return Math.ceil(size / pageSize);
-        }, tableSizeB, pageSizeB)
+        count: countB
     };
 };
