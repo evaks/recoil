@@ -189,34 +189,34 @@ recoil.db.SQLQueryHelper.prototype.containsAll = function(scope, value, list) {
     if (list.length === 0) {
         return '(1=1)';
     }
-    let col = function(t, col) {
+    var col = function(t, col) {
         return t + '.' + col;
     };
-    let t1 = scope.nextTable();
-    let t2 = scope.nextTable();
-    let t3 = scope.nextTable();
+    var t1 = scope.nextTable();
+    var t2 = scope.nextTable();
+    var t3 = scope.nextTable();
 
-    let childPath = scope.getChildPath(value);
+    var childPath = scope.getChildPath(value);
     if (childPath.length === 0) {
         return '(1=2)';
     }
-    let last = childPath[childPath.length - 1];
+    var last = childPath[childPath.length - 1];
 
-    let eValueCol = this.escaper_.escapeId(last.col);
-    let eParentCol = this.escaper_.escapeId(last.parent);
-    let eValTable = this.escaper_.escapeId(last.table);
+    var eValueCol = this.escaper_.escapeId(last.col);
+    var eParentCol = this.escaper_.escapeId(last.parent);
+    var eValTable = this.escaper_.escapeId(last.table);
 
-    let me = this;
-    let itemSelect = 'SELECT DISTINCT ' + col(t1, eParentCol) + ',' + col(t1, eValueCol)
+    var me = this;
+    var itemSelect = 'SELECT DISTINCT ' + col(t1, eParentCol) + ',' + col(t1, eValueCol)
         + ' FROM ' + eValTable + ' ' + t1 + ' WHERE ' + col(t1, eValueCol) + ' IN (' + list.map(function(v) {
         return v;
     }).join(',') + ')';
-    let countSelect = 'SELECT ' + col(t2, eParentCol) + ' parent, count(' + col(t2, eValueCol) + ') c  FROM (' + itemSelect + ') ' + t2 + ' GROUP BY ' + col(t2, eParentCol);
-    let parentSelect = '(SELECT ' + col(t3, 'parent') + ' FROM (' + countSelect + ')  ' + t3 + ' WHERE ' + col(t3, 'c') + ' = ' + me.escaper_.escape(list.length) + ')';
+    var countSelect = 'SELECT ' + col(t2, eParentCol) + ' parent, count(' + col(t2, eValueCol) + ') c  FROM (' + itemSelect + ') ' + t2 + ' GROUP BY ' + col(t2, eParentCol);
+    var parentSelect = '(SELECT ' + col(t3, 'parent') + ' FROM (' + countSelect + ')  ' + t3 + ' WHERE ' + col(t3, 'c') + ' = ' + me.escaper_.escape(list.length) + ')';
 
     // go up the parent hierachy antil it is the root object
-    for (let i = childPath.length - 2; i >= 0; i--) {
-        let cur = childPath[i];
+    for (var i = childPath.length - 2; i >= 0; i--) {
+        var cur = childPath[i];
         parentSelect = me.escaper_.escapeId(cur.id) + ' IN ' + parentSelect;
         if (i > 1) {
             parentSelect = '(SELECT ' + me.escaper_.escapeId(cur.parent) + ' FROM ' + me.escaper_.escapeId(cur.parent) + ' WHERE ' + parentSelect + ')';
@@ -561,7 +561,7 @@ recoil.db.DBQueryScope.prototype.addPathTable = function(path, columns) {
  * @return {string} the name of the table added
  */
 recoil.db.DBQueryScope.prototype.addPathNamedTable = function(path, columns, tname) {
-    let table = tname === undefined ? this.nextTable() : tname;
+    var table = tname === undefined ? this.nextTable() : tname;
     var cur = this.dbMap_;
     for (var i = 0; i < path.length; i++) {
         var item = path[i];
@@ -586,7 +586,7 @@ recoil.db.DBQueryScope.prototype.addPathNamedTable = function(path, columns, tna
  * @return {string}
  */
 recoil.db.DBQueryScope.prototype.nextTable = function() {
-    let table = 't' + this.tableCount_;
+    var table = 't' + this.tableCount_;
     this.tableCount_++;
     return table;
 };
@@ -1635,8 +1635,8 @@ recoil.db.expr.Equals.isEqual = function(x, y) {
     if (x === y) {
         return true;
     }
-    let typex = typeof(x);
-    let typey = typeof(y);
+    var typex = typeof(x);
+    var typey = typeof(y);
 
     if (typex !== typey && ((typex === 'bigint' && typey === 'number') || (typey === 'bigint' && typex === 'number'))) {
         return x == y;
