@@ -39,6 +39,7 @@ recoil.ui.widgets.InputWidget = function(scope, opt_autocomplete) {
     }
     this.readonly_.getComponent().render(this.containerDiv_);
 
+    this.focusB_ = scope.getFrp().createB(false);
 
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.input_, this, this.updateState_, this.detach_);
 
@@ -46,6 +47,7 @@ recoil.ui.widgets.InputWidget = function(scope, opt_autocomplete) {
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.InputHandler.EventType.INPUT);
     this.keyPressHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.KEYDOWN);
     this.blurChangeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.BLUR);
+    this.focusChangeHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.FOCUS);
     this.pasteHelper_ = new recoil.ui.EventHelper(scope, this.input_, goog.events.EventType.PASTE);
 
     this.input_.setEnabled(false);
@@ -89,7 +91,8 @@ recoil.ui.widgets.InputWidget.options = recoil.ui.util.StandardOptions(
         maxLength: undefined,
         outErrors: [],
         displayLength: undefined,
-        charValidator: function() {return true;}
+        charValidator: function() {return true;},
+        unFocusConverter: null
     }
 );
 
@@ -107,6 +110,9 @@ recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, s
     }
 
     var res = me.converterB_.get().unconvert(inputEl.value);
+    if (res.supported === false) {
+        return;
+    }
     var el = inputEl;
 
     var editable = true;
@@ -195,6 +201,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
     var me = this;
 
+
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
         var inputEl = v.target;
         me.updateElement_(me, inputEl, me.immediateB_.get(), me.immediateB_.get());
@@ -202,6 +209,8 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
     var blurListener = function(v) {
         var inputEl = v.target;
+        me.focusB_.set(false);
+
         if (!me.immediateB_.get()) {
             me.updateElement_(me, inputEl, true, true);
         }
@@ -218,7 +227,12 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
     };
 
     this.blurChangeHelper_.listen(this.scope_.getFrp().createCallback(
-        /** @type {function (...?): ?}*/ (blurListener), this.valueB_, this.immediateB_, this.converterB_));
+        /** @type {function (...?): ?}*/ (blurListener), this.valueB_, this.immediateB_, this.converterB_, this.focusB_));
+
+    this.focusChangeHelper_.listen(this.scope_.getFrp().createCallback(
+        /** @type {function (...?): ?}*/ (function() {
+            me.focusB_.set(true);
+        }), this.focusB_));
 
     this.keyPressHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
 
@@ -332,6 +346,14 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
 /**
  *
+ * @return {recoil.frp.Behaviour<boolean>}
+ */
+recoil.ui.widgets.InputWidget.prototype.getFocus = function() {
+    return this.focusB_;
+};
+
+/**
+ *
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
@@ -364,17 +386,18 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
     }
 
     this.curClasses_ = recoil.ui.ComponentWidgetHelper.updateClasses(this.input_.getElement(), this.classesB_, this.curClasses_);
-
     if (this.valueB_.metaGet().good() && this.converterB_.metaGet().good()) {
         var t = this.converterB_.get();
+
         var strVal = t.convert(this.valueB_.get());
 
         if (document.activeElement !== this.input_.getElement()) {
             var me = this;
             if (strVal !== this.input_.getValue()) {
-                if (!recoil.util.object.isEqual(this.lastValueB_, this.valueB_.metaGet()) ||
-                    !recoil.util.object.isEqual(this.lastConverter_, this.converterB_.metaGet())
-                   ) {
+                if (!recoil.util.object.isEqual(this.lastValueB_, this.valueB_.metaGet())) {
+                    this.input_.setValue(strVal);
+                    this.updateElement_(this, me.input_.getElement(), false, true);
+                } else if (!recoil.util.object.isEqual(this.lastConverter_, this.converterB_.metaGet())) {
                     this.input_.setValue(strVal);
                     this.updateElement_(this, me.input_.getElement(), false, true);
                 }
@@ -382,6 +405,12 @@ recoil.ui.widgets.InputWidget.prototype.updateState_ = function(helper) {
             }
             else if (!recoil.util.object.isEqual(this.lastConverter_, this.converterB_.metaGet())) {
                 this.updateElement_(this, me.input_.getElement(), false, true);
+
+            }
+        }
+        else if (!recoil.util.object.isEqual(this.lastConverter_, this.converterB_.metaGet())) {
+            if (recoil.util.object.isEqual(this.lastValueB_, this.valueB_.metaGet())) {
+                this.input_.setValue(strVal);
             }
         }
 
