@@ -17,6 +17,6 @@ recoil.converters.TypeConverter.prototype.convert = function(val) {};
 
 /**
  * @param {TO} val
- * @return {{error : recoil.ui.message.Message, value : FROM}}
+ * @return {{error : recoil.ui.message.Message, value : FROM, settable:(boolean|undefined), supported:(boolean|undefined)}}
  */
 recoil.converters.TypeConverter.prototype.unconvert = function(val) {};

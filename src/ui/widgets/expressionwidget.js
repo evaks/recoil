@@ -84,7 +84,7 @@ recoil.ui.widgets.ExprConverter.prototype.convert = function(val) {
 
 /**
  * @param {!string} val
- * @return {{error : recoil.ui.message.Message, value : string}}
+ * @return {{error : recoil.ui.message.Message, value : string, supported: (undefined|boolean), settable: (undefined|boolean)}}
  */
 recoil.ui.widgets.ExprConverter.prototype.unconvert = function(val) {
     var err = null;
@@ -143,7 +143,7 @@ recoil.ui.widgets.ExprFocusStringConverter.prototype.convert = function(val) {
 
 /**
  * @param {string} val
- * @return {{error : recoil.ui.message.Message, value : string, settable: boolean}}
+ * @return {{error : recoil.ui.message.Message, value : string, supported: (undefined|boolean), settable: (undefined|boolean)}}
  */
 recoil.ui.widgets.ExprFocusStringConverter.prototype.unconvert = function(val) {
 
