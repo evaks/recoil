@@ -189,6 +189,7 @@ recoil.ui.widgets.table.TableWidget.prototype.selectNewRow = function() {
  */
 recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
     var frp = this.scope_.getFrp();
+    let me = this;
     return frp.liftBI(
         function(selected, table) {
             var res = [];
@@ -206,7 +207,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
             return res;
         },
         function(selected) {
-            this.selected_.set(selected);
+            me.selected_.set(selected);
         }, this.selected_, frp.switchB(this.tableBB_));
 };
 
@@ -235,9 +236,29 @@ recoil.ui.widgets.table.TableWidget.emptyState_ = function() {
  * @return {T}
  */
 recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var_meta) {
+    var args = [this.scope_];
+    for (var i = 0; i < arguments.length; i++) {
+        args.push(arguments[i]);
+    }
+    return recoil.ui.widgets.table.TableWidget.getMetaValue.apply(null, args);
+};
+
+/**
+ * this gets the most relevant value for this field int the meta, it goes backwards
+ * through the meta information until it finds the key that it is looking for
+ * if it does not find it there it then will check the scope for that value with the name
+ * recoil.ui.widgets.table.TableWidget.'value' if it is not there it will then return
+ * recoil.ui.widgets.table.TableWidget.default'Value'_ (note the first letter is capitalised)
+ * @template T
+ * @param {!recoil.ui.WidgetScope} scope
+ * @param {string} value the key of value to get
+ * @param {...Object} var_meta all the meta information
+ * @return {T}
+ */
+recoil.ui.widgets.table.TableWidget.getMetaValue = function(scope, value, var_meta) {
     var val;
 
-    for (var i = arguments.length - 1; i > 0; i--) {
+    for (var i = arguments.length - 1; i > 1; i--) {
         var arg = arguments[i];
         if (arg === null) {
             console.log('arg is null');
@@ -251,7 +272,7 @@ recoil.ui.widgets.table.TableWidget.prototype.getMetaValue = function(value, var
             }
         }
     }
-    val = recoil.util.object.getByParts(this.scope_, 'recoil', 'ui', 'widgets', 'table', 'TableWidget', value);
+    val = recoil.util.object.getByParts(scope, 'recoil', 'ui', 'widgets', 'table', 'TableWidget', value);
 
     if (val !== undefined) {
         return val;
@@ -626,7 +647,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createCell_ =
 {
 
     var renderInfo = this.createRenderInfoCell_(tableMeta, row.key, rowMeta, columnMeta);
-    if (renderInfo.outer) {
+    if (renderInfo.outer && row.inner) {
         row.inner.appendChild(renderInfo.outer);
     }
     row.cols.push(renderInfo);
@@ -707,7 +728,7 @@ recoil.ui.widgets.table.TableWidget.prototype.addHeaders_ =
             'headerWidgetFactory', tableMeta, meta);
 
         var renderInfo = columnHeaderDecorator();
-        if (renderInfo.outer) {
+        if (renderInfo.outer && renderState.headerRow.inner) {
             renderState.headerRow.inner.appendChild(renderInfo.outer);
         }
         renderState.headerCols.push(renderInfo);
@@ -801,7 +822,9 @@ recoil.ui.widgets.table.TableWidget.prototype.doRemoves_ = function(table) {
     colRemoves.forEach(function(col) {
         var renderInfo = renderState.headerCols[col.pos];
         if (renderState.headerRow && renderInfo.outer) {
-            renderState.headerRow.inner.removeChild(renderInfo.outer);
+            if (renderState.headerRow.inner) {
+                renderState.headerRow.inner.removeChild(renderInfo.outer);
+            }
             renderState.headerCols.splice(col.pos, 1);
         }
         state.columnMeta.splice(col.pos, 1);
@@ -1051,7 +1074,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds_ = function(table) {
     var tableMeta = table.tableMeta;
     var addedColumns = this.getAddedColumns_(table.columnMeta);
     var headerRowDecorator = this.getMetaValue('headerRowDecorator', tableMeta);
-    var headerRowDecoratorVal = headerRowDecorator();
+    var headerRowDecoratorVal = headerRowDecorator ? headerRowDecorator() : null;
 
 
     if (headerRowDecoratorVal && renderState.headerRow) {
@@ -1111,8 +1134,11 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves_ = function(table) {
             var renderInfo = renderState.headerCols[from];
 
             if (from !== to) {
-                renderState.headerRow.inner.removeChild(renderInfo.outer);
-                goog.dom.insertChildAt(renderState.headerRow.inner, renderInfo.outer, to);
+                if (renderState.headerRow.inner) {
+                    renderState.headerRow.inner.removeChild(renderInfo.outer);
+
+                    goog.dom.insertChildAt(renderState.headerRow.inner, renderInfo.outer, to);
+                }
             }
             newHeaderCols.push(renderInfo);
 

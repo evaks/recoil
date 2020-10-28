@@ -7,7 +7,7 @@ goog.provide('recoil.ui.RenderedDecorator');
  * @param {Element=} opt_inner
  */
 recoil.ui.RenderedDecorator = function(decorator, outer, opt_inner) {
-    this.inner = opt_inner || outer;
+    this.inner = opt_inner === undefined ? outer : opt_inner;
     this.outer = outer;
     this.decorator = decorator;
 };

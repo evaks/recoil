@@ -176,6 +176,9 @@ recoil.db.SQLQueryHelper.prototype.and = function(x, y) {
  * @return {string}
  */
 recoil.db.SQLQueryHelper.prototype.in = function(value, list) {
+    if (list.length === 0) {
+        return '(1=2)';
+    }
     return '(' + value + ' IN (' + list.join(', ') + '))';
 };
 

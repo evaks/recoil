@@ -59,17 +59,16 @@ recoil.ui.widgets.table.PagedTableWidget = function(scope, opt_new) {
 
     this.container_.getElement().appendChild(div);
     if (opt_new) {
-        var actionsDiv = goog.dom.createDom('div', {class: 'recoil-table-pager-actions'});
+        this.actionsDiv_ = goog.dom.createDom('div', {class: 'recoil-table-pager-actions'});
         this.addButton_ = new recoil.ui.widgets.ButtonWidget(scope);
-        this.addButton_.getComponent().render(actionsDiv);
+        this.addButton_.getComponent().render(this.actionsDiv_);
         this.removeButton_ = new recoil.ui.widgets.ButtonWidget(scope);
-        this.removeButton_.getComponent().render(actionsDiv);
-
+        this.removeButton_.getComponent().render(this.actionsDiv_);
         div.appendChild(goog.dom.createDom(
             'div', {class: 'recoil-table-pager-top'},
             goog.dom.createDom('div', {class: 'recoil-table-pager-top-scroller'},
                                this.topPager_.getComponent().getElement())));
-        div.appendChild(actionsDiv);
+        div.appendChild(this.actionsDiv_);
 
         div.appendChild(goog.dom.createDom('div', {class: 'recoil-table-pager-content'}, headerDiv, tableDiv));
     }
@@ -130,6 +129,17 @@ recoil.ui.widgets.table.PagedTableWidget.prototype.attachAdd = function(addB, re
  * @param {(!recoil.frp.Behaviour<number>|number)=} opt_count
  */
 recoil.ui.widgets.table.PagedTableWidget.prototype.attach = function(header, table, metaOrPage, pageOrCount, opt_count) {
+    if (this.actionsDiv_) {
+        var util = new recoil.frp.Util(this.scope_.getFrp());
+        var html = new recoil.ui.HtmlHelper(this.scope_);
+        var editableB = this.scope_.getFrp().liftB(function(t) {
+            var editable = t.getMeta().editable;
+            return editable === undefined ? true : editable;
+        }, util.toBehaviour(table));
+
+
+        html.show(this.actionsDiv_, editableB);
+    }
     if (opt_count === undefined) {
         if (header) {
             this.headerWidget_.attachStruct(header);

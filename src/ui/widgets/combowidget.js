@@ -302,8 +302,6 @@ recoil.ui.widgets.ComboWidget.prototype.dispose_ = function() {
     if (this.listening_) {
         goog.events.unlistenByKey(this.listening_);
         this.listening_ = null;
-
-
     }
 };
 /**

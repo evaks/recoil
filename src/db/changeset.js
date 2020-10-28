@@ -3698,10 +3698,27 @@ recoil.db.PathMap.prototype.remove = function(path) {
  * @return {!Array<T>}
  */
 recoil.db.PathMap.prototype.get = function(path) {
-    var node = this.root_.resolve(this.schema_.absolute(path).items(), 0, false);
+    var absPath = this.schema_.absolute(path);
+    var items = absPath.items();
+    var node = this.root_.resolve(items, 0, false);
     var res = [];
+    var me = this;
     if (node) {
         node.getAll(this.schema_, path, res);
+    }
+    else if (absPath.size() > 0 && absPath.lastKeys().length === 0) {
+        // this is a list
+        var last = items.pop();
+        node = this.root_.resolve(items, 0, false);
+        if (node) {
+            var pPath = new recoil.db.ChangeSet.Path(items);
+            node.children_.inOrderTraverse(function(node) {
+                if (node.key.name() == last.name()) {
+                    node.node.getAll(me.schema_, pPath.append(node.key), res);
+                }
+            });
+
+        }
     }
     return res;
 };

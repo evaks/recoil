@@ -811,7 +811,7 @@ recoil.structs.table.MutableTable.prototype.forEachColumn = function(func) {
 
     cols.forEach(function(col) {
          if (col.key !== recoil.structs.table.ColumnKey.ROW_META) {
-            func(col.key, col.meta);
+             func(col.key, col.meta || {});
         }
 
         func(col.key, col.meta);
@@ -1077,6 +1077,27 @@ recoil.structs.table.MutableTable.prototype.forEach = function(func) {
     //table.forEach(func);
 };
 
+
+/**
+ * like foreach but makes the row mutable, this is done often
+ * @param {function(!recoil.structs.table.MutableTableRow,!Array<?>,Object) : *} func the first parametr is the row the, second is \
+ *    the primary key, and the third is the rowMeta data
+ */
+recoil.structs.table.MutableTable.prototype.forEachModify = function(func) {
+    var me = this;
+    var list = [];
+    //construct a list first just incase we modify the
+    //table while iterating over it
+
+    this.ordered_.inOrderTraverse(function(row) {
+        list.push(row.unfreeze());
+    });
+
+    list.forEach(function(row) {
+        return func(row, me.getRowKeys(row), row.getMeta());
+    });
+};
+
 /**
  * this uses the primary key of the row to insert the table
  *
@@ -1312,6 +1333,18 @@ recoil.structs.table.Table.prototype.forEach = function(func) {
 
 
 /**
+ *
+ * @param {function(!recoil.structs.table.MutableTableRow, !Array<?>, Object) : *} func
+ */
+
+recoil.structs.table.Table.prototype.forEachModify = function(func) {
+    var me = this;
+    this.ordered_.inOrderTraverse(function(row) {
+        return func(row.unfreeze(), me.getRowKeys(row), row.getMeta());
+    });
+};
+
+/**
  * @return {!Array<!recoil.structs.table.ColumnKey<*>>}
  */
 recoil.structs.table.Table.prototype.getKeyColumns = function() {
@@ -1378,7 +1411,7 @@ recoil.structs.table.Table.prototype.forEachColumn = function(func) {
     this.otherColumns_.forEach(addCol);
 
     cols.forEach(function(col) {
-        func(col.key, col.meta);
+        func(col.key, col.meta || {});
     });
 };
 
