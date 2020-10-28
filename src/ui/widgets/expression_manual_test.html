@@ -36,6 +36,7 @@
 <div>
     <div id="label">Label</div>
     <div id="input"></div>
+    <div id="input1"></div>
 </div>
 
 
@@ -45,11 +46,15 @@
   var $ = goog.dom.getElement;
 
   var val = frp.createB("test");
-  
+  var dpB = frp.createB(2);
   var inputWidget = new recoil.ui.widgets.ExprWidget(scope);
-  inputWidget.attach(frp.createB(''), recoil.ui.BoolWithExplanation.TRUE);
+  inputWidget.attachStruct({value: frp.createB(''), decimalPlaces: dpB, classes: ['expr-input']});
+
+  var dpWidget = new recoil.ui.widgets.InputWidget(scope);
+  dpWidget.attachStruct({value: dpB});
 
   inputWidget.getComponent().render($('input'));
+  dpWidget.getComponent().render($('input1'));
   
 </script>
 </body>

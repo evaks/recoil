@@ -78,6 +78,7 @@ function testEvalBracket() {
 function testEvalCeil() {
     
     var testee = new recoil.util.ExpParser();
+    assertEquals(-1, testee.eval('-ceil(1+ floor(0.95))'));
     assertEquals(1, testee.eval('ceil(1+ floor(0.95))'));
 }
 
@@ -91,6 +92,7 @@ function testEvalUnaryNeg() {
 function testEvalPow() {
     
     var testee = recoil.util.ExpParser.instance;
+    assertEquals(0.125, testee.eval('2 ^ -3'));
     assertEquals(32, testee.eval('2 ^ 5'));
 }
 

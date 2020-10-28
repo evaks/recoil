@@ -113,7 +113,7 @@ recoil.ui.ComponentWidgetHelper.updateClasses = function(element, classesB, curC
     });
     curClasses.forEach(function(cls) {
         if (newClasses.indexOf(cls) === -1) {
-            goog.dom.classlist.add(element, cls);
+            goog.dom.classlist.remove(element, cls);
         }
     });
 

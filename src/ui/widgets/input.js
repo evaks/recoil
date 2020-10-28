@@ -110,6 +110,7 @@ recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, s
     }
 
     var res = me.converterB_.get().unconvert(inputEl.value);
+
     if (res.supported === false) {
         return;
     }
@@ -130,6 +131,10 @@ recoil.ui.widgets.InputWidget.prototype.updateElement_ = function(me, inputEl, s
         }
         goog.dom.classlist.remove(el, 'recoil-error');
     } else {
+        if (setVal && res.settable && editable) {
+            me.valueB_.set(res.value);
+        }
+
         if (setError) {
             me.scope_.getFrp().accessTrans(function() {
                 me.outErrorsB_.set([res.error]);
@@ -346,7 +351,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
 /**
  *
- * @return {recoil.frp.Behaviour<boolean>}
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.ui.widgets.InputWidget.prototype.getFocus = function() {
     return this.focusB_;

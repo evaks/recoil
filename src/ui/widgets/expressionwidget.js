@@ -28,8 +28,9 @@ goog.require('recoil.util.ExpParser');
  */
 recoil.ui.widgets.ExprWidget = function(scope) {
     this.scope_ = scope;
-//    this.input_ = new goog.ui.LabelInput();
+    var frp = scope.getFrp();
     this.input_ = new recoil.ui.widgets.InputWidget(scope);
+    this.erroredB_ = frp.createB(false);
 
     this.containerDiv_ = goog.dom.createDom('div');
 
@@ -52,23 +53,17 @@ recoil.ui.widgets.ExprWidget.prototype.getComponent = function() {
 /**
  * attachable behaviours for widget
  */
-recoil.ui.widgets.ExprWidget.options = recoil.ui.util.StandardOptions('value');
-
-/**
- * @param {recoil.frp.Behaviour<string>|string} value
- * @param {recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>|!recoil.ui.BoolWithExplanation} opt_enabled
- */
-recoil.ui.widgets.ExprWidget.prototype.attach = function(value, opt_enabled) {
-    this.attachStruct({'value': value, 'enabled': opt_enabled});
-};
-
+recoil.ui.widgets.ExprWidget.options = recoil.ui.util.StandardOptions('value', {
+    decimalPlaces: null
+});
 
 /**
  * @constructor
+ * @param {number=} decimalPlaces
  * @implements {recoil.converters.StringConverter<string>}
  */
-recoil.ui.widgets.ExprConverter = function() {
-
+recoil.ui.widgets.ExprConverter = function(decimalPlaces) {
+    this.decimalPlaces_ = decimalPlaces;
 };
 
 /**
@@ -76,27 +71,27 @@ recoil.ui.widgets.ExprConverter = function() {
  * @return {string}
  */
 recoil.ui.widgets.ExprConverter.prototype.convert = function(val) {
-    try {
-        if (val == undefined) {
-            return 'N/A';
-        }
-        var res = recoil.util.ExpParser.instance.eval(val);
-        if (res == undefined) {
-            return 'N/A';
-        }
-        return res + '';
+    if (val == undefined) {
+        return '';
     }
-    catch (e) {
+    var res = recoil.util.ExpParser.instance.eval(val);
+    if (res == undefined) {
         return val;
     }
+
+    return this.decimalPlaces_ == null ? res + '' : res.toFixed(this.decimalPlaces_) + '';
 };
 
 /**
- * @param {string} val
+ * @param {!string} val
  * @return {{error : recoil.ui.message.Message, value : string}}
  */
 recoil.ui.widgets.ExprConverter.prototype.unconvert = function(val) {
-    console.log('unconvert - e', val);
+    var err = null;
+    var res = recoil.util.ExpParser.instance.eval(val);
+    if (res == undefined) {
+        err = 'N/A';
+    }
 
     return {error: null, supported: false, value: val};
 };
@@ -112,24 +107,51 @@ recoil.ui.widgets.ExprWidget.prototype.attachStruct = function(options) {
     var me = this;
     var optionsB = recoil.frp.struct.flatten(frp, options);
 
-    var expConverter = new recoil.ui.widgets.ExprConverter();
-    var defConverter = new recoil.converters.DefaultStringConverter();
+    var bound = recoil.ui.widgets.ExprWidget.options.bind(frp, options);
+
+    var expConverterB = frp.liftB(function(dp) {
+         return new recoil.ui.widgets.ExprConverter(dp);
+    }, bound.decimalPlaces());
+
+    var defConverter = new recoil.ui.widgets.ExprFocusStringConverter();
 
     var modOptions = recoil.frp.struct.extend(
         frp, options,
-        {converter: recoil.frp.Chooser.if(
-            this.input_.getFocus().debug('focus'), defConverter, expConverter)});
-
+        {
+            converter: recoil.frp.Chooser.if(
+                this.input_.getFocus(), defConverter, expConverterB)});
 
     this.input_.attachStruct(modOptions);
 };
 
 
 /**
- *
- * @param {recoil.ui.WidgetHelper} helper
- * @private
+ * @constructor
+ * @implements {recoil.converters.StringConverter<string>}
  */
-recoil.ui.widgets.ExprWidget.prototype.updateState_ = function(helper) {
 
+recoil.ui.widgets.ExprFocusStringConverter = function() {
+
+};
+/**
+ * @param {string} val
+ * @return {string}
+ */
+recoil.ui.widgets.ExprFocusStringConverter.prototype.convert = function(val) {
+    return val != undefined ? val : '';
+};
+
+/**
+ * @param {string} val
+ * @return {{error : recoil.ui.message.Message, value : string, settable: boolean}}
+ */
+recoil.ui.widgets.ExprFocusStringConverter.prototype.unconvert = function(val) {
+
+    var res = recoil.util.ExpParser.instance.eval(val);
+    var err = null;
+
+    if (res == null) {
+        err = recoil.ui.messages.INVALID_EXPRESSION;
+    }
+    return {error: err, value: val, settable: true};
 };

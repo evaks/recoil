@@ -73,14 +73,17 @@ recoil.util.ExpParser = function() {
 
 
     var parsers = [];
-    var functions = {'ceil': {func: Math.ceil, min: 1}, 'floor': {func: Math.floor, min: 1}};
+    var functions = {
+        'ceil': {func: Math.ceil, min: 1},
+        'floor': {func: Math.floor, min: 1}
+    };
     parsers.push(ns.parseBinary_(parsers, '+', function(x, y) {return x + y;}));
     parsers.push(ns.parseBinary_(parsers, '-', function(x, y) {return x - y;}));
-    parsers.push(ns.parseUnary_(parsers, {'+': function(x) {return x;},
-                                          '-': function(x) {return -x;}}));
     parsers.push(ns.parseBinary_(parsers, '*', function(x, y) {return x * y;}));
     parsers.push(ns.parseBinary_(parsers, '/', function(x, y) {return x / y;}));
     parsers.push(ns.parseBinary_(parsers, '^', function(x, y) {return Math.pow(x, y);}));
+    parsers.push(ns.parseUnary_(parsers, {'+': function(x) {return x;},
+                                          '-': function(x) {return -x;}}));
     parsers.push(ns.parseFunction_(parsers, functions));
     parsers.push(ns.parseBracket_(parsers));
     parsers.push(ns.parseNumber_(parsers));
@@ -97,16 +100,20 @@ recoil.util.Tokenizer.Info;
  * @return {?number}
  */
  recoil.util.ExpParser.prototype.eval = function(exp) {
-    var tokens = this.tokenizer_.tokenize(exp);
-    var pos = {v: 0};
-    var res = this.parsers_[0](0, pos, tokens);
+     try {
+         var tokens = this.tokenizer_.tokenize(exp);
+         var pos = {v: 0};
 
-    if (pos.v !== tokens.length) {
-        return null;
-    }
+         var res = this.parsers_[0](0, pos, tokens);
 
-    return res;
-};
+         if (pos.v !== tokens.length) {
+             return null;
+         }
+         return res;
+     } catch (e) {
+         return null;
+     }
+ };
 
 /**
   * @param {!Array<function(number, {v:number}, !Array<!recoil.util.Tokenizer.Info>)>} parsers list of parsers in reverse precidence order

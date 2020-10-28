@@ -158,6 +158,11 @@ recoil.ui.messages.INVALID_LENGTH = recoil.ui.message.getParamMsg('Invalid Lengt
  */
 recoil.ui.messages.BLANK = recoil.ui.message.getParamMsg('');
 
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.INVALID_EXPRESSION = recoil.ui.message.getParamMsg('Invalid Expression');
 
 /**
  * combines multiple messages, this logic may need to be changed for different languages

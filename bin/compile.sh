@@ -18,7 +18,10 @@ fi
 
 EXE=`which $0`
 DIR=`dirname $EXE`
+MYDIR=`readlink -f $DIR`
 cd ${DIR}/../..
+
+echo ${MYDIR}
 
 function genDepends {
     ${PYTHON} closure-library/closure/bin/calcdeps.py -p closure-library -p recoil/src/  -o deps   > my-deps.js
@@ -67,7 +70,7 @@ fi
 #--jscomp_error=missingRequire
 ${PYTHON} closure-library/closure/bin/build/closurebuilder.py --root closure-library/ --root recoil/src/ --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" --compiler_flags="--warning_level=VERBOSE" \
     --compiler_flags="--jscomp_error=checkTypes --jscomp_error=missingReturn --jscomp_error=newCheckTypes --jscomp_error=strictModuleDepCheck --jscomp_error=accessControls" \
-    -c bin/compiler.jar  --output_mode="compiled"  `grep -hr --include="*.js" --exclude="*_test.js" goog.provide  recoil/src  | sed 's/goog.provide('\'// | sed s/\'');.*$'// | sort|uniq | sed s/^/--namespace\ /` > /dev/null
+    -c ${MYDIR}/compiler.jar  --output_mode="compiled"  `grep -hr --include="*.js" --exclude="*_test.js" goog.provide  recoil/src  | sed 's/goog.provide('\'// | sed s/\'');.*$'// | sort|uniq | sed s/^/--namespace\ /` > /dev/null
 
 #${PYTHON} closure-library/closure/bin/build/closurebuilder.py --root closure-library/ --root lib/ --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" --compiler_flags="--warning_level=VERBOSE --jscomp_error=checkTypes" -c compiler.jar  --output_mode="compiled"  `grep -hr --include="*.js" --exclude="*_test.js" goog.provide  lib  | sed 's/goog.provide('\'// | sed s/\'');'// | sort|uniq | sed s/^/--namespace\ /` > /dev/null
 
