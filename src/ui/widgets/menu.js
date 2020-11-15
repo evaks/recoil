@@ -283,7 +283,7 @@ recoil.ui.widgets.MenuActionButtonWidget.prototype.attachStruct = function(optio
     var bound = recoil.ui.widgets.MenuButtonWidget.options.bind(frp, options);
 
     this.nameB_ = bound.name();
-    let actionB = bound.action();
+    var actionB = bound.action();
     this.actionB_.set(actionB);
     this.state_.attach(this.nameB_, actionB);
 

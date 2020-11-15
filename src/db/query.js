@@ -186,14 +186,18 @@ recoil.db.SQLQueryHelper.prototype.in = function(value, list) {
  * @param {recoil.db.QueryScope} scope
  * @param {string} value
  * @param {!Array<string>} list
+ * @param {boolean} all
  * @return {string}
  */
-recoil.db.SQLQueryHelper.prototype.containsAll = function(scope, value, list) {
+recoil.db.SQLQueryHelper.prototype.contains = function(scope, value, list, all) {
     if (list.length === 0) {
         return '(1=1)';
     }
     var col = function(t, col) {
         return t + '.' + col;
+    };
+    var safeCol = function(t, col) {
+        return (t === null ? '' : me.escaper_.escapeId(t) + '.') + me.escaper_.escapeId(col);
     };
     var t1 = scope.nextTable();
     var t2 = scope.nextTable();
@@ -210,17 +214,24 @@ recoil.db.SQLQueryHelper.prototype.containsAll = function(scope, value, list) {
     var eValTable = this.escaper_.escapeId(last.table);
 
     var me = this;
-    var itemSelect = 'SELECT DISTINCT ' + col(t1, eParentCol) + ',' + col(t1, eValueCol)
+    var itemSelect = 'SELECT DISTINCT ' + col(t1, eParentCol) + (all ? ',' + col(t1, eValueCol) : '')
         + ' FROM ' + eValTable + ' ' + t1 + ' WHERE ' + col(t1, eValueCol) + ' IN (' + list.map(function(v) {
         return v;
-    }).join(',') + ')';
-    var countSelect = 'SELECT ' + col(t2, eParentCol) + ' parent, count(' + col(t2, eValueCol) + ') c  FROM (' + itemSelect + ') ' + t2 + ' GROUP BY ' + col(t2, eParentCol);
-    var parentSelect = '(SELECT ' + col(t3, 'parent') + ' FROM (' + countSelect + ')  ' + t3 + ' WHERE ' + col(t3, 'c') + ' = ' + me.escaper_.escape(list.length) + ')';
+        }).join(',') + ')';
 
-    // go up the parent hierachy antil it is the root object
+    var parentSelect;
+    if (all) {
+        var countSelect = 'SELECT ' + col(t2, eParentCol) + ' parent, count(' + col(t2, eValueCol) + ') c  FROM (' + itemSelect + ') ' + t2 + ' GROUP BY ' + col(t2, eParentCol);
+        parentSelect = '(SELECT ' + col(t3, 'parent') + ' FROM (' + countSelect + ')  ' + t3 + ' WHERE ' + col(t3, 'c') + ' = ' + me.escaper_.escape(list.length) + ')';
+    }
+    else {
+        parentSelect = '(' + itemSelect + ')';
+    }
+    // go up the parent hierachy until it is the root object
     for (var i = childPath.length - 2; i >= 0; i--) {
         var cur = childPath[i];
-        parentSelect = me.escaper_.escapeId(cur.id) + ' IN ' + parentSelect;
+        var tbl = scope.getTableAlias(childPath.slice(0, i));
+        parentSelect = safeCol(tbl, cur.id) + ' IN ' + parentSelect;
         if (i > 1) {
             parentSelect = '(SELECT ' + me.escaper_.escapeId(cur.parent) + ' FROM ' + me.escaper_.escapeId(cur.parent) + ' WHERE ' + parentSelect + ')';
         }
@@ -321,8 +332,25 @@ recoil.db.SQLQueryHelper.prototype.value = function(val) {
 recoil.db.SQLQueryHelper.prototype.field = function(scope, path) {
     var escaper = this.escaper_;
     var resolved = scope.resolve(path);
-    if (resolved.field !== undefined) {
+    if (resolved.chain) {
+        //    4 = (SELECT mentorid FROM `user` u WHERE (u.id = t0.userid))))
+        var last = resolved.field[resolved.field.length - 1];
+        var lastTable = resolved.field[resolved.field.length - 2];
 
+
+        var sql = '(SELECT DISTINCT ' + escaper.escapeId(resolved.chain[lastTable]) + '.'
+            + escaper.escapeId(last);
+        var tables = [];
+        var fields = [];
+        for (var i = 2; i < resolved.field.length - 2; i += 2) {
+            var table = resolved.field[i];
+            fields.push(escaper.escapeId(resolved.field[i - 1]) + ' = ' + escaper.escapeId(resolved.field[i + 1]));
+            tables.push(escaper.escapeId(table) + ' ' + escaper.escapeId(resolved.chain[table]));
+        }
+        sql += ' FROM ' + tables.join(',') + ' WHERE ' + fields.join(' AND ') + ')';
+        return sql;
+    }
+    if (resolved.field !== undefined) {
         return resolved.field.map(function(v) { return escaper.escapeId(v);}).join('.');
     }
     else {
@@ -583,6 +611,21 @@ recoil.db.DBQueryScope.prototype.addPathNamedTable = function(path, columns, tna
     return table;
 };
 
+/**
+ * @param {!Array<string>} path
+ * @return {?string}
+ */
+recoil.db.DBQueryScope.prototype.getTableAlias = function(path) {
+    var cur = this.dbMap_;
+    for (var i = 0; i < path.length && cur; i++) {
+        cur = cur[path[i]];
+    }
+    if (cur) {
+        return cur.table;
+    }
+    return null;
+};
+
 
 /**
  * gets a unique table name from the scope
@@ -625,6 +668,28 @@ recoil.db.DBQueryScope.prototype.resolve = function(parts) {
     }
 
     if (!tbl) {
+        var childPath = this.childPath_(parts);
+        if (childPath.length > 0) {
+            var res = {field: [], chain: {}};
+            var alias = this.dbMap_.table;
+            for (var i = 0; i < childPath.length; i++) {
+                var item = childPath[i];
+                var next = childPath[i + 1];
+                res.chain[item.table] = alias;
+                res.field.push(item.table);
+                res.field.push(item.col ? item.col : item.id);
+
+                if (next) {
+                    alias = this.nextTable();
+                    res.field.push(next.table);
+                    res.field.push(item.col ? next.id : next.parent);
+                }
+
+            }
+            console.log('childPath', parts, res);
+            return res;
+        }
+
         throw 'Unable to find table for ' + parts.join('/');
     }
     return {field: [tbl, parts[parts.length - 1]]};
@@ -1068,7 +1133,7 @@ recoil.db.Query.prototype.val = function(val) {
 };
 
 /**
- * @param {string|!recoil.structs.table.ColumnKey} field
+ * @param {string|!recoil.structs.table.ColumnKey|!Array<string>} field
  * @return {!recoil.db.Query}
  */
 
@@ -1141,7 +1206,16 @@ recoil.db.Query.prototype.containsStr = function(left, match) {
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.containsAll = function(field, values) {
-    return this.query_(new recoil.db.expr.ContainsAll(this.toField(field), this.fromArray_(values)));
+    return this.query_(new recoil.db.expr.Contains(this.toField(field), this.fromArray_(values), true));
+};
+
+/**
+ * @param {recoil.db.Query|recoil.db.QueryExp|!recoil.structs.table.ColumnKey|*} field
+ * @param {!Array<*>|Array<!recoil.db.Query>} values non query values are assumed to be values
+ * @return {!recoil.db.Query}
+ */
+recoil.db.Query.prototype.containsAny = function(field, values) {
+    return this.query_(new recoil.db.expr.Contains(this.toField(field), this.fromArray_(values), false));
 };
 
 /**
@@ -2302,11 +2376,13 @@ recoil.db.expr.True.deserialize = function(data, serializer) {
  * @constructor
  * @param {!recoil.db.expr.Field} field
  * @param {Array<!recoil.db.expr.Value>} list
+ * @param {boolean} all
  * @implements {recoil.db.QueryExp}
  */
-recoil.db.expr.ContainsAll = function(field, list) {
+recoil.db.expr.Contains = function(field, list, all) {
     this.field_ = field;
     this.list_ = list;
+    this.all_ = all;
 };
 
 
@@ -2314,31 +2390,31 @@ recoil.db.expr.ContainsAll = function(field, list) {
  * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
  */
-recoil.db.expr.ContainsAll.prototype.serialize = function(serializer) {
-    return {op: 'contains-all', field: this.field_.serialize(serializer), list: this.list_.map(function(v) {return v.serialize(serializer);})};
+recoil.db.expr.Contains.prototype.serialize = function(serializer) {
+    return {op: 'contains', 'all': this.all_, field: this.field_.serialize(serializer), list: this.list_.map(function(v) {return v.serialize(serializer);})};
 };
 
 /**
  * @param {?} data
  * @param {!recoil.db.Query.Serializer} serializer
- * @return {!recoil.db.expr.ContainsAll}
+ * @return {!recoil.db.expr.Contains}
  */
-recoil.db.expr.ContainsAll.deserialize = function(data, serializer) {
+recoil.db.expr.Contains.deserialize = function(data, serializer) {
     var field = recoil.db.Query.deserializeExp(data.field, serializer);
     if (!(field instanceof recoil.db.expr.Field)) {
         throw new Error('invalid field type');
     }
-    return new recoil.db.expr.ContainsAll(/** @type {!recoil.db.expr.Field} */(field), data.list.map(
+    return new recoil.db.expr.Contains(/** @type {!recoil.db.expr.Field} */(field), data.list.map(
         function(v) {
             return recoil.db.Query.deserializeExp(v, serializer);
-        }));
+        }), !!data['all']);
 };
 
 /**
  * @param {recoil.db.QueryScope} scope
  * @return {*}
  */
-recoil.db.expr.ContainsAll.prototype.eval = function(scope) {
+recoil.db.expr.Contains.prototype.eval = function(scope) {
     throw 'not implemented yet';
 };
 
@@ -2347,8 +2423,8 @@ recoil.db.expr.ContainsAll.prototype.eval = function(scope) {
  * @param {recoil.db.QueryScope} scope
  * @return {string}
  */
-recoil.db.expr.ContainsAll.prototype.query = function(scope) {
-    return scope.query().containsAll(scope, this.field_, this.list_.map(function(v) {return v.query(scope);}));
+recoil.db.expr.Contains.prototype.query = function(scope) {
+    return scope.query().contains(scope, this.field_, this.list_.map(function(v) {return v.query(scope);}, this.all_));
 };
 
 
@@ -2408,7 +2484,7 @@ recoil.db.Query.deserializeMap = (function() {
         '>=': recoil.db.Query.binaryDeserializer(ns.LessThanOrEquals),
         'startsWith': ns.StartsWith.deserialize,
         'containsStr': ns.ContainsStr.deserialize,
-        'contains-all': ns.ContainsAll.deserialize,
+        'contains': ns.Contains.deserialize,
         'in': ns.In.deserialize,
         '!in': ns.NotIn.deserialize,
         'reg': ns.RegExp.deserialize,

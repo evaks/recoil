@@ -1,3 +1,4 @@
+goog.provide('recoil.ui.columns.Expr');
 goog.provide('recoil.ui.widgets.ExprWidget');
 
 goog.require('goog.dom');
@@ -83,7 +84,7 @@ recoil.ui.widgets.ExprConverter.prototype.convert = function(val) {
 };
 
 /**
- * @param {!string} val
+ * @param {string} val
  * @return {{error : recoil.ui.message.Message, value : string, supported: (undefined|boolean), settable: (undefined|boolean)}}
  */
 recoil.ui.widgets.ExprConverter.prototype.unconvert = function(val) {
@@ -155,3 +156,13 @@ recoil.ui.widgets.ExprFocusStringConverter.prototype.unconvert = function(val) {
     }
     return {error: err, value: val, settable: true};
 };
+
+/**
+ * @implements {recoil.ui.widgets.table.Column}
+ * @template T
+ * @constructor
+ * @param {!recoil.structs.table.ColumnKey} key
+ * @param {!recoil.ui.message.Message|string} name
+ * @param {Object=} opt_meta
+ */
+recoil.ui.columns.Expr = recoil.ui.widgets.table.makeStructColumn(recoil.ui.widgets.ExprWidget);

@@ -48,6 +48,13 @@ recoil.ui.messages.INVALID = recoil.ui.message.getParamMsg('Invalid');
  * @type {!recoil.ui.message.Message}
  * @final
  */
+
+recoil.ui.messages.NONE = recoil.ui.message.getParamMsg('None');
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
 recoil.ui.messages.NUMBER_NOT_IN_RANGE = recoil.ui.message.getParamMsg('Must be between ', ['min'], ' and ', ['max']);
 
 /**
