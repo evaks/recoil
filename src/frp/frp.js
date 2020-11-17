@@ -1158,11 +1158,12 @@ recoil.frp.Frp.prototype.createConstB = function(initial) {
 recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
     var args = arguments;
     var func = function() {
+        var innerArgs = arguments;
         try {
             for (var i = 1; i < args.length; i++) {
                 args[i].accessors_++;
             }
-            callback();
+            callback.apply(null, innerArgs);
         } finally {
             for (i = 1; i < args.length; i++) {
                 args[i].accessors_--;
@@ -1176,7 +1177,7 @@ recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
  * like access Trans however creates a function to this usefull
  * for things like putting it in a callback
  *
- * @param {function()} callback
+ * @param {function(...)} callback
  * @param {...recoil.frp.Behaviour} var_behaviours
  * @return {function()}
  */
@@ -1184,7 +1185,15 @@ recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
 recoil.frp.Frp.prototype.accessTransFunc = function(callback, var_behaviours) {
     var me = this;
     var args = arguments;
-    return function() {me.accessTrans.apply(me, args);};
+    return function() {
+        var cargs = goog.array.clone(args);
+        var curArgs = arguments;
+        // this is so we can get the arguments into the inner function
+        cargs[0] = function() {
+            args[0].apply(me, curArgs);
+        };
+        me.accessTrans.apply(me, cargs);
+    };
 };
 /**
  * @param {function()} callback
