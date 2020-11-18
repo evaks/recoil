@@ -33,6 +33,22 @@ recoil.ui.HtmlHelper.prototype.class = function(element, classesB) {
 
 
 /**
+ * @param {!Element} element
+ * @param {string} cls
+ * @param {!recoil.frp.Behaviour<boolean>} enabledB
+ * @return {!recoil.ui.WidgetHelper}
+ */
+recoil.ui.HtmlHelper.prototype.enableClass = function(element, cls, enabledB) {
+    var helper = new recoil.ui.WidgetHelper(this.scope_, element, null, function() {
+        goog.dom.classlist.enable(element, cls, enabledB.good() && enabledB.get());
+
+    });
+    helper.attach(enabledB);
+    return helper;
+};
+
+
+/**
  * @private
  * @param {number} skip number of args to skip
  * @param {string} elType type of element to create
