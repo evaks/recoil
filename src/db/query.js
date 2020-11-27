@@ -442,15 +442,16 @@ recoil.db.QueryExp.prototype.serialize = function(serializer) {};
  * @constructor
  * @param {Object} map
  * @param {!recoil.db.QueryHelper=} opt_helper note if you don't provide this query will not work
+ * @param {!Object<string,!Array<string>>=} opt_colKeyMap
  */
-recoil.db.QueryScope = function(map, opt_helper) {
+recoil.db.QueryScope = function(map, opt_helper, opt_colKeyMap) {
     this.map_ = map;
     this.query_ = opt_helper;
     /**
      * @private
      * @type {Object<string,!Array<string>>}
      */
-    this.colKeyMap_ = {};
+    this.colKeyMap_ = opt_colKeyMap || {};
 };
 /**
  * @private
@@ -706,10 +707,18 @@ recoil.db.QueryScope.prototype.get = function(parts) {
     }
 
     var curScope = this.map_;
-
+    if (parts[0] instanceof recoil.structs.table.ColumnKey) {
+        var newParts = this.colKeyMap_[parts[0].getId()];
+        if (newParts) {
+            parts = newParts;
+        }
+    }
+    
     for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+
         if (curScope instanceof Object) {
-            curScope = curScope[parts[i]];
+            curScope = curScope[part];
         }
         else {
             return undefined;
@@ -2415,7 +2424,26 @@ recoil.db.expr.Contains.deserialize = function(data, serializer) {
  * @return {*}
  */
 recoil.db.expr.Contains.prototype.eval = function(scope) {
-    throw 'not implemented yet';
+    var values = this.field_.eval(scope);
+    var lookup = this.list_.map(function (e) {return e.eval(scope);});
+    for (var j = 0;  j < lookup.length; j++) {
+        var l = lookup[j];
+        var found = false;
+        for (var i = 0; !found && i < values.length; i++) {
+            
+            if (recoil.util.isEqual(values[i], l)) {
+                found = true;
+                if (!this.all_) {
+                    return true;
+                }
+            }
+        }
+        if (!found && this.all_) {
+            return false;
+        }
+    }
+    return this.all_;
+
 };
 
 /**
