@@ -242,7 +242,7 @@ recoil.ui.message.getParamMsg = function(var_parts) {
 recoil.ui.message.getRichMsg = function(var_parts) {
     var parts = [];
     for (var i = 0; i < arguments.length; i++) {
-        let part = arguments[i];
+        var part = arguments[i];
         if (part && part.format !== undefined) {
             parts.push(new recoil.ui.message.Message.Part(part.format, part.name || null, part.value === undefined ? null : part.value, part.formatter || null));
         }

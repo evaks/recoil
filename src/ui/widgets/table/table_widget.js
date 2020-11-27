@@ -189,7 +189,7 @@ recoil.ui.widgets.table.TableWidget.prototype.selectNewRow = function() {
  */
 recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
     var frp = this.scope_.getFrp();
-    let me = this;
+    var me = this;
     return frp.liftBI(
         function(selected, table) {
             var res = [];
