@@ -52,7 +52,7 @@ recoil.ui.message.Message = function(parts) {
  */
 recoil.ui.message.Message.prototype.resolve = function(opt_data) {
     var data = opt_data || {};
-    return new recoil.ui.message.Message(this.parts_.map(function (v) {return v.resolve(data);}));
+    return new recoil.ui.message.Message(this.parts_.map(function(v) {return v.resolve(data);}));
 };
 
 
@@ -122,9 +122,9 @@ recoil.ui.message.Message.prototype.toRichText = function(formatter, opt_data) {
 };
 
 /**
- * @return {boolean} 
+ * @return {boolean}
  */
-recoil.ui.message.Message.prototype.isResolved = function () {
+recoil.ui.message.Message.prototype.isResolved = function() {
     for (var i = 0; i < this.parts_.length; i++) {
         var part = this.parts_[i];
         if (!part.isResolved()) {
@@ -154,9 +154,9 @@ recoil.ui.message.Message.Part = function(format, name, message, formatter) {
 };
 
 /**
- * @return {boolean} 
+ * @return {boolean}
  */
-recoil.ui.message.Message.Part.prototype.isResolved = function () {
+recoil.ui.message.Message.Part.prototype.isResolved = function() {
     if (this.name_) {
         return false;
     }
@@ -168,20 +168,20 @@ recoil.ui.message.Message.Part.prototype.isResolved = function () {
 
 /**
  * @param {!recoil.ui.message.Message.RichTextFormatter} formatter
- * @return {?} 
+ * @return {?}
  */
-recoil.ui.message.Message.Part.prototype.toRichText = function (formatter) {
+recoil.ui.message.Message.Part.prototype.toRichText = function(formatter) {
     if (this.message_ instanceof recoil.ui.message.Message) {
         return this.message_.toRichText(formatter);
     }
-    return formatter.format(this.format_ || '', this.toString()); 
+    return formatter.format(this.format_ || '', this.toString());
 };
 
 
 /**
- * @return {string} 
+ * @return {string}
  */
-recoil.ui.message.Message.Part.prototype.toString = function () {
+recoil.ui.message.Message.Part.prototype.toString = function() {
     var val = this.message_;
     if (val instanceof recoil.ui.message.Message) {
         if (!val.isResolved()) {
@@ -191,19 +191,19 @@ recoil.ui.message.Message.Part.prototype.toString = function () {
     }
     if (this.name_) {
         return '{$' + this.name_ + '}';
-    }    
+    }
     return val + '';
 };
 
 
 /**
  * @param {!Object} data
- * @return {!recoil.ui.message.Message.Part} 
+ * @return {!recoil.ui.message.Message.Part}
  */
-recoil.ui.message.Message.Part.prototype.resolve = function (data) {
+recoil.ui.message.Message.Part.prototype.resolve = function(data) {
     if (this.message_ instanceof recoil.ui.message.Message) {
         var message = this.message_.resolve(data);
-        return new recoil.ui.message.Message.Part(this.format_, null, message, this.formatter_); 
+        return new recoil.ui.message.Message.Part(this.format_, null, message, this.formatter_);
     }
     if (this.name_ === null) {
         return this; // already resolved
@@ -219,7 +219,7 @@ recoil.ui.message.Message.Part.prototype.resolve = function (data) {
         return this;
     };
 
-    
+
 /**
  * returns a structure that can be used to messages with substution
  * @param {...(!Array<string>|string|!Object)} var_parts
@@ -248,7 +248,7 @@ recoil.ui.message.getRichMsg = function(var_parts) {
         }
         else {
             parts.push(part);
-        }            
+        }
     }
     return new recoil.ui.message.Message(/** @type {!Array<!Array<string>|string|!Object>}*/(parts));
 };

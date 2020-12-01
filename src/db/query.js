@@ -713,7 +713,7 @@ recoil.db.QueryScope.prototype.get = function(parts) {
             parts = newParts;
         }
     }
-    
+
     for (var i = 0; i < parts.length; i++) {
         var part = parts[i];
 
@@ -2425,12 +2425,12 @@ recoil.db.expr.Contains.deserialize = function(data, serializer) {
  */
 recoil.db.expr.Contains.prototype.eval = function(scope) {
     var values = this.field_.eval(scope);
-    var lookup = this.list_.map(function (e) {return e.eval(scope);});
-    for (var j = 0;  j < lookup.length; j++) {
+    var lookup = this.list_.map(function(e) {return e.eval(scope);});
+    for (var j = 0; j < lookup.length; j++) {
         var l = lookup[j];
         var found = false;
         for (var i = 0; !found && i < values.length; i++) {
-            
+
             if (recoil.util.isEqual(values[i], l)) {
                 found = true;
                 if (!this.all_) {
