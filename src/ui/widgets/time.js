@@ -54,7 +54,7 @@ recoil.ui.widgets.TimeWidget = function(scope) {
                 return;
             }
 */
-            var outTime = me.convertElTypeToTime_ (me.time_.value);
+            var outTime = me.convertElTypeToTime_(me.time_.value);
             var valid = me.isValid(me.boundsB_.get(), outTime);
             goog.dom.classlist.enable(me.time_, 'recoil-error', !valid);
             if (valid) {
@@ -99,7 +99,7 @@ recoil.ui.widgets.TimeWidget.prototype.attachStruct = function(options) {
 
     this.valueB_ = bound.value();
     this.enabledB_ = bound.enabled();
-  
+
     this.boundsB_ = bound.getGroup([bound.min, bound.max, bound.step]);
     this.helper_.attach(this.valueB_, this.enabledB_, this.boundsB_);
 
@@ -119,7 +119,7 @@ recoil.ui.widgets.TimeWidget.prototype.convertTimeToElType_ = function(time) {
 
     let secs = Math.floor((time / 1000)) % 60;
     let mins = Math.floor((time / 60000)) % 60;
-    let hours = Math.floor(time /(60000 * 60)) % 24;
+    let hours = Math.floor(time / (60000 * 60)) % 24;
 
     secs = (secs < 10) ? '0' + secs : secs;
     mins = (mins < 10) ? '0' + mins : mins;
@@ -140,7 +140,7 @@ recoil.ui.widgets.TimeWidget.prototype.convertElTypeToTime_ = function(time) {
     }
     let parts = time.split(':');
     let hours = parseInt(parts[0], 10);
-    
+
     let mins = parts.length > 1 ? parseInt(parts[1], 10) : 0;
     let secs = parts.length > 2 ? parseInt(parts[2], 10) : 0;
     return ((((hours * 60) + mins) * 60) + secs) * 1000;
@@ -182,7 +182,7 @@ recoil.ui.widgets.TimeWidget.prototype.updateState_ = function(helper) {
  * @return {boolean}
  */
 recoil.ui.widgets.TimeWidget.prototype.isValid = function(bounds, value) {
-    return true;   
+    return true;
 };
 
 /**
