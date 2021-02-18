@@ -415,6 +415,9 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
         return function(v) {
              if (v === null || v === undefined) {
                 return '';
+             }
+            if (isNaN(v)) {
+                return recoil.ui.messages.NOT_APPLICABLE.toString();
             }
             return v.toLocaleString(undefined, {minimumFractionDigits: dp});
         };

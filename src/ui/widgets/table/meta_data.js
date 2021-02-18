@@ -66,7 +66,7 @@ recoil.ui.widgets.TableMetaData.prototype.forEachColumn = function(func) {
  *
  * @template CT
  * @param {!recoil.structs.table.ColumnKey<CT>} key
- * @param {string|Node} name if you pass a node this will allow better formating of header
+ * @param {string|Node|!recoil.ui.message.Message} name if you pass a node this will allow better formating of header
  * @param {!Object=} opt_meta
  */
 recoil.ui.widgets.TableMetaData.prototype.add = function(key, name, opt_meta) {
@@ -181,7 +181,7 @@ recoil.ui.widgets.TableMetaData.prototype.createB = function(frp) {
  * @constructor
  * @template T
  * @param {recoil.structs.table.ColumnKey} key
- * @param {string|Node} name
+ * @param {string|Node|!recoil.ui.message.Message} name
  * @param {!Object=} opt_meta
  * @implements {recoil.ui.widgets.table.Column}
  */

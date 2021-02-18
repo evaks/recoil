@@ -48,11 +48,12 @@ recoil.ui.widgets.PasswordStrengthWidget.prototype.attachStruct = function(optio
 
 /**
  *
- * @param {string} password
+ * @param {?string} password
  * @return {number}
  * @private
  */
 recoil.ui.widgets.PasswordStrengthWidget.prototype.calcStrength_ = function(password) {
+    password = password || '';
     var lenScore = password.length * 4;
     var numUpper = 0;
     var numLower = 0;
@@ -67,7 +68,6 @@ recoil.ui.widgets.PasswordStrengthWidget.prototype.calcStrength_ = function(pass
     var alphas = 'abcdefghijklmnopqrstuvwxyz';
     var numerics = '01234567890';
     var symbols = ')!@#$%^&*()';
-
     var isLower = function(ch) {
         if (ch === null) {
             return false;
@@ -160,7 +160,6 @@ recoil.ui.widgets.PasswordStrengthWidget.prototype.calcStrength_ = function(pass
     reasons['sequence-number*3'] = -seqs(numerics, lowerPassword) * 3;
     reasons['sequence-symbols*3'] = -seqs(symbols, lowerPassword) * 3;
 
-    console.log('---------------', password.length);
     var repInc = 0;
     var repChar = 0;
     for (i = 0; i < password.length; i++) {
@@ -188,7 +187,6 @@ recoil.ui.widgets.PasswordStrengthWidget.prototype.calcStrength_ = function(pass
     reasons['repeat?'] = -repInc;
     var score = 0;
     for (var k in reasons) {
-        console.log(k, reasons[k]);
         score += reasons[k];
     }
 

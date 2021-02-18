@@ -90,8 +90,8 @@ recoil.ui.widgets.ExprConverter.prototype.convert = function(val) {
 recoil.ui.widgets.ExprConverter.prototype.unconvert = function(val) {
     var err = null;
     var res = recoil.util.ExpParser.instance.eval(val);
-    if (res == undefined) {
-        err = 'N/A';
+    if (res == undefined || isNaN(res)) {
+        err = recoil.ui.messages.NOT_APPLICABLE.toString();
     }
 
     return {error: null, supported: false, value: val};

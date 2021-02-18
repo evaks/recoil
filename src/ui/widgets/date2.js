@@ -19,7 +19,7 @@ goog.require('recoil.ui.WidgetScope');
 goog.require('recoil.ui.message.Message');
 goog.require('recoil.ui.messages');
 goog.require('recoil.ui.util');
-
+goog.require('recoil.ui.widgets.table.Column');
 /**
  *
  * @template T
@@ -187,11 +187,19 @@ recoil.ui.widgets.DateWidget2.prototype.isValid = function(bounds, value) {
  * @return {?string}
  */
 recoil.ui.widgets.DateWidget2.prototype.convertDateToElType = function(date) {
+    var pad = function(num, amount) {
+        var str = '' + num;
+        if (str.length < amount) {
+            return '0'.repeat(amount - str.length) + num;
+        }
+        return str;
+    };
     var dt = date + '';
     if (date === null || dt === '') {
         return null;
     }
-    return dt.substring(0, 4) + '-' + dt.substring(4, 6) + '-' + dt.substring(6, 8);
+    var year = Math.floor(date / 10000);
+    return pad(year, 4) + '-' + pad(Math.floor(date / 100) % 100, 2) + '-' + pad(date % 100, 2);
 };
 
 /**
