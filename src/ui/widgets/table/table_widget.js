@@ -960,6 +960,9 @@ recoil.ui.widgets.table.TableWidget.prototype.replaceWidgetAndDecorator_ = funct
  * @param {Element} to
  */
 recoil.ui.widgets.table.TableWidget.prototype.moveChildren = function(from, to) {
+    if (!from) {
+        return;
+    }
     var children = from.childNodes;
     var toMove = [];
 
@@ -968,8 +971,12 @@ recoil.ui.widgets.table.TableWidget.prototype.moveChildren = function(from, to) 
     }
 
     for (i = 0; i < toMove.length; i++) {
-        from.removeChild(toMove[i]);
-        to.appendChild(toMove[i]);
+        if (from) {
+            from.removeChild(toMove[i]);
+        }
+        if (to) {
+            to.appendChild(toMove[i]);
+        }
     }
 };
 
@@ -1084,7 +1091,15 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnAdds_ = function(table) {
         else {
             var newHeaderRow = headerRowDecorator();
             this.replaceChild(renderState.table.inner, renderState.headerRow.outer, newHeaderRow.outer);
-            this.moveChildren(renderState.headerRow.inner, newHeaderRow.inner);
+            if (renderState.headerRow.inner) {
+                this.moveChildren(renderState.headerRow.inner, newHeaderRow.inner);
+            }
+            else {
+                renderState.headerCols = [];
+                renderState.headerRow.inner = newHeaderRow.inner;
+                this.addHeaders_(state.columnMeta, tableMeta);
+            }
+
             renderState.headerRow = newHeaderRow;
         }
     } else if (headerRowDecoratorVal) {

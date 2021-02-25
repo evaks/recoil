@@ -12,7 +12,7 @@ goog.require('recoil.ui.widgets.table.Column');
  * @template T
  * @constructor
  * @param {recoil.structs.table.ColumnKey} key
- * @param {string} name
+ * @param {string|!recoil.ui.message.Message} name
  *
  */
 recoil.ui.widgets.table.TextAreaColumn = function(key, name) {

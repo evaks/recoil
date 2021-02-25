@@ -796,7 +796,7 @@ recoil.structs.table.MutableTable.prototype.forEachPlacedColumn = function(func)
 };
 
 /**
- * @param {function(string,!Object) : *} func
+ * @param {function(!recoil.structs.table.ColumnKey,!Object) : *} func
  */
 
 recoil.structs.table.MutableTable.prototype.forEachColumn = function(func) {
@@ -1821,6 +1821,16 @@ recoil.structs.table.MutableTableRow = function(opt_position, opt_immutable) {
         this.pos_ = opt_position === undefined ? undefined : opt_position;
     }
     this.changed_ = {};
+};
+
+
+/**
+ * Get the value and meta data from the cell
+ * @template CT
+ * @return {!Object}
+ */
+recoil.structs.table.MutableTableRow.prototype.getMeta = function() {
+    return this.getRowMeta();
 };
 
 /**
