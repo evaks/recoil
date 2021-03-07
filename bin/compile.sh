@@ -19,12 +19,34 @@ fi
 EXE=`which $0`
 DIR=`dirname $EXE`
 MYDIR=`readlink -f $DIR`
+CLOSURE_LIB_DIR='closure-library'
+
 cd ${DIR}/../..
 
 echo ${MYDIR}
 
+
+if [ ! -d "${CLOSURE_LIB_DIR}/closure" ]; then
+
+    # go up levels to find it
+
+    LEVEL='.'
+    while  ! find ${LEVEL} -maxdepth 4 -type d -name goog 2> /dev/null | grep . > /dev/null; do
+	LEVEL="${LEVEL}/.."
+	if [ "`readlink -f $LEVEL`" == "/" ]; then
+	    echo "Unable to find closure library"
+	    exit
+	fi
+
+    done
+
+    CLOSURE_LIB_DIR=`find ${LEVEL} -maxdepth 4 -type d -name goog `
+    CLOSURE_LIB_DIR=`dirname ${CLOSURE_LIB_DIR}`
+    CLOSURE_LIB_DIR=`dirname ${CLOSURE_LIB_DIR}`
+fi
+
 function genDepends {
-    ${PYTHON} closure-library/closure/bin/calcdeps.py -p closure-library -p recoil/src/  -o deps   > my-deps.js
+    ${PYTHON} "${CLOSURE_LIB_DIR}/closure/bin/calcdeps.py" -p "${CLOSURE_LIB_DIR}" -p recoil/src/  -o deps   > my-deps.js
 }
 genDepends
 
@@ -66,9 +88,10 @@ if [ $? -ne 0 ]; then
     fi
 fi
 
+echo 
 
 #--jscomp_error=missingRequire
-${PYTHON} closure-library/closure/bin/build/closurebuilder.py --root closure-library/ --root recoil/src/ --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" --compiler_flags="--warning_level=VERBOSE" \
+${PYTHON} "${CLOSURE_LIB_DIR}"/closure/bin/build/closurebuilder.py --root  "${CLOSURE_LIB_DIR}/closure"  --root  "${CLOSURE_LIB_DIR}/third_party" --root recoil/src/ --compiler_flags="--compilation_level=ADVANCED_OPTIMIZATIONS" --compiler_flags="--warning_level=VERBOSE" \
     --compiler_flags="--jscomp_error=checkTypes --jscomp_error=missingReturn --jscomp_error=newCheckTypes --jscomp_error=strictModuleDepCheck --jscomp_error=accessControls" \
     -c ${MYDIR}/compiler.jar  --output_mode="compiled"  `grep -hr --include="*.js" --exclude="*_test.js" goog.provide  recoil/src  | sed 's/goog.provide('\'// | sed s/\'');.*$'// | sort|uniq | sed s/^/--namespace\ /` > /dev/null
 

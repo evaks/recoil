@@ -50,7 +50,7 @@ recoil.structs.table.ChangeCol = function(changeCol) {
 };
 
 /**
- * @param {{table:!recoil.structs.table.Table}} params
+ * @param {{table:!recoil.structs.table.Table, meta:!Object, orig:?, deleteMeta:(undefined|Object)}} params
  * @return {!recoil.structs.table.Table}
  */
 recoil.structs.table.ChangeCol.prototype.calculate = function(params) {

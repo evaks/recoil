@@ -84,11 +84,11 @@ recoil.ui.widgets.PasswordStrengthWidget.prototype.calcStrength_ = function(pass
     var seqs = function(sequence, password) {
         var res = 0;
         for (var i = 0; i < sequence.length - 3; i++) {
-	    var fwd = sequence.substring(i, i + 3);
-	    var rev = fwd.split('').reverse().join('');
-	    if (password.indexOf(fwd) != -1 || password.indexOf(rev) != -1) {
+            var fwd = sequence.substring(i, i + 3);
+            var rev = fwd.split('').reverse().join('');
+            if (password.indexOf(fwd) != -1 || password.indexOf(rev) != -1) {
                 res++;
-	    }
+            }
         }
         return res;
     };
@@ -164,25 +164,25 @@ recoil.ui.widgets.PasswordStrengthWidget.prototype.calcStrength_ = function(pass
     var repChar = 0;
     for (i = 0; i < password.length; i++) {
         var ch = password[i];
-	/* Internal loop through password to check for repeat characters */
-	var bCharExists = false;
-	for (var j = 0; j < password.length; j++) {
-	    if (ch == password[j] && i != j) { /* repeat character exists */
-		bCharExists = true;
-		/*
-		   Calculate icrement deduction based on proximity to identical characters
-		   Deduction is incremented each time a new match is discovered
-		   Deduction amount is based on total password length divided by the
-		   difference of distance between currently selected match
-		*/
-		repInc += Math.abs(password.length / (i - j));
-	    }
-	}
-	if (bCharExists) {
+        /* Internal loop through password to check for repeat characters */
+        var bCharExists = false;
+        for (var j = 0; j < password.length; j++) {
+            if (ch == password[j] && i != j) { /* repeat character exists */
+                bCharExists = true;
+                /*
+                  Calculate icrement deduction based on proximity to identical characters
+                  Deduction is incremented each time a new match is discovered
+                  Deduction amount is based on total password length divided by the
+                  difference of distance between currently selected match
+                */
+                repInc += Math.abs(password.length / (i - j));
+            }
+        }
+        if (bCharExists) {
             repChar++;
-	    var unqChar = password.length - repChar;
-	    repInc = Math.ceil(repInc / Math.max(1, unqChar));
-	}
+            var unqChar = password.length - repChar;
+            repInc = Math.ceil(repInc / Math.max(1, unqChar));
+        }
     }
     reasons['repeat?'] = -repInc;
     var score = 0;

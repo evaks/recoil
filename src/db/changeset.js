@@ -695,6 +695,16 @@ recoil.db.ChangeSet.Change.prototype.inverse = function(schema) {};
 
 
 /**
+ * removes changes that don't match the filter, this is useful for things
+ * like security checks that may want parts of the change but not others
+ * @param {function(!recoil.db.ChangeSet.Path):boolean} filter
+ * @return {recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Change.prototype.filter = function(filter) {};
+
+
+/**
  * moves the path of this change dependants
  * @param {!recoil.db.ChangeSet.Path} from
  * @param {!recoil.db.ChangeSet.Path} to
@@ -1058,13 +1068,16 @@ recoil.db.ChangeSet.PathItem.prototype.name = function() {
  */
 recoil.db.ChangeSet.PathItem.prototype.compare = function(other) {
     var res = goog.array.defaultCompare(this.name_, other.name_);
+
     if (res !== 0) {
         return res;
     }
+
     if (this.keys_.length != other.keys_.length) {
         return this.keys_.length - other.keys_.length;
     }
-    return recoil.util.object.compareAll([{x: this.keys_, y: other.keys_}, {x: this.keyNames_, y: other.keyNames_}]);
+    res = recoil.util.object.compareAll([{x: this.keys_, y: other.keys_}, {x: this.keyNames_, y: other.keyNames_}]);
+    return res;
 };
 
 /**
@@ -1145,6 +1158,15 @@ recoil.db.ChangeSet.Path.fromString = function(path) {
 recoil.db.ChangeSet.Path.prototype.append = function(part) {
     return new recoil.db.ChangeSet.Path(
         this.items_.concat(part));
+};
+
+
+
+/**
+ * @return {!Array<string>}
+ */
+recoil.db.ChangeSet.Path.prototype.toStringArray = function() {
+    return this.items_.map(function(v) { return v.name();});
 };
 
 /**
@@ -1545,6 +1567,21 @@ recoil.db.ChangeSet.Set = function(path, oldVal, newVal) {
     this.newVal_ = newVal;
 };
 
+
+/**
+ * removes changes that don't match the filter, this is useful for things
+ * like security checks that may want parts of the change but not others
+ * @param {function(!recoil.db.ChangeSet.Path):boolean} filter
+ * @return {recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Set.prototype.filter = function(filter) {
+    if (!filter(this.path_)) {
+        return null;
+    }
+    return this;
+};
+
 /**
  * moves the path of this
  * @param {!recoil.db.ChangeSet.Path} from
@@ -1644,6 +1681,28 @@ recoil.db.ChangeSet.Set.prototype.serialize = function(keepOld, schema, valSeria
 recoil.db.ChangeSet.Add = function(path, dependants) {
     this.path_ = path;
     this.dependants_ = dependants;
+};
+
+/**
+ * removes changes that don't match the filter, this is useful for things
+ * like security checks that may want parts of the change but not others
+ * @param {function(!recoil.db.ChangeSet.Path):boolean} filter
+ * @return {recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Add.prototype.filter = function(filter) {
+    if (!filter(this.path_)) {
+        return null;
+    }
+    var newDeps = [];
+    for (var i = 0; i < this.dependants_.length; i++) {
+        var dep = this.dependants_[i].filter(filter);
+        if (dep) {
+            newDeps.push(dep);
+        }
+    }
+    return new recoil.db.ChangeSet.Add(this.path_, newDeps);
+
 };
 
 /**
@@ -1872,6 +1931,20 @@ recoil.db.ChangeSet.Delete = function(path, orig) {
 };
 
 /**
+ * removes changes that don't match the filter, this is useful for things
+ * like security checks that may want parts of the change but not others
+ * @param {function(!recoil.db.ChangeSet.Path):boolean} filter
+ * @return {recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Delete.prototype.filter = function(filter) {
+    if (!filter(this.path_)) {
+        return null;
+    }
+    return this;
+};
+
+/**
  * moves the path of this change dependants
  * @param {!recoil.db.ChangeSet.Path} from
  * @param {!recoil.db.ChangeSet.Path} to
@@ -2031,6 +2104,20 @@ recoil.db.ChangeSet.Delete.prototype.serialize = function(keepOld, schema, valSe
 recoil.db.ChangeSet.Move = function(oldPath, newPath) {
     this.oldPath_ = oldPath;
     this.newPath_ = newPath;
+};
+
+/**
+ * removes changes that don't match the filter, this is useful for things
+ * like security checks that may want parts of the change but not others
+ * @param {function(!recoil.db.ChangeSet.Path):boolean} filter
+ * @return {recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Move.prototype.filter = function(filter) {
+    if (!filter(this.oldPath_) || !filter(this.newPath_)) {
+        return null;
+    }
+    return this;
 };
 
 /**
@@ -2209,6 +2296,21 @@ recoil.db.ChangeSet.Reorder = function(path, toPath, position, oldAfter) {
     this.toPath_ = toPath;
     this.oldAfter_ = oldAfter;
     this.position_ = position;
+};
+
+
+/**
+ * removes changes that don't match the filter, this is useful for things
+ * like security checks that may want parts of the change but not others
+ * @param {function(!recoil.db.ChangeSet.Path):boolean} filter
+ * @return {recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Reorder.prototype.filter = function(filter) {
+    if (!filter(this.path_) || (this.toPath_ && !filter(this.toPath_))) {
+        return null;
+    }
+    return this;
 };
 
 /**

@@ -558,8 +558,7 @@ recoil.db.QueryScope.prototype.resolve = function(parts) {
  */
 recoil.db.DBQueryScope = function(map, helper, childPath) {
     recoil.db.QueryScope.call(this, map, helper);
-    this.dbMap_ = {children: {}, table: null};
-    this.colMap_ = {};
+    this.colMap_ = new recoil.db.PathTableMap();
     this.tableCount_ = 0;
     this.childPath_ = childPath;
 };
@@ -587,28 +586,14 @@ recoil.db.DBQueryScope.prototype.addPathTable = function(path, columns) {
 
 
 /**
- * @param {!Array<string>} path
+ * @param {!Array<string>} path the path to the table from the root
  * @param {!Array<!recoil.structs.table.ColumnKey>} columns
  * @param {string|undefined} tname
  * @return {string} the name of the table added
  */
 recoil.db.DBQueryScope.prototype.addPathNamedTable = function(path, columns, tname) {
     var table = tname === undefined ? this.nextTable() : tname;
-    var cur = this.dbMap_;
-    for (var i = 0; i < path.length; i++) {
-        var item = path[i];
-        var next = cur.children[item];
-        if (!next) {
-            next = {table: null, children: {}};
-            cur.children[item] = next;
-        }
-        cur = next;
-    }
-    cur.table = table;
-    var me = this;
-    columns.forEach(function(c) {
-        me.colMap_[c.getId()] = table;
-    });
+    this.colMap_.setTable(path, columns, table);
     return table;
 };
 
@@ -617,14 +602,7 @@ recoil.db.DBQueryScope.prototype.addPathNamedTable = function(path, columns, tna
  * @return {?string}
  */
 recoil.db.DBQueryScope.prototype.getTableAlias = function(path) {
-    var cur = this.dbMap_;
-    for (var i = 0; i < path.length && cur; i++) {
-        cur = cur[path[i]];
-    }
-    if (cur) {
-        return cur.table;
-    }
-    return null;
+    return this.colMap_.getTableAlias(path);
 };
 
 
@@ -638,11 +616,89 @@ recoil.db.DBQueryScope.prototype.nextTable = function() {
     return table;
 };
 /**
+ * @constructor
+ */
+recoil.db.PathTableMap = function() {
+    this.root_ = {table: null, children: new Map()};
+    // this is map that directly maps a column to a table for now
+    // this only happens if the caller specifies just 1 column key
+    this.columns_ = new Map();
+};
+
+/**
+ * @param {!Array<string|!recoil.structs.table.ColumnKey>} path
+ * @param {!Array<!recoil.structs.table.ColumnKey>} columns
+ * @param {string} table
+ */
+recoil.db.PathTableMap.prototype.setTable = function(path, columns, table) {
+    var cur = this.root_;
+    for (var i = 0; i < path.length; i++) {
+        var name = path[i];
+
+        var child = cur.children.get(name);
+
+        if (!child) {
+            child = {table: null, children: new Map()};
+            cur.children.set(name, child);
+        }
+        cur = child;
+    }
+
+    cur.table = table;
+    var me = this;
+    for (i = 0; i < columns.length; i++) {
+        var c = columns[i];
+        var tables = me.columns_.get(c) || new Map();
+        tables.set(table, true);
+        me.columns_.set(c, tables);
+    }
+
+};
+
+
+/**
+ * @param {!Array<string|!recoil.structs.table.ColumnKey>} path
+ * @return {?string}
+ */
+recoil.db.PathTableMap.prototype.getTable = function(path) {
+    var table = this.getTableAlias(path);
+
+
+    if (table) {
+        return table;
+    }
+
+    if (path.length === 1) {
+        var tMap = this.columns_.get(path[0]);
+        if (tMap && tMap.size == 1) {
+            return tMap.keys().next().value;
+        }
+    }
+    return null;
+};
+/**
+ * @param {!Array<string|!recoil.structs.table.ColumnKey>} path
+ * @return {?string}
+ */
+recoil.db.PathTableMap.prototype.getTableAlias = function(path) {
+
+    var cur = this.root_;
+    for (var i = 0; i < path.length && cur; i++) {
+        var name = path[i];
+        cur = cur.children.get(name);
+    }
+    if (cur && cur.table) {
+        return cur.table;
+    }
+    return null;
+};
+
+
+/**
  * @param {!Array<string|!recoil.structs.table.ColumnKey>} parts indexes to get the object
  * @return {{field:(!Array<string>|undefined),value:(?|undefined)}}
  */
 recoil.db.DBQueryScope.prototype.resolve = function(parts) {
-    var cur = this.dbMap_;
     if (parts.length === 0) {
         throw 'No parts in path specified';
     }
@@ -651,18 +707,16 @@ recoil.db.DBQueryScope.prototype.resolve = function(parts) {
         return {value: this.map_[parts[0]]};
     }
 
-    if (parts.length === 1 && parts[0] instanceof recoil.structs.table.ColumnKey) {
+    if (parts.length > 0 && parts[parts.length - 1] instanceof recoil.structs.table.ColumnKey) {
 
-        var table = this.colMap_[parts[0].getId()];
-        if (!table) {
+        var table = this.colMap_.getTable(parts);
+        if (!table && parts.length === 1) {
             return {field: [parts[0].getName()]};
         }
-        return {field: [table, parts[0].getName()]};
+        return {field: [table, parts[parts.length - 1].getName()]};
     }
-    for (var i = 0; i < parts.length - 1 && cur; i++) {
-        cur = cur.children[parts[i]];
-    }
-    var tbl = cur ? cur.table : null;
+    var tbl = this.colMap_.getTableAlias(parts.slice(0, parts.length - 1));
+
     if (tbl === '' && parts.length === 1) {
         // if we only have one table this is ok
         return {field: [parts[parts.length - 1]]};
@@ -672,7 +726,7 @@ recoil.db.DBQueryScope.prototype.resolve = function(parts) {
         var childPath = this.childPath_(parts);
         if (childPath.length > 0) {
             var res = {field: [], chain: {}};
-            var alias = this.dbMap_.table;
+            var alias = this.colMap_.getTableAlias([]);
             for (var i = 0; i < childPath.length; i++) {
                 var item = childPath[i];
                 var next = childPath[i + 1];
@@ -687,7 +741,6 @@ recoil.db.DBQueryScope.prototype.resolve = function(parts) {
                 }
 
             }
-            console.log('childPath', parts, res);
             return res;
         }
 
@@ -814,10 +867,35 @@ recoil.db.QueryScope.prototype.evalWhere = function(func) {
 
 /**
  * @constructor
- * @param {{count:(boolean|undefined), sortOrder:(Array|undefined), rate:(number|undefined),size:(undefined|number)}=} opt_options
+ * @param {{count:(boolean|undefined), sortOrder:(Array|undefined),
+  * rate:(number|undefined),size:(undefined|number)}=} opt_options
  */
 recoil.db.QueryOptions = function(opt_options) {
     this.options_ = opt_options || {};
+    var me = this;
+    this.columnFilter_ = function(path, subtable) {
+        var colFilters = me.options_.columnFilters || [];
+
+        for (var i = 0; i < colFilters.length; i++) {
+            var filter = colFilters[i];
+            if (filter.all) {
+                return filter.result;
+            }
+            if (filter.prefix) {
+                var match = true;
+                for (var j = 0; match && j < Math.min(path.length, filter.prefix.length); j++) {
+                    match = filter.prefix[i] !== path[i];
+                }
+                if (match) {
+                    return filter.result;
+                }
+            }
+            if (subtable && filter.hasOwnProperty('subtable')) {
+                return filter.object;
+            }
+        }
+        return true;
+    };
 };
 
 /**
@@ -840,6 +918,14 @@ recoil.db.QueryOptions.prototype.size = function() {
  */
 recoil.db.QueryOptions.prototype.start = function() {
     return this.options_.start;
+};
+
+
+/**
+ * @return {function(!Array<string>,boolean):boolean}
+ */
+recoil.db.QueryOptions.prototype.columnFilter = function() {
+    return this.columnFilter_;
 };
 
 /**
