@@ -413,6 +413,15 @@ recoil.db.SQLQueryHelper.prototype.equals = function(x, y) {
 };
 
 /**
+ * @param {string} x
+ * @return {string}
+ */
+recoil.db.SQLQueryHelper.prototype.null = function(x) {
+    return '(' + x + ' IS NULL)';
+};
+
+
+/**
  * @interface
  */
 recoil.db.QueryExp = function() {};
@@ -1028,6 +1037,19 @@ recoil.db.Query.binaryDeserializer = function(cls) {
         return new cls(recoil.db.Query.deserializeExp(data.x, serializer), recoil.db.Query.deserializeExp(data.y, serializer));
     };
 };
+
+/**
+ *
+ * @param {?} cls
+ * @return {function(?, !recoil.db.Query.Serializer):recoil.db.QueryExp} ;
+ */
+
+recoil.db.Query.unaryDeserializer = function(cls) {
+    return function(data, serializer) {
+        return new cls(recoil.db.Query.deserializeExp(data.x, serializer));
+    };
+};
+
 /**
  * @param {?} data
  * @param {!recoil.db.Query.Serializer} serializer
@@ -1174,7 +1196,8 @@ recoil.db.Query.prototype.or$ = function(var_others) {
 };
 
 /**
- * @param {recoil.db.Query|recoil.db.QueryExp=} opt_x
+ *
+ * @param {recoil.db.Query|recoil.db.QueryExp|!recoil.structs.table.ColumnKey=} opt_x
  * @return {!recoil.db.Query}
  */
 recoil.db.Query.prototype.not = function(opt_x) {
@@ -1274,6 +1297,16 @@ recoil.db.Query.prototype.exists$ = function(field) {
  */
 recoil.db.Query.prototype.eq = function(left, right) {
     return this.query_(new recoil.db.expr.Equals(this.toExpr(left), this.toExpr(right)));
+};
+
+
+/**
+ * this is not called equals because that should compare to queries
+ * @param {recoil.db.Query|recoil.db.QueryExp|!recoil.structs.table.ColumnKey|*} op
+ * @return {!recoil.db.Query}
+ */
+recoil.db.Query.prototype.null = function(op) {
+    return this.query_(new recoil.db.expr.Null(this.toExpr(op)));
 };
 
 /**
@@ -1831,6 +1864,42 @@ recoil.db.expr.Equals.prototype.query = function(scope) {
  */
 recoil.db.expr.Equals.prototype.serialize = function(serializer) {
     return {op: '=', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
+};
+
+
+
+/**
+ * @constructor
+ * @param {!recoil.db.QueryExp} x
+ * @implements {recoil.db.QueryExp}
+ */
+recoil.db.expr.Null = function(x) {
+    this.x_ = x;
+};
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Null.prototype.eval = function(scope) {
+    return this.x_.eval(scope) == null;
+};
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {string}
+ */
+recoil.db.expr.Null.prototype.query = function(scope) {
+    return scope.query().null(this.x_.query(scope));
+};
+
+
+/**
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {?}
+ */
+recoil.db.expr.Null.prototype.serialize = function(serializer) {
+    return {op: 'null', x: this.x_.serialize(serializer)};
 };
 
 
@@ -2589,6 +2658,8 @@ recoil.db.Query.True = new recoil.db.Query().True();
 recoil.db.Query.deserializeMap = (function() {
     var ns = recoil.db.expr;
     var res = {
+        'null': recoil.db.Query.unaryDeserializer(ns.Null),
+        '!': recoil.db.Query.unaryDeserializer(ns.Not),
         '&': recoil.db.Query.binaryDeserializer(ns.And),
         '|': recoil.db.Query.binaryDeserializer(ns.Or),
         '=': recoil.db.Query.binaryDeserializer(ns.Equals),

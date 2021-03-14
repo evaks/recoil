@@ -666,6 +666,14 @@ recoil.db.ChangeSet.DefaultValueSerializor.prototype.deserialize = function(path
 recoil.db.ChangeSet.Change = function() {
 };
 
+
+/**
+ * goes over all changes in the change
+ * @param {function(!recoil.db.ChangeSet.Change)} iter
+ */
+
+recoil.db.ChangeSet.Change.prototype.forEachChange = function(iter) {};
+
 /**
  * @param {!recoil.db.ChangeDbInterface} db
  * @param {!recoil.db.ChangeSet.Schema} schema
@@ -1705,6 +1713,21 @@ recoil.db.ChangeSet.Add.prototype.filter = function(filter) {
 
 };
 
+
+
+/**
+ * goes over all changes in the change
+ * @param {function(!recoil.db.ChangeSet.Change)} iter
+ */
+
+recoil.db.ChangeSet.Add.prototype.forEachChange = function(iter) {
+    iter(this);
+    for (var i = 0; i < this.dependants_.length; i++) {
+        var dep = this.dependants_[i].forEachChange(iter);
+    }
+};
+
+
 /**
  * creates an inverse of the change
  * @param {!recoil.db.ChangeSet.Schema} schema
@@ -1930,6 +1953,7 @@ recoil.db.ChangeSet.Delete = function(path, orig) {
     this.orig_ = orig;
 };
 
+
 /**
  * removes changes that don't match the filter, this is useful for things
  * like security checks that may want parts of the change but not others
@@ -1942,6 +1966,16 @@ recoil.db.ChangeSet.Delete.prototype.filter = function(filter) {
         return null;
     }
     return this;
+};
+
+
+/**
+ * goes over all changes in the change
+ * @param {function(!recoil.db.ChangeSet.Change)} iter
+ */
+
+recoil.db.ChangeSet.Delete.prototype.forEachChange = function(iter) {
+    iter(this);
 };
 
 /**
@@ -2119,6 +2153,16 @@ recoil.db.ChangeSet.Move.prototype.filter = function(filter) {
     }
     return this;
 };
+
+/**
+ * goes over all changes in the change
+ * @param {function(!recoil.db.ChangeSet.Change)} iter
+ */
+
+recoil.db.ChangeSet.Move.prototype.forEachChange = function(iter) {
+    iter(this);
+};
+
 
 /**
  * moves the path of this change dependants
@@ -2311,6 +2355,15 @@ recoil.db.ChangeSet.Reorder.prototype.filter = function(filter) {
         return null;
     }
     return this;
+};
+
+/**
+ * goes over all changes in the change
+ * @param {function(!recoil.db.ChangeSet.Change)} iter
+ */
+
+recoil.db.ChangeSet.Reorder.prototype.forEachChange = function(iter) {
+    iter(this);
 };
 
 /**
@@ -2825,6 +2878,16 @@ recoil.db.ChangeSet.findPath = function(path, list) {
  */
 recoil.db.ChangeSet.Set.prototype.changeCount = function() {
     return 1;
+};
+
+
+/**
+ * goes over all changes in the change
+ * @param {function(!recoil.db.ChangeSet.Change)} iter
+ */
+
+recoil.db.ChangeSet.Set.prototype.forEachChange = function(iter) {
+    iter(this);
 };
 
 
