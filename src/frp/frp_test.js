@@ -341,6 +341,43 @@ function testSwitchBNotReady() {
     tm.detach(sw);
     assertEquals(0, tm.watching());
 }
+
+function testSwitchBRef() {
+
+    var frp = new recoil.frp.Frp();
+    var tm = frp.tm();
+    var src1 = frp.createB(0);
+    var data = [frp.createB(0), frp.createB(1)];
+
+    let t2 = frp.liftB(function (src) {
+	return data[src];
+    }, src1);
+
+    var testee1 = frp.switchB(t2);
+
+    
+    var testee2 = frp.switchB(t2);
+
+
+
+    let outer = frp.liftB(function (x, y) {
+	return x + y;
+    }, testee1, testee2);
+    tm.attach(outer);
+    assertEquals(0, outer.unsafeMetaGet().get());
+
+
+    frp.accessTrans(function () {
+	src1.set(1);
+    }, src1);
+
+    assertEquals(2, outer.unsafeMetaGet().get());
+
+    tm.detach(outer);
+
+    assertEquals("refcount",0, tm.watching());
+
+};
 function testSwitchBDown() {
 
     var frp = new recoil.frp.Frp();

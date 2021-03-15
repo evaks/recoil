@@ -1813,14 +1813,72 @@ recoil.frp.TransactionManager.prototype.transDone_ = function() {
     return true;
 
 };
+
 /**
  * make an array of all providers of behaviour
  *
  * @template T
  * @param {!recoil.frp.Behaviour<T>} behaviour
+ * @return {Object<string, {count: number, b:recoil.frp.Behaviour}> }
+ */
+recoil.frp.TransactionManager.prototype.visitCount = function(behaviour) {
+
+    var toDo = [{
+        b: behaviour,
+        path: {}
+    }];
+    var visited = {};
+    
+    while (toDo.length > 0) {
+        var cur = toDo.pop();
+        if (cur.b === null) {
+            console.log('behaviour is: ', cur.b);
+        }
+	
+	// true loop stop
+        if (cur.path[cur.b.seqStr_]) {
+            continue;
+        }
+        var childPath = Object.assign({}, cur.path);
+	childPath[cur.b.seqStr_] = true;
+	
+	if (visited[cur.b.seqStr_] == undefined) {
+	    visited[cur.b.seqStr_] = {b: cur.b, count: 1};
+	}
+	else {
+	    visited[cur.b.seqStr_].count++;
+	}
+
+        for (var prov = 0; prov < cur.b.providers_.length; prov++) {
+            var provObj = cur.b.providers_[prov];
+            // loop check seems to take a long time we shouldn't need it since
+            // the constructor of the behaviour checks anyway
+//            if (cur.path[provObj.seqStr_] !== undefined) {
+//                throw new recoil.exception.LoopDetected();
+//            }
+
+//            var newPath = goog.object.clone(cur.path);
+  //          newPath[provObj.seqStr_] = provObj;
+            toDo.push({
+                b: provObj,
+		path: childPath
+            });
+        }
+
+    }
+    return visited;
+
+};
+
+/**
+ * make an array of all providers of behaviour
+ *
+ * @template T
+ * @param {!recoil.frp.Behaviour<T>} behaviour
+ * @param {boolean=} opt_stopSwitch
  * @return {Object<string, recoil.frp.Behaviour> }
  */
-recoil.frp.TransactionManager.prototype.visit = function(behaviour) {
+recoil.frp.TransactionManager.prototype.visit = function(behaviour, opt_stopSwitch) {
 
     var toDo = [{
         b: behaviour,
@@ -2136,19 +2194,19 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
     // behaviours and there already exists a behaviour TODO what if we attached
     // but not at the top level
 
-    var visited = this.visit(behaviour);
+    var visited = this.visitCount(behaviour);
     var newStuff = this.getPending_(recoil.frp.Frp.Direction_.UP);
     var me = this;
     this.doTrans(function() {
         for (var idx in visited) {
             // this may not account for 2 thing in the tree pointing to the
             // same thing
-            var b = visited[idx];
+            var b = visited[idx].b;
             if (b.getRefs(me) === 0) {
-                newStuff.push(visited[idx]);
+                newStuff.push(b);
                 me.addProvidersToDependancyMap_(b);
             }
-            visited[idx].addRef(me);
+            visited[idx].b.addRef(me, visited[idx].count);
         }
     });
 
@@ -2164,7 +2222,7 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
  */
 recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, var_providers) {
     var count = dependant.getRefs(this);
-    var oldVisited = this.visit(dependant);
+    var oldVisited = this.visitCount(dependant);
     var oldProviders = goog.array.clone(dependant.providers_);
     dependant.providers_ = goog.array.clone(arguments);
     dependant.providers_.shift();
@@ -2173,7 +2231,7 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
             throw new Error('provider not a behaviour in switch for ' + dependant.origSeq_);
         }
     });
-    var newVisited = this.visit(dependant);
+    var newVisited = this.visitCount(dependant);
     /** @type {recoil.frp.Behaviour} */
     var b;
 
@@ -2204,10 +2262,11 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
 
 
     for (var idx in oldVisited) {
-        b = oldVisited[idx];
+        b = oldVisited[idx].b;
+	var c = oldVisited[idx].count;
         var newIdx = newVisited[b.seqStr_];
         if (!newIdx) {
-            if (b.removeRef(this, count)) {
+            if (b.removeRef(this, count * c)) {
                 me.removeProvidersFromDependancyMap_(b);
                 me.removePending_(b);
             }
@@ -2216,9 +2275,10 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
 
     var pending = this.getPending_(recoil.frp.Frp.Direction_.UP);
     for (idx in newVisited) {
-        b = newVisited[idx];
+        b = newVisited[idx].b;
+	c = newVisited[idx].count;
         if (!oldVisited[b.seqStr_]) {
-            if (b.addRef(this, count)) {
+            if (b.addRef(this, count * c)) {
                 me.addProvidersToDependancyMap_(b);
                 pending.push(b);
 
@@ -2339,14 +2399,15 @@ recoil.frp.TransactionManager.prototype.removePending_ = function(behaviour) {
  */
 
 recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
-    var visited = this.visit(behaviour);
+    var visited = this.visitCount(behaviour);
     var me = this;
     this.doTrans(function() {
         for (var idx in visited) {
             // this may not account for 2 thing in the tree pointing to the
             // same thing
-            var b = visited[idx];
-            if (visited[idx].removeRef(me)) {
+            var b = visited[idx].b;
+	    var count = visited[idx].count;
+            if (visited[idx].b.removeRef(me, count)) {
                 me.removeProvidersFromDependancyMap_(b);
                 b.dirtyDown_ = false;
                 me.removePending_(b);
