@@ -472,6 +472,9 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         behaviour.dirtyUp_ = false;
         return res;
     }, function(a, b) {
+        if (b == undefined || a == undefined) {
+            console.log('undefined');
+        }
         return recoil.frp.Frp.compareSeq_(a.seq_, b.seq_);
     });
 
@@ -834,6 +837,87 @@ recoil.frp.Behaviour.prototype.fireRefListeners_ = function(hasRef) {
 
 };
 
+
+
+/**
+ * increases the reference count
+ * @private
+ * @param {recoil.frp.TransactionManager} manager
+ * @param {recoil.frp.Behaviour} dependant
+ * @param {Object<string,!recoil.frp.Behaviour>} added
+ * @return {boolean} true if count was zero
+ *
+ */
+recoil.frp.Behaviour.prototype.addRefs_ = function(manager, dependant, added) {
+    if (dependant) {
+        manager.addProvidersToDependancyMap_(dependant, this);
+    }
+
+
+    var hadRefs = this.hasRefs();
+    manager.watching_++;
+
+    var curRefs = this.refs_[manager.id_];
+
+    if (curRefs === undefined) {
+        added[this.seqStr_] = this;
+        this.refs_[manager.id_] = {
+            manager: manager,
+            count: 1
+        };
+        for (var i = 0; i < this.providers_.length; i++) {
+            this.providers_[i].addRefs_(manager, this, added);
+        }
+        if (!hadRefs) {
+            this.fireRefListeners_(true);
+        }
+        return true;
+    } else {
+        this.refs_[manager.id_].count++;
+        if (!hadRefs) {
+            this.fireRefListeners_(true);
+        }
+
+        return false;
+    }
+};
+
+/**
+ * decreases the reference count
+ * @private
+ * @param {recoil.frp.TransactionManager} manager
+ * @param {recoil.frp.Behaviour} dependant
+ * @param {Object<string,!recoil.frp.Behaviour>} removed
+ * @return {boolean} true if count was zero
+ */
+recoil.frp.Behaviour.prototype.removeRefs_ = function(manager, dependant, removed) {
+    if (dependant) {
+        manager.removeProvidersFromDependancyMap_(dependant, this);
+
+    }
+    var curRefs = this.refs_[manager.id_];
+    manager.watching_--;
+
+    if (curRefs === undefined || curRefs.count < 1) {
+        goog.asserts.assert(false, 'Behaviour ' + this.origSeq_ + ' removing reference when not referenced');
+        return false;
+    } else if (curRefs.count === 1) {
+        delete this.refs_[manager.id_];
+        removed[this.seqStr_] = this;
+        for (var i = 0; i < this.providers_.length; i++) {
+            this.providers_[i].removeRefs_(manager, this, removed);
+        }
+
+        if (!this.hasRefs()) {
+            this.fireRefListeners_(false);
+        }
+        return true;
+    } else {
+        this.refs_[manager.id_].count--;
+        return false;
+    }
+};
+
 /**
  * increases the reference count
  *
@@ -862,33 +946,6 @@ recoil.frp.Behaviour.prototype.addRef = function(manager, opt_count) {
             this.fireRefListeners_(true);
         }
 
-        return false;
-    }
-};
-
-/**
- * decreases the reference count
- *
- * @param {recoil.frp.TransactionManager} manager
- * @param {number=} opt_count this can remove than 1 used internally
- * @return {boolean} true if count goes to zero
- */
-recoil.frp.Behaviour.prototype.removeRef = function(manager, opt_count) {
-    var curRefs = this.refs_[manager.id_];
-    var count = opt_count === undefined ? 1 : opt_count;
-    manager.watching_ -= count;
-
-    if (curRefs === undefined || curRefs.count < count) {
-        goog.asserts.assert(false, 'Behaviour ' + this.origSeq_ + ' removing reference when not referenced');
-        return false;
-    } else if (curRefs.count === count) {
-        delete this.refs_[manager.id_];
-        if (!this.hasRefs()) {
-            this.fireRefListeners_(false);
-        }
-        return true;
-    } else {
-        this.refs_[manager.id_].count = curRefs.count - count;
         return false;
     }
 };
@@ -1819,62 +1876,6 @@ recoil.frp.TransactionManager.prototype.transDone_ = function() {
  *
  * @template T
  * @param {!recoil.frp.Behaviour<T>} behaviour
- * @return {Object<string, {count: number, b:recoil.frp.Behaviour}> }
- */
-recoil.frp.TransactionManager.prototype.visitCount = function(behaviour) {
-
-    var toDo = [{
-        b: behaviour,
-        path: {}
-    }];
-    var visited = {};
-    
-    while (toDo.length > 0) {
-        var cur = toDo.pop();
-        if (cur.b === null) {
-            console.log('behaviour is: ', cur.b);
-        }
-	
-	// true loop stop
-        if (cur.path[cur.b.seqStr_]) {
-            continue;
-        }
-        var childPath = Object.assign({}, cur.path);
-	childPath[cur.b.seqStr_] = true;
-	
-	if (visited[cur.b.seqStr_] == undefined) {
-	    visited[cur.b.seqStr_] = {b: cur.b, count: 1};
-	}
-	else {
-	    visited[cur.b.seqStr_].count++;
-	}
-
-        for (var prov = 0; prov < cur.b.providers_.length; prov++) {
-            var provObj = cur.b.providers_[prov];
-            // loop check seems to take a long time we shouldn't need it since
-            // the constructor of the behaviour checks anyway
-//            if (cur.path[provObj.seqStr_] !== undefined) {
-//                throw new recoil.exception.LoopDetected();
-//            }
-
-//            var newPath = goog.object.clone(cur.path);
-  //          newPath[provObj.seqStr_] = provObj;
-            toDo.push({
-                b: provObj,
-		path: childPath
-            });
-        }
-
-    }
-    return visited;
-
-};
-
-/**
- * make an array of all providers of behaviour
- *
- * @template T
- * @param {!recoil.frp.Behaviour<T>} behaviour
  * @param {boolean=} opt_stopSwitch
  * @return {Object<string, recoil.frp.Behaviour> }
  */
@@ -2194,19 +2195,14 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
     // behaviours and there already exists a behaviour TODO what if we attached
     // but not at the top level
 
-    var visited = this.visitCount(behaviour);
     var newStuff = this.getPending_(recoil.frp.Frp.Direction_.UP);
     var me = this;
     this.doTrans(function() {
-        for (var idx in visited) {
-            // this may not account for 2 thing in the tree pointing to the
-            // same thing
-            var b = visited[idx].b;
-            if (b.getRefs(me) === 0) {
-                newStuff.push(b);
-                me.addProvidersToDependancyMap_(b);
-            }
-            visited[idx].b.addRef(me, visited[idx].count);
+        var added = {};
+        behaviour.addRefs_(me, null, added);
+
+        for (var idx in added) {
+            newStuff.push(added[idx]);
         }
     });
 
@@ -2222,7 +2218,6 @@ recoil.frp.TransactionManager.prototype.attach = function(behaviour) {
  */
 recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, var_providers) {
     var count = dependant.getRefs(this);
-    var oldVisited = this.visitCount(dependant);
     var oldProviders = goog.array.clone(dependant.providers_);
     dependant.providers_ = goog.array.clone(arguments);
     dependant.providers_.shift();
@@ -2231,13 +2226,15 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
             throw new Error('provider not a behaviour in switch for ' + dependant.origSeq_);
         }
     });
-    var newVisited = this.visitCount(dependant);
     /** @type {recoil.frp.Behaviour} */
     var b;
 
     var me = this;
     var oldProvMap = {};
     var newProvMap = {};
+
+    var removed = {};
+    var added = {};
 
     if (dependant.hasRefs()) {
         for (var i = 0; i < oldProviders.length; i++) {
@@ -2248,41 +2245,36 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
             newProvMap[dependant.providers_[i].seqStr_] = dependant.providers_[i];
         }
 
+
         for (var seq in oldProvMap) {
             if (!newProvMap[seq]) {
-                me.removeProvidersFromDependancyMap_(dependant, oldProvMap[seq]);
+                // xxx
+                oldProvMap[seq].removeRefs_(this, dependant, removed);
+
             }
         }
         for (seq in newProvMap) {
             if (!oldProvMap[seq]) {
-                me.addProvidersToDependancyMap_(dependant, newProvMap[seq]);
+                newProvMap[seq].addRefs_(this, dependant, added);
             }
         }
     }
 
 
-    for (var idx in oldVisited) {
-        b = oldVisited[idx].b;
-	var c = oldVisited[idx].count;
-        var newIdx = newVisited[b.seqStr_];
-        if (!newIdx) {
-            if (b.removeRef(this, count * c)) {
-                me.removeProvidersFromDependancyMap_(b);
-                me.removePending_(b);
-            }
+    for (var idx in removed) {
+        var rem = removed[idx];
+        var add = added[idx];
+        if (!add) {
+            me.removePending_(rem);
         }
     }
 
     var pending = this.getPending_(recoil.frp.Frp.Direction_.UP);
-    for (idx in newVisited) {
-        b = newVisited[idx].b;
-	c = newVisited[idx].count;
-        if (!oldVisited[b.seqStr_]) {
-            if (b.addRef(this, count * c)) {
-                me.addProvidersToDependancyMap_(b);
-                pending.push(b);
-
-            }
+    for (idx in added) {
+        add = added[idx];
+        rem = removed[idx];
+        if (!rem) {
+            pending.push(add);
         }
     }
 
@@ -2294,7 +2286,6 @@ recoil.frp.TransactionManager.prototype.updateProviders_ = function(dependant, v
 
     } else {
         for (var i = 0; i < oldProviders.length; i++) {
-
             if (oldProviders[i] !== dependant.providers_[i]) {
                 pending.push(dependant);
                 break;
@@ -2399,19 +2390,17 @@ recoil.frp.TransactionManager.prototype.removePending_ = function(behaviour) {
  */
 
 recoil.frp.TransactionManager.prototype.detach = function(behaviour) {
-    var visited = this.visitCount(behaviour);
     var me = this;
     this.doTrans(function() {
-        for (var idx in visited) {
+        var removed = {};
+        behaviour.removeRefs_(me, null, removed);
+
+        for (var idx in removed) {
             // this may not account for 2 thing in the tree pointing to the
             // same thing
-            var b = visited[idx].b;
-	    var count = visited[idx].count;
-            if (visited[idx].b.removeRef(me, count)) {
-                me.removeProvidersFromDependancyMap_(b);
-                b.dirtyDown_ = false;
-                me.removePending_(b);
-            }
+            var b = removed[idx];
+            b.dirtyDown_ = false;
+            me.removePending_(b);
         }
     });
     //    console.log('Detach Watching = ', this.watching_);

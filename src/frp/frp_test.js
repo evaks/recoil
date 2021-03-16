@@ -692,10 +692,9 @@ function testSwitchBRefCount() {
     tm.attach(testee);
     tm.attach(testee);
 
-console.log("xxx");
     assertEquals("val1",1, testee.unsafeMetaGet().get());
-    assertEquals("count a - 1", 2, a.getRefs(tm));
-    assertEquals("count b - 1",2, b.getRefs(tm));
+    assertEquals("count a - 1", 1, a.getRefs(tm));
+    assertEquals("count b - 1", 1, b.getRefs(tm));
     assertFalse(c.hasRefs());
     assertFalse(d.hasRefs());
 
@@ -707,11 +706,17 @@ console.log("xxx");
     assertEquals(2, testee.unsafeMetaGet().get());
 
     console.log("C=",c);
-    assertEquals("c refs", 2, c.getRefs(tm));
-    assertEquals(2, d.getRefs(tm));
+    assertEquals("c refs", 1, c.getRefs(tm));
+    assertEquals(1, d.getRefs(tm));
     assertFalse(a.hasRefs());
     assertFalse(b.hasRefs());
 
+    tm.detach(testee);
+    tm.detach(testee);
+
+    assertFalse(c.hasRefs());
+    assertFalse(d.hasRefs());
+    assertFalse(testee.hasRefs());
 
 }
 /**
