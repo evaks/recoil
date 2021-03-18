@@ -33,8 +33,9 @@ recoil.ui.widgets.TimeWidget = function(scope) {
     var frp = scope.getFrp();
 
     this.time_ = cd('input', {type: 'time'});
+    this.readonly_ = cd('div', {class: 'recoil-label'});
 
-    this.container_ = cd('div', {class: 'budget-time-cont'}, this.time_);
+    this.container_ = cd('div', {class: 'budget-time-cont'}, this.time_, this.readonly_);
     this.component_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.container_);
 
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.component_, this, this.updateState_);
@@ -100,7 +101,7 @@ recoil.ui.widgets.TimeWidget.prototype.attachStruct = function(options) {
     this.valueB_ = bound.value();
     this.enabledB_ = bound.enabled();
 
-    this.boundsB_ = bound.getGroup([bound.min, bound.max, bound.step]);
+    this.boundsB_ = bound.getGroup([bound.min, bound.max, bound.step, bound.editable]);
     this.helper_.attach(this.valueB_, this.enabledB_, this.boundsB_);
 
     this.tooltip_.attach(this.enabledB_, this.helper_);
@@ -117,9 +118,9 @@ recoil.ui.widgets.TimeWidget.prototype.convertTimeToElType_ = function(time) {
         return null;
     }
 
-    let secs = Math.floor((time / 1000)) % 60;
-    let mins = Math.floor((time / 60000)) % 60;
-    let hours = Math.floor(time / (60000 * 60)) % 24;
+    var secs = Math.floor((time / 1000)) % 60;
+    var mins = Math.floor((time / 60000)) % 60;
+    var hours = Math.floor(time / (60000 * 60)) % 24;
 
     secs = (secs < 10) ? '0' + secs : secs;
     mins = (mins < 10) ? '0' + mins : mins;
@@ -138,11 +139,11 @@ recoil.ui.widgets.TimeWidget.prototype.convertElTypeToTime_ = function(time) {
     if (time == null) {
         return null;
     }
-    let parts = time.split(':');
-    let hours = parseInt(parts[0], 10);
+    var parts = time.split(':');
+    var hours = parseInt(parts[0], 10);
 
-    let mins = parts.length > 1 ? parseInt(parts[1], 10) : 0;
-    let secs = parts.length > 2 ? parseInt(parts[2], 10) : 0;
+    var mins = parts.length > 1 ? parseInt(parts[1], 10) : 0;
+    var secs = parts.length > 2 ? parseInt(parts[2], 10) : 0;
     return ((((hours * 60) + mins) * 60) + secs) * 1000;
 
 };
@@ -167,6 +168,28 @@ recoil.ui.widgets.TimeWidget.prototype.updateState_ = function(helper) {
                 }
             }
         };
+        goog.style.setElementShown(this.time_, this.boundsB_.get().editable);
+        goog.style.setElementShown(this.readonly_, !this.boundsB_.get().editable);
+
+        var toSet = this.valueB_.get();
+
+        if (toSet != null) {
+            var dt = new Date(0);
+            dt.setHours(0, 0, 0, toSet);
+            let format = {hour: '2-digit'};
+            let step = this.boundsB_.get().step;
+            if (step % 36000 !== 0) {
+                format.minute = '2-digit';
+            }
+
+            if (step % 60 !== 0) {
+                format.second = '2-digit';
+            }
+            this.readonly_.innerText = dt.toLocaleTimeString(undefined, format);
+        }
+        else {
+            this.readonly_.innerText = '';
+        }
 
         set(this.time_, 'value', this.convertTimeToElType_(this.valueB_.get()));
         set(this.time_, 'min', this.convertTimeToElType_(this.boundsB_.get().min));
@@ -190,7 +213,7 @@ recoil.ui.widgets.TimeWidget.prototype.isValid = function(bounds, value) {
  * @return {?}
  */
 recoil.ui.widgets.TimeWidget.convertTimeToLocal = function(d) {
-    return d.getFullYear() * 10000 + 100 * (d.getMonth() + 1) + d.getDate();
+    return d.getHours() * 3600000 + 60000 * d.getMinutes() + d.getSeconds() * 10000;
 
 };
 

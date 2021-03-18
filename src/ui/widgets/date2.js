@@ -34,8 +34,9 @@ recoil.ui.widgets.DateWidget2 = function(scope) {
     var frp = scope.getFrp();
 
     this.date_ = cd('input', {type: 'date'});
+    this.readonly_ = cd('div', {});
 
-    this.container_ = cd('div', {class: 'budget-date-cont'}, this.date_);
+    this.container_ = cd('div', {class: 'budget-date-cont'}, this.date_, this.readonly_);
     this.component_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.container_);
 
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.component_, this, this.updateState_);
@@ -104,7 +105,7 @@ recoil.ui.widgets.DateWidget2.prototype.attachStruct = function(options) {
     this.valueB_ = bound.value();
     this.enabledB_ = bound.enabled();
     this.allowNoneB_ = bound.allowNone();
-    this.boundsB_ = bound.getGroup([bound.min, bound.max, bound.step, bound.allowNone]);
+    this.boundsB_ = bound.getGroup([bound.min, bound.max, bound.step, bound.allowNone, bound.editable]);
     this.helper_.attach(this.valueB_, this.enabledB_, this.allowNoneB_, this.boundsB_);
 
     this.tooltip_.attach(this.enabledB_, this.helper_);
@@ -129,9 +130,20 @@ recoil.ui.widgets.DateWidget2.prototype.updateState_ = function(helper) {
                 }
             }
         };
+        goog.style.setElementShown(this.date_, this.boundsB_.get().editable);
+        goog.style.setElementShown(this.readonly_, !this.boundsB_.get().editable);
+
         var toSet = this.convertDateToElType(this.valueB_.get());
         if (this.date_.value !== toSet) {
             this.date_.value = toSet;
+
+        }
+
+        if (toSet == null) {
+            this.readonly_.innerText = '';
+        }
+        else {
+            this.readonly_.innerText = recoil.ui.widgets.DateWidget2.convertLocaleDate(this.valueB_.get()).toDateString();
         }
 
         set(this.date_, 'min', this.convertDateToElType(this.boundsB_.get().min));

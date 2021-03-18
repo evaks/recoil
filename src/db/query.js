@@ -884,7 +884,6 @@ recoil.db.QueryOptions = function(opt_options) {
     var me = this;
     this.columnFilter_ = function(path, subtable) {
         var colFilters = me.options_.columnFilters || [];
-
         for (var i = 0; i < colFilters.length; i++) {
             var filter = colFilters[i];
             if (filter.all) {
@@ -893,14 +892,14 @@ recoil.db.QueryOptions = function(opt_options) {
             if (filter.prefix) {
                 var match = true;
                 for (var j = 0; match && j < Math.min(path.length, filter.prefix.length); j++) {
-                    match = filter.prefix[i] !== path[i];
+                    match = filter.prefix[i] === path[i];
                 }
                 if (match) {
                     return filter.result;
                 }
             }
             if (subtable && filter.hasOwnProperty('subtable')) {
-                return filter.object;
+                return filter['subtable'];
             }
         }
         return true;
@@ -1257,6 +1256,16 @@ recoil.db.Query.prototype.val = function(val) {
 
 recoil.db.Query.prototype.field = function(field) {
     return this.query_(new recoil.db.expr.Field(field));
+};
+
+
+/**
+ * @param {string} expr
+ * @return {!recoil.db.Query}
+ */
+
+recoil.db.Query.prototype.raw = function(expr) {
+    return this.query_(new recoil.db.expr.Raw(expr));
 };
 
 
@@ -2305,6 +2314,8 @@ recoil.db.expr.Field = function(name) {
     }
 };
 
+
+
 /**
  * @return {!Array<string|!recoil.structs.table.ColumnKey>}
  */
@@ -2351,13 +2362,57 @@ recoil.db.expr.Field.prototype.serialize = function(serializer) {
         })};
 };
 
+/**
+  * @param {recoil.db.QueryScope} scope
+  * @return {string}
+  */
+recoil.db.expr.Field.prototype.query = function(scope) {
+    return scope.query().field(scope, this.parts_);
+};
+
+/**
+ * accessor for items in the database
+ * @constructor
+ * @param {string} expr
+ * @implements {recoil.db.QueryExp}
+ */
+recoil.db.expr.Raw = function(expr) {
+    this.expr_ = expr;
+};
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Raw.prototype.eval = function(scope) {
+    return true; // can't eval this
+};
+
+/**
+ * @param {?} data
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {!recoil.db.expr.Not}
+ */
+recoil.db.expr.Raw.deserialize = function(data, serializer) {
+    // we can't deserialize this it is a security risk sending arbitary queries to the
+    // database bad
+    return new recoil.db.expr.Not(new recoil.db.expr.True());
+};
+
+/**
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {?}
+ */
+recoil.db.expr.Raw.prototype.serialize = function(serializer) {
+    return {op: 'raw'};
+};
+
 
 /**
  * @param {recoil.db.QueryScope} scope
  * @return {string}
  */
-recoil.db.expr.Field.prototype.query = function(scope) {
-    return scope.query().field(scope, this.parts_);
+recoil.db.expr.Raw.prototype.query = function(scope) {
+    return this.expr_;
 };
 
 /**
@@ -2677,6 +2732,8 @@ recoil.db.Query.deserializeMap = (function() {
         'value': ns.Value.deserialize,
         'field': ns.Field.deserialize,
         '?': ns.Exists.deserialize,
+        'raw': ns.Raw.deserialize,
+
         'true': function() {
             return new ns.True();
         }
