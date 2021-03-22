@@ -1236,7 +1236,7 @@ recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
  *
  * @param {function(...)} callback
  * @param {...recoil.frp.Behaviour} var_behaviours
- * @return {function()}
+ * @return {function(...)}
  */
 
 recoil.frp.Frp.prototype.accessTransFunc = function(callback, var_behaviours) {

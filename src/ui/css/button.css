@@ -5,3 +5,8 @@
     text-shadow: none;
 }
 
+.recoil-button-confirm {
+    position: fixed;
+    border: 2px solid lightblue;
+    border-radius: 100%;
+}

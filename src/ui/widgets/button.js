@@ -31,13 +31,47 @@ recoil.ui.widgets.ButtonWidget = function(scope, opt_long) {
      */
     this.button_ = new goog.ui.Button();
     this.button_.setContent('??');
+    this.confirmDiv_ = goog.dom.createDom('div', {});
+
+    this.frp_ = scope.getFrp();
+    let me = this;
+//    this.confirmB_ = frp.createB(0);
+
+    this.aniId_ = null;
+    this.downTime_ = null;
+
     this.component_.setFocusable(false);
     this.component_.getElement().setAttribute('class', 'recoil-button-tooltip-padding');
     this.component_.addChild(this.button_, true);
     this.enabledHelper_ = new recoil.ui.TooltipHelper(scope, this.button_, this.component_.getElement(), function(enabled) {});
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_);
+
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.button_, this, this.updateState_, function() {
+        me.stopAnimation_();
+    });
 
     this.changeHelper_ = new recoil.ui.EventHelper(scope, this.button_, goog.ui.Component.EventType.ACTION, undefined, opt_long);
+
+    goog.events.listen(
+        this.button_.getElement(), [
+            goog.events.EventType.MOUSEUP,
+            goog.events.EventType.MOUSEDOWN,
+            goog.events.EventType.MOUSELEAVE
+        ],
+
+        function(e) {
+            me.frp_.accessTrans(
+                function() {
+                    if (me.confirmB_.get()) {
+                        if (e.type === 'mousedown' && e.button === 0) {
+                            me.startAnimation_();
+                        } else if (e.type === 'mouseleave') {
+                            me.stopAnimation_();
+                        }
+                    }
+
+                }, me.confirmB_);
+        });
+
 };
 
 /**
@@ -81,6 +115,84 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt
     this.attachStruct(options);
 };
 
+/**
+ * starts the animation when removing
+ */
+recoil.ui.widgets.ButtonWidget.prototype.startAnimation_ = function() {
+    let me = this;
+        me.downTime_ = new Date().getTime();
+        let button = me.button_.getElement();
+        let dims = button.getBoundingClientRect();
+        let startTime = new Date().getTime();
+        let aniTime = me.confirmB_.get();
+
+        me.stopAnimation_();
+        let aniFunc = me.frp_.accessTransFunc(function(first) {
+            let progress = first ? 0 : Math.min(1, (new Date().getTime() - startTime) / aniTime);
+
+            me.confirmAniB_.get()(me.confirmDiv_, dims, progress);
+
+            if (progress === 1 && me.aniId_ !== null) {
+                clearInterval(me.aniId_);
+                me.aniId_ = null;
+            }
+
+        }, me.confirmAniB_);
+        aniFunc(true);
+        me.aniId_ = setInterval(aniFunc, 40);
+        button.appendChild(me.confirmDiv_);
+
+    };
+
+/**
+ * stops the animation
+ */
+recoil.ui.widgets.ButtonWidget.prototype.stopAnimation_ = function() {
+    let me = this;
+    if (me.aniId_ !== null) {
+        clearInterval(me.aniId_);
+        me.aniId_ = null;
+    }
+    if (me.confirmDiv_) {
+        goog.dom.removeNode(me.confirmDiv_);
+    }
+};
+
+/**
+ * @param {!Element} container
+ * @param {{x: number, y: number, height: number, width: number}} position
+ * @param {number} progress
+ *
+ */
+recoil.ui.widgets.ButtonWidget.defaultConfirmAni = function(container, position, progress) {
+
+    let width = 50;
+    let height = 50;
+    let dims = position;
+    let top = Math.floor(dims.y - (width / 2) + dims.height / 2);
+    let left = Math.floor(dims.x - (width / 2) + dims.width / 2);
+    let redW = width * progress / 2;
+
+    container.setAttribute('style',
+                           'top:' + top + 'px;'
+                           + 'left:' + left + 'px;'
+                           + 'width:' + width + 'px;'
+                           + 'height:' + height + 'px;');
+
+    goog.dom.classlist.enable(container, 'recoil-button-confirm', true);
+
+//    container.style.background = ' radial-gradient(#9ab568 0%, #9ab568 ' + redW + 'px,' + ' transparent ' + redW + 'px, transparent 49px)';
+    let startColor = 'rgb(56 165 255)';
+    let endColor = 'rgb(169 216 255)';
+
+    container.style.background = ' radial-gradient(' +
+        startColor + ' 0%, ' + startColor + ' ' + Math.max(0, redW - 6) + 'px, ' +
+        endColor + ' ' + Math.max(0, redW - 1) + 'px, ' +
+        'transparent ' + redW + 'px, transparent ' + (width / 2) + 'px)';
+
+//    container.style.background = ' radial-gradient(green 0%, transparent ' + redW + 'px, green 49px)';
+
+};
 
 /**
  * the behaviours that this widget can take
@@ -95,7 +207,9 @@ recoil.ui.widgets.ButtonWidget.options = recoil.frp.Util.Options(
         enabled: recoil.ui.BoolWithExplanation.TRUE,
         editable: true,
         classes: [],
-        tooltip: null
+        tooltip: null,
+        confirm: 0,
+        confirmAni: recoil.ui.widgets.ButtonWidget.defaultConfirmAni
     }
 );
 
@@ -113,6 +227,9 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
     var editableB = bound.editable();
     this.textB_ = bound.text();
     var callbackB = bound.action();
+    this.confirmB_ = bound.confirm();
+    this.confirmAniB_ = bound.confirmAni();
+
     var me = this;
     this.enabledB_ = BoolWithExplanation.and(
         frp,
@@ -122,10 +239,15 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
     this.callbackB_ = frp.liftBI(function(v) {
         return v;
     }, function(v) {
+        me.stopAnimation_();
         if (me.enabledB_.good() && me.enabledB_.get().val()) {
-            callbackB.set(v);
+            if (!me.confirmB_.get() || (me.downTime_ && (new Date().getTime() - me.downTime_) > me.confirmB_.get())) {
+                callbackB.set(v);
+            }
         }
-    }, callbackB, this.enabledB_);
+        me.downTime_ = null;
+
+    }, callbackB, this.enabledB_, this.confirmB_);
 
     this.classesB_ = frp.liftB(function(cls, enabled) {
         var res = [];
@@ -136,9 +258,7 @@ recoil.ui.widgets.ButtonWidget.prototype.attachStruct = function(value) {
         return res;
     }, bound.classes(), this.enabledB_);
 
-
-
-    this.helper_.attach(this.textB_, this.callbackB_, this.enabledB_, this.classesB_);
+    this.helper_.attach(this.textB_, this.callbackB_, this.enabledB_, this.classesB_, this.confirmB_, this.confirmAniB_);
     this.enabledHelper_.attach(
         /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (this.enabledB_),
         this.helper_);

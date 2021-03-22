@@ -350,6 +350,21 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
 
 
 /**
+ * Sets focus when element becomes visible
+ */
+recoil.ui.widgets.InputWidget.prototype.focus = function() {
+    let me = this;
+    let el = this.input_.getElement();
+
+    let ob = new ResizeObserver(entries => {
+        me.input_.focusAndSelect();
+        ob.disconnect();
+    });
+
+    ob.observe(el);
+};
+
+/**
  *
  * @return {!recoil.frp.Behaviour<boolean>}
  */
