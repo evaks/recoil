@@ -293,6 +293,9 @@ recoil.frp.BStatus.prototype.merge = function(other) {
     if (!other || !other.errors) {
         console.log('merging with non error');
     }
+    if (!(other.errors instanceof Function)) {
+        console.log('merging with non-status');
+    }
     this.errors_ = goog.array.concat(this.errors_, other.errors());
     this.ready_ = this.ready_ && ((other instanceof recoil.frp.EStatus) || other.ready());
 };
@@ -1394,6 +1397,15 @@ recoil.frp.Frp.prototype.metaLiftBI = function(func, invFunc, var_args) {
     var providers = [];
     for (var i = 2; i < arguments.length; i++) {
         providers.push(arguments[i]);
+    }
+    if (!(func instanceof Function)) {
+        throw 'func must be function';
+    }
+    if (invFunc != undefined && !(invFunc instanceof Function)) {
+        throw 'invFunc arg must be function';
+    }
+    if (providers.length == 0) {
+        throw 'you must have at least 1 provider';
     }
     return new recoil.frp.Behaviour(this, recoil.frp.BStatus.notReady(), func, invFunc, this.transactionManager_.nextIndex(), providers).nameFunc(func, invFunc).setName('metaLiftBI');
 };
