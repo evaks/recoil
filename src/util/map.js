@@ -107,3 +107,14 @@ recoil.util.map.isEmpty = function(map) {
     return true;
 };
 
+/**
+ * @param {Object|IObject} map
+ * @return {number}
+ */
+recoil.util.map.size = function(map) {
+    var res = 0;
+    for (var k in map) {
+        res++;
+    }
+    return res;
+};

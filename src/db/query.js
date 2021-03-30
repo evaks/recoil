@@ -42,6 +42,13 @@ recoil.db.QueryHelper.prototype.true = function() {};
  */
 recoil.db.QueryHelper.prototype.and = function(x, y) {};
 
+
+/**
+ * @param {!Array<string>} values
+ * @return {string}
+ */
+recoil.db.QueryHelper.prototype.concat = function(values) {};
+
 /**
  * @param {string} x
  * @param {string} y
@@ -167,6 +174,15 @@ recoil.db.SQLQueryHelper = function(escaper) {
  */
 recoil.db.SQLQueryHelper.prototype.and = function(x, y) {
     return '(' + x + ' AND ' + y + ')';
+};
+
+
+/**
+ * @param {!Array<string>} values
+ * @return {string}
+ */
+recoil.db.SQLQueryHelper.prototype.concat = function(values) {
+    return 'concat(' + values.join(',') + ')';
 };
 
 
@@ -1173,6 +1189,19 @@ recoil.db.Query.prototype.and = function(var_others) {
     return this.chain_(recoil.db.expr.And, arguments);
 };
 
+
+
+/**
+ * ands together all the arguments, and the current query
+ * if the curernt query is not null also includes that query
+ * @param {!Array<(!recoil.db.Query|!recoil.db.QueryExp|!recoil.structs.table.ColumnKey)>} args
+ * @return {!recoil.db.Query}
+ */
+recoil.db.Query.prototype.concat = function(args) {
+    var me = this;
+    return this.query_(new recoil.db.expr.Concat(args.map(function(v) {return me.toExpr(v);})));
+};
+
 /**
  * ors together all the arguments, and the current query
  * if the curernt query is not null also includes that query
@@ -1709,6 +1738,54 @@ recoil.db.expr.And.prototype.query = function(scope) {
  */
 recoil.db.expr.And.prototype.serialize = function(serializer) {
     return {op: '&', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
+};
+
+
+
+/**
+ * @constructor
+ * @implements {recoil.db.QueryExp}
+ * @param {!Array<!recoil.db.QueryExp>} args
+ */
+recoil.db.expr.Concat = function(args) {
+    this.args_ = args;
+};
+
+
+/**
+ * @param {?} data
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {!recoil.db.expr.Concat}
+ */
+recoil.db.expr.Concat.deserialize = function(data, serializer) {
+    return new recoil.db.expr.Concat(data.args.map(function(v) { return recoil.db.Query.deserializeExp(v, serializer);}));
+};
+
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Concat.prototype.eval = function(scope) {
+    return this.args_.map(function(v)  { return v.eval(scope);}).join('');
+};
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {string}
+ */
+recoil.db.expr.Concat.prototype.query = function(scope) {
+
+    return scope.query().concat(this.args_.map(function(v) { return v.query(scope);}));
+};
+
+/**
+ * @param {!recoil.db.Query.Serializer} serializer
+ * @return {?}
+ */
+recoil.db.expr.Concat.prototype.serialize = function(serializer) {
+    return {op: 'concat', args: this.args_.map(function(v) {return v.serialize(serializer);})};
 };
 
 /**
@@ -2722,6 +2799,7 @@ recoil.db.Query.deserializeMap = (function() {
         '<': recoil.db.Query.binaryDeserializer(ns.LessThan),
         '<=': recoil.db.Query.binaryDeserializer(ns.GreaterThanOrEquals),
         '>=': recoil.db.Query.binaryDeserializer(ns.LessThanOrEquals),
+        'concat': ns.Concat.deserialize,
         'startsWith': ns.StartsWith.deserialize,
         'containsStr': ns.ContainsStr.deserialize,
         'contains': ns.Contains.deserialize,
