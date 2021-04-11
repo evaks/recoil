@@ -908,7 +908,7 @@ recoil.db.QueryOptions = function(opt_options) {
             if (filter.prefix) {
                 var match = true;
                 for (var j = 0; match && j < Math.min(path.length, filter.prefix.length); j++) {
-                    match = filter.prefix[i] === path[i];
+                    match = filter.prefix[j] === path[j];
                 }
                 if (match) {
                     return filter.result;
