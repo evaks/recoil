@@ -451,6 +451,17 @@ recoil.db.QueryExp.prototype.eval = function(scope) {
 };
 
 /**
+ * note this may throw which indicates it is unknown therefore the top level
+ * evaluates to true, however since some expressions it needs to be dealt with differently at the top level
+ *
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?}
+ */
+recoil.db.QueryExp.prototype.matches = function(scope) {
+
+};
+
+/**
  * generates a query for the scope
  * @param {!recoil.db.QueryScope} scope
  * @return {string}
@@ -1111,6 +1122,19 @@ recoil.db.Query.prototype.eval = function(scope) {
     return this.expr_.eval(scope);
 };
 
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {boolean} returns true if there is a possiblity that expression may return true
+ */
+recoil.db.Query.prototype.mayMatch = function(scope) {
+    var res = this.expr_.matches(scope);
+    if (res === undefined) {
+        return true;
+    }
+    return !!res;
+};
+
 /**
  * returns a basic object that can stringified and sent over the wire
  * @param {!recoil.db.Query.Serializer} serializer
@@ -1724,6 +1748,21 @@ recoil.db.expr.And.prototype.eval = function(scope) {
     return this.x_.eval(scope) && this.y_.eval(scope);
 };
 
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?}
+ */
+recoil.db.expr.And.prototype.matches = function(scope) {
+
+    var resx = this.x_.matches(scope);
+    if (resx === undefined || resx === false) {
+        return resx;
+    }
+
+    return this.y_.matches(scope);
+};
 /**
  * @param {!recoil.db.QueryScope} scope
  * @return {string}
@@ -1780,6 +1819,16 @@ recoil.db.expr.Concat.prototype.query = function(scope) {
     return scope.query().concat(this.args_.map(function(v) { return v.query(scope);}));
 };
 
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @suppress {checkTypes}
+ * @return {?}
+ */
+recoil.db.expr.Concat.prototype.matches = function(scope) {
+    return this.eval(scope);
+};
+
 /**
  * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
@@ -1806,6 +1855,25 @@ recoil.db.expr.Or = function(x, y) {
 recoil.db.expr.Or.prototype.eval = function(scope) {
     return this.x_.eval(scope) || this.y_.eval(scope);
 };
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Or.prototype.matches = function(scope) {
+    var resx = this.x_.matches(scope);
+    if (resx && resx !== undefined) {
+        return true;
+    }
+    var resy = this.y_.matches(scope);
+    if (resy !== undefined) {
+        return !!resy;
+    }
+
+    return undefined;
+};
+
 
 
 /**
@@ -1840,6 +1908,16 @@ recoil.db.expr.Not = function(x) {
  */
 recoil.db.expr.Not.prototype.eval = function(scope) {
     return !this.x_.eval(scope);
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?}
+ */
+recoil.db.expr.Not.prototype.matches = function(scope) {
+    var res = this.x_.matches(scope);
+    return res === undefined ? res : !res;
 };
 
 
@@ -1889,6 +1967,21 @@ recoil.db.expr.Exists.prototype.query = function(scope) {
     return scope.query().exists(this.val_.query(scope), this.exists_);
 };
 
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @suppress {checkTypes}
+ * @return {*}
+ */
+recoil.db.expr.Exists.prototype.matches = function(scope) {
+    try {
+        return this.eval(scope);
+    }
+    catch (e) {
+        return undefined;
+    }
+};
+
 /**
  * @param {!recoil.db.Query.Serializer} serializer
  * @return {?}
@@ -1915,6 +2008,20 @@ recoil.db.expr.Equals = function(x, y) {
  */
 recoil.db.expr.Equals.prototype.eval = function(scope) {
     return recoil.db.expr.Equals.isEqual(this.x_.eval(scope), this.y_.eval(scope));
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Equals.prototype.matches = function(scope) {
+    var resx = this.x_.eval(scope);
+    var resy =  this.y_.eval(scope);
+    if (resx === undefined || resy === undefined) {
+        return undefined;
+    }
+    return recoil.db.expr.Equals.isEqual(resx, resy);
 };
 
 /**
@@ -1971,6 +2078,20 @@ recoil.db.expr.Null.prototype.eval = function(scope) {
     return this.x_.eval(scope) == null;
 };
 
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Null.prototype.matches = function(scope) {
+    var res = this.x_.eval(scope);
+
+    if (res === undefined) {
+        return undefined;
+    }
+    return res == null;
+};
+
 /**
  * @param {!recoil.db.QueryScope} scope
  * @return {string}
@@ -2008,6 +2129,20 @@ recoil.db.expr.StartsWith = function(x, y) {
  */
 recoil.db.expr.StartsWith.prototype.eval = function(scope) {
     return (this.x_.eval(scope) + '').toLowerCase().indexOf((this.y_ + '').toLowerCase()) === 0;
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.StartsWith.prototype.matches = function(scope) {
+    var resx = this.x_.eval(scope);
+    if (resx === undefined) {
+        return undefined;
+    }
+    
+    return (resx + '').toLowerCase().indexOf((this.y_ + '').toLowerCase()) === 0;
 };
 
 
@@ -2060,6 +2195,20 @@ recoil.db.expr.ContainsStr.prototype.eval = function(scope) {
 };
 
 
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.ContainsStr.prototype.matches = function(scope) {
+    var val = this.x_.eval(scope);
+    if (val === undefined) {
+        return undefined;
+    }
+    return (val + '').toLowerCase().indexOf((this.y_ + '').toLowerCase()) !== -1;
+};
+
+
 /**
  * @param {!recoil.db.QueryScope} scope
  * @return {string}
@@ -2100,8 +2249,24 @@ recoil.db.expr.NotEquals = function(x, y) {
  * @param {!recoil.db.QueryScope} scope
  * @return {*}
  */
+recoil.db.expr.NotEquals.prototype.matches = function(scope) {
+    var resx = this.x_.eval(scope);
+    var resy = this.y_.eval(scope);
+    if (resx === undefined || resy === undefined) {
+        return undefined;
+    }
+    return !recoil.db.expr.Equals.isEqual(resx, resy);
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
 recoil.db.expr.NotEquals.prototype.eval = function(scope) {
-    return !recoil.db.expr.Equals.isEqual(this.x_.eval(scope), this.y_.eval(scope));
+    var resx = this.x_.eval(scope);
+    var resy = this.y_.eval(scope);
+    return !recoil.db.expr.Equals.isEqual(resx, resy);
 };
 
 
@@ -2157,6 +2322,20 @@ recoil.db.expr.GreaterThan.prototype.eval = function(scope) {
 recoil.db.expr.GreaterThan.prototype.query = function(scope) {
     return scope.query().greaterThan(this.x_.query(scope), this.y_.query(scope));
 };
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.GreaterThan.prototype.matches = function(scope) {
+    var resx = this.x_.eval(scope);
+    var resy = this.y_.eval(scope);
+    if (resx === undefined || resy === undefined) {
+        return resy === undefined;
+    }
+    return resx > resy;
+};
+
 /**
  * @constructor
  * @param {!recoil.db.QueryExp} x
@@ -2190,6 +2369,20 @@ recoil.db.expr.GreaterThanOrEquals.prototype.serialize = function(serializer) {
  */
 recoil.db.expr.GreaterThanOrEquals.prototype.query = function(scope) {
     return scope.query().greaterThanOrEqual(this.x_.query(scope), this.y_.query(scope));
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.GreaterThanOrEquals.prototype.matches = function(scope) {
+    var resx = this.x_.eval(scope);
+    var resy = this.y_.eval(scope);
+    if (resx === undefined || resy === undefined) {
+        return resy === undefined;
+    }
+    return resx >= resy;
 };
 
 /**
@@ -2227,6 +2420,20 @@ recoil.db.expr.LessThan.prototype.query = function(scope) {
 recoil.db.expr.LessThan.prototype.serialize = function(serializer) {
     return {op: '<', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.LessThan.prototype.matches = function(scope) {
+    var resx = this.x_.eval(scope);
+    var resy = this.y_.eval(scope);
+    if (resx === undefined || resy === undefined) {
+        return resy === undefined;
+    }
+    return resx < resy;
+};
+
 /**
 
  * @constructor
@@ -2247,6 +2454,19 @@ recoil.db.expr.LessThanOrEquals.prototype.eval = function(scope) {
     return this.x_.eval(scope) <= this.y_.eval(scope);
 };
 
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.LessThanOrEquals.prototype.matches = function(scope) {
+    var resx = this.x_.eval(scope);
+    var resy = this.y_.eval(scope);
+    if (resx === undefined || resy === undefined) {
+        return resy === undefined;
+    }
+    return resx <= resy;
+};
 
 /**
  * @param {recoil.db.QueryScope} scope
@@ -2309,6 +2529,20 @@ recoil.db.expr.In.prototype.eval = function(scope) {
 
 /**
  * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.In.prototype.matches = function(scope) {
+    var v = this.field_.eval(scope);
+    if (v === undefined) {
+        return undefined;
+    }
+    return recoil.db.expr.In.contains(scope, v, this.list_, true);
+
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
  * @return {string}
  */
 recoil.db.expr.In.prototype.query = function(scope) {
@@ -2319,11 +2553,16 @@ recoil.db.expr.In.prototype.query = function(scope) {
  * @param {!recoil.db.QueryScope} scope
  * @param {?} val
  * @param {!Array<!recoil.db.QueryExp>} expList
- * @return {boolean}
+ * @param {boolean=} opt_matches
+ * @return {boolean|undefined}
  */
-recoil.db.expr.In.contains = function(scope, val, expList) {
+recoil.db.expr.In.contains = function(scope, val, expList, opt_matches) {
     for (var i = 0; i < expList.length; i++) {
-        if (recoil.db.expr.Equals.isEqual(val, expList[i].eval(scope))) {
+        var exp = expList[i].eval(scope);
+        if (opt_matches && exp === undefined) {
+            return undefined;
+        }
+        if (recoil.db.expr.Equals.isEqual(val, exp)) {
             return true;
         }
     }
@@ -2347,6 +2586,20 @@ recoil.db.expr.NotIn = function(field, list) {
 recoil.db.expr.NotIn.prototype.eval = function(scope) {
     var v = this.field_.eval(scope);
     return !recoil.db.expr.In.contains(scope, v, this.list_ || []);
+};
+
+
+/**
+ * @param {!recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.NotIn.prototype.matches = function(scope) {
+    var v = this.field_.eval(scope);
+    if (v === undefined) {
+        return undefined;
+    }
+    var res = recoil.db.expr.In.contains(scope, v, this.list_ || [], true);
+    return res === undefined ? undefined : !res;
 };
 
 
@@ -2407,6 +2660,20 @@ recoil.db.expr.Field.prototype.eval = function(scope) {
     return scope.get(this.parts_);
 };
 
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Field.prototype.matches = function(scope) {
+    try {
+        return scope.get(this.parts_);
+    }
+    catch (e) {
+        return undefined;
+    }
+};
+
 /**
  * @param {?} data
  * @param {!recoil.db.Query.Serializer} serializer
@@ -2464,6 +2731,15 @@ recoil.db.expr.Raw.prototype.eval = function(scope) {
     return true; // can't eval this
 };
 
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Raw.prototype.matches = function(scope) {
+    return undefined; 
+};
+
 /**
  * @param {?} data
  * @param {!recoil.db.Query.Serializer} serializer
@@ -2506,6 +2782,15 @@ recoil.db.expr.Value = function(val) {
  * @return {*}
  */
 recoil.db.expr.Value.prototype.eval = function(scope) {
+    return this.val_;
+};
+
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Value.prototype.matches = function(scope) {
     return this.val_;
 };
 
@@ -2572,6 +2857,14 @@ recoil.db.expr.RegExp.prototype.serialize = function(serializer) {
 };
 
 /**
+ * @param {recoil.db.QueryScope} scope
+ * @return {?}
+ */
+recoil.db.expr.RegExp.prototype.matches = function(scope) {
+    return undefined;
+};
+
+/**
  * @param {?} data
  * @param {!recoil.db.Query.Serializer} serializer
  * @return {!recoil.db.expr.RegExp} ;
@@ -2599,12 +2892,22 @@ recoil.db.expr.Where = function(expr) {
     this.expr_ = recoil.db.QueryScope.mkWhere(expr);
 };
 
+
 /**
  * @param {recoil.db.QueryScope} scope
  * @return {boolean}
  */
 recoil.db.expr.Where.prototype.eval = function(scope) {
     return scope.evalWhere(this.expr_);
+};
+
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {?}
+ */
+recoil.db.expr.Where.prototype.matches = function(scope) {
+    return undefined;
 };
 
 /**
@@ -2639,6 +2942,14 @@ recoil.db.expr.True.prototype.eval = function(scope) {
     return true;
 };
 
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {boolean}
+ */
+recoil.db.expr.True.prototype.matches = function(scope) {
+    return true;
+};
 
 /**
  * generates a query for the scope
@@ -2734,6 +3045,40 @@ recoil.db.expr.Contains.prototype.eval = function(scope) {
 };
 
 /**
+ * @param {recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Contains.prototype.matches = function(scope) {
+    var values = this.field_.eval(scope);
+    var lookup = this.list_.map(function(e) {return e.eval(scope);});
+    for (var j = 0; j < lookup.length; j++) {
+        var l = lookup[j];
+        if (l === undefined) {
+            return undefined;
+        }
+        var found = false;
+        for (var i = 0; !found && i < values.length; i++) {
+            if (values[i] === undefined) {
+                return undefined;
+            }
+            if (recoil.util.isEqual(values[i], l)) {
+                found = true;
+                if (!this.all_) {
+                    return true;
+                }
+            }
+        }
+        if (!found && this.all_) {
+            return false;
+        }
+    }
+    return this.all_;
+
+};
+
+
+
+/**
  * generates a query for the scope
  * @param {recoil.db.QueryScope} scope
  * @return {string}
@@ -2767,6 +3112,15 @@ recoil.db.expr.Search.prototype.serialize = function(serializer) {
 recoil.db.expr.Search.prototype.eval = function(scope) {
     throw 'not implemented yet';
 };
+
+/**
+ * @param {recoil.db.QueryScope} scope
+ * @return {*}
+ */
+recoil.db.expr.Search.prototype.matches = function(scope) {
+    return undefined;
+};
+
 
 /**
  * generates a query for the scope

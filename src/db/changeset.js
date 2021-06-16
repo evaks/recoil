@@ -674,6 +674,16 @@ recoil.db.ChangeSet.Change = function() {
 
 recoil.db.ChangeSet.Change.prototype.forEachChange = function(iter) {};
 
+
+/**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Change.prototype.setPathKeys = function(keys, opt_level) {};
+
 /**
  * @param {!recoil.db.ChangeDbInterface} db
  * @param {!recoil.db.ChangeSet.Schema} schema
@@ -1464,15 +1474,46 @@ recoil.db.ChangeSet.Path.prototype.pathAsString = function() {
 
 /**
  * sets the keys on the last child
- * @param {!Array<string>} keyNames
+ * @param {Array<string>} keyNames
  * @param {!Array<?>} keyValues
  * @return {!recoil.db.ChangeSet.Path}
  */
 recoil.db.ChangeSet.Path.prototype.setKeys = function(keyNames, keyValues) {
     var newItems = this.items_.slice(0);
     var last = newItems.pop();
-    newItems.push(new recoil.db.ChangeSet.PathItem(last.name(), keyNames, keyValues));
+    if (keyNames === null) {
+        newItems.push(new recoil.db.ChangeSet.PathItem(last.name(), last.keyNames(), keyValues));
+    }
+    else {
+        newItems.push(new recoil.db.ChangeSet.PathItem(last.name(), keyNames, keyValues));
+    }
     return new recoil.db.ChangeSet.Path(newItems);
+
+};
+
+/**
+ * sets the keys on the last child
+ * @param {number|undefined} level
+ * @param {Array<string>} keyNames
+ * @param {!Array<?>} keyValues
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.setKeysAt = function(level, keyNames, keyValues) {
+    var newItems = this.items_.slice(0);
+    if (level == undefined) {
+        return this.setKeys(keyNames, keyValues);
+    }
+    let end = newItems.splice(level);
+    
+    var item = end.shift();
+    if (keyNames === null) {
+        newItems.push(new recoil.db.ChangeSet.PathItem(item.name(), item.keyNames(), keyValues));
+    }
+    else {
+        newItems.push(new recoil.db.ChangeSet.PathItem(item.name(), keyNames, keyValues));
+    }
+    
+    return new recoil.db.ChangeSet.Path(newItems.concat(end));
 
 };
 
@@ -1680,6 +1721,18 @@ recoil.db.ChangeSet.Set.prototype.serialize = function(keepOld, schema, valSeria
 
 
 /**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Set.prototype.setPathKeys = function(keys, opt_level) {
+    return new recoil.db.ChangeSet.Set(this.path_.setKeysAt(opt_level, null, keys), this.oldVal_, this.newVal_);
+};
+
+
+/**
  * @constructor
  * @implements recoil.db.ChangeSet.Change
  * @param {!recoil.db.ChangeSet.Path} path
@@ -1727,6 +1780,27 @@ recoil.db.ChangeSet.Add.prototype.forEachChange = function(iter) {
     }
 };
 
+
+
+/**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Add.prototype.setPathKeys = function(keys, opt_level) {
+    var pathItems = this.path_.items();
+    var level = opt_level === undefined ? pathItems.length - 1: opt_level;
+    
+    var deps = [];
+    for (var i = 0; i < this.dependants_.length; i++) {
+        var change = this.dependants_[i];
+        deps.push(change.setPathKeys(keys, level));
+
+    }
+    return new recoil.db.ChangeSet.Add(this.path_.setKeysAt(level, null, keys), deps);
+};
 
 /**
  * creates an inverse of the change
@@ -2112,6 +2186,17 @@ recoil.db.ChangeSet.Delete.prototype.applyToDb = function(db, schema) {
     db.applyDelete(this.path_);
 };
 /**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Delete.prototype.setPathKeys = function(keys, opt_level) {
+    return new recoil.db.ChangeSet.Delete(this.path_.setKeysAt(opt_level, null, keys), this.orig_);
+};
+
+/**
  * converts a change an object that can be turned into json
  * @param {boolean} keepOld do we need the undo information
  * @param {!recoil.db.ChangeSet.Schema} schema
@@ -2152,6 +2237,18 @@ recoil.db.ChangeSet.Move.prototype.filter = function(filter) {
         return null;
     }
     return this;
+};
+
+
+/**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Move.prototype.setPathKeys = function(keys, opt_level) {
+    return new recoil.db.ChangeSet.Move(this.oldPath_.setKeysAt(opt_level, null, keys), this.newPath_.setKeysAt(opt_level, null, keys));
 };
 
 /**
@@ -2340,6 +2437,17 @@ recoil.db.ChangeSet.Reorder = function(path, toPath, position, oldAfter) {
     this.toPath_ = toPath;
     this.oldAfter_ = oldAfter;
     this.position_ = position;
+};
+
+/**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Reorder.prototype.setPathKeys = function(keys, opt_level) {
+    return new recoil.db.ChangeSet.Reorder(this.path_.setKeysAt(opt_level, null, keys), this.toPath_ ? null : this.toPath_.setKeysAt(opt_level, null, keys),  this.position_, this.oldAfter_);
 };
 
 

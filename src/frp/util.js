@@ -196,6 +196,26 @@ recoil.frp.Util.prototype.arrayToBehaviours = function(start, items) {
 };
 
 /**
+ * if this is good keeps it good the value goes to not ready, good for lookup tables
+ * that may change and you don't want it to flash off for a while
+ * @param {!recoil.frp.Behaviour} b
+ * @return {recoil.frp.Behaviour}
+ */
+recoil.frp.Util.lastGood = function(b) {
+    let last = null;
+    return b.frp().metaLiftB(function (v) {
+        if (v.ready()) {
+            last  = v;
+            return v;
+        }
+        else if (last) {
+            return last;
+        }
+        return v;
+    }, b);
+};
+    
+/**
  *
  * @param {number} start only convert items >= this index
  * @param {Array<recoil.frp.Behaviour>} items
