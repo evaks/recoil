@@ -1504,7 +1504,7 @@ recoil.db.ChangeSet.Path.prototype.setKeysAt = function(level, keyNames, keyValu
         return this.setKeys(keyNames, keyValues);
     }
     let end = newItems.splice(level);
-    
+
     var item = end.shift();
     if (keyNames === null) {
         newItems.push(new recoil.db.ChangeSet.PathItem(item.name(), item.keyNames(), keyValues));
@@ -1512,7 +1512,7 @@ recoil.db.ChangeSet.Path.prototype.setKeysAt = function(level, keyNames, keyValu
     else {
         newItems.push(new recoil.db.ChangeSet.PathItem(item.name(), keyNames, keyValues));
     }
-    
+
     return new recoil.db.ChangeSet.Path(newItems.concat(end));
 
 };
@@ -1791,8 +1791,8 @@ recoil.db.ChangeSet.Add.prototype.forEachChange = function(iter) {
 
 recoil.db.ChangeSet.Add.prototype.setPathKeys = function(keys, opt_level) {
     var pathItems = this.path_.items();
-    var level = opt_level === undefined ? pathItems.length - 1: opt_level;
-    
+    var level = opt_level === undefined ? pathItems.length - 1 : opt_level;
+
     var deps = [];
     for (var i = 0; i < this.dependants_.length; i++) {
         var change = this.dependants_[i];
@@ -2447,7 +2447,7 @@ recoil.db.ChangeSet.Reorder = function(path, toPath, position, oldAfter) {
  */
 
 recoil.db.ChangeSet.Reorder.prototype.setPathKeys = function(keys, opt_level) {
-    return new recoil.db.ChangeSet.Reorder(this.path_.setKeysAt(opt_level, null, keys), this.toPath_ ? null : this.toPath_.setKeysAt(opt_level, null, keys),  this.position_, this.oldAfter_);
+    return new recoil.db.ChangeSet.Reorder(this.path_.setKeysAt(opt_level, null, keys), this.toPath_ ? null : this.toPath_.setKeysAt(opt_level, null, keys), this.position_, this.oldAfter_);
 };
 
 

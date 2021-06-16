@@ -203,9 +203,9 @@ recoil.frp.Util.prototype.arrayToBehaviours = function(start, items) {
  */
 recoil.frp.Util.lastGood = function(b) {
     let last = null;
-    return b.frp().metaLiftB(function (v) {
+    return b.frp().metaLiftB(function(v) {
         if (v.ready()) {
-            last  = v;
+            last = v;
             return v;
         }
         else if (last) {
@@ -214,7 +214,7 @@ recoil.frp.Util.lastGood = function(b) {
         return v;
     }, b);
 };
-    
+
 /**
  *
  * @param {number} start only convert items >= this index

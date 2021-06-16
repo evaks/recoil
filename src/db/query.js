@@ -2017,7 +2017,7 @@ recoil.db.expr.Equals.prototype.eval = function(scope) {
  */
 recoil.db.expr.Equals.prototype.matches = function(scope) {
     var resx = this.x_.eval(scope);
-    var resy =  this.y_.eval(scope);
+    var resy = this.y_.eval(scope);
     if (resx === undefined || resy === undefined) {
         return undefined;
     }
@@ -2141,7 +2141,7 @@ recoil.db.expr.StartsWith.prototype.matches = function(scope) {
     if (resx === undefined) {
         return undefined;
     }
-    
+
     return (resx + '').toLowerCase().indexOf((this.y_ + '').toLowerCase()) === 0;
 };
 
@@ -2737,7 +2737,7 @@ recoil.db.expr.Raw.prototype.eval = function(scope) {
  * @return {*}
  */
 recoil.db.expr.Raw.prototype.matches = function(scope) {
-    return undefined; 
+    return undefined;
 };
 
 /**
