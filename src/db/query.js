@@ -902,9 +902,14 @@ recoil.db.QueryScope.prototype.evalWhere = function(func) {
 
 
 /**
+ * @typedef {{all:(boolean|undefined), result:(boolean|undefined)}}
+ */
+recoil.db.QueryOptionsColFilter;
+
+/**
  * @constructor
  * @param {{count:(boolean|undefined), sortOrder:(Array|undefined),
-  * rate:(number|undefined),size:(undefined|number)}=} opt_options
+  * rate:(number|undefined),size:(undefined|number),columnFilters:(undefined|Array<recoil.db.QueryOptionsColFilter>)}=} opt_options
  */
 recoil.db.QueryOptions = function(opt_options) {
     this.options_ = opt_options || {};

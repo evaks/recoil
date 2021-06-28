@@ -309,6 +309,7 @@ goog.structs.AvlTree.fromList = function(list, opt_compareFn) {
 };
 
 /**
+ * @template T
  * @return {!Array<T>} list
  */
 goog.structs.AvlTree.prototype.toList = function() {
@@ -324,6 +325,7 @@ goog.structs.AvlTree.prototype.toList = function() {
 /**
  * finds an element, if it does not exist inserts it into
  * the AvlTree and returns it
+ * @template T
  * @param {T} val
  * @return {T}
  */
