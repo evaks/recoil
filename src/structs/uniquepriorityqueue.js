@@ -68,3 +68,18 @@ recoil.structs.UniquePriorityQueue.prototype.pop = function() {
 recoil.structs.UniquePriorityQueue.prototype.isEmpty = function() {
     return this.tree_.getCount() === 0;
 };
+
+
+/**
+ * make pedding queue as an anray
+ *
+ * @return {!Array}
+ */
+
+recoil.structs.UniquePriorityQueue.prototype.asArray = function() {
+    var res = [];
+    this.tree_.inOrderTraverse(function(val) {
+        res.push(val);
+    });
+    return res;
+};

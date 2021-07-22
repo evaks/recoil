@@ -571,7 +571,10 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
     }
     var c = this.number_.getContentElement();
     //    c.width = 2;
-    if (displayLen) {
+    if (displayLen === -1) {
+        this.number_.getContentElement().style.width = '';
+        this.readonly_.getComponent().getElement().style.width = '';
+    } else if (displayLen) {
         this.number_.getContentElement().style.width = (displayLen + 1) + 'em';
         this.readonly_.getComponent().getElement().style.width = displayLen + 'em';
     }

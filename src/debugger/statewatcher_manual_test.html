@@ -21,7 +21,7 @@ See the COPYING file for details.
   </script>
   <script src="testdata.js"></script>
   <link rel="stylesheet" href="css/demo.css">
-  
+
   <link rel="stylesheet" href="../../../closure-library/closure/goog/css/tree.css">
   <style>
     .goog-zippy-expanded div.recoil-watcher-icon {
@@ -144,7 +144,7 @@ See the COPYING file for details.
     frp.attach(b1B);
     frp.attach(errorB1);
     frp.attach(notReady1);
-    
+
     var obj = {
     a: 'test',
     b: [{foo:1, bar:2}, 2, 6],
@@ -165,24 +165,24 @@ See the COPYING file for details.
     };
     obj.c.d.loop = obj;
 
-    var watcher = new recoil.debugger.StateWatcher($('treeContainer'));
+    var watcher = new recoil.debugger.StateWatcher(this, $('treeContainer'));
 
     var cur = 0;
     var items = [bB, b1B, b2B];
-    watcher.setState(items[cur], []);
+    watcher.setState(items[cur], [],[],[],[]);
 
     function doChange() {
         console.log("change");
         cur = (cur + 1) % items.length;
         changing.push(cur);
-         watcher.setState(items[cur], [{name:'changing', val: changing}]);
+         watcher.setState(items[cur], [{name:'changing', val: changing}],[],[],[]);
     }
-       
+
 
     var logger = goog.debug.LogManager.getRoot();
 
     function makeTree() {
-    
+
       goog.debug.Trace.initCurrentTrace();
       var tracerId = goog.debug.Trace.startTracer('makeTree');
       //treeConfig['cleardotPath'] = '../../images/tree/cleardot.gif';
@@ -210,7 +210,7 @@ See the COPYING file for details.
         textB.set("foo" + ii);
         ii++;
       }, textB);
-      
+
       if (tree.getSelectedItem() && clipboardNode) {
         tree.getSelectedItem().add(clipboardNode);
         clipboardNode = null;

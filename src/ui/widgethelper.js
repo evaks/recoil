@@ -38,6 +38,13 @@ recoil.ui.WidgetHelper = function(widgetScope, container, obj, callback) {
             }
         }
     };
+    this.listenFunc_.behaviours = function() {
+      if (me.attachedBehaviour_) {
+        return [me.attachedBehaviour_];
+      }
+      return [];
+    };
+
 
     /**
      * @private

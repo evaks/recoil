@@ -37,7 +37,7 @@ recoil.frp.Array.prototype.append = function(array1, array2) {
 
 
 /**
- * @param {Array<*>|recoil.frp.Behaviour<Array<*>>} array
+ * @param {Array<?>|recoil.frp.Behaviour<Array>|recoil.frp.Behaviour<!Array>} array
  * @return {!recoil.frp.Behaviour<!boolean>}
  */
 recoil.frp.Array.prototype.isNotEmpty = function(array) {
