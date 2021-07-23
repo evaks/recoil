@@ -669,11 +669,13 @@ recoil.db.ChangeSet.Change = function() {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * this function can also generate a new change tree if the iter returns changes
+ *
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Change.prototype.forEachChange = function(iter) {};
-
 
 /**
  * goes over all changes in the change
@@ -1770,14 +1772,25 @@ recoil.db.ChangeSet.Add.prototype.filter = function(filter) {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * this function can also generate a new change tree if the iter returns changes
+ *
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Add.prototype.forEachChange = function(iter) {
     iter(this);
+    var newDeps = [];
     for (var i = 0; i < this.dependants_.length; i++) {
         var dep = this.dependants_[i].forEachChange(iter);
+        newDeps.push(dep ? dep : this.dependants_[i]);
     }
+    let res = iter(this);
+
+    if (res) {
+        return new recoil.db.ChangeSet.Add(res.path(), newDeps);
+    }
+    return res;
 };
 
 
@@ -2045,11 +2058,12 @@ recoil.db.ChangeSet.Delete.prototype.filter = function(filter) {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Delete.prototype.forEachChange = function(iter) {
-    iter(this);
+    return iter(this);
 };
 
 /**
@@ -2253,11 +2267,12 @@ recoil.db.ChangeSet.Move.prototype.setPathKeys = function(keys, opt_level) {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Move.prototype.forEachChange = function(iter) {
-    iter(this);
+    return iter(this);
 };
 
 
@@ -2467,11 +2482,12 @@ recoil.db.ChangeSet.Reorder.prototype.filter = function(filter) {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Reorder.prototype.forEachChange = function(iter) {
-    iter(this);
+    return iter(this);
 };
 
 /**
@@ -2991,11 +3007,12 @@ recoil.db.ChangeSet.Set.prototype.changeCount = function() {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Set.prototype.forEachChange = function(iter) {
-    iter(this);
+    return iter(this);
 };
 
 

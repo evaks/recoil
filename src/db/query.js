@@ -462,6 +462,17 @@ recoil.db.QueryExp.prototype.matches = function(scope) {
 };
 
 /**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.QueryExp.prototype.makeLookup = function(scope) {};
+
+
+/**
  * generates a query for the scope
  * @param {!recoil.db.QueryScope} scope
  * @return {string}
@@ -1119,6 +1130,14 @@ recoil.db.Query.prototype.query = function(scope) {
     return this.expr_.query(scope);
 };
 
+
+/**
+ * @return {string}
+ */
+recoil.db.Query.prototype.toString = function() {
+    return this.expr_.toString();
+};
+
 /**
  * @param {!recoil.db.QueryScope} scope
  * @return {*}
@@ -1287,6 +1306,7 @@ recoil.db.Query.prototype.True = function() {
 recoil.db.Query.prototype.False = function() {
     return this.query_(new recoil.db.expr.Not(new recoil.db.expr.True()));
 };
+
 
 /**
  * @param {recoil.db.Query|recoil.db.QueryExp=} opt_x
@@ -1734,6 +1754,52 @@ recoil.db.Query.prototype.toField = function(exp) {
     throw new Error('unexpected type');
 };
 
+
+/**
+ * @const
+ */
+recoil.db.expr.FIELD = {};
+/**
+ * used by makeLookup to check if the result is a field
+ * @private
+ * @param {?Array<Object<string,?>>} v
+ * @return {boolean}
+ */
+recoil.db.expr.isField_ = function (v) {
+    if (!v || v.length !== 1) {
+        return false;
+    }
+    var c = 0;
+    for (var k in v[0]) {
+        if (c > 0) {
+            return false;
+        }
+        if (v[0][k] !== recoil.db.expr.FIELD) {
+            return false;
+        }
+    }
+    return true;
+};
+
+/**
+ * used by makeLookup to check if the result is a field
+ * @private
+ * @param {?Array<Object<string,?>>} v
+ * @return {boolean}
+ */
+recoil.db.expr.isValue_ = function (v) {
+    if (!v || v.length !== 1) {
+        return false;
+    }
+    for (var k in v[0]) {
+        if (k !== '') {
+            return false;
+        }
+    }
+    return true;
+};
+
+
 /**
  * @constructor
  * @implements {recoil.db.QueryExp}
@@ -1754,6 +1820,58 @@ recoil.db.expr.And.prototype.eval = function(scope) {
 };
 
 
+
+/**
+ * @return {string}
+ */
+recoil.db.expr.And.prototype.toString = function() {
+    return '(' + this.x_.toString() + ' and ' + this.y_.toString() + ')';
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.And.prototype.makeLookup = function(scope) {
+    var x = this.x_.makeLookup(scope);
+    var y = this.y_.makeLookup(scope);
+
+    if (x === null || y === null) {
+        return null;
+    }
+    if (x.length === 0) {
+        return y;
+    }
+    if (y.length === 0) {
+        return x;
+    }
+    var res = [];
+    for (var i = 0; i < x.length; i++) {
+        var out = goog.object.clone(x[i]);
+        ySearch: for (var j = 0; j < y.length; j++) {
+            for (var yPath in y[i]) {
+                var yVal = y[i][yPath];
+                var xVal = x[i][yPath];
+                if (xVal === undefined) {
+                    out[yPath] = yVal;
+                }
+                else if (xVal != yVal) {
+                    out = null;
+                    break ySearch;
+                }
+            }
+        }
+        if (out !== null) {
+            res.push(out);
+        }
+    }
+
+    return res;
+};
 
 /**
  * @param {!recoil.db.QueryScope} scope
@@ -1795,6 +1913,18 @@ recoil.db.expr.Concat = function(args) {
     this.args_ = args;
 };
 
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Concat.prototype.makeLookup = function(scope) {
+    return [];
+};
 
 /**
  * @param {?} data
@@ -1843,6 +1973,13 @@ recoil.db.expr.Concat.prototype.serialize = function(serializer) {
 };
 
 /**
+ * @return {string}
+ */
+recoil.db.expr.Concat.prototype.toString = function() {
+    return 'concat(' + this.args_.map(function (c) {return c.toString();}).join(',') + ')';
+};
+
+/**
  * @constructor
  * @implements {recoil.db.QueryExp}
  * @param {!recoil.db.QueryExp} x
@@ -1861,6 +1998,36 @@ recoil.db.expr.Or.prototype.eval = function(scope) {
     return this.x_.eval(scope) || this.y_.eval(scope);
 };
 
+/**
+ * @return {string}
+ */
+recoil.db.expr.Or.prototype.toString = function() {
+    return '(' + this.x_.toString() + ' and ' + this.y_.toString() + ')';
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Or.prototype.makeLookup = function(scope) {
+    var x = this.x_.makeLookup(scope);
+    var y = this.y_.makeLookup(scope);
+
+    if (x === null && y === null) {
+        return null;
+    }
+    if (x === null) {
+        return y;
+    }
+    if (y === null) {
+        return x;
+    }
+    return x.concat(y);
+};
 
 /**
  * @param {!recoil.db.QueryScope} scope
@@ -1905,6 +2072,34 @@ recoil.db.expr.Or.prototype.serialize = function(serializer) {
  */
 recoil.db.expr.Not = function(x) {
     this.x_ = x;
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Not.prototype.makeLookup = function(scope) {
+
+    var x = this.x_.makeLookup(scope);
+
+    if (x === null) {
+        return [];
+    }
+    if (x.length === 0) {
+        return null;
+    }
+    return [];
+};
+
+/**
+ * @return {string}
+ */
+recoil.db.expr.Not.prototype.toString = function() {
+    return '(not ' + this.x_.toString() + ')';
 };
 
 /**
@@ -1953,6 +2148,20 @@ recoil.db.expr.Exists = function(field, exists) {
     this.exists_ = exists;
 };
 
+
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Exists.prototype.makeLookup = function(scope) {
+    return [];
+};
+
 /**
  * @param {!recoil.db.QueryScope} scope
  * @return {*}
@@ -1970,6 +2179,13 @@ recoil.db.expr.Exists.prototype.eval = function(scope) {
  */
 recoil.db.expr.Exists.prototype.query = function(scope) {
     return scope.query().exists(this.val_.query(scope), this.exists_);
+};
+
+/**
+ * @return {string}
+ */
+recoil.db.expr.Exists.prototype.toString = function() {
+    return '(' + (this.exists_ ? '' :'NOT') + 'EXISTS ' + this.val_.toString() + ')';
 };
 
 
@@ -2017,15 +2233,64 @@ recoil.db.expr.Equals.prototype.eval = function(scope) {
 
 
 /**
+ * @return {string}
+ */
+recoil.db.expr.Equals.prototype.toString = function() {
+    return this.x_.toString() + ' = ' + this.y_.toString();
+};
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Equals.prototype.makeLookup = function(scope) {
+    let resx = this.x_.makeLookup(scope);
+    let resy = this.y_.makeLookup(scope);
+
+    if (resx === null || resy === null) {
+        return null;
+    }
+    if (resx.length === 0 || resy.length === 0) {
+        return [];
+    }
+
+    if (recoil.db.expr.isField_(resx) && recoil.db.expr.isField_(resy)) {
+        return [];
+    }
+
+    if (recoil.db.expr.isValue_(resx) && recoil.db.expr.isValue_(resy)) {
+        return [];
+    }
+
+    function makeMap(path, value) {
+        let res = {};
+        res[path] = value;
+        return res;
+    }
+        
+    if (recoil.db.expr.isField_(resx) && recoil.db.expr.isValue_(resy)) {
+        return [makeMap(Object.keys(/** @type {!Object} */ (resx[0]))[0], resy[0][''])];
+    }
+    if (recoil.db.expr.isField_(resy) && recoil.db.expr.isValue_(resx)) {
+        return [makeMap(Object.keys(/** @type {!Object} */ (resy[0]))[0], resx[0][''])];
+    }
+    return [];
+};
+/**
  * @param {!recoil.db.QueryScope} scope
  * @return {*}
  */
 recoil.db.expr.Equals.prototype.matches = function(scope) {
     var resx = this.x_.eval(scope);
     var resy = this.y_.eval(scope);
+    console.log("matches", resx, resy);
     if (resx === undefined || resy === undefined) {
         return undefined;
     }
+
     return recoil.db.expr.Equals.isEqual(resx, resy);
 };
 
@@ -2063,7 +2328,6 @@ recoil.db.expr.Equals.prototype.query = function(scope) {
 recoil.db.expr.Equals.prototype.serialize = function(serializer) {
     return {op: '=', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
 };
-
 
 
 /**
@@ -2105,6 +2369,32 @@ recoil.db.expr.Null.prototype.query = function(scope) {
     return scope.query().null(this.x_.query(scope));
 };
 
+/**
+ * @return {string}
+ */
+recoil.db.expr.Null.prototype.toString = function() {
+    return this.x_.toString() + ' IS NULL';
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Null.prototype.makeLookup = function(scope) {
+    var res = this.x_.makeLookup(scope);
+    // set all values to null
+    return res === null ? null : res.map(function (x) {
+        for (var k in x) {
+            x[k] = null;
+        }
+        return x;
+        
+    });
+};
 
 /**
  * @param {!recoil.db.Query.Serializer} serializer
@@ -2136,6 +2426,12 @@ recoil.db.expr.StartsWith.prototype.eval = function(scope) {
     return (this.x_.eval(scope) + '').toLowerCase().indexOf((this.y_ + '').toLowerCase()) === 0;
 };
 
+/**
+ * @return {string}
+ */
+recoil.db.expr.StartsWith.prototype.toString = function() {
+    return '(' + this.x_.toString() + ' StartsWith ' + JSON.stringify(this.y_) + ')';
+};
 
 /**
  * @param {!recoil.db.QueryScope} scope
@@ -2175,6 +2471,18 @@ recoil.db.expr.StartsWith.prototype.serialize = function(serializer) {
  */
 recoil.db.expr.StartsWith.deserialize = function(data, serializer) {
     return new recoil.db.expr.StartsWith(recoil.db.Query.deserializeExp(data.x, serializer), data.y + '');
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.StartsWith.prototype.makeLookup = function(scope) {
+    return [];
 };
 
 
@@ -2240,6 +2548,18 @@ recoil.db.expr.ContainsStr.deserialize = function(data, serializer) {
 };
 
 /**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.ContainsStr.prototype.makeLookup = function(scope) {
+    return [];
+};
+
+/**
  * @constructor
  * @param {!recoil.db.QueryExp} x
  * @param {!recoil.db.QueryExp} y
@@ -2248,6 +2568,14 @@ recoil.db.expr.ContainsStr.deserialize = function(data, serializer) {
 recoil.db.expr.NotEquals = function(x, y) {
     this.x_ = x;
     this.y_ = y;
+};
+
+
+/**
+ * @return {string}
+ */
+recoil.db.expr.NotEquals.prototype.toString = function() {
+    return this.x_.toString() + ' != ' + this.y_.toString();
 };
 
 /**
@@ -2289,6 +2617,18 @@ recoil.db.expr.NotEquals.prototype.query = function(scope) {
  */
 recoil.db.expr.NotEquals.prototype.serialize = function(serializer) {
     return {op: '!=', x: this.x_.serialize(serializer), y: this.y_.serialize(serializer)};
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.NotEquals.prototype.makeLookup = function(scope) {
+    return [];
 };
 
 /**
@@ -2342,6 +2682,18 @@ recoil.db.expr.GreaterThan.prototype.matches = function(scope) {
 };
 
 /**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.GreaterThan.prototype.makeLookup = function(scope) {
+    return [];
+};
+
+/**
  * @constructor
  * @param {!recoil.db.QueryExp} x
  * @param {!recoil.db.QueryExp} y
@@ -2391,6 +2743,18 @@ recoil.db.expr.GreaterThanOrEquals.prototype.matches = function(scope) {
 };
 
 /**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.GreaterThanOrEquals.prototype.makeLookup = function(scope) {
+    return [];
+};
+
+/**
  * @constructor
  * @param {!recoil.db.QueryExp} x
  * @param {!recoil.db.QueryExp} y
@@ -2399,6 +2763,18 @@ recoil.db.expr.GreaterThanOrEquals.prototype.matches = function(scope) {
 recoil.db.expr.LessThan = function(x, y) {
     this.x_ = x;
     this.y_ = y;
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.LessThan.prototype.makeLookup = function(scope) {
+    return [];
 };
 
 /**
@@ -2452,6 +2828,18 @@ recoil.db.expr.LessThanOrEquals = function(x, y) {
 };
 
 /**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.LessThanOrEquals.prototype.makeLookup = function(scope) {
+    return [];
+};
+
+/**
  * @param {!recoil.db.QueryScope} scope
  * @return {*}
  */
@@ -2499,6 +2887,18 @@ recoil.db.expr.In = function(field, list) {
     this.list_ = list;
 };
 
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.In.prototype.makeLookup = function(scope) {
+    return [];
+};
 
 /**
  * @param {?} data
@@ -2637,6 +3037,18 @@ recoil.db.expr.NotIn.prototype.serialize = function(serializer) {
 };
 
 /**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.NotIn.prototype.makeLookup = function(scope) {
+    return [];
+};
+
+/**
  * accessor for items in the database
  * @constructor
  * @param {string|!Array<string>|!recoil.structs.table.ColumnKey} name this can be a dot seperated and use [] to acces arrays or maps
@@ -2650,6 +3062,13 @@ recoil.db.expr.Field = function(name) {
 };
 
 
+
+/**
+ * @return {string}
+ */
+recoil.db.expr.Field.prototype.toString = function() {
+    return '`' +  this.parts_.join('.') + '`';
+};
 
 /**
  * @return {!Array<string|!recoil.structs.table.ColumnKey>}
@@ -2720,6 +3139,19 @@ recoil.db.expr.Field.prototype.query = function(scope) {
 };
 
 /**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Field.prototype.makeLookup = function(scope) {
+    var res = (/** @type {recoil.db.expr.Field} */ (this)).eval(scope);
+    return [res];
+};
+
+/**
  * accessor for items in the database
  * @constructor
  * @param {string} expr
@@ -2734,6 +3166,13 @@ recoil.db.expr.Raw = function(expr) {
  */
 recoil.db.expr.Raw.prototype.eval = function(scope) {
     return true; // can't eval this
+};
+
+/**
+ * @return {string}
+ */
+recoil.db.expr.Raw.prototype.toString = function() {
+    return 'RAW[' + this.expr_ + ']';
 };
 
 
@@ -2754,6 +3193,18 @@ recoil.db.expr.Raw.deserialize = function(data, serializer) {
     // we can't deserialize this it is a security risk sending arbitary queries to the
     // database bad
     return new recoil.db.expr.Not(new recoil.db.expr.True());
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Raw.prototype.makeLookup = function(scope) {
+    return [];
 };
 
 /**
@@ -2790,6 +3241,13 @@ recoil.db.expr.Value.prototype.eval = function(scope) {
     return this.val_;
 };
 
+/**
+ * @return {string}
+ */
+recoil.db.expr.Value.prototype.toString = function() {
+    return this.val_ == null ? 'null' : JSON.stringify(this.val_);
+};
+
 
 /**
  * @param {recoil.db.QueryScope} scope
@@ -2813,6 +3271,19 @@ recoil.db.expr.Value.prototype.query = function(scope) {
  */
 recoil.db.expr.Value.prototype.serialize = function(serializer) {
     return {op: 'value', x: serializer.serializeValue(this.val_)};
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Value.prototype.makeLookup = function(scope) {
+    var v = (/** @type {recoil.db.expr.Value} */ (this)).eval(scope);
+    return [{'': v}];
 };
 
 /**
@@ -2842,6 +3313,24 @@ recoil.db.expr.RegExp = function(field, pattern, opt_options) {
     else {
         this.pattern_ = new RegExp(pattern, opt_options);
     }
+};
+/**
+ * @return {string}
+ */
+recoil.db.expr.RegExp.prototype.toString = function() {
+    return 'regex(' + this.field_.toString() + ',' + this.pattern_.toString() + ')';
+};
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.RegExp.prototype.makeLookup = function(scope) {
+    return [];
 };
 
 /**
@@ -2933,6 +3422,18 @@ recoil.db.expr.Where.prototype.serialize = function(serializer) {
 };
 
 /**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Where.prototype.makeLookup = function(scope) {
+    return [];
+};
+
+/**
  * @constructor
  * @implements {recoil.db.QueryExp}
  */
@@ -2954,6 +3455,13 @@ recoil.db.expr.True.prototype.eval = function(scope) {
  */
 recoil.db.expr.True.prototype.matches = function(scope) {
     return true;
+};
+
+/**
+ * @return {string}
+ */
+recoil.db.expr.True.prototype.toString = function() {
+    return 'true';
 };
 
 /**
@@ -2982,6 +3490,18 @@ recoil.db.expr.True.deserialize = function(data, serializer) {
     return new recoil.db.expr.True();
 };
 
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.True.prototype.makeLookup = function(scope) {
+    return [];
+};
 
 
 /**
@@ -3022,6 +3542,17 @@ recoil.db.expr.Contains.deserialize = function(data, serializer) {
         }), !!data['all']);
 };
 
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Contains.prototype.makeLookup = function(scope) {
+    return [];
+};
 /**
  * @param {recoil.db.QueryScope} scope
  * @return {*}
@@ -3100,6 +3631,19 @@ recoil.db.expr.Contains.prototype.query = function(scope) {
  */
 recoil.db.expr.Search = function(expr) {
     this.expr_ = expr;
+};
+
+
+/**
+ * returns an array of things to check to see if this matches
+ * if null is return nothing can match, if empty list is return every thing
+ * matches, items in array are ored, items in map are anded
+ * 
+ * @param {!recoil.db.QueryScope} scope
+ * @return {?Array<Object<string,?>>}
+ */
+recoil.db.expr.Search.prototype.makeLookup = function(scope) {
+    return [];
 };
 
 /**
