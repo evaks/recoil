@@ -1779,7 +1779,6 @@ recoil.db.ChangeSet.Add.prototype.filter = function(filter) {
  */
 
 recoil.db.ChangeSet.Add.prototype.forEachChange = function(iter) {
-    iter(this);
     var newDeps = [];
     for (var i = 0; i < this.dependants_.length; i++) {
         var dep = this.dependants_[i].forEachChange(iter);
@@ -2038,6 +2037,13 @@ recoil.db.ChangeSet.Add.prototype.serialize = function(keepOld, schema, valSeria
 recoil.db.ChangeSet.Delete = function(path, orig) {
     this.path_ = path;
     this.orig_ = orig;
+};
+
+/**
+ * @return {?}
+ */
+recoil.db.ChangeSet.Delete.prototype.orig = function() {
+    return this.orig_;
 };
 
 
