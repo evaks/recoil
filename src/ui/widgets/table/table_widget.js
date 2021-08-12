@@ -988,8 +988,12 @@ recoil.ui.widgets.table.TableWidget.prototype.moveChildren = function(from, to) 
  */
 recoil.ui.widgets.table.TableWidget.prototype.replaceChild = function(parent, oldChild, newChild) {
 
-    parent.insertBefore(newChild, oldChild);
-    parent.removeChild(oldChild);
+    if (newChild) {
+        parent.insertBefore(newChild, oldChild);
+    }
+    if (oldChild) {
+        parent.removeChild(oldChild);
+    }
 };
 
 /**
