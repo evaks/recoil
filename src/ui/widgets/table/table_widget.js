@@ -203,12 +203,12 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
                     }
                     else if (reselector) {
                         let found = null;
-                        table.forEach(function (row, pks) {
+                        table.forEach(function(row, pks) {
                             if (reselector(key, row, pks)) {
                                 found = pks;
                             }
                         });
-                        
+
                         if (found) {
                             reselected = true;
                             res.push(found);

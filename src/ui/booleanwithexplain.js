@@ -169,7 +169,7 @@ recoil.ui.BoolWithExplanation.fromBool = function(frp, val) {
 /**
  *
  * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} valB
- * @return {!recoil.frp.Behaviour<string>} 
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.ui.BoolWithExplanation.toBool = function(valB) {
     return valB.frp().liftB(function(b) {
@@ -180,7 +180,7 @@ recoil.ui.BoolWithExplanation.toBool = function(valB) {
 /**
  *
  * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} valB
- * @return {!recoil.frp.Behaviour<string>} 
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.ui.BoolWithExplanation.toString = function(valB) {
     return valB.frp().liftB(function(b) {
