@@ -182,6 +182,28 @@ recoil.ui.messages.NOT_SPECIFIED = recoil.ui.message.getParamMsg('Not Specified'
  */
 recoil.ui.messages.INVALID_EXPRESSION = recoil.ui.message.getParamMsg('Invalid Expression');
 
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.NEXT = recoil.ui.message.getParamMsg('Next');
+
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.PREVIOUS = recoil.ui.message.getParamMsg('Previous');
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.FINISH = recoil.ui.message.getParamMsg('Finish');
+
+
+
 /**
  * combines multiple messages, this logic may need to be changed for different languages
  * @param {Array<recoil.ui.message.Message| *>} messages

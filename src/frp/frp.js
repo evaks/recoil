@@ -175,6 +175,14 @@ recoil.frp.EStatus.prototype.errors = function() {
     return this.errors_;
 };
 /**
+ * events always good
+ * @return {boolean}
+ */
+recoil.frp.EStatus.prototype.good = function() {
+    return true;
+};
+
+/**
  * @param {*} error
  */
 recoil.frp.EStatus.prototype.addError = function(error) {
@@ -1113,10 +1121,22 @@ recoil.frp.Behaviour.prototype.metaSet = function(value) {
 
 };
 /**
+ * used to debug setting
+ * @param {boolean} v
+ * @return {!recoil.frp.Behaviour}
+ */
+recoil.frp.Behaviour.prototype.debugSet = function(v) {
+    this.debugSet_ = v;
+    return this;
+};
+/**
  * @param {T} value
  */
 
 recoil.frp.Behaviour.prototype.set = function(value) {
+    if (this.debugSet_) {
+        console.log("setting", value);
+    }
     if (this.val_ instanceof recoil.frp.EStatus) {
         this.metaSet(this.val_.addValue(value));
     }
@@ -1558,6 +1578,19 @@ recoil.frp.Frp.prototype.liftEI = function(func, invFunc, var_args) {
     return recoil.util.invokeParamsAndArray(this.liftBI_, this, this.metaLiftEI, function() {
         return new recoil.frp.EStatus(false);
     }, arguments);
+};
+
+
+/**
+ * creates an event from a behaviour
+ * @template RT
+ * @param {!recoil.frp.Behaviour<RT>} valB
+ * @return {!recoil.frp.Behaviour<RT>}
+ */
+recoil.frp.Frp.prototype.changesE = function(valB) {
+    return this.liftE(function (val) {
+        return val;
+    }, valB);
 };
 
 /**

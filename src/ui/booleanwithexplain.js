@@ -165,6 +165,31 @@ recoil.ui.BoolWithExplanation.fromBool = function(frp, val) {
         return new recoil.ui.BoolWithExplanation(b);
     },new recoil.frp.Util(frp).toBehaviour(val));
 };
+
+/**
+ *
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} valB
+ * @return {!recoil.frp.Behaviour<string>} 
+ */
+recoil.ui.BoolWithExplanation.toBool = function(valB) {
+    return valB.frp().liftB(function(b) {
+        return b.val();
+    }, valB);
+};
+
+/**
+ *
+ * @param {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} valB
+ * @return {!recoil.frp.Behaviour<string>} 
+ */
+recoil.ui.BoolWithExplanation.toString = function(valB) {
+    return valB.frp().liftB(function(b) {
+        return b.reason() ? b.reason().toString() : '';
+    }, valB);
+};
+
+
+
 /**
  * does an or on all the values and explains why it is true of false
  *

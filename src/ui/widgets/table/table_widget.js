@@ -179,6 +179,7 @@ recoil.ui.widgets.table.TableWidget = function(scope) {
 recoil.ui.widgets.table.TableWidget.prototype.selectNewRow = function() {
     this.selectNewRow_ = true;
 };
+
 /**
  * this should be called after the attach this way it can filter out the
  * rows that do not exist in the table.
@@ -193,10 +194,25 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
     return frp.liftBI(
         function(selected, table) {
             var res = [];
+            let reselector = table.getMeta().reselector;
+            let reselected = false;
             selected.forEach(function(key) {
                 try {
                     if (table.getRow(key) !== null) {
                         res.push(key);
+                    }
+                    else if (reselector) {
+                        let found = null;
+                        table.forEach(function (row, pks) {
+                            if (reselector(key, row, pks)) {
+                                found = pks;
+                            }
+                        });
+                        
+                        if (found) {
+                            reselected = true;
+                            res.push(found);
+                        }
                     }
                 }
                 catch (e) {
@@ -204,6 +220,9 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
                     // so this may throw ignore
                 }
             });
+            if (reselected) {
+                me.selected_.set(res);
+            }
             return res;
         },
         function(selected) {
