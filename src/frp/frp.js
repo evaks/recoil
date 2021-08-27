@@ -193,7 +193,7 @@ recoil.frp.EStatus.prototype.addError = function(error) {
  * @return {boolean}
  */
 recoil.frp.EStatus.prototype.ready = function() {
-    return this.values_.length > 0;
+    return true;
 };
 
 /**
@@ -232,7 +232,6 @@ recoil.frp.EStatus.prototype.set_ = function(value) {
     for (var i = 0; i < value.length; i++) {
         this.values_.push(value[i]);
     }
-    this.ready_ = value.length > 0;
 };
 
 /**
@@ -1135,7 +1134,7 @@ recoil.frp.Behaviour.prototype.debugSet = function(v) {
 
 recoil.frp.Behaviour.prototype.set = function(value) {
     if (this.debugSet_) {
-        console.log("setting", value);
+        console.log('setting', value);
     }
     if (this.val_ instanceof recoil.frp.EStatus) {
         this.metaSet(this.val_.addValue(value));
@@ -1231,26 +1230,29 @@ recoil.frp.Frp.prototype.createConstB = function(initial) {
  * behaviours.
  * E.g: a user clicks on an element and you want to set a value based on the behaviour.
  *
- * @param {function()} callback
+ * @param {function():(?|undefined)} callback
  * @param {...recoil.frp.Behaviour} var_behaviours
+ * @return {?}
  */
 
 recoil.frp.Frp.prototype.accessTrans = function(callback, var_behaviours) {
     var args = arguments;
+    let res = undefined;
     var func = function() {
         var innerArgs = arguments;
         try {
             for (var i = 1; i < args.length; i++) {
                 args[i].accessors_++;
             }
-            callback.apply(null, innerArgs);
+            res = callback.apply(null, innerArgs);
         } finally {
             for (i = 1; i < args.length; i++) {
                 args[i].accessors_--;
             }
         }
+        return res;
     };
-    this.transactionManager_.doTrans(func);
+    return this.transactionManager_.doTrans(func);
 };
 
 /**
@@ -1588,8 +1590,8 @@ recoil.frp.Frp.prototype.liftEI = function(func, invFunc, var_args) {
  * @return {!recoil.frp.Behaviour<RT>}
  */
 recoil.frp.Frp.prototype.changesE = function(valB) {
-    return this.liftE(function (val) {
-        return val;
+    return this.liftE(function(val) {
+        return [val];
     }, valB);
 };
 
@@ -1848,20 +1850,21 @@ recoil.frp.TransactionManager.prototype.notifyWatchers_ = function(start) {
  * to a transaction nothing should fire until we exit out the top level
  *
  * @param {function()} callback
- *
+ * @return {?}
  */
 
 recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
+
     if (this.debugState_) {
         this.debugState_.pendingTrans.push(callback);
-        return;
+        return undefined;
     }
     this.notifyWatchers_(true);
     this.level_++;
-
+    let res = undefined;
 
     try {
-        callback();
+        res = callback();
     } finally {
         var decrement = true;
         try {
@@ -1875,6 +1878,7 @@ recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
             }
         }
     }
+    return res;
 };
 /**
  * @private
