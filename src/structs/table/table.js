@@ -736,6 +736,20 @@ recoil.structs.table.MutableTable = function(primaryKeys, otherColumns) {
 
 
 /**
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.MutableTable.prototype.getFirstRow = function() {
+    var res = null;
+    this.forEach(function (row) {
+        if (!res) {
+            res = row;
+        }
+    });
+    return res;
+};
+
+
+/**
  * @return {!Array<!recoil.structs.table.ColumnKey<*>>}
  */
 recoil.structs.table.MutableTable.prototype.getColumns = function() {
@@ -1468,6 +1482,21 @@ recoil.structs.table.Table.prototype.getFullCellMeta = function(keys, col) {
         return meta;
     }
     return this.getMeta();
+};
+
+
+
+/**
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.Table.prototype.getFirstRow = function() {
+    var res = null;
+    this.forEach(function (row) {
+        if (!res) {
+            res = row;
+        }
+    });
+    return res;
 };
 
 /**
