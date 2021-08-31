@@ -740,7 +740,7 @@ recoil.structs.table.MutableTable = function(primaryKeys, otherColumns) {
  */
 recoil.structs.table.MutableTable.prototype.getFirstRow = function() {
     var res = null;
-    this.forEach(function (row) {
+    this.forEach(function(row) {
         if (!res) {
             res = row;
         }
@@ -1491,7 +1491,7 @@ recoil.structs.table.Table.prototype.getFullCellMeta = function(keys, col) {
  */
 recoil.structs.table.Table.prototype.getFirstRow = function() {
     var res = null;
-    this.forEach(function (row) {
+    this.forEach(function(row) {
         if (!res) {
             res = row;
         }

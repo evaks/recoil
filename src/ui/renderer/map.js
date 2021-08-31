@@ -39,7 +39,8 @@ recoil.ui.renderers.ListRenderer = function(list, opt_null) {
         map.add({key: el.val, name: el.name});
     });
 
-    return function(val, valid, enabled) {
+
+    let res = function(val, valid, enabled) {
         var lookup = map.findFirst({key: val});
         if (lookup) {
             return recoil.ui.widgets.SelectorWidget.RENDERER(lookup.name, valid, enabled);
@@ -52,4 +53,6 @@ recoil.ui.renderers.ListRenderer = function(list, opt_null) {
         }
         return recoil.ui.widgets.SelectorWidget.RENDERER('Invalid ' + JSON.stringify(val), valid, enabled);
     };
+    recoil.util.func.makeEqualFunc(res, recoil.ui.renderers.ListRenderer, list);
+    return res;
 };
