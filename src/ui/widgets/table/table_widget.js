@@ -194,7 +194,7 @@ recoil.ui.widgets.table.TableWidget.prototype.createSelected = function() {
     return frp.liftBI(
         function(selected, table) {
             var res = [];
-            let reselector = table.getMeta().reselector;
+            let reselector = table.getMeta()['reselector'];
             let reselected = false;
             selected.forEach(function(key) {
                 try {
