@@ -322,6 +322,9 @@ recoil.ui.EventHelper = function(scope, comp, type, opt_capt, opt_long) {
     case goog.events.EventType.CLICK:
         this.handler_ = comp;
         break;
+    case goog.events.EventType.MOUSEDOWN:
+        this.handler_ = comp.getElement();
+        break;
     case goog.ui.Component.EventType.CHANGE:
         this.handler_ = comp;
         break;

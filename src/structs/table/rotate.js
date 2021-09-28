@@ -105,6 +105,9 @@ recoil.structs.table.Rotate.prototype.calculate = function(params) {
 
             newRow.set(me.nameKey_, table.getColumnMeta(col).name);
             var colMeta = table.getColumnMeta(col);
+            if (colMeta.rowDecorator) {
+                newRow.addRowMeta({rowDecorator: colMeta.rowDecorator});
+            }
             newRow.addRowMeta({columnMeta: colMeta});
             newRow.setCellMeta(me.nameKey_, colMeta);
             newRow.addCellMeta(me.nameKey_, {type: 'string', editable: false, errors: [],
