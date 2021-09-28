@@ -50,7 +50,6 @@ recoil.ui.events.makeLong = function(cb) {
                 recoil.ui.events.longListen.busy_--;
                 if (recoil.ui.events.longListen.busy_ === 0) {
                     goog.dom.removeNode(recoil.ui.events.longListen.style_);
-                    console.log('unsetting busy', new Date());
                 }
             }
 
@@ -61,7 +60,6 @@ recoil.ui.events.makeLong = function(cb) {
             // this is odd but calculating the cursor seems to make the cursor update
             // most of the time before the timeout happens, so the user can spinning cursor
             // the if (.. || true) is there because simply getting a variable is funny code
-            console.log('setting busy', new Date(), window.getComputedStyle(document.body).cursor);
             if (window.getComputedStyle(document.body).cursor || true) {
                 setTimeout(doit, 20);
 

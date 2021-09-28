@@ -77,16 +77,6 @@ function lintFix {
 
 genTests
 
-gjslint --disable 0110,0120 `find recoil/src -name "*.js" -and -not -name "*_test.js" ` > /dev/null
-if [ $? -ne 0 ]; then
-    #we got an error try running lint fix on it first
-    lintFix
-    gjslint --disable 0110,0120 `find recoil/src -name "*.js" -and -not -name "*_test.js" `
-    if [ $? -ne 0 ]; then
-	echo Error Occured in Lint stopping compile
-	exit 2
-    fi
-fi
 
 echo 
 

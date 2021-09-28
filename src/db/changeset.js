@@ -669,10 +669,22 @@ recoil.db.ChangeSet.Change = function() {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * this function can also generate a new change tree if the iter returns changes
+ *
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Change.prototype.forEachChange = function(iter) {};
+
+/**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Change.prototype.setPathKeys = function(keys, opt_level) {};
 
 /**
  * @param {!recoil.db.ChangeDbInterface} db
@@ -1464,15 +1476,46 @@ recoil.db.ChangeSet.Path.prototype.pathAsString = function() {
 
 /**
  * sets the keys on the last child
- * @param {!Array<string>} keyNames
+ * @param {Array<string>} keyNames
  * @param {!Array<?>} keyValues
  * @return {!recoil.db.ChangeSet.Path}
  */
 recoil.db.ChangeSet.Path.prototype.setKeys = function(keyNames, keyValues) {
     var newItems = this.items_.slice(0);
     var last = newItems.pop();
-    newItems.push(new recoil.db.ChangeSet.PathItem(last.name(), keyNames, keyValues));
+    if (keyNames === null) {
+        newItems.push(new recoil.db.ChangeSet.PathItem(last.name(), last.keyNames(), keyValues));
+    }
+    else {
+        newItems.push(new recoil.db.ChangeSet.PathItem(last.name(), keyNames, keyValues));
+    }
     return new recoil.db.ChangeSet.Path(newItems);
+
+};
+
+/**
+ * sets the keys on the last child
+ * @param {number|undefined} level
+ * @param {Array<string>} keyNames
+ * @param {!Array<?>} keyValues
+ * @return {!recoil.db.ChangeSet.Path}
+ */
+recoil.db.ChangeSet.Path.prototype.setKeysAt = function(level, keyNames, keyValues) {
+    var newItems = this.items_.slice(0);
+    if (level == undefined) {
+        return this.setKeys(keyNames, keyValues);
+    }
+    let end = newItems.splice(level);
+
+    var item = end.shift();
+    if (keyNames === null) {
+        newItems.push(new recoil.db.ChangeSet.PathItem(item.name(), item.keyNames(), keyValues));
+    }
+    else {
+        newItems.push(new recoil.db.ChangeSet.PathItem(item.name(), keyNames, keyValues));
+    }
+
+    return new recoil.db.ChangeSet.Path(newItems.concat(end));
 
 };
 
@@ -1680,6 +1723,18 @@ recoil.db.ChangeSet.Set.prototype.serialize = function(keepOld, schema, valSeria
 
 
 /**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Set.prototype.setPathKeys = function(keys, opt_level) {
+    return new recoil.db.ChangeSet.Set(this.path_.setKeysAt(opt_level, null, keys), this.oldVal_, this.newVal_);
+};
+
+
+/**
  * @constructor
  * @implements recoil.db.ChangeSet.Change
  * @param {!recoil.db.ChangeSet.Path} path
@@ -1717,16 +1772,47 @@ recoil.db.ChangeSet.Add.prototype.filter = function(filter) {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * this function can also generate a new change tree if the iter returns changes
+ *
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Add.prototype.forEachChange = function(iter) {
-    iter(this);
+    var newDeps = [];
     for (var i = 0; i < this.dependants_.length; i++) {
         var dep = this.dependants_[i].forEachChange(iter);
+        newDeps.push(dep ? dep : this.dependants_[i]);
     }
+    let res = iter(this);
+
+    if (res) {
+        return new recoil.db.ChangeSet.Add(res.path(), newDeps);
+    }
+    return res;
 };
 
+
+
+/**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Add.prototype.setPathKeys = function(keys, opt_level) {
+    var pathItems = this.path_.items();
+    var level = opt_level === undefined ? pathItems.length - 1 : opt_level;
+
+    var deps = [];
+    for (var i = 0; i < this.dependants_.length; i++) {
+        var change = this.dependants_[i];
+        deps.push(change.setPathKeys(keys, level));
+
+    }
+    return new recoil.db.ChangeSet.Add(this.path_.setKeysAt(level, null, keys), deps);
+};
 
 /**
  * creates an inverse of the change
@@ -1953,6 +2039,13 @@ recoil.db.ChangeSet.Delete = function(path, orig) {
     this.orig_ = orig;
 };
 
+/**
+ * @return {?}
+ */
+recoil.db.ChangeSet.Delete.prototype.orig = function() {
+    return this.orig_;
+};
+
 
 /**
  * removes changes that don't match the filter, this is useful for things
@@ -1971,11 +2064,12 @@ recoil.db.ChangeSet.Delete.prototype.filter = function(filter) {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Delete.prototype.forEachChange = function(iter) {
-    iter(this);
+    return iter(this);
 };
 
 /**
@@ -2112,6 +2206,17 @@ recoil.db.ChangeSet.Delete.prototype.applyToDb = function(db, schema) {
     db.applyDelete(this.path_);
 };
 /**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Delete.prototype.setPathKeys = function(keys, opt_level) {
+    return new recoil.db.ChangeSet.Delete(this.path_.setKeysAt(opt_level, null, keys), this.orig_);
+};
+
+/**
  * converts a change an object that can be turned into json
  * @param {boolean} keepOld do we need the undo information
  * @param {!recoil.db.ChangeSet.Schema} schema
@@ -2154,13 +2259,26 @@ recoil.db.ChangeSet.Move.prototype.filter = function(filter) {
     return this;
 };
 
+
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Move.prototype.setPathKeys = function(keys, opt_level) {
+    return new recoil.db.ChangeSet.Move(this.oldPath_.setKeysAt(opt_level, null, keys), this.newPath_.setKeysAt(opt_level, null, keys));
+};
+
+/**
+ * goes over all changes in the change
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Move.prototype.forEachChange = function(iter) {
-    iter(this);
+    return iter(this);
 };
 
 
@@ -2342,6 +2460,17 @@ recoil.db.ChangeSet.Reorder = function(path, toPath, position, oldAfter) {
     this.position_ = position;
 };
 
+/**
+ * goes over all changes in the change
+ * @param {!Array} keys
+ * @param {number=} opt_level
+ * @return {!recoil.db.ChangeSet.Change}
+ */
+
+recoil.db.ChangeSet.Reorder.prototype.setPathKeys = function(keys, opt_level) {
+    return new recoil.db.ChangeSet.Reorder(this.path_.setKeysAt(opt_level, null, keys), this.toPath_ ? null : this.toPath_.setKeysAt(opt_level, null, keys), this.position_, this.oldAfter_);
+};
+
 
 /**
  * removes changes that don't match the filter, this is useful for things
@@ -2359,11 +2488,12 @@ recoil.db.ChangeSet.Reorder.prototype.filter = function(filter) {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Reorder.prototype.forEachChange = function(iter) {
-    iter(this);
+    return iter(this);
 };
 
 /**
@@ -2883,11 +3013,12 @@ recoil.db.ChangeSet.Set.prototype.changeCount = function() {
 
 /**
  * goes over all changes in the change
- * @param {function(!recoil.db.ChangeSet.Change)} iter
+ * @param {function(!recoil.db.ChangeSet.Change): ?recoil.db.ChangeSet.Change} iter
+ * @return {?recoil.db.ChangeSet.Change}
  */
 
 recoil.db.ChangeSet.Set.prototype.forEachChange = function(iter) {
-    iter(this);
+    return iter(this);
 };
 
 

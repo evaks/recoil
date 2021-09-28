@@ -24,13 +24,15 @@ goog.require('recoil.util');
  * @template T
  * @param {!recoil.ui.WidgetScope} scope
  * @param {!recoil.ui.Widget} mainWidget
+ * @param {function(?)=} opt_forceSet
  * @implements {recoil.ui.Widget}
  * @constructor
  */
-recoil.ui.widgets.ComboWidget = function(scope, mainWidget) {
+recoil.ui.widgets.ComboWidget = function(scope, mainWidget, opt_forceSet) {
     this.scope_ = scope;
     var frp = this.scope_.getFrp();
     var ib = goog.getCssName('goog-inline-block');
+    this.forceSet_ = opt_forceSet || function() {};
     this.widgetDiv_ = goog.dom.createDom('div', {'class': ib});
     this.containerDiv_ = goog.dom.createDom('div', {class: goog.getCssName('goog-combobox')}, this.widgetDiv_);
     this.container_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.containerDiv_);
@@ -47,6 +49,7 @@ recoil.ui.widgets.ComboWidget = function(scope, mainWidget) {
      */
     this.listening_ = null;
 
+    this.mainWidget_ = mainWidget;
     mainWidget.getComponent().render(this.widgetDiv_);
     this.button_ = goog.dom.createDom(
         goog.dom.TagName.SPAN, goog.getCssName('goog-combobox-button'));
@@ -230,6 +233,7 @@ recoil.ui.widgets.ComboWidget.prototype.attachStruct = function(options) {
         if (e.target instanceof goog.ui.MenuItem) {
             var val = e.target.getValue();
             if (val && val.valid) {
+                me.forceSet_(val.value);
                 me.valueB_.set(val.value);
             }
             me.dismiss();

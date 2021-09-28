@@ -31,9 +31,11 @@ goog.require('recoil.ui.widgets.table.TableWidget');
  * @constructor
  * @param {!recoil.ui.WidgetScope} scope
  * @param {boolean=} opt_new use new layout
+ * @param {boolean=} opt_buttons do we want add/remove buttons default true
  * @implements recoil.ui.Widget
  */
-recoil.ui.widgets.table.PagedTableWidget = function(scope, opt_new) {
+recoil.ui.widgets.table.PagedTableWidget = function(scope, opt_new, opt_buttons) {
+    let buttons = opt_buttons == undefined ? true : !!opt_buttons;
     this.scope_ = scope;
     this.container_ = new goog.ui.Component();
     this.container_.createDom();
@@ -59,16 +61,20 @@ recoil.ui.widgets.table.PagedTableWidget = function(scope, opt_new) {
 
     this.container_.getElement().appendChild(div);
     if (opt_new) {
-        this.actionsDiv_ = goog.dom.createDom('div', {class: 'recoil-table-pager-actions'});
-        this.addButton_ = new recoil.ui.widgets.ButtonWidget(scope);
-        this.addButton_.getComponent().render(this.actionsDiv_);
-        this.removeButton_ = new recoil.ui.widgets.ButtonWidget(scope);
-        this.removeButton_.getComponent().render(this.actionsDiv_);
+        if (buttons) {
+            this.actionsDiv_ = goog.dom.createDom('div', {class: 'recoil-table-pager-actions'});
+            this.addButton_ = new recoil.ui.widgets.ButtonWidget(scope);
+            this.addButton_.getComponent().render(this.actionsDiv_);
+            this.removeButton_ = new recoil.ui.widgets.ButtonWidget(scope);
+            this.removeButton_.getComponent().render(this.actionsDiv_);
+        }
         div.appendChild(goog.dom.createDom(
             'div', {class: 'recoil-table-pager-top'},
             goog.dom.createDom('div', {class: 'recoil-table-pager-top-scroller'},
                                this.topPager_.getComponent().getElement())));
-        div.appendChild(this.actionsDiv_);
+        if (this.actionsDiv_) {
+            div.appendChild(this.actionsDiv_);
+        }
 
         div.appendChild(goog.dom.createDom('div', {class: 'recoil-table-pager-content'}, headerDiv, tableDiv));
     }
