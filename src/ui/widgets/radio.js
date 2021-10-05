@@ -26,7 +26,7 @@ recoil.ui.widgets.RadioWidget = function(scope) {
 
     var toControl = recoil.ui.ComponentWidgetHelper.elementToControl;
     this.container_ = new goog.ui.Component();
-    this.radio_ = goog.dom.createDom('input', {type: 'radio'});
+    this.radio_ = goog.dom.createDom('input', {type: 'radio', autocomplete:'off'});
     this.container_.addChild(toControl(this.radio_), true);
     this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.container_, this, this.updateState_);
     this.tooltip_ = new recoil.ui.TooltipHelper(scope, this.container_);
