@@ -1172,7 +1172,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves_ = function(table) {
             var renderInfo = renderState.headerCols[from];
 
             if (from !== to) {
-                if (renderState.headerRow.inner) {
+                if (renderState.headerRow.inner && renderInfo.outer)  {
                     renderState.headerRow.inner.removeChild(renderInfo.outer);
 
                     goog.dom.insertChildAt(renderState.headerRow.inner, renderInfo.outer, to);
@@ -1193,8 +1193,10 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves_ = function(table) {
             var renderInfo = row.cols[from];
             newCols.push(renderInfo);
             if (from !== to) {
-                row.inner.removeChild(renderInfo.outer);
-                goog.dom.insertChildAt(row.inner, renderInfo.outer, to);
+                if (renderInfo.outer) {
+                    row.inner.removeChild(renderInfo.outer);
+                    goog.dom.insertChildAt(row.inner, renderInfo.outer, to);
+                }
             }
         }
         row.cols = newCols;

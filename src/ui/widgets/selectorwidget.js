@@ -133,23 +133,22 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options) {
     this.rendererB_ = bound.renderer();
 
     this.helper_.attach(this.nameB_, this.valueB_, this.listB_, this.enabledB_, this.rendererB_,
-         this.enabledItemsB_, this.editableB_);
-    var nullFormatter = function(v) {
-        return v;
-    };
+                        this.enabledItemsB_, this.editableB_);
+    const key = recoil.util.object.uniq();
 
     this.readOnlyWidget_.attachStruct(frp.liftB(
         function(val, renderer) {
-            var el;
-            try {
-                el = renderer(val, true, false);
-            }
-            catch (e) {
-                el = '';
-            }
+            let formatter  = function (v) {
+                try {
+                    return renderer(v, true, false);
+                }
+                catch (e) {
+                    return '';
+                }                
+            };
             return {
-                name: el,
-                formatter: nullFormatter
+                name: val,
+                formatter: formatter
             };
 
     }, this.valueB_, this.rendererB_));

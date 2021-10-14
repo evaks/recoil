@@ -1138,6 +1138,23 @@ recoil.structs.table.MutableTable.prototype.getRow = function(keys) {
     return this.rows_.findFirst(keyRow);
 };
 
+
+/**
+ * gets the row from a table, pass the primary keys as an array of values
+ * @param {function(recoil.structs.table.TableRow):boolean} compare
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.MutableTable.prototype.findRow = function(compare) {
+    let res = null;
+
+    this.forEach(function (row) {
+        if (compare(row)) {
+            res = row;
+        }
+    });
+    return res;
+};
+
 /**
  * Sets the value for the cell
  * @template CT
@@ -1445,6 +1462,23 @@ recoil.structs.table.Table.prototype.size = function() {
 recoil.structs.table.Table.prototype.getRow = function(keys) {
     var keyRow = recoil.structs.table.ColumnKey.normalizeColumns(this.primaryColumns_, keys);
     return this.rows_.findFirst(keyRow);
+};
+
+
+/**
+ * gets the row from a table, pass the primary keys as an array of values
+ * @param {function(recoil.structs.table.TableRow):boolean} compare
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.Table.prototype.findRow = function(compare) {
+    let res = null;
+
+    this.forEach(function (row) {
+        if (compare(row)) {
+            res = row;
+        }
+    });
+    return res;
 };
 
 /**
