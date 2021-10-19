@@ -138,13 +138,13 @@ recoil.ui.widgets.SelectorWidget.prototype.attachStruct = function(options) {
 
     this.readOnlyWidget_.attachStruct(frp.liftB(
         function(val, renderer) {
-            let formatter  = function (v) {
+            let formatter = function(v) {
                 try {
                     return renderer(v, true, false);
                 }
                 catch (e) {
                     return '';
-                }                
+                }
             };
             return {
                 name: val,

@@ -1147,7 +1147,7 @@ recoil.structs.table.MutableTable.prototype.getRow = function(keys) {
 recoil.structs.table.MutableTable.prototype.findRow = function(compare) {
     let res = null;
 
-    this.forEach(function (row) {
+    this.forEach(function(row) {
         if (compare(row)) {
             res = row;
         }
@@ -1473,7 +1473,7 @@ recoil.structs.table.Table.prototype.getRow = function(keys) {
 recoil.structs.table.Table.prototype.findRow = function(compare) {
     let res = null;
 
-    this.forEach(function (row) {
+    this.forEach(function(row) {
         if (compare(row)) {
             res = row;
         }

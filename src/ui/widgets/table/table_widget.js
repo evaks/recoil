@@ -1172,7 +1172,7 @@ recoil.ui.widgets.table.TableWidget.prototype.doColumnMoves_ = function(table) {
             var renderInfo = renderState.headerCols[from];
 
             if (from !== to) {
-                if (renderState.headerRow.inner && renderInfo.outer)  {
+                if (renderState.headerRow.inner && renderInfo.outer) {
                     renderState.headerRow.inner.removeChild(renderInfo.outer);
 
                     goog.dom.insertChildAt(renderState.headerRow.inner, renderInfo.outer, to);
