@@ -1141,7 +1141,7 @@ recoil.structs.table.MutableTable.prototype.getRow = function(keys) {
 
 /**
  * gets the row from a table, pass the primary keys as an array of values
- * @param {function(recoil.structs.table.TableRow):boolean} compare
+ * @param {function(!recoil.structs.table.TableRow):boolean} compare
  * @return {recoil.structs.table.TableRow}
  */
 recoil.structs.table.MutableTable.prototype.findRow = function(compare) {
@@ -1467,7 +1467,7 @@ recoil.structs.table.Table.prototype.getRow = function(keys) {
 
 /**
  * gets the row from a table, pass the primary keys as an array of values
- * @param {function(recoil.structs.table.TableRow):boolean} compare
+ * @param {function(!recoil.structs.table.TableRow):boolean} compare
  * @return {recoil.structs.table.TableRow}
  */
 recoil.structs.table.Table.prototype.findRow = function(compare) {

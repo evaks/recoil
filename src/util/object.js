@@ -491,7 +491,11 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath,
     var newAPath = goog.array.concat(aPath, [a]);
     var newBPath = goog.array.concat(bPath, [b]);
 
-
+    if (typeof (a) == 'number' && typeof(b) == 'number') {
+        if (isNaN(a) && isNaN(b)) {
+            return true;
+        }
+    }
     if (a instanceof Array) {
         var idx = 0;
 

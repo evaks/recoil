@@ -40,9 +40,13 @@ recoil.ui.widgets.ProgressWidget.prototype.getComponent = function() {
  */
 recoil.ui.widgets.ProgressWidget.prototype.updateState_ = function(helper) {
     if (helper.isGood()) {
-        this.progress_.setMaximum(this.maxB_.get());
-        this.progress_.setValue(this.valueB_.get());
-        var val = this.textB_.get();
+        let max = this.maxB_.get();
+        let curVal = this.valueB_.get();
+        this.progress_.setMaximum(max);
+        this.progress_.setValue(curVal);
+        let val = this.textB_.get();
+
+        goog.dom.classlist.enable(this.progressDiv_, 'progress-bar-done', curVal >= max);
 
         if (goog.dom.isElement(val)) {
             goog.dom.setTextContent(this.text_, '' /*this.textB_.get().innerText*/);
@@ -52,6 +56,7 @@ recoil.ui.widgets.ProgressWidget.prototype.updateState_ = function(helper) {
         }
     }
     else {
+        goog.dom.classlist.enable(this.progressDiv_, 'progress-bar-done', false);
         goog.dom.setTextContent(this.text_, '');
         this.progress_.setValue(0);
         this.progress_.setMaximum(100);
