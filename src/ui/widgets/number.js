@@ -29,13 +29,16 @@ goog.require('recoil.ui.widgets.LabelWidget');
  */
 recoil.ui.widgets.NumberWidget = function(scope) {
     this.scope_ = scope;
-    this.containerDiv_ = goog.dom.createDom('div');
+    this.errorDiv_ = goog.dom.createDom('div', {class: 'recoil-error'});
+    this.containerDiv_ = goog.dom.createDom('div', {}, this.errorDiv_);
     var toControl = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl;
     this.number_ = new recoil.ui.widgets.NumberWidget.NumberInput();
     this.number_.createDom();
     this.number_.setEnabled(false);
-
     this.container_ = toControl(this.containerDiv_);
+    /**
+     * @private
+     */
     this.readonly_ = new recoil.ui.widgets.LabelWidget(scope);
 
     this.readonly_.getComponent().render(this.containerDiv_);
@@ -592,6 +595,7 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
         }
         else {
             if (!me.rangeB_.hasRefs() || !me.rangeB_.good()) {
+                res = true;
                 return;
             }
             var ranges = me.rangeB_.get().ranges;
@@ -643,13 +647,28 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
  * @private
  */
 recoil.ui.widgets.NumberWidget.prototype.updateValue_ = function(helper) {
+    var me = this;
     if (helper.isGood()) {
         this.number_.setValue(this.valueB_.get());
-        var me = this;
         this.updateErrors_(this.number_.getElement(), this.outErrorsB_, this.validatorB_);
 
     }
+    let errors = helper.isGood() ? [] : helper.errors();
+    goog.style.setElementShown(this.errorDiv_, errors.length > 0);
+    goog.dom.removeChildren(this.errorDiv_);
+
+    errors.forEach(function(error) {
+        var div = goog.dom.createDom('div', {class: 'error'}, goog.dom.createTextNode(error.toString()));
+        div.onclick = function() {
+            console.error('Error was', error);
+        };
+        me.errorDiv_.appendChild(
+            div);
+
+    });
+
 };
+
 
 /**
  * @private
