@@ -226,6 +226,7 @@ recoil.ui.HtmlHelper.prototype.show = function(element, showB) {
  * @return {!recoil.ui.WidgetHelper}
  */
 recoil.ui.HtmlHelper.prototype.showElements = function(elements, showB) {
+    
     var origs = elements.map(function(element) {return element.style.display;});
     origs = origs.map(function(orig) {return orig === 'none' ? undefined : orig;});
     var helper = new recoil.ui.WidgetHelper(this.scope_, elements[0], null, function() {
@@ -234,7 +235,9 @@ recoil.ui.HtmlHelper.prototype.showElements = function(elements, showB) {
             element.style.display = show ? origs[idx] : 'none';
         });
     });
-    helper.attach(showB);
+    if (elements.length > 0) {
+        helper.attach(showB);
+    }
 
     return helper;
 };
