@@ -225,6 +225,7 @@ recoil.ui.widgets.NumberWidget.NumberInput.prototype.createDom = function() {
 
     goog.events.listen(element,
                        goog.events.EventType.KEYDOWN, this.keyFilter_);
+
     var doChange = function(e) {
         var val;
         try {
@@ -684,20 +685,38 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
         };
     var displayLen = this.displayLengthB_.good() ? this.displayLengthB_.get() : null;
     var editable = this.editableB_.good() && this.editableB_.get();
-    var calcWidth = function(width, val) {
+    var calcWidth = function(width, val, step) {
         if (displayLen) {
             return null;
         }
         var str = editable ? '' + val : formatter(val);
-        return Math.max(width,
-                        recoil.ui.widgets.NumberWidget.calcWidth_(el, str));
+        let stepStr = '' + step;
+
+        if (!editable || stepStr.indexOf('.') == -1) {
+            return Math.max(width,
+                            recoil.ui.widgets.NumberWidget.calcWidth_(el, str));
+        }
+        else {
+            let dps = stepStr.length -stepStr.indexOf('.') - 1;
+            let strPointIdx = str.indexOf('.');
+            if (strPointIdx != -1) {
+                let strDps = str.length -  strPointIdx - 1;
+                dps = Math.max(dps, strDps);
+                str = str.substring(0, strPointIdx);
+            }
+            str += '.' + '' .padEnd(dps,"0");
+            return Math.max(width,
+                            recoil.ui.widgets.NumberWidget.calcWidth_(el, str));
+            
+        }
+            
     };
 
-    var width = calcWidth(0, 0);
+    var width = calcWidth(0, 0, 1);
     if (this.rangeB_.metaGet().good()) {
         var range = this.rangeB_.get();
-        width = calcWidth(width, range.min);
-        width = calcWidth(width, range.max);
+        width = calcWidth(width, range.min, range.step);
+        width = calcWidth(width, range.max, range.step);
         this.number_.setRanges(range.ranges);
         this.number_.setStep(range.step);
     }
