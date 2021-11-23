@@ -697,19 +697,19 @@ recoil.ui.widgets.NumberWidget.prototype.updateConfig_ = function(helper) {
                             recoil.ui.widgets.NumberWidget.calcWidth_(el, str));
         }
         else {
-            let dps = stepStr.length -stepStr.indexOf('.') - 1;
+            let dps = stepStr.length - stepStr.indexOf('.') - 1;
             let strPointIdx = str.indexOf('.');
             if (strPointIdx != -1) {
-                let strDps = str.length -  strPointIdx - 1;
+                let strDps = str.length - strPointIdx - 1;
                 dps = Math.max(dps, strDps);
                 str = str.substring(0, strPointIdx);
             }
-            str += '.' + '' .padEnd(dps,"0");
+            str += '.' + '' .padEnd(dps, '0');
             return Math.max(width,
                             recoil.ui.widgets.NumberWidget.calcWidth_(el, str));
-            
+
         }
-            
+
     };
 
     var width = calcWidth(0, 0, 1);

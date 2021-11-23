@@ -59,6 +59,9 @@ recoil.ui.widgets.ButtonWidget = function(scope, opt_long) {
         ],
 
         function(e) {
+            if (!me.confirmB_) {
+                return;
+            }
             me.frp_.accessTrans(
                 function() {
                     if (me.confirmB_.get()) {
@@ -116,6 +119,7 @@ recoil.ui.widgets.ButtonWidget.prototype.attach = function(textB, callbackB, opt
 };
 
 /**
+ * @private
  * starts the animation when removing
  */
 recoil.ui.widgets.ButtonWidget.prototype.startAnimation_ = function() {
@@ -145,6 +149,7 @@ recoil.ui.widgets.ButtonWidget.prototype.startAnimation_ = function() {
     };
 
 /**
+ * @private
  * stops the animation
  */
 recoil.ui.widgets.ButtonWidget.prototype.stopAnimation_ = function() {

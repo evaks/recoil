@@ -161,6 +161,7 @@ recoil.structs.MultiKeyMap.prototype.get = function(keys, object) {
 /**
  * @param {!Array<string>} keys
  * @param {Object} object
+ * @return {!Array} the items removed
  */
 
 recoil.structs.MultiKeyMap.prototype.removeIntersection = function(keys, object) {
@@ -180,11 +181,14 @@ recoil.structs.MultiKeyMap.prototype.removeIntersection = function(keys, object)
 
         }
     }
+    let res = [];
     var me = this;
-    for (var id in ids) {
+    for (let id in ids) {
         this.all_.remove(me.sync_[id]);
+        res.push(me.sync_[id]);
         delete me.sync_[id];
     }
+    return res;
 };
 
 /**
