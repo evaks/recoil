@@ -604,7 +604,6 @@ recoil.frp.util.timeB = function(frp) {
         timer.listen(goog.Timer.TICK, setTime);
         timeB.refListen(function(listen) {
             if (listen) {
-                console.log('start');
                 timer.start();
                 setTime();
             }
@@ -615,6 +614,57 @@ recoil.frp.util.timeB = function(frp) {
     }
 
     return /** @type {!recoil.frp.Behaviour<number>} */ (recoil.frp.util.timeB_);
+
+};
+
+
+/**
+ * @private
+ * @type {recoil.frp.Behaviour<number>}
+ */
+recoil.frp.util.dateB_ = null;
+
+/**
+ * returns a behaviour that fires every day with the date at the begin in it
+ * @param {!recoil.frp.Frp} frp
+ * @return {!recoil.frp.Behaviour<number>} time in miliseconds
+ */
+recoil.frp.util.dateB = function(frp) {
+    if (recoil.frp.util.dateB_ === null) {
+        recoil.frp.util.dateB_ = frp.createB(new Date().setHours(0,0,0,0));
+        let dateB = recoil.frp.util.dateB_;
+        let timeout = null;
+        var setDate = function() {
+            frp.accessTrans(
+                function() {
+                    let now = new Date().getTime();
+                    let dt = new Date(now);
+                    dateB.set(dt.setHours(0,0,0,0));
+                    let tomorrow = new Date(now);
+                    tomorrow.setHours(0,0,0,0);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    if (timeout) {
+                        clearTimeout(timeout);
+                    }
+                    timeout = setTimeout(setDate, Math.max(1, tomorrow - now));
+                }, dateB);
+        };
+        
+        
+        dateB.refListen(function(listen) {
+            if (listen) {
+                setDate();
+            }
+            else {
+                if (timeout) {
+                    clearTimeout(timeout);
+                    timeout = null;
+                }
+            }
+        });
+    }
+
+    return /** @type {!recoil.frp.Behaviour<number>} */ (recoil.frp.util.dateB_);
 
 };
 
