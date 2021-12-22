@@ -65,14 +65,14 @@ recoil.ui.widgets.ButtonWidget = function(scope, opt_long) {
             me.frp_.accessTrans(
                 function() {
                     if (me.confirmB_.get()) {
-                        if (e.type === 'mousedown' && e.button === 0) {
+                        if (e.type === 'mousedown' && e.button === 0 && me.enabledB_.get().val()) {
                             me.startAnimation_();
                         } else if (e.type === 'mouseleave') {
                             me.stopAnimation_();
                         }
                     }
 
-                }, me.confirmB_);
+                }, me.confirmB_, me.enabledB_);
         });
 
 };
