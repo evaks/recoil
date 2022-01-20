@@ -126,11 +126,23 @@ recoil.ui.HtmlHelper.prototype.appendClassDiv = function(parent, classesB, opt_o
  * @return {!recoil.ui.WidgetHelper}
  */
 recoil.ui.HtmlHelper.prototype.innerHtml = function(element, innerHtmlB) {
+    let l = null;
+    
     var helper = new recoil.ui.WidgetHelper(this.scope_, element, null, function() {
+        if (l) {
+            goog.events.unlistenByKey(l);
+            l = null;
+        }
         if (innerHtmlB.good()) {
             element.innerHTML = innerHtmlB.get();
         }
         else if (innerHtmlB.metaGet().errors().length > 0) {
+            let errors = innerHtmlB.metaGet().errors();
+            l = goog.events.listen(element, goog.events.EventType.CLICK, function() {
+                for (let i = 0; i < errors.length; i++) {
+                    console.error(errors[i]);
+                }
+            });
             element.innerHTML = innerHtmlB.metaGet().errors().join(',');
         }
     });

@@ -31,7 +31,7 @@ recoil.ui.frp.message.resolve = function(frp, message, data) {
  * @param {!recoil.frp.Frp} frp
  * @param {!recoil.ui.message.Message|!recoil.frp.Behaviour<!recoil.ui.message.Message>} message
  * @param {(!recoil.frp.Behaviour<!Object>|!Object)=} opt_data
- * @return {!recoil.frp.Behaviour<!string>}
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.ui.frp.message.toString = function(frp, message, opt_data) {
     var data = opt_data || {};
@@ -63,7 +63,7 @@ recoil.ui.frp.message.resolveEnum = function(frp, value, enumMap) {
  * @param {!recoil.frp.Frp} frp
  * @param {!recoil.frp.Behaviour<T>|T} value
  * @param {!recoil.ui.message.MessageEnum|!recoil.frp.Behaviour<!recoil.ui.message.MessageEnum>} enumMap
- * @return {!recoil.frp.Behaviour<!string>}
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.ui.frp.message.enumToString = function(frp, value, enumMap) {
     return recoil.ui.frp.message.toString(frp, recoil.ui.frp.message.resolveEnum(frp, value, enumMap));

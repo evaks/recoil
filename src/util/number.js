@@ -4,9 +4,9 @@ goog.require('goog.math.Long');
 goog.require('goog.string');
 
 /**
- * @param {!{value:!string, fraction_digits:!number}} val
- * @param {!number} dps
- * @return {!string}
+ * @param {{value:string, fraction_digits:number}} val
+ * @param {number} dps
+ * @return {string}
  */
 recoil.util.number.decimal64ToFixed = function(val, dps) {
     var long = goog.math.Long.fromString(val.value);

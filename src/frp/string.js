@@ -10,20 +10,20 @@ goog.require('recoil.util.func');
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} first
- * @param {...(!recoil.frp.Behaviour<!string>|!string)} opt_rest
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} first
+ * @param {...(!recoil.frp.Behaviour<string>|string)} var_rest
+ * @return {!recoil.frp.Behaviour<string>}
  */
 
-recoil.frp.string.concat = function(first, opt_rest) {
+recoil.frp.string.concat = function(first, var_rest) {
     return recoil.frp.util.liftMemberFunc(String.prototype.concat, arguments);
 };
 
 
 /**
  *
- * @param {!recoil.frp.Behaviour<!string>} strB
- * @return {!recoil.frp.Behaviour<!number>}
+ * @param {!recoil.frp.Behaviour<string>} strB
+ * @return {!recoil.frp.Behaviour<number>}
  */
 
 recoil.frp.string.length = function(strB) {
@@ -34,9 +34,9 @@ recoil.frp.string.length = function(strB) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {!recoil.frp.Behaviour<!number>|!number} pos
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {!recoil.frp.Behaviour<number>|number} pos
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.frp.string.charAt = function(str, pos) {
     return recoil.frp.util.liftMemberFunc(String.prototype.charAt, arguments);
@@ -44,9 +44,9 @@ recoil.frp.string.charAt = function(str, pos) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {!recoil.frp.Behaviour<!number>|!number} pos
- * @return {!recoil.frp.Behaviour<!number>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {!recoil.frp.Behaviour<number>|number} pos
+ * @return {!recoil.frp.Behaviour<number>}
  */
 recoil.frp.string.charCodeAt = function(str, pos) {
     return recoil.frp.util.liftMemberFunc(String.prototype.charCodeAt, arguments);
@@ -55,9 +55,9 @@ recoil.frp.string.charCodeAt = function(str, pos) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {!recoil.frp.Behaviour<!string>|!string} pos
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {!recoil.frp.Behaviour<string>|string} pos
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.string.endsWith = function(str, pos) {
     return recoil.frp.util.liftFunc(goog.string.endsWith, arguments);
@@ -65,10 +65,10 @@ recoil.frp.string.endsWith = function(str, pos) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {(!recoil.frp.Behaviour<!string>|!string)} searchVal
- * @param {(!recoil.frp.Behaviour<!number>|!number)=} opt_start
- * @return {!recoil.frp.Behaviour<!number>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {(!recoil.frp.Behaviour<string>|string)} searchVal
+ * @param {(!recoil.frp.Behaviour<number>|number)=} opt_start
+ * @return {!recoil.frp.Behaviour<number>}
  */
 recoil.frp.string.indexOf = function(str, searchVal, opt_start) {
     console.log(arguments);
@@ -77,10 +77,10 @@ recoil.frp.string.indexOf = function(str, searchVal, opt_start) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {(!recoil.frp.Behaviour<!string>|!string)} searchVal
- * @param {(!recoil.frp.Behaviour<!number>|!number)=} opt_start
- * @return {!recoil.frp.Behaviour<!number>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {(!recoil.frp.Behaviour<string>|string)} searchVal
+ * @param {(!recoil.frp.Behaviour<number>|number)=} opt_start
+ * @return {!recoil.frp.Behaviour<number>}
  */
 recoil.frp.string.lastIndexOf = function(str, searchVal, opt_start) {
     return recoil.frp.util.liftMemberFunc(String.prototype.lastIndexOf, arguments);
@@ -88,9 +88,9 @@ recoil.frp.string.lastIndexOf = function(str, searchVal, opt_start) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
  * @param {(!recoil.frp.Behaviour<!RegExp>|!RegExp)} regexp
- * @return {!recoil.frp.Behaviour<Array<!string>>}
+ * @return {!recoil.frp.Behaviour<Array<string>>}
  */
 recoil.frp.string.match = function(str, regexp) {
     return recoil.frp.util.liftMemberFunc(String.prototype.match, arguments);
@@ -98,9 +98,9 @@ recoil.frp.string.match = function(str, regexp) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {(!recoil.frp.Behaviour<!number>|!RegExp)} repeats
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {(!recoil.frp.Behaviour<number>|!RegExp)} repeats
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.frp.string.repeat = function(str, repeats) {
     return recoil.frp.util.liftFunc(goog.string.repeat, arguments);
@@ -109,10 +109,10 @@ recoil.frp.string.repeat = function(str, repeats) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {!recoil.frp.Behaviour<(!RegExp|!string)>|!RegExp|!string|!recoil.frp.Behaviour<!RegExp>|!recoil.frp.Behaviour<!string>} searchValue
- * @param {(!recoil.frp.Behaviour<!string>|!string)} newVal
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {!recoil.frp.Behaviour<(!RegExp|string)>|!RegExp|string|!recoil.frp.Behaviour<!RegExp>|!recoil.frp.Behaviour<string>} searchValue
+ * @param {(!recoil.frp.Behaviour<string>|string)} newVal
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.frp.string.replace = function(str, searchValue, newVal) {
     return recoil.frp.util.liftMemberFunc(String.prototype.replace, arguments);
@@ -121,10 +121,10 @@ recoil.frp.string.replace = function(str, searchValue, newVal) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {!recoil.frp.Behaviour<(!RegExp|!string)>|!RegExp|!string|!recoil.frp.Behaviour<!RegExp>|!recoil.frp.Behaviour<!string>} searchValue
- * @param {(!recoil.frp.Behaviour<!string>|!string)} newVal
- * @return {!recoil.frp.Behaviour<!number>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {!recoil.frp.Behaviour<(!RegExp|string)>|!RegExp|string|!recoil.frp.Behaviour<!RegExp>|!recoil.frp.Behaviour<string>} searchValue
+ * @param {(!recoil.frp.Behaviour<string>|string)} newVal
+ * @return {!recoil.frp.Behaviour<number>}
  */
 recoil.frp.string.search = function(str, searchValue, newVal) {
     return recoil.frp.util.liftMemberFunc(String.prototype.search, arguments);
@@ -133,10 +133,10 @@ recoil.frp.string.search = function(str, searchValue, newVal) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {(!recoil.frp.Behaviour<!number>|!number)} start
- * @param {(!recoil.frp.Behaviour<!number>|!number)=} opt_end
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {(!recoil.frp.Behaviour<number>|number)} start
+ * @param {(!recoil.frp.Behaviour<number>|number)=} opt_end
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.frp.string.slice = function(str, start, opt_end) {
     return recoil.frp.util.liftMemberFunc(String.prototype.slice, arguments);
@@ -144,10 +144,10 @@ recoil.frp.string.slice = function(str, start, opt_end) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {!recoil.frp.Behaviour<(!RegExp|!string)>|!RegExp|!string|!recoil.frp.Behaviour<!RegExp>|!recoil.frp.Behaviour<!string>} separator
- * @param {(!recoil.frp.Behaviour<!number>|!number)=} opt_limit
- * @return {!recoil.frp.Behaviour<!Array<!string>>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {!recoil.frp.Behaviour<(!RegExp|string)>|!RegExp|string|!recoil.frp.Behaviour<!RegExp>|!recoil.frp.Behaviour<string>} separator
+ * @param {(!recoil.frp.Behaviour<number>|number)=} opt_limit
+ * @return {!recoil.frp.Behaviour<!Array<string>>}
  */
 recoil.frp.string.split = function(str, separator, opt_limit) {
     return recoil.frp.util.liftMemberFunc(String.prototype.split, arguments);
@@ -155,9 +155,9 @@ recoil.frp.string.split = function(str, separator, opt_limit) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {(!recoil.frp.Behaviour<!string>|!string)} prefix
- * @return {!recoil.frp.Behaviour<!boolean>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {(!recoil.frp.Behaviour<string>|string)} prefix
+ * @return {!recoil.frp.Behaviour<boolean>}
  */
 recoil.frp.string.startsWith = function(str, prefix) {
     return recoil.frp.util.liftFunc(goog.string.startsWith, arguments);
@@ -165,10 +165,10 @@ recoil.frp.string.startsWith = function(str, prefix) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {(!recoil.frp.Behaviour<!number>|!number)} start
- * @param {(!recoil.frp.Behaviour<!number>|!number)=} opt_length
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {(!recoil.frp.Behaviour<number>|number)} start
+ * @param {(!recoil.frp.Behaviour<number>|number)=} opt_length
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.frp.string.substr = function(str, start, opt_length) {
     return recoil.frp.util.liftMemberFunc(String.prototype.substr, arguments);
@@ -176,10 +176,10 @@ recoil.frp.string.substr = function(str, start, opt_length) {
 
 /**
  *
- * @param {(!recoil.frp.Behaviour<!string>|!string)} str
- * @param {(!recoil.frp.Behaviour<!number>|!number)} start
- * @param {(!recoil.frp.Behaviour<!number>|!number)=} opt_end
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {(!recoil.frp.Behaviour<string>|string)} str
+ * @param {(!recoil.frp.Behaviour<number>|number)} start
+ * @param {(!recoil.frp.Behaviour<number>|number)=} opt_end
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.frp.string.substring = function(str, start, opt_end) {
     return recoil.frp.util.liftMemberFunc(String.prototype.substring, arguments);
@@ -187,8 +187,8 @@ recoil.frp.string.substring = function(str, start, opt_end) {
 
 /**
  *
- * @param {recoil.frp.Behaviour<!string>} str
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {recoil.frp.Behaviour<string>} str
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.frp.string.toUpperCase = function(str) {
     return recoil.frp.util.liftMemberFunc(String.prototype.toUpperCase, arguments);
@@ -196,8 +196,8 @@ recoil.frp.string.toUpperCase = function(str) {
 
 /**
  *
- * @param {recoil.frp.Behaviour<!string>} str
- * @return {!recoil.frp.Behaviour<!string>}
+ * @param {recoil.frp.Behaviour<string>} str
+ * @return {!recoil.frp.Behaviour<string>}
  */
 recoil.frp.string.toLowerCase = function(str) {
     return recoil.frp.util.liftMemberFunc(String.prototype.toLowerCase, arguments);

@@ -64,6 +64,31 @@ recoil.frp.table.TableRow.get = function(row, columnKey) {
 
 
 /**
+ * like get but allows null rows, this is not inversable for now
+ *
+ * @template T
+ * @param {recoil.structs.table.TableRow|!recoil.frp.Behaviour<recoil.structs.table.TableRow>}  row
+ * @param {!recoil.structs.table.ColumnKey<T>|recoil.frp.Behaviour<!recoil.structs.table.ColumnKey<T>>} columnKey
+ * @return {!recoil.frp.Behaviour<T>}
+ */
+recoil.frp.table.TableRow.safeGet = function(row, columnKey) {
+    var frp = recoil.frp.util.getFrp(arguments);
+    var util = new recoil.frp.Util(frp);
+
+    var rowB = util.toBehaviour(row);
+    var columnB = util.toBehaviour(columnKey);
+
+    return frp.liftB(
+        function(row, column) {
+            if (!row) {
+                return null;
+            }
+            return row.get(column);
+        },
+        rowB, columnB);
+};
+
+/**
  * this wil return an bidirectional table cell it will contain the meta data from the
  * cell, column, row, and table.
  *
