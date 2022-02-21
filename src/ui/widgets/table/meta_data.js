@@ -206,7 +206,7 @@ recoil.ui.widgets.table.DefaultColumn.prototype.getMeta = function(curMeta) {
     var factory = (factoryMap === undefined || meta.type === undefined)
             ? undefined : factoryMap[meta.type];
     var column = factory === undefined
-            ? undefined : factory(this.key_, meta.name);
+        ? undefined : factory(this.key_, meta.name, meta);
 
     if (column === undefined) {
         column = new recoil.ui.widgets.table.StringColumn(this.key_, meta.name);
