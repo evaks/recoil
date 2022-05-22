@@ -62,7 +62,7 @@ recoil.ui.widgets.SelectorWidget.RENDERER = function(obj, valid, enabled) {
     }
     if (enabled && enabled.reason && enabled.reason()) {
         if (enabled.reason().toString().trim() !== '') {
-            return goog.dom.createDom('div', {disabled: true, class: valid ? undefined : 'recoil-error', title: enabled.reason().toString()}, obj);
+            return goog.dom.createDom('div', {disabled: true, class: valid ? 'recoil-select-disabled' : 'recoil-error', title: enabled.reason().toString()}, obj);
         }
     }
 
