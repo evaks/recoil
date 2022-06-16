@@ -222,6 +222,22 @@ recoil.structs.table.Join.createKeyJoin = function(table1B, table2B, key1, opt_k
 
 
 /**
+ * all rows will join with all other rows
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} table1B
+ * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} table2B
+ * @return {!recoil.frp.Behaviour<!recoil.structs.table.Table>}
+ */
+recoil.structs.table.Join.createAllJoin = function(table1B, table2B) {
+    var keyGetter = function(row) {
+        return 1;
+    };
+    var join = new recoil.structs.table.Join(keyGetter, keyGetter);
+
+    return recoil.frp.Inversable.create(table1B.frp(), join, {left: table1B, right: table2B});
+};
+
+
+/**
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} table1B
  * @param {!recoil.frp.Behaviour<!recoil.structs.table.Table>} table2B
  * @param {!Array<!recoil.structs.table.ColumnKey>} keys1
