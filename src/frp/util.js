@@ -742,6 +742,25 @@ recoil.frp.util.liftMemberFunc = function(func, args) {
 };
 
 /**
+ * creates a behaviour thats has a default value but then just changes
+ * a local value
+ * @param {!recoil.frp.Behaviour} defaultB the default value to set it to
+ * @return {!recoil.frp.Behaviour}
+ *
+ */
+recoil.frp.util.defaultValue = function (defaultB) {
+    let notSet = {};
+    let frp = defaultB.frp();
+    let storeB = frp.createB(notSet);
+
+    return frp.liftBI(function (store, def) {
+        if (store === notSet) {
+            return def;
+        }
+        return store;
+    }, function (val) { storeB.set(val); }, storeB, defaultB);
+};
+/**
  * calls the me func
  * @template T
  * techically we could make func a behaviour as well but for now I will leave it

@@ -16,6 +16,18 @@ goog.require('recoil.ui.widgets.InputWidget');
  */
 recoil.ui.widgets.PasswordWidget = function(scope, opt_autocomplete) {
     this.scope_ = scope;
+    let frp = scope.getFrp();
+    
+    let passwordDiv = goog.dom.createDom('dive','goog-inline-block');
+    this.showIcon_ = goog.dom.createDom('i','fas fa-eye');
+    this.hideIcon_ = goog.dom.createDom('i','fas fa-eye-slash');
+    this.show_ = goog.dom.createDom(
+        'div', {class: 'recoil-password-show goog-inline-block'},
+        this.showIcon_, this.hideIcon_
+    );
+    this.containerDiv_ = goog.dom.createDom('div', {}, passwordDiv, this.show_);
+    this.component_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.containerDiv_);
+
     this.passwordInput_ = new recoil.ui.widgets.InputWidget(scope, opt_autocomplete);
     this.passwordInput_.setType('password');
 
@@ -26,13 +38,33 @@ recoil.ui.widgets.PasswordWidget = function(scope, opt_autocomplete) {
     }
     el.setAttribute('type', 'password');
 
+    let showB = scope.getFrp().createB(false);
+    this.showB_ = showB;
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.component_, this, function () {
+        let showAny = this.helper_.isGood() && this.hasShowButtonB_.get();
+        let show = this.helper_.isGood() && this.showB_.get();
+        
+        goog.style.setElementShown(this.showIcon_, showAny && show);
+        goog.style.setElementShown(this.hideIcon_, showAny && !show);
+        this.passwordInput_.setType(show ? 'input' : 'password');
+    });
+
+    goog.events.listen(
+        this.show_, goog.events.EventType.MOUSEDOWN,
+        frp.accessTransFunc(function () {
+            showB.set(!showB.get());
+        }, this.showB_));
+    
+    this.passwordInput_.getComponent().render(passwordDiv);
+
+
 };
 
 /**
  * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.PasswordWidget.prototype.getComponent = function() {
-    return this.passwordInput_.getComponent();
+    return this.component_;
 };
 
 /**
@@ -42,8 +74,9 @@ recoil.ui.widgets.PasswordWidget.prototype.getComponent = function() {
  */
 recoil.ui.widgets.PasswordWidget.prototype.attach = function(name, value, enabled) {
     //this.passwordInput_.attachStruct({'name': name, 'value': value, 'enabled': enabled});
+    this.hasShowButtonB_ = this.scope_.getFrp().createB(false);
     this.attachStruct({'name': name, 'value': value, 'enabled': enabled});
-
+    this.helper_.attach(this.showB_, this.hasShowButtonB_);
 };
 
 /**
@@ -51,8 +84,10 @@ recoil.ui.widgets.PasswordWidget.prototype.attach = function(name, value, enable
  * @param {!Object| !recoil.frp.Behaviour<Object>} options
  */
 recoil.ui.widgets.PasswordWidget.prototype.attachStruct = function(options) {
+    let util = new recoil.frp.Util(this.scope_.getFrp());
+    this.hasShowButtonB_ = recoil.frp.struct.get('show', util.toBehaviour(options), false), 
     this.passwordInput_.attachStruct(options);
-
+    this.helper_.attach(this.showB_, this.hasShowButtonB_);
 };
 
 /**
