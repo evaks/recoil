@@ -39,6 +39,31 @@ recoil.converters.DefaultStringConverter.prototype.unconvert = function(val) {
     return {error: null, value: val};
 };
 
+/**
+ * @constructor
+ * @implements {recoil.converters.StringConverter<string>}
+ */
+
+recoil.converters.TrimStringConverter = function() {
+
+};
+/**
+ * @param {string} val
+ * @return {string}
+ */
+recoil.converters.TrimStringConverter.prototype.convert = function(val) {
+    return val != undefined ? val : '';
+};
+
+/**
+ * @param {string} val
+ * @return {{error : recoil.ui.message.Message, value : string}}
+ */
+recoil.converters.TrimStringConverter.prototype.unconvert = function(val) {
+    return {error: null, value: val.trim()};
+};
+
+
 
 /**
  * this converter takes any string converter and handles null
