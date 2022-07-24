@@ -119,6 +119,7 @@ recoil.ui.widgets.MenuBarWidget.prototype.updateState_ = function(helper, menusB
 };
 
 
+
 /**
  * @constructor
  * @implements recoil.ui.Widget
@@ -309,6 +310,56 @@ recoil.ui.widgets.MenuActionButtonWidget.prototype.getComponent = function() {
 };
 
 /**
+ * Class representing an item in a menu.
+ *
+ * @param {goog.ui.ControlContent} content Text caption or DOM structure to
+ *     display as the content of the item (use to add icons or styling to
+ *     menus).
+ * @param {*=} opt_model Data/model associated with the menu item.
+ * @param {goog.dom.DomHelper=} opt_domHelper Optional DOM helper used for
+ *     document interactions.
+ * @param {goog.ui.MenuItemRenderer=} opt_renderer Optional renderer.
+ * @constructor
+ * @extends {goog.ui.MenuItem}
+ */
+recoil.ui.widgets.MenuItem = function (content, opt_model, opt_domHelper, opt_renderer) {
+    goog.ui.MenuItem.call(
+        this, content, opt_model, opt_renderer, opt_domHelper);
+};
+
+goog.inherits(recoil.ui.widgets.MenuItem, goog.ui.MenuItem);
+
+
+
+/** @override */
+recoil.ui.widgets.MenuItem.prototype.handleMouseUp = function (e) {
+    if (e.button == 1 || e.ctrlKey) {
+        if (this.isAutoState(goog.ui.Component.State.CHECKED)) {
+            this.setChecked(!this.isChecked());
+        }
+        if (this.isAutoState(goog.ui.Component.State.SELECTED)) {
+            this.setSelected(true);
+        }
+        if (this.isAutoState(goog.ui.Component.State.OPENED)) {
+            this.setOpen(!this.isOpen());
+        }
+        var actionEvent =
+            new goog.events.Event(goog.ui.Component.EventType.ACTION, this);
+        if (e) {
+            actionEvent.altKey = e.altKey;
+            actionEvent.button = e.button;
+            actionEvent.ctrlKey = e.ctrlKey;
+            actionEvent.metaKey = e.metaKey;
+            actionEvent.shiftKey = e.shiftKey;
+            actionEvent.platformModifierKey = e.platformModifierKey;
+        }
+        this.dispatchEvent(actionEvent);
+
+    }
+    recoil.ui.widgets.MenuItem.base(this, 'handleMouseUp', e);
+};
+
+/**
  *
  * @constructor
  * @param {!recoil.ui.WidgetScope} scope
@@ -321,7 +372,7 @@ recoil.ui.widgets.MenuItemActionWidget = function(scope) {
      *
      */
 
-    this.menuItem_ = new goog.ui.MenuItem('');
+    this.menuItem_ = new recoil.ui.widgets.MenuItem('');
     this.scope_ = scope;
 //    this.config_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateConfig_);
     this.state_ = new recoil.ui.ComponentWidgetHelper(scope, this.menuItem_, this, this.updateState_);
@@ -332,6 +383,7 @@ recoil.ui.widgets.MenuItemActionWidget = function(scope) {
      */
     this.actionB_ = new recoil.util.Handle();
     var me = this;
+
     recoil.ui.events.listenH(this.menuItem_, goog.ui.Component.EventType.ACTION,
                 me.actionB_);
 };
