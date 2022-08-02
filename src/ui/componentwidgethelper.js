@@ -23,7 +23,7 @@ goog.require('recoil.ui.messages');
 /**
  * @template T
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
- * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
+ * @param {!goog.ui.Component|Element} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Object} obj the this pointer 'callback' will be called with
  * @param {function(...?)} callback
  * @param {function()=} opt_detachCallback
@@ -162,7 +162,12 @@ recoil.ui.ComponentWidgetHelper.prototype.setMessage = function(node) {
  * removes all children
  */
 recoil.ui.ComponentWidgetHelper.prototype.clearContainer = function() {
-   this.component_.removeChildren(true);
+    if (this.component_ instanceof Element) {
+        goog.dom.removeChildren(this.component_);
+    }
+    else {
+        this.component_.removeChildren(true);
+    }
 };
 
 /**
@@ -286,13 +291,16 @@ recoil.ui.ComponentWidgetHelper.prototype.attach = function(var_behaviour) {
         }
     } else {
         this.isAttached_ = false;
-        if (!this.component_.getElement()) {
-            this.component_.createDom();
+        if (this.component_.getElement) {
+            if (!this.component_.getElement()) {
+                this.component_.createDom();
+            }
+        
+            this.observer_.listen(this.component_.getElementStrict(), this.listenFunc_);
         }
-        if (me.debug_) {
-            console.log('listening', me.debug_);
+        else {
+            this.observer_.listen(/** @type {Element} */ (this.component_), this.listenFunc_);
         }
-        this.observer_.listen(this.component_.getElementStrict(), this.listenFunc_);
     }
 };
 
@@ -401,7 +409,7 @@ recoil.ui.EventHelper.prototype.listen = function(callback) {
  * including not ready, and error messaged
  * @constructor
  * @param {!recoil.ui.WidgetScope} widgetScope gui scope
- * @param {!goog.ui.Component} component when this is no longer visible updates will longer fire and memory will be cleaned up
+ * @param {!goog.ui.Component|!Element} component when this is no longer visible updates will longer fire and memory will be cleaned up
  * @param {Element=} opt_element
  * @param {function(boolean)=} opt_setEnabled alternate way of enabling
  */
@@ -458,7 +466,7 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
         tooltip = null;
     }
 
-    var element = this.element_ || this.component_.getElement();
+    var element = this.element_ || (this.component_ instanceof Element ?  this.component_ : this.component_.getElement());
     if (!element) {
         this.component_.createDom();
         element = this.component_.getElement();
@@ -481,6 +489,9 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
     } else if (this.component_.setEnabled) {
         this.component_.setEnabled(enabled);
     }
+    else if (this.component_ instanceof Element) {
+        goog.dom.setProperties(this.component_, {disabled:!enabled});
+    }
 };
 
 
@@ -489,7 +500,7 @@ recoil.ui.TooltipHelper.prototype.update_ = function(helper) {
  */
 recoil.ui.TooltipHelper.prototype.detach_ = function() {
     if (this.tooltip_) {
-        this.tooltip_.detach(this.element_ || this.component_.getElement());
+        this.tooltip_.detach(this.element_ || (this.component_ instanceof Element ? this.component_ : this.component_.getElement()));
         this.tooltip_.dispose();
         this.tooltip_ = null;
     }
