@@ -433,9 +433,10 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
 
     this.configHelper_.attach(this.rangeB_, this.enabledB_, this.editableB_, this.formatterB_, this.displayLengthB_);
 
+    let tooltipB = frp.liftB(v => v.reason(), this.enabledB_);
     this.readonlyHelper_.attach(this.editableB_);
     this.readonly_.attachStruct({name: this.valueB_,
-                                 formatter: this.formatterB_,
+                                 formatter: this.formatterB_, enabled: this.enabledB_,
                                  classes: arrUtil.append(this.classesB_, ['recoil-number'])
                                 });
     var me = this;

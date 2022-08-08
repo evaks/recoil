@@ -106,7 +106,7 @@ recoil.ui.ComponentWidgetHelper = function(widgetScope, component, obj, callback
  */
 recoil.ui.ComponentWidgetHelper.updateClasses = function(element, classesB, curClasses) {
     var newClasses = classesB.metaGet().good() ? classesB.get() : [];
-        newClasses.forEach(function(cls) {
+    newClasses.forEach(function(cls) {
         if (curClasses.indexOf(cls) === -1) {
             goog.dom.classlist.add(element, cls);
         }

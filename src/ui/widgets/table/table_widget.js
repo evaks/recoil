@@ -396,10 +396,17 @@ recoil.ui.widgets.table.TableWidget.defaultHeaderDecorator = function() {
 recoil.ui.widgets.table.TableWidget.defaultHeaderWidgetFactory_ =
     function(scope, cellB) {
         var widget = new recoil.ui.widgets.LabelWidget(scope);
-        var name = scope.getFrp().liftB(function(cell) {
-            return cell.getMeta().name;
-            }, cellB);
-        widget.attach(name, recoil.ui.BoolWithExplanation.TRUE);
+        var metaB = scope.getFrp().liftB(function(cell) {
+            let meta  = cell.getMeta();
+            let res = {
+                name: meta.name
+            };
+            if (meta.enabled) {
+                res.enabled = meta.enabled;
+            }
+            return res;
+        }, cellB);
+        widget.attachStruct(metaB);
         return widget;
     };
 /**

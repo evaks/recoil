@@ -30,29 +30,27 @@ recoil.ui.widgets.LabelWidget = function(scope) {
      * @private
      */
     this.scope_ = scope;
-
+    this.tooltip_ = null;
+    this.tooltipVal_ = null;
+    
     /**
      *
-     * @type {!goog.ui.Control}
+     * @type {!Element}
      * @private
      */
-    this.label_ = new goog.ui.Control();
-    this.label_.setAllowTextSelection(true);
-    this.label_.setSupportedState(goog.ui.Component.State.FOCUSED, false);
+    this.label_ = goog.dom.createDom('div');
 
-    /**
-     *
-     * @type {goog.ui.Container}
-     * @private
-     */
-    this.container_ = new goog.ui.Container();
+    this.component_ = recoil.ui.ComponentWidgetHelper.elementToNoFocusControl(this.label_);
+    let me = this;
 
     /**
      *
      * @type {recoil.ui.ComponentWidgetHelper}
      * @private
      */
-    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.label_, this, this.updateState_);
+    this.helper_ = new recoil.ui.ComponentWidgetHelper(scope, this.label_, this, this.updateState_, function () {
+        me.resetTooltip_(null);
+    });
 
     this.curClasses_ = [];
 };
@@ -101,7 +99,6 @@ recoil.ui.widgets.LabelWidget.prototype.options = recoil.ui.widgets.LabelWidget.
  */
 recoil.ui.widgets.LabelWidget.prototype.attach = function(name, opt_enabled) {
     this.attachStruct({name: name, enabled: opt_enabled});
-
 };
 
 
@@ -135,31 +132,74 @@ recoil.ui.widgets.LabelWidget.prototype.attachStruct = function(value) {
  * @return {!goog.ui.Component}
  */
 recoil.ui.widgets.LabelWidget.prototype.getComponent = function() {
-      return this.label_;
+      return this.component_;
 };
 
+/**
+ *  @param {?} tooltip
+ */
+recoil.ui.widgets.LabelWidget.prototype.resetTooltip_ = function (tooltip) {
+    if (typeof(tooltip) === 'string') {
+        tooltip = tooltip.trim();
+        if (tooltip == '') {
+            tooltip = null;
+        }
+    }
+    if (!tooltip || tooltip != this.tooltipVal_) {
+        if (this.tooltip_) {
+            this.tooltip_.detach(this.label_);
+            this.tooltip_.dispose();
+            this.tooltip_ = null;
+        }
+        if (tooltip != null) {
+            this.tooltip_ = new goog.ui.Tooltip(this.label_, tooltip);
+            this.tooltipVal_ = tooltip;
+        }
+        else {
+            this.tooltipVal_ = null;
+        }
+    }
 
+};
 /**
  *
  * @param {recoil.ui.WidgetHelper} helper
  * @private
  */
 recoil.ui.widgets.LabelWidget.prototype.updateState_ = function(helper) {
-    this.curClasses_ = recoil.ui.ComponentWidgetHelper.updateClasses(this.label_.getElement(), this.classesB_, this.curClasses_);
+    this.curClasses_ = recoil.ui.ComponentWidgetHelper.updateClasses(this.label_, this.classesB_, this.curClasses_);
+    goog.dom.removeChildren(this.label_);
+    let tooltip = null;
+
+    
 
     if (helper.isGood()) {
         var val = this.nameB_.get();
         var content = this.formatterB_.get()(val);
-        if (content instanceof Node || goog.isString(content)) {
-            this.label_.setContent(content);
+        try {
+            tooltip = this.enabledB_.get().reason();
+            if (tooltip) {
+                tooltip = tooltip.toString();
+            }
+        }
+        catch (e) {}
+
+        if (content instanceof Node) {
+            this.label_.appendChild(content);
+        }
+        else if (goog.isString(content)) {
+            this.label_.appendChild(goog.dom.createTextNode(content));
         }
         else {
-            this.label_.setContent(content + '');
+            this.label_.appendChild(goog.dom.createTextNode(content + ''));
         }
+        
+
     }
     else {
-        this.label_.setContent('??');
+        this.label_.appendChild(goog.dom.createTextNode('??'));
     }
+    this.resetTooltip_(tooltip);
 };
 
 /**
