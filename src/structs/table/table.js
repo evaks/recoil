@@ -243,6 +243,14 @@ recoil.structs.table.ColumnKey.prototype.compare = function(a) {
 };
 
 /**
+ * @param {?} y
+ * @return {boolean}
+ */
+recoil.structs.table.ColumnKey.prototype.equals = function(y) {
+    return this.compare(y) === 0;
+};
+
+/**
  * @return {string}
  */
 recoil.structs.table.ColumnKey.prototype.getId = function() {
@@ -378,10 +386,11 @@ recoil.structs.table.CombinedColumnKey.prototype.compare = function(a) {
 };
 
 /**
- * @return {string}
+ * @param {?} y
+ * @return {boolean}
  */
-recoil.structs.table.CombinedColumnKey.prototype.equals = function() {
-    return this.toString();
+recoil.structs.table.CombinedColumnKey.prototype.equals = function(y) {
+    return this.compare(y) === 0;
 };
 
 
