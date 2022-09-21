@@ -68,8 +68,6 @@ table.recoil-table-pager .page {
 }
 
 .recoil-table-pager.pagination {
-    /*display: flex;*/
-    /*flex-direction:column;*/
     margin:5px;
     width:100%;
 }
@@ -81,7 +79,6 @@ table.recoil-table-pager .page {
 }
 .recoil-table-pager-container .row {
     display: table-row;
-    /*flex-direction: row;*/
 }
 
 
