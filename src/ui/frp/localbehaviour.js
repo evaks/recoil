@@ -12,21 +12,24 @@ goog.require('recoil.ui.message.MessageEnum');
  * @param {!recoil.frp.Frp} frp
  * @param {string} version use this old values are lost if you upgrade
  * @param {string} key the key to store this var under
- * @param {?} defVal
+ * @param {?} defValB
  * @param {?} storage
  * @param {!recoil.db.Cache.Serializer=} opt_serializer
  * @return {!recoil.frp.Behaviour}
  */
-recoil.ui.frp.LocalBehaviour.create = function(frp, version, key, defVal, storage,  opt_serializer) {
+recoil.ui.frp.LocalBehaviour.create = function(frp, version, key, defValB, storage,  opt_serializer) {
     var k = 'recoil.ui.frp.store' + version + ':' + key;
     var res = recoil.ui.frp.LocalBehaviour.items_[k];
+    var util = new recoil.frp.Util(frp);
+    var defaultB = util.toBehaviour(defValB);
+
     var serializer = opt_serializer || new recoil.db.Cache.DefaultSerializer();
     if (res) {
         return res;
     }
     var storeB = /** @type {!recoil.frp.Behaviour} **/(frp.createB(null));
     res = frp.liftBI(
-        function() {
+        function(store, defVal) {
             if (storage.hasOwnProperty(k)) {
                 try {
                     return serializer.deserialize(storage[k]);
@@ -39,7 +42,7 @@ recoil.ui.frp.LocalBehaviour.create = function(frp, version, key, defVal, storag
             var sval = serializer.serialize(val);
             storage.setItem(k, sval);
             storeB.set(sval);
-        }, storeB);
+        }, storeB, defaultB);
     recoil.ui.frp.LocalBehaviour.items_[k] = res;
     return res;
 };

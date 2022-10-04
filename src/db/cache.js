@@ -101,3 +101,35 @@ recoil.db.Cache.DefaultSerializer.prototype.serialize = function(val) {
 recoil.db.Cache.DefaultSerializer.prototype.deserialize = function(val) {
     return JSON.parse(val);
 };
+
+
+/**
+ * @constructor
+ * @implements {recoil.db.Cache.Serializer}
+ */
+recoil.db.Cache.BigIntSerializer = function() {
+};
+
+/**
+ * @param {?} val
+ * @return {string}
+ */
+recoil.db.Cache.BigIntSerializer.prototype.serialize = function(val) {
+    return JSON.stringify(val);
+};
+/**
+ * @param {string} valIn
+ * @return {?}
+ */
+
+recoil.db.Cache.BigIntSerializer.prototype.deserialize = function(valIn) {
+    let val = JSON.parse(valIn);
+    if (typeof(val) == 'string') {
+        try {
+            return BigInt(val);
+        }
+        catch (e) {
+        }
+    }
+    return val;
+};
