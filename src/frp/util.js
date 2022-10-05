@@ -768,14 +768,15 @@ recoil.frp.util.defaultValue = function (defaultB) {
  * @param {!recoil.frp.Behaviour} defaultB the default value to set it to
  * @param {string} version use this old values are lost if you upgrade
  * @param {string} key the key to store this var under
+ * @param {?} storage either local or session storage
  * @param {!recoil.db.Cache.Serializer=} opt_serializer
  * @return {!recoil.frp.Behaviour}
  *
  */
-recoil.frp.util.localDefaultValue = function (defaultB, version, key, opt_serializer) {
+recoil.frp.util.localDefaultValue = function (defaultB, version, key, storage, opt_serializer) {
     let notSet = {};
     let frp = defaultB.frp();
-    let storeB = recoil.ui.frp.LocalBehaviour.create(frp, version, key, defaultB, localStorage, opt_serializer);
+    let storeB = recoil.ui.frp.LocalBehaviour.create(frp, version, key, defaultB, storage, opt_serializer);
     
     return frp.liftBI(function (store, def) {
         if (store === notSet) {
