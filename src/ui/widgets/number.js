@@ -482,22 +482,27 @@ recoil.ui.widgets.NumberWidget.prototype.attachStruct = function(options) {
             return enabled;
         }
         if (range.ranges.length !== 1) {
-            var rangeMessages = [];
+            let rangeMessages = [];
             range.ranges.forEach(function(range) {
-                rangeMessages.push(recoil.ui.messages.MIN_TO_MAX.resolve({min: range.min, max: range.max}));
+                if( range.min === range.max){
+                    rangeMessages.push(recoil.ui.message.getParamMsg(['distinctValue']).resolve({'distinctValue': range.min}));
+                }
+                else{
+                    rangeMessages.push(recoil.ui.messages.MIN_TO_MAX.resolve({min: range.min, max: range.max}));
+                }
             });
-            var info = {'ranges': recoil.ui.messages.join(rangeMessages, recoil.ui.messages.OR), step: range.step};
-            var message = range.step == 1 ? recoil.ui.messages.MIN_MAX_RANGES.resolve(info)
+            let info = {'ranges': recoil.ui.messages.join(rangeMessages, recoil.ui.messages.OR), step: range.step};
+            let message = range.step == 1 ? recoil.ui.messages.MIN_MAX_RANGES.resolve(info)
                 : recoil.ui.messages.MIN_MAX_RANGES_STEP.resolve(info);
             return new recoil.ui.BoolWithExplanation(true, message);
         }
         else {
-            var info = {'min': range.min, max: range.max, step: range.step};
-
-            var message = range.step == 1 ? recoil.ui.messages.MIN_MAX.resolve(info)
+            let info = {'min': range.min, max: range.max, step: range.step};
+            let message = range.step == 1 ? recoil.ui.messages.MIN_MAX.resolve(info)
                 : recoil.ui.messages.MIN_MAX_STEP.resolve(info);
             return new recoil.ui.BoolWithExplanation(true, message);
         }
+
     }, this.enabledB_, this.rangeB_);
     this.enabledHelper_.attach(
         /** @type {!recoil.frp.Behaviour<!recoil.ui.BoolWithExplanation>} */ (toolTipB),
@@ -606,21 +611,25 @@ recoil.ui.widgets.NumberWidget.prototype.updateErrors_ = function(el, errorsB, v
             }
 
             var errors = [];
-            var hasValid = false;
+            let hasValid = false;
             ranges.forEach(function(range) {
                 if (range.min <= range.max) {
                     hasValid = true;
                 }
-                errors.push(recoil.ui.messages.AND.resolve({first: range.min, second: range.max}));
+                if(range.min === range.max) {
+                    errors.push(recoil.ui.message.getParamMsg(['distinctValue']).resolve({'distinctValue': range.min}));
+                }
+                else{
+                    errors.push(recoil.ui.messages.MIN_TO_MAX.resolve({'min': range.min, 'max': range.max}));
+                }
             });
             var msg = recoil.ui.messages.join(errors, recoil.ui.messages.OR);
             if (me.rangeB_.get().step === 1) {
-                msg = recoil.ui.messages.MUST_BE_RANGE.resolve({'ranges': msg});
+                msg = recoil.ui.messages.MUST_BE.resolve({'ranges': msg});
             }
             else {
                 msg = recoil.ui.messages.MUST_BE_RANGE_STEP.resolve({'ranges': msg, step: me.rangeB_.get().step});
             }
-
             if (!hasValid) {
                 msg = recoil.ui.messages.NO_VALID_RANGES.resolve({'mesg': msg});
             }
