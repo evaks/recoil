@@ -246,6 +246,7 @@ recoil.ui.widgets.InputWidget.prototype.attachStruct = function(options) {
         if (!me.immediateB_.get()) {
             if (v.keyCode === goog.events.KeyCodes.ENTER) {
                  blurListener(v);
+                 me.focusB_.set(true);
             }
         }
         if (v.keyCode === goog.events.KeyCodes.ESC) {
