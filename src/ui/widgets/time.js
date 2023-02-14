@@ -170,7 +170,8 @@ recoil.ui.widgets.TimeWidget.prototype.updateState_ = function(helper) {
         };
         goog.style.setElementShown(this.time_, this.boundsB_.get().editable);
         goog.style.setElementShown(this.readonly_, !this.boundsB_.get().editable);
-
+        this.time_.disabled = !this.enabledB_.get().val();
+        
         var toSet = this.valueB_.get();
 
         if (toSet != null) {
@@ -205,6 +206,19 @@ recoil.ui.widgets.TimeWidget.prototype.updateState_ = function(helper) {
  * @return {boolean}
  */
 recoil.ui.widgets.TimeWidget.prototype.isValid = function(bounds, value) {
+    if (!bounds) {
+        return true;
+    }
+    if (bounds.min != null && value < bounds.min)  {
+        return false;
+    }
+    if (bounds.max != null && value > bounds.max) {
+        return false;
+    }
+
+    if (bounds.min != null && bounds.step != null) {
+        return (value - bounds.min) % bounds.step == 0;
+    }
     return true;
 };
 
@@ -215,6 +229,19 @@ recoil.ui.widgets.TimeWidget.prototype.isValid = function(bounds, value) {
 recoil.ui.widgets.TimeWidget.convertTimeToLocal = function(d) {
     return d.getHours() * 3600000 + 60000 * d.getMinutes() + d.getSeconds() * 10000;
 
+};
+
+/**
+ * @param {number} date in milliseconds, if this not at 00:00:00 will make it so
+ * @param {number} time in milliseconds
+ * @return {number} date in milli seconds
+ */
+recoil.ui.widgets.TimeWidget.convertToDateMs = function(date, time) {
+    let d = new Date(date);
+    // to it this way instead of adding time because of daylight savings
+    
+    d.setHours(Math.floor(time/3600000) , Math.floor(time/60000) % 60, Math.floor(time/1000) % 60, time % 1000);
+    return d.getTime();
 };
 
 /**
