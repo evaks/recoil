@@ -103,8 +103,8 @@ recoil.util.object.uniq = function() {
  *
  * @param {*} a
  * @param {*} b
- * @param {Array<Object>} aPath
- * @param {Array<Object>} bPath
+ * @param {Array} aPath
+ * @param {Array} bPath
  * @return {number} A negative number, zero, or a positive number as the first
  *     argument is less than, equal to, or greater than the second,
  *     respectively.
@@ -114,8 +114,8 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
 
     // check for loops
 
-    var aIndex = goog.array.indexOf(aPath, a);
-    var bIndex = goog.array.indexOf(bPath, b);
+    const aIndex = aPath.indexOf(a);
+    const bIndex = bPath.indexOf(b);
 
     if (aIndex !== -1 || bIndex !== -1) {
         if (aIndex === bIndex) {
@@ -236,7 +236,6 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
  * @return {boolean}
  */
 recoil.util.object.isEqual = function(a, b, opt_ignore) {
-
     return recoil.util.object.isEqual.isEqualRec_(a, b, [], [], [], opt_ignore || {});
 };
 
@@ -448,8 +447,8 @@ recoil.util.object.isContainerEqual = function(a, b, aPath, bPath, debugPath, ig
  * @private
  * @param {*} a
  * @param {*} b
- * @param {!Array<Object>} aPath
- * @param {!Array<Object>} bPath
+ * @param {!Array} aPath
+ * @param {!Array} bPath
  * @param {!Array<string>} debugPath
  * @param {!Object} ignore
  * @return {boolean}
@@ -458,8 +457,8 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath,
 
     // check for loops
 
-    var aIndex = goog.array.indexOf(aPath, a);
-    var bIndex = goog.array.indexOf(bPath, b);
+    const aIndex = aPath.indexOf(a);
+    const bIndex = bPath.indexOf(b);
 
     if (aIndex !== -1 || bIndex !== -1) {
         return recoil.util.object.isEqualDebug_(aIndex === bIndex, debugPath);
@@ -488,8 +487,8 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath,
         return recoil.util.object.isEqualDebug_(false, debugPath);
     }
 
-    var newAPath = goog.array.concat(aPath, [a]);
-    var newBPath = goog.array.concat(bPath, [b]);
+    var newAPath = aPath.concat([a]);
+    var newBPath = bPath.concat([b]);
 
     if (typeof (a) == 'number' && typeof(b) == 'number') {
         if (isNaN(a) && isNaN(b)) {

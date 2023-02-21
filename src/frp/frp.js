@@ -50,10 +50,7 @@ recoil.frp.TraverseDirection.prototype.calculate = function(behaviour, providers
  */
 
 recoil.frp.TraverseDirection.prototype.heapComparator = function() {
-    var me = this;
-    return function(a, b) {
-        return me.comparator_(a, b);
-    };
+    return this.comparator_;
 };
 /**
  *
@@ -397,7 +394,6 @@ recoil.frp.Frp.compareSeq_ = function(a, b) {
 
 recoil.frp.Frp.Direction_ = {};
 
-
 /**
  * Up is from providers to behaviour
  *
@@ -416,16 +412,18 @@ recoil.frp.Frp.Direction_.UP = new recoil.frp.TraverseDirection(
         var oldVal = behaviour.val_;
         var getDirty = recoil.frp.Frp.Direction_.getDirtyDown;
 
-        var params = [];
+
         // TODO put a loop around this so we get all events, take care if we clear the events
         // other behaviours may not get the events so we have to probably queue them unless
         // we consider an event as always a seqenence of events, then the lift just has to deal
         // with them this may allow more power to the function, alternatively events could just have
         // a sequence associated with them you only get one at a time, but this could be delt with
         // outside the engine xxx
+        var params = [];
         providers.forEach(function(b) {
             params.push(b.metaGet());
         });
+        
         var oldDirty = getDirty(behaviour.providers_);
         var newVal;
 
@@ -1664,7 +1662,7 @@ recoil.frp.Frp.prototype.liftBI_ = function(liftFunc, statusFactory, func, invFu
 
         if ((metaResultB !== null && metaResultB.good()) || eventReady) {
             try {
-            var result = func.apply(this, args);
+                var result = func.apply(this, args);
                 if (statusFactory === null) {
                     // if status factory null then we expect the result a status object
                     metaResult = result;
@@ -1850,10 +1848,11 @@ recoil.frp.TransactionManager.prototype.notifyWatchers_ = function(start) {
  * to a transaction nothing should fire until we exit out the top level
  *
  * @param {function()} callback
+ * @param {...?} args
  * @return {?}
  */
 
-recoil.frp.TransactionManager.prototype.doTrans = function(callback) {
+recoil.frp.TransactionManager.prototype.doTrans = function(callback, ...args) {
 
     if (this.debugState_) {
         this.debugState_.pendingTrans.push(callback);
@@ -2049,10 +2048,10 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
     var heapComparator = dir.heapComparator();
     while (cur !== undefined) {
         // calculate changed something
-        var deps;
-        var getDeps;
-        var nextItr = [];
-        var args;
+        let deps;
+        let getDeps;
+        let nextItr = [];
+        let args;
 
         if (this.debugState_) {
             getDeps = this.debugState_.getDeps;
@@ -2077,10 +2076,11 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
                 }
             };
 
-            args = [accessFunc, cur];
+            args = [accessFunc, cur].concat(cur.providers_);
+            /*
             for (var i = 0; i < cur.providers_.length; i++) {
                 args.push(cur.providers_[i]);
-            }
+            }*/
             if (this.debugger_ && !this.debugger_.preVisit(cur, dir === recoil.frp.Frp.Direction_.UP)) {
                 this.debugPaused_ = true;
                 this.debugState_ = {
@@ -2112,7 +2112,7 @@ recoil.frp.TransactionManager.prototype.propagate_ = function(dir) {
             }
         }
         var delayed = false;
-        for (i = 0; i < nextItr.length && !delayed; i++) {
+        for (let i = 0; i < nextItr.length && !delayed; i++) {
             delayed = nextItr[i].force && nextItr[i].behaviour === cur;
         }
         if (!delayed) {
