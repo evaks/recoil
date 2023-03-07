@@ -195,7 +195,8 @@ recoil.db.SQLQueryHelper.prototype.in = function(value, list) {
     if (list.length === 0) {
         return '(1=2)';
     }
-    return '(' + value + ' IN (' + list.join(', ') + '))';
+        
+    return '(' + value + ' IN (' + (typeof (list) == 'string' ? list: list.join(', ')) + '))';
 };
 
 /**
@@ -262,7 +263,10 @@ recoil.db.SQLQueryHelper.prototype.contains = function(scope, value, list, all) 
  * @return {string}
  */
 recoil.db.SQLQueryHelper.prototype.notIn = function(value, list) {
-    return '(' + value + ' NOT IN (' + list.join(', ') + '))';
+    if (list.length === 0) {
+        return '(1=1)';
+    }
+    return '(' + value + ' NOT IN (' + (typeof (list) == 'string' ? list : list.join(', ')) + '))';
 };
 
 
@@ -1651,10 +1655,17 @@ recoil.db.Query.prototype.fromFieldOrValue_ = function(field) {
 
 /**
  * @private
- * @param {!Array<*>|Array<!recoil.db.Query>} values non query values are assumed to be values
+ * @param {!Array<*>|Array<!recoil.db.Query>|!recoil.db.expr.Raw} values non query values are assumed to be values
  * @return {!Array<!recoil.db.QueryExp>}
  */
 recoil.db.Query.prototype.fromArray_ = function(values) {
+    if (values instanceof recoil.db.Query) {
+        if (values.expr_ instanceof recoil.db.expr.Raw) {
+            return values.expr_;
+        }
+    }
+
+
     return values.map(function(value) {
         if (value instanceof recoil.db.Query) {
             if (value.expr_ === null) {
@@ -2958,6 +2969,9 @@ recoil.db.expr.In.prototype.matches = function(scope) {
  * @return {string}
  */
 recoil.db.expr.In.prototype.query = function(scope) {
+    if (this.list_ instanceof recoil.db.expr.Raw) {
+        return scope.query().in(this.field_.query(scope), this.list_.query(scope));
+    }
     return scope.query().in (this.field_.query(scope), this.list_.map(function(v) { return v.query(scope); }));
 };
 
@@ -3020,6 +3034,9 @@ recoil.db.expr.NotIn.prototype.matches = function(scope) {
  * @return {string}
  */
 recoil.db.expr.NotIn.prototype.query = function(scope) {
+    if (this.list_ instanceof recoil.db.expr.Raw) {
+        return scope.query().notIn(this.field_.query(scope), this.list_.query(scope));
+    }
     return scope.query().notIn(this.field_.query(scope), this.list_.map(function(v) { return v.query(scope); }));
 };
 
@@ -3566,6 +3583,9 @@ recoil.db.expr.Contains.prototype.makeLookup = function(scope) {
  */
 recoil.db.expr.Contains.prototype.eval = function(scope) {
     var values = this.field_.eval(scope);
+    if (!(this.list_ instanceof Array)) {
+        return false; // this is a sub query we can't do this
+    }
     var lookup = this.list_.map(function(e) {return e.eval(scope);});
     for (var j = 0; j < lookup.length; j++) {
         var l = lookup[j];
