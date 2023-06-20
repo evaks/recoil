@@ -999,6 +999,38 @@ recoil.db.QueryOptions.prototype.serialize = function() {
 };
 
 
+/**
+ * @param {string} query
+ * @param {Object<string,boolean>} valid
+ * @param {function(string):string} escape
+ * @return {string}
+ */
+recoil.db.QueryOptions.prototype.bind = function(query, valid, escape) {
+    if (this.options_.binds) {
+        let subs = [];
+        for (let k in this.options_.binds) {
+            if (!valid[k]) {
+                continue;
+            }
+            let search = '?:' + k + ':';
+            let index = query.indexOf(search);
+            if (index != -1) {
+                subs.push({start: index, stop: index + search.length, val: this.options_.binds[k]});
+            }
+        }
+        // reverse order
+        subs.sort((x,y) => y.start - x.start);
+        for (let i = 0; i < subs.length; i++) {
+            let info = subs[i];
+            query = query.substring(0,info.start) + escape(info.val) + query.substring(info.stop);
+        }
+        return query;
+        
+    }
+    return query;
+};
+
+
 
 /**
  * @return {!recoil.db.QueryOptions}
