@@ -1003,9 +1003,10 @@ recoil.db.QueryOptions.prototype.serialize = function() {
  * @param {string} query
  * @param {Object<string,boolean>} valid
  * @param {function(string):string} escape
+ * @param {function(string, string, number):number} indexOf
  * @return {string}
  */
-recoil.db.QueryOptions.prototype.bind = function(query, valid, escape) {
+recoil.db.QueryOptions.prototype.bind = function(query, valid, escape, indexOf) {
     if (this.options_.binds) {
         let subs = [];
         for (let k in this.options_.binds) {
@@ -1013,10 +1014,13 @@ recoil.db.QueryOptions.prototype.bind = function(query, valid, escape) {
                 continue;
             }
             let search = '?:' + k + ':';
-            let index = query.indexOf(search);
-            if (index != -1) {
+            let index = indexOf(query, search, 0);
+            while (index != -1) {
                 subs.push({start: index, stop: index + search.length, val: this.options_.binds[k]});
+                index = indexOf(query, search, index + Math.min(1,search.length));
+                
             }
+
         }
         // reverse order
         subs.sort((x,y) => y.start - x.start);
