@@ -1164,6 +1164,30 @@ recoil.structs.table.MutableTable.prototype.findRow = function(compare) {
     return res;
 };
 
+
+/**
+ * gets the best matching row, compare should return false if doesn't match
+ * and a higher number for a better match
+ *
+ * @param {function(!recoil.structs.table.TableRow):(number|boolean)} compare
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.MutableTable.prototype.findBestRow = function(compare) {
+    let res = null;
+    let bestScore = null;
+
+    this.forEach(function(row) {
+        let score = compare(row);
+        // if true assume a score of 0
+        score = score === true ? 0 : score;
+        if (score !== false && (bestScore == null || score > bestScore)) {
+            bestScore = score;            
+            res = row;
+        }
+    });
+    return res;
+};
+
 /**
  * Sets the value for the cell
  * @template CT
@@ -1471,6 +1495,30 @@ recoil.structs.table.Table.prototype.size = function() {
 recoil.structs.table.Table.prototype.getRow = function(keys) {
     var keyRow = recoil.structs.table.ColumnKey.normalizeColumns(this.primaryColumns_, keys);
     return this.rows_.findFirst(keyRow);
+};
+
+
+/**
+ * gets the best matching row, compare should return false if doesn't match
+ * and a higher number for a better match
+ *
+ * @param {function(!recoil.structs.table.TableRow):(number|boolean)} compare
+ * @return {recoil.structs.table.TableRow}
+ */
+recoil.structs.table.Table.prototype.findBestRow = function(compare) {
+    let res = null;
+    let bestScore = null;
+
+    this.forEach(function(row) {
+        let score = compare(row);
+        // if true assume a score of 0
+        score = score === true ? 0 : score;
+        if (score !== false && (bestScore == null || score > bestScore)) {
+            bestScore = score;
+            res = row;
+        }
+    });
+    return res;
 };
 
 
