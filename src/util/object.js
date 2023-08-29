@@ -172,12 +172,14 @@ recoil.util.object.compare_ = function(a, b, aPath, bPath) {
     var newBPath = goog.array.concat(bPath, [b]);
 
     if (a instanceof Array) {
-
-        return goog.array.compare3(/** @type {!IArrayLike} */
-            (a), /** @type {!IArrayLike} */
-            (b), function(a, b) {
-                return recoil.util.object.compare_(a, b, newAPath, newBPath);
-            });
+        let l = Math.min(a.length, b.length);
+        for (let i = 0; i < l; i++) {
+            let res = recoil.util.object.compare_(a[i], b[i], newAPath, newBPath);
+            if (res != 0) {
+                return res;
+            }
+        }
+        return a.length - b.length;
     }
 
     if (a instanceof Object && b instanceof Object) {
@@ -454,9 +456,6 @@ recoil.util.object.isContainerEqual = function(a, b, aPath, bPath, debugPath, ig
  * @return {boolean}
  */
 recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath, ignore) {
-
-    // check for loops
-
     const aIndex = aPath.indexOf(a);
     const bIndex = bPath.indexOf(b);
 
@@ -487,25 +486,36 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath,
         return recoil.util.object.isEqualDebug_(false, debugPath);
     }
 
-    var newAPath = aPath.concat([a]);
-    var newBPath = bPath.concat([b]);
-
     if (typeof (a) == 'number' && typeof(b) == 'number') {
         if (isNaN(a) && isNaN(b)) {
             return true;
         }
     }
     if (a instanceof Array) {
+        let newAPath = aPath;
+        let newBPath = bPath;
         var idx = 0;
-
-        return recoil.util.object.isEqualDebug_(goog.array.equals(/** @type {IArrayLike} */
-            (a), /** @type {IArrayLike} */
-            (b), function(a, b) {
-                var newDebugPath = goog.array.concat(debugPath, '[' + idx + ']');
-
-                return recoil.util.object.isEqual.isEqualRec_(
-                    a, b, newAPath, newBPath, newDebugPath, ignore);
-            }), debugPath);
+        if (a.length != b.length) {
+            return false;
+        }
+        
+        try {
+            aPath.push(a);
+            bPath.push(b);
+            for (let i = 0; i < a.length; i++) {
+                let newDebugPath = debugPath.concat('[' + idx + ']');
+                if (!recoil.util.object.isEqual.isEqualRec_(
+                    a[i], b[i], newAPath, newBPath, newDebugPath, ignore)) {
+                    return false;
+                }
+                
+            }
+            return true;
+        } finally {
+            aPath.pop();
+            bPath.pop();
+        }
+        
     }
 
     if (a instanceof Object || b instanceof Object) {
@@ -513,6 +523,13 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath,
             return recoil.util.object.isEqualDebug_(false, debugPath);
         }
 
+
+        try {
+            aPath.push(a);
+            bPath.push(b);
+            let newAPath = aPath;
+            let newBPath = bPath;
+        
         for (var k in a) {
             if (ignore[k]) {
                 continue;
@@ -521,6 +538,10 @@ recoil.util.object.isEqual.isEqualRec_ = function(a, b, aPath, bPath, debugPath,
             if (!(k in b) || !recoil.util.object.isEqual.isEqualRec_(a[k], b[k], newAPath, newBPath, newDebugPath, ignore)) {
                 return recoil.util.object.isEqualDebug_(false, newDebugPath);
             }
+        }
+        } finally {
+            aPath.pop();
+            bPath.pop();
         }
         for (k in b) {
             if (ignore[k]) {
