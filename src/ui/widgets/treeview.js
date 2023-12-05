@@ -864,6 +864,33 @@ recoil.ui.widgets.TreeView.minDifference = function(origList, newList, isEqual) 
 };
 
 /**
+ * @param {!recoil.frp.Frp} frp
+ * @param {string} key
+ * @param {string} version
+ * @param {?=} opt_defaultExpanded
+ * @return {!recoil.frp.Behaviour}
+ */
+recoil.ui.widgets.TreeView.createExpanded = function (frp, key, version, opt_defaultExpanded) {
+    let defaultExpanded = opt_defaultExpanded || {};
+    
+    let expandedInternalB = frp.createB(false);
+    var expandedStoreB = recoil.ui.frp.LocalBehaviour.createSessionLocal(
+        frp, version , key, defaultExpanded);
+
+    return frp.liftBI(
+        function(store, internal) {
+            if (internal) {
+                return {internal: true, expanded: store};
+            }
+            return {expanded: store};
+        }, function(val) {
+            expandedInternalB.set(!!val.internal);
+            expandedStoreB.set(val.expanded);
+            
+        }, expandedStoreB, expandedInternalB);
+    
+};
+/**
  *
  * @return {!goog.ui.Component}
  */
