@@ -220,6 +220,23 @@ recoil.ui.messages.PREVIOUS = recoil.ui.message.getParamMsg('Previous');
 recoil.ui.messages.FINISH = recoil.ui.message.getParamMsg('Finish');
 
 
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.TRAFFIC_CLASS = recoil.ui.message.getParamMsg('Traffic Class');
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.UNCHANGED = recoil.ui.message.getParamMsg('unchanged');
+
+/**
+ * @type {!recoil.ui.message.Message}
+ * @final
+ */
+recoil.ui.messages.DEFAULT = recoil.ui.message.getParamMsg('Default');
 
 /**
  * combines multiple messages, this logic may need to be changed for different languages
