@@ -70,18 +70,21 @@ recoil.structs.Tree.prototype.setValue = function(path, val) {
     var seen = [];
     for (var idx = 0; idx < path.length; idx++) {
         var key = path[idx];
-        seen.push(cur);
+        let old = cur;
         cur = cur.keyMap_[key];
+        seen.push({node: old, idx: cur.idx});
+
         if (!cur) {
             return this;
         }
+        cur = cur.node;
     }
     var res = new recoil.structs.Tree(cur.key_, val, cur.children_);
     for (var i = seen.length - 1; i >= 0; i--) {
         var oldNode = seen[i];
         var newChildren = goog.array.clone(oldNode.node.children_);
         newChildren[oldNode.idx] = res;
-        res = new recoil.structs.Tree(cur.key_, val, newChildren);
+        res = new recoil.structs.Tree(oldNode.node.key_, oldNode.node.value_, newChildren);
     }
 
 
