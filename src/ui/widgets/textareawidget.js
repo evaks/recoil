@@ -100,6 +100,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
     this.maxLengthB_ = structs.get('maxLength', optionsB, null);
     this.valueB_ = structs.get('value', optionsB);
     this.minHeightB_ = structs.get('minHeight', optionsB, 70);
+    this.displayLengthB_ = structs.get('displayLength', optionsB, null);    
     this.immediateB_ = structs.get('immediate', optionsB, false);
     this.enabledB_ = structs.get('enabled', optionsB, recoil.ui.BoolWithExplanation.TRUE);
     this.editableB_ = structs.get('editable', optionsB, true);
@@ -111,7 +112,7 @@ recoil.ui.widgets.TextAreaWidget.prototype.attachStruct = function(options) {
           recoil.ui.BoolWithExplanation.and(frp, this.enabledB_, readyB));
 
     this.helper_.attach(this.valueB_, this.immediateB_, this.enabledB_, this.editableB_, this.placeholderB_, this.maxLengthB_);
-    this.configHelper_.attach(this.minHeightB_);
+    this.configHelper_.attach(this.minHeightB_, this.displayLengthB_);
 
     var me = this;
     this.changeHelper_.listen(this.scope_.getFrp().createCallback(function(v) {
@@ -170,7 +171,32 @@ recoil.ui.widgets.TextAreaWidget.prototype.updateState_ = function(helper) {
 recoil.ui.widgets.TextAreaWidget.prototype.updateConfig_ = function(helper) {
 
     if (helper.isGood()) {
-        this.textarea_.setMinHeight(this.minHeightB_.get());
+        if (!this.textarea_.getElement()) {
+            this.textarea_.createDom();
+        }
+
+        let h = this.minHeightB_.get();
+        let w = this.displayLengthB_.get();
+        this.textarea_.setMinHeight(h);
+        
+        let el = this.textarea_.getElement();            
+        if (el) {
+            if (!el.scrollHeight) {
+                const resizeObserver = new ResizeObserver(
+                    entries => {
+                        if (entries[0]["target"].scrollHeight) {
+                            this.textarea_.setMinHeight(h);
+                            resizeObserver.disconnect();
+                            
+                        }
+                    }
+                );
+                resizeObserver.observe(el);
+            }
+            
+            el.style.minWidth = w == null ? "" : w + "em";
+        }            
+
     }
 
 };
