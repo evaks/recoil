@@ -452,8 +452,32 @@ recoil.structs.table.Table = function(table) {
     });
 };
 
+
+
+
 /**
- * very efficent way of setting the meta on a table
+ * @param {function(recoil.structs.table.TableRowInterface,recoil.structs.table.TableRowInterface)} comp
+ * @return {!recoil.structs.table.Table}
+ */
+recoil.structs.table.Table.prototype.sort = function(comp) {
+    let rows = new goog.structs.AvlTree(comp);
+    this.rows_.inOrderTraverse(row => {rows.add(row);});
+
+    let pos = 0;
+
+    let res = this.createEmpty();
+
+    rows.inOrderTraverse(row => {
+        let r = row.unfreeze();
+        r.setPos(pos++);
+        res.addRow(r);
+    });
+    return res.freeze();
+    
+};
+
+/**
+ * very inefficent way of setting the meta on a table
  * it doesn't change this table but returns an new table
  * with new meta
  * @param {!Object} meta
