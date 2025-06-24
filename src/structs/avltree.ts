@@ -806,7 +806,7 @@ export class AvlTree<Type> {
         return res;
     }
     
-    safeFind() : Type {
+    safeFind(val:Type) : Type {
         let res = this.findFirst(val);
         if (res === null) {
             this.add(val);
@@ -814,7 +814,7 @@ export class AvlTree<Type> {
         }
         return res;
     }
-    equals():boolean {
+    equals(other:any):boolean {
         if (other instanceof AvlTree) {
             var count = other.getCount();
             if (this.getCount() != count) {
