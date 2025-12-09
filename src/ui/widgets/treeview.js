@@ -370,7 +370,7 @@ recoil.ui.widgets.TreeNode.prototype.getLabelDom = function() {
             res.appendChild(el);
         }
         else {
-            this.component_.render(el);
+            this.component_.render(res);
         }
 
     }
