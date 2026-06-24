@@ -366,6 +366,32 @@ Date.prototype.compare = function(other) {
  * @param {?} other
  * @return {boolean}
  */
+Set.prototype.equals = function(other) {
+
+    if (other instanceof Set) {
+        if (other.size != this.size) {
+            return false;
+        }
+        let it = this.keys();
+        let val = it.next();
+        while(!val.done) {
+            if (!other.has(val.value)) {
+                return false;
+            }
+            val = it.next();
+        }
+            
+        return true;
+    }
+    return false;
+};
+
+
+
+/**
+ * @param {?} other
+ * @return {boolean}
+ */
 goog.structs.AvlTree.prototype.equals = function(other) {
     if (other instanceof goog.structs.AvlTree) {
         var count = other.getCount();
